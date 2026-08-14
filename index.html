@@ -253,6 +253,15 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
   </div>
 
   <div class="tool">
+    <h3>Feet-inches → decimal feet + metres</h3>
+    <div class="row"><label>Plan dimension</label><input type="text" id="fi" placeholder="12' 6 1/2&quot;" style="width:240px"></div>
+    <div class="row"><label>Decimal feet</label><span class="out" id="fi-ft"></span></div>
+    <div class="row"><label>Metres</label><span class="out" id="fi-m"></span></div>
+    <div class="err" id="fi-err"></div>
+    <div class="hint">Type it as the plan writes it — 12' 6 1/2&quot;, 12-6, 6 1/2&quot; (inches only), or a plain number for feet. Both outputs are ready to drop into CAD.</div>
+  </div>
+
+  <div class="tool">
     <h3>Area converter</h3>
     <div class="agrid">
       <div class="cell"><label>m²</label><input type="text" id="a-m2" autocomplete="off"></div>
@@ -383,7 +392,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 <script>
 "use strict";
 const BUILD="1.2";
-const NEWS=["New Training tab: 34 walkthrough videos grouped by topic (Beginner, GPS, Surface & cross-sections, PMBC & closure, BCLS/PM, General)","Video links open directly; obsolete videos left out"];
+const NEWS=["New Training tab: 34 walkthrough videos grouped by topic (Beginner, GPS, Surface & cross-sections, PMBC & closure, BCLS/PM, General)","Video links open directly; obsolete videos left out","New tool: feet-inches \u2192 decimal feet + metres, for reading architectural plans into CAD"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1062,6 +1071,86 @@ var ft=document.getElementById("ft"),mt=document.getElementById("mt"),
  fto=document.getElementById("ft-out"),mto=document.getElementById("mt-out");
 ft.oninput=function(){mto.textContent="";var v=parseFloat(ft.value);fto.textContent=isNaN(v)?"":"= "+(v*FT).toFixed(3)+" m";mt.value="";};
 mt.oninput=function(){fto.textContent="";var v=parseFloat(mt.value);mto.textContent=isNaN(v)?"":"= "+(v/FT).toFixed(3)+" ft";ft.value="";};
+
+/* feet-inches -> decimal feet + metres (one direction, as written on plans) */
+function parseFeetInches(raw){
+ if(raw==null)return null;
+ var s=String(raw).trim();
+ if(!s)return null;
+ // normalize quote glyphs: curly/prime marks -> straight
+ s=s.replace(/[\u2032\u2019\u02B9]/g,"'").replace(/[\u2033\u201D\u02BA]/g,'"');
+ // strip a trailing inch mark and any surrounding spaces we don't need for logic later
+ var feet=0, inches=0, matched=false, hasFeet=false;
+
+ // Case A: explicit feet mark  e.g. 12' 6 1/2"  or 12'6"  or 12'
+ var mFeet=s.match(/^\s*(-?\d+(?:\.\d+)?)\s*'\s*(.*)$/);
+ if(mFeet){
+  feet=parseFloat(mFeet[1]);hasFeet=true;
+  var rest=mFeet[2].replace(/"\s*$/,"").trim();
+  if(rest!==""){
+   var inc=parseInchPart(rest);
+   if(inc===null)return null;
+   inches=inc;
+  }
+  matched=true;
+ } else {
+  // Case B: feet-inches with a hyphen separator and NO feet mark, e.g. 12-6  or 12-6 1/2  or 12-6-1/2
+  //   Only treat leading number as feet if there is an inch component after a hyphen.
+  var mHy=s.match(/^\s*(-?\d+)\s*-\s*(.+)$/);
+  var handled=false;
+  if(mHy){
+   var maybeInch=mHy[2].replace(/"\s*$/,"").trim();
+   // If the remainder parses as an inch value (incl. fraction), use it.
+   var inc2=parseInchPart(maybeInch);
+   if(inc2!==null && inc2<12.0000001){
+    feet=parseFloat(mHy[1]); inches=inc2; matched=true; handled=true; hasFeet=true;
+   }
+  }
+  if(!handled){
+   // Case C: inches only (has an inch mark, or is clearly inches) e.g. 6 1/2"  or 6"
+   if(/"\s*$/.test(s) || /^\s*\d+\s+\d+\s*\/\s*\d+\s*$/.test(s) || /^\s*\d+\s*\/\s*\d+\s*$/.test(s)){
+    var inc3=parseInchPart(s.replace(/"\s*$/,"").trim());
+    if(inc3===null)return null;
+    feet=0; inches=inc3; matched=true;
+   } else {
+    // Case D: bare number => feet (decimal allowed)
+    var f=parseFloat(s);
+    if(isNaN(s.replace(/[-.\d]/g,"")===""?f:NaN))return null;
+    if(!/^\s*-?\d+(?:\.\d+)?\s*$/.test(s))return null;
+    feet=f; inches=0; matched=true;
+   }
+  }
+ }
+ if(!matched)return null;
+ if(inches<0)return null;
+ if(hasFeet&&inches>=12.0000001)return null; /* 12'13" is malformed; 18" alone is fine */
+ var sign=feet<0?-1:1;
+ var decFeet=sign*(Math.abs(feet)+inches/12);
+ return decFeet;
+}
+// parse an inch part like  "6 1/2", "6-1/2", "6", "1/2", "6.5"
+function parseInchPart(str){
+ var s=String(str).trim();
+ if(s==="")return 0;
+ // whole + fraction:  6 1/2   or  6-1/2
+ var m=s.match(/^(\d+)\s*[- ]\s*(\d+)\s*\/\s*(\d+)$/);
+ if(m){var wh=+m[1],n=+m[2],dd=+m[3];if(dd===0)return null;return wh+n/dd;}
+ // fraction only: 1/2
+ m=s.match(/^(\d+)\s*\/\s*(\d+)$/);
+ if(m){var n2=+m[1],d2=+m[2];if(d2===0)return null;return n2/d2;}
+ // decimal or whole inches
+ if(/^\d+(?:\.\d+)?$/.test(s))return parseFloat(s);
+ return null;
+}
+var fi=document.getElementById("fi"),fift=document.getElementById("fi-ft"),fim=document.getElementById("fi-m"),fierr=document.getElementById("fi-err");
+fi.oninput=function(){
+ fierr.textContent="";fift.textContent="";fim.textContent="";
+ if(!fi.value.trim())return;
+ var dec=parseFeetInches(fi.value);
+ if(dec===null){fierr.textContent="Couldn't read that — try  12' 6 1/2 in,  12-6,  or  6 1/2 in.";return;}
+ fift.textContent="= "+dec.toFixed(4)+" ft";
+ fim.textContent="= "+(dec*FT).toFixed(4)+" m";
+};
 
 /* area converter */
 var AU={m2:1,ft2:FT*FT,ac:4046.8564224,ha:10000};

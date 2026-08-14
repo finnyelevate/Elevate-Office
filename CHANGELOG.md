@@ -4,7 +4,8 @@
 - New Training tab: 34 walkthrough videos pulled from the SharePoint Training Videos folder, grouped by topic — Beginner (9), GPS (5), Surface/modelling/cross-sections (3), PMBC/closure/parcel map (5), BCLS & Project Manager (6), General/other (6).
 - Each entry links straight to the video (Vidyard, YouTube, Screencast) extracted from the folder's .txt pointer files; entries with a second reference link show it alongside.
 - The folder's "obsolete" videos are intentionally excluded so staff aren't learning retired workflows.
-- No changes to checklists, tools, or samples.
+- New tool: feet-inches → decimal feet + metres. Type a dimension as written on an architectural plan (12' 6 1/2", 12-6, 6 1/2" inches-only, or a bare number for feet) and get both decimal feet and metres for CAD entry. One direction only, by design.
+- No changes to checklists or samples.
 
 ## Build 1.1 — 2026-08-14
 - Samples tab expanded from a stub to the real library: 22 example plans pulled from the SharePoint samples folder, grouped by type — Topos (7), Certificates (4), Sketches (5), FAR (2), Block plans & as-builts (2), Monitoring (2). Legal-plan samples unchanged.
