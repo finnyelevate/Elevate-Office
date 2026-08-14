@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#22262C">
+<title>Elevate Office</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F5F1; --panel:#FFFFFF; --ink:#22262C; --faint:#6B7078;
+  --hair:#D9D6CC; --blue:#2456A6; --blue-soft:#E8EEF8;
+  --green:#2E7D4F; --green-soft:#E7F2EB;
+  --orange:#D96C1E; --orange-soft:#FBEFE3;
+  --na:#8A8F98; --na-soft:#EEEFF1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background-image:linear-gradient(var(--hair) 1px,transparent 1px),linear-gradient(90deg,var(--hair) 1px,transparent 1px);
+  background-size:28px 28px;background-position:-1px -1px;}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+header{background:var(--ink);color:#F2F1EC;padding:0 20px;display:flex;align-items:center;gap:26px;height:54px;position:sticky;top:0;z-index:20}
+header .logo{font-family:"Barlow Semi Condensed";font-weight:700;font-size:19px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}
+header .logo span{color:#7FA8E0}
+header .bno{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:11px;color:#9096A0}
+nav{display:flex;gap:2px;height:100%}
+nav button{background:none;border:none;color:#B9BCC2;font-family:"Barlow Semi Condensed";font-weight:600;font-size:14.5px;letter-spacing:.08em;text-transform:uppercase;padding:0 16px;cursor:pointer;border-bottom:3px solid transparent;height:100%}
+nav button.on{color:#fff;border-bottom-color:#7FA8E0}
+nav button:hover{color:#fff}
+main{max-width:960px;margin:0 auto;padding:26px 18px 90px}
+.view{display:none}.view.on{display:block}
+h1.pg{font-family:"Barlow Semi Condensed";font-weight:700;font-size:24px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+p.sub{color:var(--faint);margin-bottom:22px;max-width:660px}
+#banner{display:none;background:var(--orange);color:#fff;padding:10px 16px;font-size:14px;font-weight:600;text-align:center}
+#banner.show{display:block}
+/* what's new */
+.news{background:var(--panel);border:1px solid var(--hair);border-left:5px solid var(--blue);padding:14px 16px;margin-bottom:20px;position:relative}
+.news h4{font-family:"Barlow Semi Condensed";font-weight:600;font-size:14px;letter-spacing:.07em;text-transform:uppercase;color:var(--blue);margin-bottom:6px}
+.news ul{margin-left:18px;font-size:13.5px;color:var(--ink)}
+.news li{margin:3px 0}
+.news .x{position:absolute;top:8px;right:10px;border:none;background:none;color:var(--faint);font-size:16px;cursor:pointer}
+/* library */
+.inprog{margin-bottom:22px}
+.inprog h4{font-family:"Barlow Semi Condensed";font-weight:600;font-size:14px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.ipitem{background:var(--panel);border:1px solid var(--hair);padding:10px 14px;display:flex;gap:12px;align-items:center;margin-bottom:6px;cursor:pointer}
+.ipitem:hover{border-color:var(--blue)}
+.ipitem .j{font-family:"IBM Plex Mono",monospace;font-weight:500}
+.ipitem .n{flex:1}
+.ipitem .p{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--faint)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--hair);border-top:4px solid var(--blue);padding:16px;cursor:pointer;transition:box-shadow .15s}
+.card:hover{box-shadow:0 4px 14px rgba(30,40,60,.12)}
+.card h3{font-family:"Barlow Semi Condensed";font-weight:600;font-size:17px;letter-spacing:.03em}
+.card .yr{color:var(--faint);font-size:12.5px;margin-top:2px}
+.card .st{margin-top:12px;font-size:12.5px;color:var(--blue);font-weight:600}
+.card.dis{opacity:.55;cursor:default;border-top-color:var(--na)}
+.card.dis:hover{box-shadow:none}
+.card.dis .st{color:var(--na)}
+/* title block */
+.tblock{background:var(--panel);border:2px solid var(--ink);display:grid;grid-template-columns:1.7fr .9fr .8fr .9fr .9fr;margin-bottom:6px}
+.tb{padding:9px 12px;border-right:1px solid var(--ink)}
+.tb:last-child{border-right:none}
+.tb label{display:block;font-family:"Barlow Semi Condensed";font-weight:600;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:2px}
+.tb .v{font-size:15px;font-weight:600}
+.tb input{border:none;border-bottom:1px dashed var(--hair);width:100%;font:inherit;font-weight:600;background:transparent;outline:none;padding:1px 0}
+.tb input:focus{border-bottom-color:var(--blue)}
+.tb input.mono{font-family:"IBM Plex Mono",monospace;font-size:14.5px}
+.tbar{display:flex;gap:8px;align-items:center;margin:10px 0 14px;flex-wrap:wrap}
+.btn{border:1px solid var(--ink);background:var(--panel);font-family:"Barlow Semi Condensed";font-weight:600;font-size:13px;letter-spacing:.07em;text-transform:uppercase;padding:8px 14px;cursor:pointer}
+.btn:hover{background:var(--ink);color:#fff}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.pri:hover{background:#1B4487}
+.btn.pri.pulse{animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(36,86,166,.5)}50%{box-shadow:0 0 0 7px rgba(36,86,166,0)}}
+.btn.ghost{border-color:var(--hair);color:var(--faint)}
+.spacer{flex:1}
+.back{background:none;border:none;color:var(--blue);font-weight:600;cursor:pointer;font-size:14px;padding:0;margin-bottom:14px}
+.kbdhint{font-size:12px;color:var(--faint);margin-bottom:14px;display:none}
+@media(hover:hover) and (pointer:fine){.kbdhint{display:block}}
+kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;padding:0 5px;font-family:"IBM Plex Mono",monospace;font-size:11px}
+.prog{height:6px;background:var(--na-soft);margin-bottom:18px;position:relative}
+.prog i{position:absolute;left:0;top:0;bottom:0;background:var(--green);transition:width .2s}
+/* sections */
+.sec{background:var(--panel);border:1px solid var(--hair);margin-bottom:14px}
+.sec.pm{border:1px solid var(--orange);border-left:5px solid var(--orange)}
+.sech{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;user-select:none}
+.sech h2{font-family:"Barlow Semi Condensed";font-weight:600;font-size:15.5px;letter-spacing:.05em;text-transform:uppercase;flex:1}
+.sec.pm .sech h2{color:var(--orange)}
+.sech .cnt{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--faint)}
+.sech .car{transition:transform .15s;color:var(--faint);font-size:12px}
+.sec.closed .car{transform:rotate(-90deg)}
+.sec.closed .items,.sec.closed .secfoot{display:none}
+.pmnote{padding:0 14px 10px;font-size:12.5px;color:var(--orange)}
+.secfoot{border-top:1px solid #EFEDE6;padding:9px 14px;font-size:12.5px;color:var(--faint);background:#FBFAF7}
+.secfoot b{color:var(--ink);font-weight:600}
+.secfoot .done{color:var(--green);font-weight:600}
+/* items */
+.item{display:flex;gap:10px;padding:10px 14px;border-top:1px solid #EFEDE6;align-items:flex-start;outline:none}
+.item:focus{background:var(--blue-soft);box-shadow:inset 3px 0 0 var(--blue)}
+.item .txt{flex:1;cursor:pointer}
+.item .txt .d{color:var(--faint);font-size:13px;display:none;margin-top:3px}
+.item.open .txt .d{display:block}
+.item .txt .more{color:var(--blue);font-size:12px;font-weight:600}
+.item.yes .txt .m{color:var(--faint)}
+.item .stamp{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--faint);margin-top:3px;display:none}
+.item.yes .stamp,.item.na .stamp{display:block}
+.tog{display:flex;gap:5px;flex-shrink:0;margin-top:1px}
+.tog button{width:44px;height:28px;border:1px solid var(--hair);background:var(--panel);font-family:"Barlow Semi Condensed";font-weight:600;font-size:12px;letter-spacing:.05em;cursor:pointer;color:var(--faint)}
+.item.yes .tog .by{background:var(--green);border-color:var(--green);color:#fff}
+.item.na .tog .bn{background:var(--na);border-color:var(--na);color:#fff}
+/* tools */
+.tool{background:var(--panel);border:1px solid var(--hair);border-top:4px solid var(--blue);padding:20px;margin-bottom:16px;max-width:680px}
+.tool h3{font-family:"Barlow Semi Condensed";font-weight:600;font-size:17px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px}
+.tool .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.tool label{font-size:13px;color:var(--faint);width:130px}
+.tool input[type=text]{border:1px solid var(--hair);padding:9px 10px;font-family:"IBM Plex Mono",monospace;font-size:15px;width:200px;outline:none}
+.tool input[type=text]:focus{border-color:var(--blue)}
+.tool input.sm{width:110px}
+.tool .out{font-family:"IBM Plex Mono",monospace;font-size:15px;font-weight:500;color:var(--blue)}
+.tool .raw{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--faint)}
+.tool .err{color:var(--orange);font-size:13px}
+.hint{font-size:12.5px;color:var(--faint);margin-top:6px}
+.seg{display:inline-flex;border:1px solid var(--hair)}
+.seg button{border:none;background:var(--panel);font-family:"Barlow Semi Condensed";font-weight:600;font-size:13px;padding:7px 14px;cursor:pointer;color:var(--faint)}
+.seg button.on{background:var(--blue);color:#fff}
+/* area grid */
+.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;max-width:640px}
+.agrid .cell label{display:block;font-family:"Barlow Semi Condensed";font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:3px}
+.agrid input{width:100%;border:1px solid var(--hair);padding:9px 10px;font-family:"IBM Plex Mono",monospace;font-size:15px;outline:none}
+.agrid input:focus{border-color:var(--blue)}
+/* invert calc */
+.invrow{display:grid;grid-template-columns:1.1fr .9fr auto .7fr 1.5fr auto;gap:8px;align-items:center;margin-bottom:8px}
+.invrow input[type=text]{border:1px solid var(--hair);padding:8px 9px;font-family:"IBM Plex Mono",monospace;font-size:14px;width:100%;outline:none}
+.invrow input[type=text]:focus{border-color:var(--blue)}
+.invrow .res{font-family:"IBM Plex Mono",monospace;font-size:13.5px;color:var(--blue);white-space:nowrap}
+.invrow .del{border:none;background:none;color:var(--faint);cursor:pointer;font-size:15px}
+.invrow .top{display:flex;gap:4px;align-items:center;font-size:12px;color:var(--faint);white-space:nowrap}
+.invhead{display:grid;grid-template-columns:1.1fr .9fr auto .7fr 1.5fr auto;gap:8px;font-family:"Barlow Semi Condensed";font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:5px}
+/* samples + resources */
+.lgrp{background:var(--panel);border:1px solid var(--hair);margin-bottom:14px;padding:16px 18px}
+.lgrp h3{font-family:"Barlow Semi Condensed";font-weight:600;font-size:15.5px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lgrp h3 a{font-size:11.5px;color:var(--blue);letter-spacing:.05em}
+.lgrp ul{list-style:none}
+.lgrp li{padding:6px 0;border-top:1px solid #EFEDE6}
+.lgrp li:first-child{border-top:none}
+.lgrp a{color:var(--ink);text-decoration:none}
+.lgrp a:hover{color:var(--blue);text-decoration:underline}
+.lgrp .note{font-size:12.5px;color:var(--faint)}
+.tag{display:inline-block;background:var(--blue-soft);color:var(--blue);font-size:11px;font-weight:600;padding:1px 7px;margin-left:6px;letter-spacing:.04em}
+.gis{columns:2;column-gap:30px}
+@media(max-width:640px){.tblock{grid-template-columns:1fr 1fr}.tb{border-bottom:1px solid var(--ink)}.gis{columns:1}.invrow,.invhead{grid-template-columns:1fr 1fr auto;grid-auto-rows:auto}.invhead{display:none}}
+#dropzone{display:none;position:fixed;inset:0;background:rgba(36,86,166,.12);border:4px dashed var(--blue);z-index:50;align-items:center;justify-content:center;font-family:"Barlow Semi Condensed";font-weight:600;font-size:22px;color:var(--blue);letter-spacing:.05em;text-transform:uppercase}
+#dropzone.show{display:flex}
+/* print */
+@media print{
+ header,nav,.tbar,.back,.kbdhint,.prog,#banner,.news,.tog,.tool,.card,.more{display:none !important}
+ body{background:#fff}
+ .view{display:none}.view.on{display:block}
+ #cl-open{display:block !important}
+ .sec{border:1px solid #999;page-break-inside:avoid}
+ .item .txt .d{display:block}
+ .item::before{content:"\2610";margin-right:6px;font-size:15px}
+ .item.yes::before{content:"\2611"}
+ .item.na::before{content:"\2612"}
+ .item .stamp{display:block}
+}
+</style>
+</head>
+<body>
+<div id="banner">Opened in an in-app or private browser — changes here can be lost, so the app is read-only. Open in Chrome or Edge instead.</div>
+<header>
+  <div class="logo">Elevate <span>Office</span></div>
+  <nav>
+    <button class="on" data-v="checklists">Checklists</button>
+    <button data-v="tools">Tools</button>
+    <button data-v="samples">Samples</button>
+    <button data-v="resources">Resources</button>
+  </nav>
+  <div class="bno" id="bno"></div>
+</header>
+<div id="dropzone">Drop checklist file to import</div>
+<main>
+
+<div class="view on" id="v-checklists">
+  <div id="cl-lib">
+    <h1 class="pg">Checklists</h1>
+    <p class="sub">Pick a checklist to start, or import one saved to a job file to continue where a teammate left off. Progress auto-saves on this computer as you tick.</p>
+    <div id="newscard"></div>
+    <div class="inprog" id="inprog" style="display:none"><h4>In progress on this computer</h4><div id="iplist"></div></div>
+    <div class="tbar" style="margin-top:0">
+      <button class="btn" onclick="doImport()">Import from job file</button>
+      <input type="file" id="impfile" accept=".json,application/json" style="display:none">
+    </div>
+    <div class="cards" id="cardhost"></div>
+  </div>
+
+  <div id="cl-open" style="display:none">
+    <button class="back" onclick="closeCl(true)">← All checklists</button>
+    <div class="tblock">
+      <div class="tb"><label>Checklist</label><div class="v" id="tb-name" style="font-family:'Barlow Semi Condensed';letter-spacing:.03em"></div></div>
+      <div class="tb"><label>Job No.</label><input class="mono" id="tb-job" placeholder="26-____" autocomplete="off"></div>
+      <div class="tb"><label>Your initials</label><input id="tb-init" placeholder="e.g. FP" maxlength="4" autocomplete="off"></div>
+      <div class="tb"><label>Date</label><div class="v mono" id="tb-date"></div></div>
+      <div class="tb"><label>Progress</label><div class="v mono" id="tb-prog">0 / 0</div></div>
+    </div>
+    <div class="prog"><i id="progbar" style="width:0%"></i></div>
+    <div class="tbar">
+      <button class="btn pri" id="savebtn" onclick="doExport()">Save to job file</button>
+      <button class="btn" onclick="doImport()">Import</button>
+      <button class="btn" onclick="window.print()">Print / PDF</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" onclick="resetCl()">Clear</button>
+    </div>
+    <div class="kbdhint">Keyboard: <kbd>↑</kbd><kbd>↓</kbd> move · <kbd>Y</kbd> yes · <kbd>N</kbd> n/a · <kbd>C</kbd> clear · <kbd>D</kbd> detail</div>
+    <div id="sections"></div>
+  </div>
+</div>
+
+<div class="view" id="v-tools">
+  <h1 class="pg">Tools</h1>
+  <p class="sub">Quick calculators for everyday office work.</p>
+
+  <div class="tool">
+    <h3>Quadrant bearing ↔ azimuth</h3>
+    <div class="row"><label>Quadrant bearing</label><input type="text" id="qb" placeholder='N 45 30 15 W'><span class="out" id="qb-out"></span></div>
+    <div class="row"><label>Azimuth</label><input type="text" id="az" placeholder="314 29 45"><span class="out" id="az-out"></span></div>
+    <div class="err" id="b-err"></div>
+    <div class="hint">Type in either box — the other converts live. Accepts 45°30'15", 45 30 15, or decimal 45.5042.</div>
+  </div>
+
+  <div class="tool">
+    <h3>Bearing add / subtract</h3>
+    <div class="row">
+      <input type="text" id="ba" placeholder="123 45 50">
+      <span class="seg" id="bop"><button class="on" data-op="+">+</button><button data-op="-">−</button></span>
+      <input type="text" id="bb" placeholder="0 01 00">
+    </div>
+    <div class="row"><label>Result</label><span class="out" id="ba-out"></span></div>
+    <div class="row"><span class="raw" id="ba-raw"></span></div>
+    <div class="row"><button class="btn ghost" id="bchain" style="display:none" onclick="chainResult()">Use result as first value</button></div>
+    <div class="err" id="ba-err"></div>
+    <div class="hint">DMS or decimal. Result normalizes to 0–360°; the raw value shows underneath for miscloses.</div>
+  </div>
+
+  <div class="tool">
+    <h3>Feet ↔ metres</h3>
+    <div class="row"><label>Feet</label><input type="text" id="ft" placeholder="0.00"><span class="out" id="ft-out"></span></div>
+    <div class="row"><label>Metres</label><input type="text" id="mt" placeholder="0.00"><span class="out" id="mt-out"></span></div>
+    <div class="hint">International foot (0.3048 m). Decimal feet, not ft-in.</div>
+  </div>
+
+  <div class="tool">
+    <h3>Area converter</h3>
+    <div class="agrid">
+      <div class="cell"><label>m²</label><input type="text" id="a-m2" autocomplete="off"></div>
+      <div class="cell"><label>sq. ft.</label><input type="text" id="a-ft2" autocomplete="off"></div>
+      <div class="cell"><label>acres</label><input type="text" id="a-ac" autocomplete="off"></div>
+      <div class="cell"><label>hectares</label><input type="text" id="a-ha" autocomplete="off"></div>
+    </div>
+    <div class="hint">Type into any box — the other three fill in. 1 acre = 43,560 sq. ft.; 1 ha = 10,000 m².</div>
+  </div>
+
+  <div class="tool" style="max-width:760px">
+    <h3>Invert calculator</h3>
+    <div class="row">
+      <label>Rim elevation</label><input type="text" class="sm" id="rim" autocomplete="off">
+      <span class="seg" id="rimunit"><button class="on" data-u="m">m</button><button data-u="ft">ft</button></span>
+      <span class="hint" style="margin:0">unit of the drawing / rim value</span>
+    </div>
+    <div class="invhead"><span>Direction / pipe</span><span>Depth (m)</span><span>Top of pipe?</span><span>Size (mm)</span><span>Invert elev.</span><span></span></div>
+    <div id="invrows"></div>
+    <div class="row" style="margin-top:6px">
+      <button class="btn ghost" onclick="addInvRow()">+ Add direction</button>
+      <button class="btn" onclick="copyInverts()">Copy results</button>
+      <span class="hint" id="invcopied" style="margin:0"></span>
+    </div>
+    <div class="hint">Depths always entered in metres as booked by the crew. Invert = rim − depth (− pipe size when measured to top of pipe). Results show in metres and feet.</div>
+  </div>
+</div>
+
+<div class="view" id="v-samples">
+  <h1 class="pg">Samples</h1>
+  <p class="sub">Gold-standard examples of finished work. Links open in SharePoint — anything newly filed in the folders shows up under "open folder" right away.</p>
+  <div class="lgrp">
+    <h3>Legal plans <a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans" target="_blank" rel="noopener">open folder ↗</a></h3>
+    <ul>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/posting%20plan%20sample.pdf" target="_blank" rel="noopener">Posting plan</a><span class="tag">posting</span></li>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/posting%20plan%20sample%20IN%20NON%20INTEGRATED%20AREA%2BSTATIC%20GPS.pdf" target="_blank" rel="noopener">Posting plan — non-integrated area + static GPS</a><span class="tag">posting</span></li>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/subdivisions/subdivision%20plan.pdf" target="_blank" rel="noopener">Subdivision plan</a><span class="tag">subdivision</span></li>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/ex.%20plans/building%20envelope%20ex.%20plan.pdf" target="_blank" rel="noopener">Building envelope explanatory plan</a><span class="tag">ex. plan</span></li>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/ex.%20plans/tree%20cov.%20plan%20multiple%20areas.pdf" target="_blank" rel="noopener">Tree covenant plan — multiple areas</a><span class="tag">ex. plan</span></li>
+    </ul>
+  </div>
+  <div class="lgrp">
+    <h3>Non-legal plans <a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/non%20legal%20plans(topos,%20certs,%20sketches%20etc)" target="_blank" rel="noopener">open folder ↗</a></h3>
+    <ul>
+      <li><span class="note">Topos, certs and sketches live in the folder — curated picks get named here as you flag them.</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="view" id="v-resources">
+  <h1 class="pg">Resources</h1>
+  <p class="sub">Reference links used across jobs.</p>
+  <div class="lgrp">
+    <h3>City GIS map viewers</h3>
+    <ul class="gis" id="gislist"></ul>
+  </div>
+  <div class="lgrp">
+    <h3>Provincial / federal</h3>
+    <ul>
+      <li><a href="https://clss.nrcan.gc.ca/mb-nc/en/index.html" target="_blank" rel="noopener">Canada Lands plans (CLSS)</a></li>
+      <li><a href="https://a100.gov.bc.ca/pub/pls/gator/gator$queryforms.menu" target="_blank" rel="noopener">Crown Grants (GATOR)</a></li>
+    </ul>
+  </div>
+  <div class="lgrp">
+    <h3>Checklist source PDFs</h3>
+    <ul>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Checklists" target="_blank" rel="noopener">Checklists folder on SharePoint ↗</a></li>
+      <li><span class="note">The 2026 PDFs stay the reference copies; this app mirrors them word for word.</span></li>
+    </ul>
+  </div>
+</div>
+
+</main>
+<script>
+"use strict";
+const BUILD="1.0";
+const NEWS=["First release: Topo, Building Cert, New Construction and Property Line Sketch checklists (2026, word-for-word)","Auto-save on this computer, plus Save-to-job-file / Import for handoffs","Section signoffs stamp initials and date automatically","Tools: bearing converter, bearing add/subtract, feet-metres, area converter, invert calculator","Keyboard ticking on PC: arrows + Y / N / C"];
+
+/* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
+const CHECKLISTS=[
+{id:"topo-2026",name:"Topographic Checklist 2026",short:"topo",sections:[
+ {id:"t1",title:"Needs to be checked/done first",pm:false,items:[
+  "Default template + automap + Annotation settings are current. Ensure you are using this year's version. If a base job is being used consider creating a new drawing with latest frames+template+automap",
+  "Field points shifted to booked monument elevation(for basic surveys with instrument tie to one monument)",
+  "Monument ties shifted/rotated to booked + ground monuments(for full legal in integrated area)",
+  "GPS points scaled+shifted using book monument+include scale of 2nd monument listing if needed (GPS in full legal in integrated area)",
+  "Local point elevations shifted to adjusted GPS points(If using GPS ties)",
+  "Check if topo needs to be feet or meters(feet if in Vancouver, New Westminster, North Van)(Burnaby + West Vancouver-can be either)",
+  "Check if elevations (monument/GPS tie) and points(distances) make sense after scale(For topo in feet)",
+  "Check to city contours/manhole rim elevations using city GIS(needed for all topos if available)",
+  "Appropriate scale (1:250 for most metric, 1:20\" in vancouver/Burnaby, 1:8\" or 1:16\" in North Van/West Van",
+  "Property lines have been resolved(show calc notes and or Helmerts results, elevation shifts, checks etc.) Use either calc and or notes layer. Leave unfrozen for pm to review",
+  "Ensure there are enough notes if this a full legal calc(ex. description in creation of points-pr, dist-dist, held plan EPP...). Should be easy to understand what was done.",
+  "Check field notes for any issues/errors/missing pages?(highlight if dealt with)",
+  "Elevations of features shot at 99 rod height set to 0 (ie. Trees, fences, building corners)",
+  "Point nodes of no elevation features put in Hide layer",
+  "Ensure rt. walls, eaves, decks, roof, floor, inverts, and overhead powerlines are in correct layers (elevations+point nodes) This should be automatically applied with current automap",
+  "Ensure point protection and or locked points have been applied once shifts, rotations, and adjustments applied",
+  "Remove any duplicate point numbers shown for control(control cleanup) Ideally we show just the original pt#"]},
+ {id:"t2",title:"General topo requirements",pm:false,items:[
+  "Showing lot dimensions (bearings + distances)",
+  "All lot lines and calc points are at 0 elevations",
+  "Showing lot area(in either Sq.m, Sq. ft, Acres if large enough)",
+  "Show adjacent lot lines as scenery lines",
+  "Retaining wall elevations have a (t) beside and shown in legend",
+  "Appropriate description text shown to define features(centreline, gutterline, sidewalk, existing house, asph./conc. driveway, rt. wall, fence etc.) (refer to frames for common description text)",
+  "Elevations shown and appropriately moved and rotated for clarity",
+  "Ditch inverts shown with (Inv.) and includes size and type(Ex. Conc. 30). Calculate/adjust any top of culvert observations to invert elevations",
+  "Ditch bottom drawn on ditch_swale linetype",
+  "All approximate features are dashed/dotted(gravel, centreline, banks, ditches, creek, hwm)",
+  "Draw foundation line in EX-FDN layer(for addition/reno topos)",
+  "Eave elevations in eaves layer/shown in legend(ie. Showing (e) beside each)",
+  "roof and main floor elevations are defined/labelled-show floor/roof beside",
+  "All Manhole inverts shown as per field sketch/critical to check if inverts make sense (compare flow & numbers to city map)",
+  "Use City GIS inverts when manhole inverts were not possible/put text From City GIS/records",
+  "Building envelope shown (need for Vancouver, Burnaby)",
+  "Elevations at building envelope corners and perpendicular points at pl(need for Vancouver)",
+  "Interior angles shown at all lot corners shown(need for Vancouver)",
+  "Show lane width. Need in Vancouver, Burnaby",
+  "Setbacks to principle building? (could be needed when principle building to remain)(reno& addition jobs)",
+  "Title purchased and put into folder(needed for all topos)",
+  "Existing right of ways, easements, covenants(check title)shown on plan",
+  "Invert disclaimer placed on plan only if inverts are shown",
+  "List of non-plan based charges listed(restrictive covenants, easements, SRW)",
+  "Title, PID, and address are current and checked to job details text file",
+  "Elevation statement makes sense(In metric or feet?, compare location and elevation to mascot listing)",
+  "File number shown correctly under logo?(26-xxxx-site)",
+  "Layout viewport scale should be set to 1 and locked",
+  "Provide comments in To Do Draft for anything missed/critical(needs to picked up).",
+  "All Field Data(rw5, field notes, pics) uploaded + files for drawing(PDF, dwg, msz, mbz, topo checklist, title etc.)",
+  "Provide comments to PM if any difficulties with drafting due to field notes and or poor/no sketches"]},
+ {id:"t3",title:"Project Manager Checks",pm:true,note:"To be completed by BCLS or Project Manager",items:[
+  "Check if Legal and orientation done - check calc notes/ helmerts/check with existing fences/GPS ties",
+  "Lot area makes sense - check with city GIS or existing legal plan",
+  "Elevations make sense - check city GIS manhole or contours/Mascot listing/compare with GPS hubs",
+  "Point protection is on",
+  "Check field notes for any issues/errors/missing pages?(highlight if dealt with)",
+  "Do inverts and manhole rims make sense? - check if numbers are fairly close-this check is critical",
+  "Quick review of control cleanup(no multiple point# for control)",
+  "Lot numbers + plan numbers correct? - check with parcel map or city GIS",
+  "Appropriate labelling used (conc./asph. driveway, gutterline, centreline, rt. Wall, fence etc.)",
+  "Road names correct? - check with city GIS/parcel map",
+  "Setbacks to principle building? (could be needed when principle building to remain)(reno& addition jobs)",
+  "Appropriate legal scenery - use parcel map for pl across the street - for full legal topos-ensure road widths make sense",
+  "Need contours? - for sloped properties - see video about surfaces",
+  "Do a street view check(missing trees, powerpoles, transformers shown?)",
+  "Check Title - are all SRW/easements/covenants shown?",
+  "Check if list of non-based charges is needed/done",
+  "Check plan title - description correct? Includes part of or portion if appropriate.",
+  "Check address + PID - use job details+title",
+  "North arrow and appropriate scale bar?",
+  "Does legend show all relevant symbols?",
+  "Check appropriate disclaimers shown(inverts etc.)",
+  "Elevation statement makes sense(In metric or feet?, compare location and elevation to mascot listing)",
+  "Is viewport locked and to scale?",
+  "Check job number under logo",
+  "Remove or freeze all miscellaneous items(frames, calc layer, control, hide layer, unused viewports)",
+  "Do zoom extents on the layout tab - save and close - ensures drawing opens up in layout",
+  "Any significant issues or corrections provided to drafter for review(check with BCLS if appropriate)"]}
+]},
+{id:"blc-2026",name:"Building Location Certificate Checklist 2026",short:"BLC",sections:[
+ {id:"b1",title:"Needs to be checked while drafting the plan(model space)",pm:false,items:[
+  "All miscellaneous items hidden or deleted(If using existing topo)(driveways, trees, point nodes etc.)",
+  "Shown in calc layer steps to calculate boundary(helmerts results etc.)",
+  "Purchase title(Only needed if this is a new job and or no recent title in folder)",
+  "Any right of ways/easements/covenants on the lot?",
+  "Show dimensions to two decimal places(lot + building(s))",
+  "Check if setbacks meet current zoning minimums",
+  "Check for any encroachments(Need to add wording to dimensions to highlight any)",
+  "Consider using true colour or hatching for clarity(PL, buildings, etc.)",
+  "Label building(s) uniquely if possible(barn, office, existing house, shed etc.)",
+  "No bearings shown",
+  "Field notes checked for any comments/issues(highlight notes if dealt with)",
+  "Perform a control cleanup if needed(no multiple pt# )",
+  "Point protection turned on"]},
+ {id:"b2",title:"Needs to be checked while creating Layout of plan",pm:false,items:[
+  "Use an existing building location certificate template based on latest frames",
+  "Title shown: BC LAND Surveyors Building Location Certificate covering....(check title for description)",
+  "PID and current site address shown",
+  "North arrow and scale bar shown",
+  "Legend describing any symbols or annotation",
+  "Disclaimer about Measurements are shown to the outside exterior of buildings",
+  "Property boundary statement (refer to all relevant plans used to calculate)",
+  "Elevation statement shown only if elevations are shown on plan(typically not needed)",
+  "Summary of charges on title without reference to survey plans(if needed)",
+  "Unregistered interests not considered statement",
+  "This plan is intended for.. statement",
+  "Responsibility or Liability statement",
+  "Date filled out(as per field date)",
+  "BCLS signature block shown",
+  "Viewport set to locked and to correct scale",
+  "Job number at bottom right",
+  "Leave comments in to do draft(if any missing items, any other critical items)",
+  "Ensure to upload all relevant field data and files(dwg, mbz, msz, pdf print, updated checklist etc.)"]},
+ {id:"b3",title:"Finalize Plan",pm:true,note:"By BCLS or project manager",items:[
+  "Property line calc reviewed",
+  "All lot + building dimensions shown",
+  "Setbacks shown and are within zoning minimums + any encroachments shown clearly",
+  "Title reviewed(ALL SRW/easements/covenants shown)",
+  "Field notes reviewed",
+  "Plan title reviewed",
+  "Address and PID # reviewed",
+  "North arrow and scale bar shown?",
+  "Legend reviewed/needed?",
+  "Disclaimers reviewed and appropriate",
+  "Viewport checked(locked + to scale)",
+  "Job # correct",
+  "Date reviewed-signed by BCLS"]}
+]},
+{id:"newcon-2026",name:"New Construction Checklist 2026",short:"new construction",sections:[
+ {id:"n1",title:"Needs to be checked/while calculating house",pm:false,items:[
+  "Ensure a proper base file with latest field data is chosen if using a pre-existing job (ie. no explanatory plans as base file)",
+  "Consider starting a new drawing with latest template + automap if topo and or base drawing is much older",
+  "All miscellaneous items hidden or deleted(If using existing topo)(driveways, trees etc.)",
+  "Ensure existing control elevations make sense, especially critical if not using base topo file (check gps to ground control and also tied in monument)",
+  "Check over any notes in legal derivation and control layer(if pre-existing job)",
+  "Do a check of existing legal evidence tied(do we need to tie more legal ?)(discuss with project manager-for jobs that we did topo/previous survey)",
+  "Perform a control cleanup(no multiple pt# for control)",
+  "Purchase title(Always needed if no current title of lot in file)",
+  "Any right of ways/easements/covenants on the lot?(check current title and not rely on existing info)",
+  "Use foundation or basement plan to calculate house(Ensure cladding is not used-critical for Vancouver areas)",
+  "Show all relevant setbacks in the drawings to two decimal places(Compare to designers site plan for any issues)(Do ALL sides MAKE SENSE?)",
+  "House should close -ensure closing line checked against plan-needed if we are using PDF to calc house",
+  "Keep designers CAD info inside our cad file (properly scaled)(for any future checks)(NA if no design cad files)",
+  "Ensure orientation correct when placing house into site(check designers site plan north arrow)",
+  "Include any posts, stair wells, and basement wells IN excavation(window wells usually not needed)",
+  "Excavation lines based on 4' O/S (Keep in excavation layer)",
+  "Keep point numbers of house and excavation points in consecutive order",
+  "Keep excavation point numbers in Excavation_pts Layer, and foundation points in LO points layer",
+  "Ensure point protection is on",
+  "Show dimensions of house to two decimal places",
+  "Freeze any post point numbers(just for office reference)",
+  "Show Main floor elevation + basement elevation on drawing & ensure they match designers site plan + cross sections",
+  "Show search points on legal plan(if for new job-we did not do topo)",
+  "Show setbacks on all sides as expected on a certificate(do a final comparison to designers site plan to ensure we agree)",
+  "Export points file (ascii or text) into field folder(Uploads)",
+  "Export a house pdf(showing layout points + control)(Consider a separate layout pdf for bigger sites) into field folder(Uploads)"]},
+ {id:"n2",title:"Needs to be checked/after excavation or 1st trip",pm:false,items:[
+  "Quick check of critical issues(right of ways on lot, foundation shown for house calc, setbacks make sense, exv covers posts, stairs etc.)",
+  "Show Main floor elevation + basement elevation on drawing/ensure they match designers city approved site plan + cross sections",
+  "Show setbacks on all sides as expected on a certificate(do a final comparison to designers city approved site plan to ensure we agree)",
+  "Check over legal calc + elevation derivation(critical if on site calc or shift was done) ( do we agree to tied monument listing + on site check of manholes or other benchmark)",
+  "Were all exv. Points marked/stored? Check field notes.",
+  "Were any offsets set? Or any other item that needs to be shown on a sketch?(ie. In tree fence,house corner stake)",
+  "Keep any picture of site in file(TBM pic etc.)",
+  "Main floor or basement was set(important to note/check) (keep picture of benchmark in field data)",
+  "Excavation sketch plan prepared(shows TBM set, stakes set, offsets dimensioned/shown)",
+  "Point protection is on and a quick review to ensure control cleanup has been done(show new control, no multiple pt# shown, old control that is destroyed hidden)",
+  "Ensure field data uploaded + updated files uploaded(dwg, mbz, msz, updated checklist, exv. sketch pdf)"]},
+ {id:"n3",title:"Needs to be checked/after layout or 2nd trip",pm:false,items:[
+  "Were points marked and stored -visual inspection and or inverse to check",
+  "Check to TBM makes sense? Does excavation elevation make sense?",
+  "Check over field notes for any comments",
+  "prepare a sketch if a more larger/complex house/any offsets set",
+  "quick check to the designers plan(Setbacks, orientation, main floor, basement, city approved plans?)",
+  "Point protection is on and a quick review to ensure control cleanup has been done(show new control, no multiple pt# shown, old control that is destroyed hidden)",
+  "Ensure field data uploaded + updated files uploaded(dwg, mbz, msz, updated checklist, L/O sketch pdf)"]},
+ {id:"n4",title:"General certificate requirements",pm:false,items:[
+  "Show dimensions to two decimal places(lot + house)",
+  "Check if field corner points are close to design-highlight anything over 0.03m",
+  "Check field notes/sketch for any changes to house or posts/changed linework in different colour to make it obvious on what changed",
+  "Show setbacks on all sides to two decimal places",
+  "Label 'curb wall' or 'bsmt' beside basement elevation",
+  "Ensure we are showing elevations at all significant corners(see designers site plan-where proposed elevations are shown)",
+  "Point protection is on and a quick review to ensure control cleanup has been done(show new control, no multiple pt# shown, old control that is destroyed hidden)",
+  "Label 'Forms' or 'foundation'",
+  "Use latest certificate template as per latest frames",
+  "Freeze in layout tab any irrelevant items(main floor, basement labelling etc.)",
+  "Ensure title + PID + address matches job details + current title + house plans",
+  "Scale bar and north arrow shown",
+  "All disclaimers make sense(wooden forms/foundation etc.)",
+  "Elevation statement shown and checked",
+  "PDF should be in either ledger or letter(consider using detail or exagerration for bigger sites)",
+  "Ensure field data uploaded + updated files uploaded(dwg, mbz, msz, updated checklist, exv. sketch pdf)",
+  "Highlight in To do draft if something missing from cert(posts not ready, basement different, level strips missing etc.)"]}
+]},
+{id:"pl-2026",name:"Property Line Sketch Checklist 2026",short:"PL sketch",sections:[
+ {id:"p1",title:"Needs to be checked while drafting the plan(model space)",pm:false,items:[
+  "All miscellaneous items hidden or deleted(If using existing topo)(driveways, trees, point nodes etc.)",
+  "Shown in calc layer steps to calculate boundary(helmerts results etc.)",
+  "Purchase title(Only needed if this is a new job and or no recent title in folder)",
+  "Any right of ways/easements/covenants on the lot?",
+  "Show dimensions to two decimal places",
+  "Any encroachments or offsets shown clearly",
+  "Consider using true colour or hatching for clarity(PL, buildings, rt. wall, fence, markers set etc.)",
+  "Field notes checked for any comments/issues(highlight notes if dealt with)",
+  "Perform a control cleanup if needed(no multiple pt# )",
+  "Point protection turned on"]},
+ {id:"p2",title:"Needs to be checked while creating Layout of plan",pm:false,items:[
+  "Use an existing Property line sketch template based on latest frames",
+  "Title shown: Sketch plan of property line survey covering....(check title for description)",
+  "PID and current site address shown",
+  "North arrow and scale bar shown",
+  "Legend describing any symbols or annotation",
+  "Disclaimer about Measurements are shown to the outside exterior of buildings",
+  "Property boundary statement (refer to all relevant plans used to calculate)",
+  "Accuracy statement shown(Typically should be between 0.03m to 0.10)(Check with BCLS if unsure)",
+  "Summary of charges on title without reference to survey plans(if needed)",
+  "This plan is intended for.. statement",
+  "Responsibility or Liability statement",
+  "Date filled out(as per field date)",
+  "BCLS signature block shown",
+  "Viewport set to locked and to correct scale",
+  "Job number at bottom right",
+  "Leave comments in to do draft(if any missing items, any other critical items)"]},
+ {id:"p3",title:"Finalize Plan",pm:true,note:"By BCLS or project manager",items:[
+  "Property line calc reviewed",
+  "All lot dimensions + markers shown",
+  "Any encroachments or offsets shown clearly",
+  "Title reviewed(ALL SRW/easements/covenants shown)",
+  "Field notes reviewed",
+  "Plan title reviewed",
+  "Address and PID # reviewed",
+  "North arrow and scale bar shown?",
+  "Legend reviewed/needed?",
+  "Disclaimers reviewed and appropriate",
+  "Viewport checked(locked + to scale)",
+  "Job # correct",
+  "Date reviewed-signed by BCLS"]}
+]}
+];
+const GIS=[["Abbotsford","https://maps.abbotsford.ca/Html5Viewer/"],["Burnaby","https://gis.burnaby.ca/burnabymap/index.html"],["Chilliwack","https://maps.chilliwack.com/b/"],["City of Langley","https://map.langleycity.ca/html5viewer/?viewer=ext"],["Coquitlam","https://coquitlam.maps.arcgis.com/apps/webappviewer/index.html?id=2d58aee859754918ae54d30da4bbba49"],["Delta","https://maps.delta.ca/Html5Viewer/index.html?viewer=DeltaMapExternal.viewer/"],["Fraser Valley","https://maps.fvrd.ca/portal/apps/webappviewer/index.html?id=eae55e6da5f14e11a9a5e07a78f339c5"],["Maple Ridge","https://gis.mapleridge.ca/ridgeview/"],["Mission","https://www.mission.ca/city-hall/departments/engineering/webmap/"],["New Westminster","http://arcgis.newwestcity.ca/Html5Viewer4122/index.html?viewer=CNWPublicMap"],["North Vancouver City","http://gisext2.cnv.org/citymap/#splash-modal"],["North Vancouver District","https://www.geoweb.dnv.org/"],["Pitt Meadows","https://www.pittmeadows.ca/city-services/city-maps-open-data"],["Port Coquitlam","https://www.portcoquitlam.ca/business-development/pocomap/"],["Port Moody","https://view.portmoody.ca/portal/apps/webappviewer/index.html?id=bb8dde24dcef4b06b1e66c4465a3b80c"],["Richmond","https://maps.richmond.ca/rim/"],["Surrey","https://cosmos.surrey.ca/external/"],["Township of Langley","https://mapsvr.tol.ca/geosource3/"],["Vancouver","https://maps.vancouver.ca/property/"],["West Vancouver District","https://westmap.westvancouver.ca/html5Viewer/?viewer=WestMap_2019.Default_Viewer"],["White Rock","https://cosmos.surrey.ca/external/WROMS/"]];
+
+/* ================= core app ================= */
+var st={cl:null,job:"",init:"",marks:{},opened:""};
+var focusIx=-1;
+
+/* storage guarded — read-only mode if storage unusable (in-app browsers, some private modes) */
+var canStore=true;
+try{localStorage.setItem("eo:test","1");localStorage.removeItem("eo:test");}catch(e){canStore=false;}
+var ua=navigator.userAgent||"";
+if(/WhatsApp|FBAN|FBAV|Instagram|Line\/|TeamsMobile|wv\)/.test(ua)) canStore=false;
+if(!canStore) document.getElementById("banner").classList.add("show");
+if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(function(){});}
+function sget(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function sset(k,v){if(!canStore)return;try{localStorage.setItem(k,v);}catch(e){}}
+function sdel(k){try{localStorage.removeItem(k);}catch(e){}}
+
+function cksig(cl){ /* small signature of full wording to detect edits between builds */
+ var h=5381,txt=cl.sections.map(function(s){return s.title+"|"+s.items.join("|");}).join("~");
+ for(var i=0;i<txt.length;i++){h=((h<<5)+h+txt.charCodeAt(i))>>>0;}
+ return h.toString(36);
+}
+function byId(id){return CHECKLISTS.find(function(c){return c.id===id;});}
+function today(){return new Date().toISOString().slice(0,10);}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
+function skey(){return "eo1:"+st.cl.id+":"+(st.job||"_nojob");}
+
+function persist(){
+ if(!st.cl)return;
+ sset(skey(),JSON.stringify({job:st.job,marks:st.marks,opened:st.opened,updated:new Date().toISOString(),exported:st.exported||null}));
+ sset("eo1:last",st.cl.id+":"+(st.job||"_nojob"));
+}
+function loadSaved(clId,jobKey){
+ var raw=sget("eo1:"+clId+":"+jobKey);
+ if(!raw)return null;
+ try{return JSON.parse(raw);}catch(e){return null;}
+}
+
+/* ---------- library ---------- */
+function drawLib(){
+ var host=document.getElementById("cardhost");host.innerHTML="";
+ CHECKLISTS.forEach(function(c){
+  var d=document.createElement("div");d.className="card";
+  d.innerHTML="<h3>"+esc(c.name.replace(/ Checklist 2026$/,"").replace(/ 2026$/,""))+"</h3><div class='yr mono'>2026</div><div class='st'>Open →</div>";
+  d.onclick=function(){openCl(c.id,null);};
+  host.appendChild(d);
+ });
+ /* in-progress */
+ var ip=[],i;
+ for(i=0;i<((canStore&&localStorage.length)||0);i++){
+  var k=localStorage.key(i);
+  if(k&&k.indexOf("eo1:")===0&&k!=="eo1:last"&&k!=="eo1:init"&&k!=="eo1:news"){
+   var parts=k.split(":"),cl=byId(parts[1]);
+   if(!cl)continue;
+   var d2=loadSaved(parts[1],parts[2]);if(!d2)continue;
+   var total=cl.sections.reduce(function(a,s){return a+s.items.length;},0);
+   var done=Object.keys(d2.marks||{}).length;
+   if(done>0)ip.push({cl:cl,jobKey:parts[2],job:d2.job||"",done:done,total:total,updated:d2.updated||""});
+  }
+ }
+ ip.sort(function(a,b){return (b.updated||"").localeCompare(a.updated||"");});
+ var wrap=document.getElementById("inprog"),list=document.getElementById("iplist");
+ list.innerHTML="";
+ if(ip.length){wrap.style.display="block";
+  ip.forEach(function(e){
+   var r=document.createElement("div");r.className="ipitem";
+   r.innerHTML="<span class='j'>"+esc(e.job||"no job #")+"</span><span class='n'>"+esc(e.cl.name)+"</span><span class='p'>"+e.done+" / "+e.total+"</span>";
+   r.onclick=function(){openCl(e.cl.id,e.jobKey);};
+   list.appendChild(r);
+  });
+ } else wrap.style.display="none";
+}
+
+/* ---------- what's new ---------- */
+(function(){
+ var host=document.getElementById("newscard");
+ if(sget("eo1:news")===BUILD)return;
+ var d=document.createElement("div");d.className="news";
+ d.innerHTML="<button class='x' aria-label='Dismiss'>✕</button><h4>Build "+BUILD+" — what's new</h4><ul>"+NEWS.map(function(n){return "<li>"+esc(n)+"</li>";}).join("")+"</ul>";
+ d.querySelector(".x").onclick=function(){sset("eo1:news",BUILD);d.remove();};
+ host.appendChild(d);
+})();
+
+/* ---------- open / render checklist ---------- */
+function openCl(id,jobKey){
+ st.cl=byId(id);st.marks={};st.job="";st.exported=null;st.opened=today();focusIx=-1;
+ st.init=sget("eo1:init")||"";
+ if(jobKey!==null&&jobKey!==undefined){
+  var d=loadSaved(id,jobKey);
+  if(d){st.job=d.job||"";st.marks=d.marks||{};st.opened=d.opened||st.opened;st.exported=d.exported||null;}
+ }
+ document.getElementById("cl-lib").style.display="none";
+ document.getElementById("cl-open").style.display="block";
+ document.getElementById("tb-name").textContent=st.cl.name;
+ document.getElementById("tb-job").value=st.job;
+ document.getElementById("tb-init").value=st.init;
+ document.getElementById("tb-date").textContent=st.opened;
+ render();
+ window.scrollTo(0,0);
+}
+function closeCl(back){
+ persist();
+ document.getElementById("cl-open").style.display="none";
+ document.getElementById("cl-lib").style.display="block";
+ st.cl=null;drawLib();
+}
+function resetCl(){
+ if(confirm("Clear all marks on this checklist for this job?")){
+  sdel(skey());st.marks={};st.exported=null;render();
+ }
+}
+function key(sid,ix){return sid+"|"+ix;}
+function splitItem(t){
+ if(t.length<95)return{m:t,d:null};
+ var i=t.indexOf("(",50);
+ if(i<0||i>110)return{m:t,d:null};
+ return{m:t.slice(0,i).trim(),d:t.slice(i).trim()};
+}
+function render(){
+ var host=document.getElementById("sections");host.innerHTML="";
+ var done=0,total=0,rows=[];
+ st.cl.sections.forEach(function(sec){
+  var sdone=0;
+  var el=document.createElement("div");el.className="sec"+(sec.pm?" pm":"");
+  var items=document.createElement("div");items.className="items";
+  var who={};
+  sec.items.forEach(function(t,ix){
+   total++;
+   var k=key(sec.id,ix),mk=st.marks[k];
+   if(mk){done++;sdone++;if(mk.by){who[mk.by]=mk.at;}}
+   var p=splitItem(t);
+   var it=document.createElement("div");it.className="item"+(mk?" "+mk.v:"");it.tabIndex=0;it.dataset.k=k;
+   var stamp=mk?"<div class='stamp'>"+(mk.v==="na"?"N/A":"✓")+" "+esc(mk.by||"—")+" · "+esc(mk.at)+"</div>":"";
+   it.innerHTML="<div class='txt'><span class='m'>"+esc(p.m)+"</span>"+(p.d?" <span class='more'>detail</span><div class='d'>"+esc(p.d)+"</div>":"")+stamp+
+    "</div><div class='tog'><button class='by' tabindex='-1'>Yes</button><button class='bn' tabindex='-1'>N/A</button></div>";
+   if(p.d)it.querySelector(".txt").onclick=function(e){if(!e.target.closest("button"))it.classList.toggle("open");};
+   it.querySelector(".by").onclick=function(){mark(k,"yes");};
+   it.querySelector(".bn").onclick=function(){mark(k,"na");};
+   it.addEventListener("focus",function(){focusIx=rows.indexOf(it);});
+   items.appendChild(it);rows.push(it);
+  });
+  var names=Object.keys(who).map(function(n){return "<b>"+esc(n)+"</b> "+esc(who[n]);}).join(" · ");
+  var foot=sdone===sec.items.length
+   ?"<span class='done'>Section complete</span>"+(names?" — completed by "+names:"")
+   :(sdone>0?"In progress — "+(names||"")+" ("+sdone+" of "+sec.items.length+")":"Completed by ___ on ___");
+  el.innerHTML="<div class='sech'><span class='car'>▼</span><h2>"+esc(sec.title)+"</h2><span class='cnt'>"+sdone+" / "+sec.items.length+"</span></div>"+
+   (sec.pm?"<div class='pmnote'>"+esc(sec.note)+"</div>":"");
+  el.querySelector(".sech").onclick=function(){el.classList.toggle("closed");};
+  el.appendChild(items);
+  var sf=document.createElement("div");sf.className="secfoot";sf.innerHTML=foot;el.appendChild(sf);
+  host.appendChild(el);
+ });
+ document.getElementById("tb-prog").textContent=done+" / "+total;
+ document.getElementById("progbar").style.width=(total?100*done/total:0)+"%";
+ var sb=document.getElementById("savebtn");
+ sb.classList.toggle("pulse",done===total&&total>0&&!st.exported);
+ st._rows=rows;
+}
+var flashed=false;
+function mark(k,v){
+ if(!canStore&&!confirm("This browser can't save your work — marks will be lost when you close. Continue anyway?"))return;
+ var cur=st.marks[k];
+ if(cur&&cur.v===v){delete st.marks[k];}
+ else{
+  if(!st.init){document.getElementById("tb-init").focus();
+   if(!flashed){flashed=true;alert("Enter your initials in the title block first — every tick is stamped with who did it and when.");}
+   return;}
+  st.marks[k]={v:v,by:st.init,at:today()};
+  st.exported=null;
+ }
+ persist();render();
+}
+document.getElementById("tb-job").addEventListener("input",function(){
+ var old=skey();st.job=this.value.trim();
+ if(old!==skey()){sdel(old);}persist();
+});
+document.getElementById("tb-init").addEventListener("input",function(){
+ st.init=this.value.toUpperCase();this.value=st.init;sset("eo1:init",st.init);
+});
+
+/* keyboard */
+document.addEventListener("keydown",function(e){
+ if(!st.cl)return;
+ if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA")return;
+ var rows=st._rows||[];if(!rows.length)return;
+ var kx=e.key.toLowerCase();
+ if(e.key==="ArrowDown"||e.key==="ArrowUp"||kx==="j"||kx==="k"){
+  e.preventDefault();
+  focusIx=Math.max(0,Math.min(rows.length-1,focusIx+((e.key==="ArrowDown"||kx==="j")?1:-1)));
+  rows[focusIx].focus();if(rows[focusIx].scrollIntoView)rows[focusIx].scrollIntoView({block:"nearest"});
+ }else if(focusIx>=0&&(kx==="y"||kx==="n"||kx==="c"||kx==="d")){
+  e.preventDefault();
+  var k=rows[focusIx].dataset.k,ix=focusIx;
+  if(kx==="y")mark(k,"yes");
+  else if(kx==="n")mark(k,"na");
+  else if(kx==="c"){if(st.marks[k]){delete st.marks[k];persist();render();}}
+  else{rows[focusIx].classList.toggle("open");return;}
+  focusIx=Math.min((st._rows||[]).length-1,ix+ (kx==="c"?0:1));
+  if(st._rows&&st._rows[focusIx]){st._rows[focusIx].focus();if(st._rows[focusIx].scrollIntoView)st._rows[focusIx].scrollIntoView({block:"nearest"});}
+ }
+});
+
+/* ---------- export / import ---------- */
+function doExport(){
+ if(!st.cl){alert("Open a checklist first.");return;}
+ persist();
+ var data={app:"elevate-office",v:1,checklist:st.cl.id,name:st.cl.name,sig:cksig(st.cl),
+  job:st.job,opened:st.opened,marks:st.marks,saved:new Date().toISOString(),build:BUILD};
+ st.exported=data.saved;persist();
+ var a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:"application/json"}));
+ a.download=(st.job||"job")+"-"+st.cl.short+" checklist.json";
+ document.body.appendChild(a);a.click();a.remove();
+ render();
+}
+function handleImportData(d){
+ if(!d||d.app!=="elevate-office"||!byId(d.checklist)){alert("That file isn't an Elevate Office checklist save.");return;}
+ var cl=byId(d.checklist);
+ if(d.sig&&d.sig!==cksig(cl)){
+  if(!confirm("Heads up: the wording of \""+cl.name+"\" has changed since this file was saved. Ticks will be matched by position — review carefully. Continue?"))return;
+ }
+ st.cl=cl;st.job=d.job||"";st.marks=d.marks||{};st.opened=d.opened||today();st.exported=d.saved||null;
+ st.init=sget("eo1:init")||"";
+ persist();
+ document.getElementById("cl-lib").style.display="none";
+ document.getElementById("cl-open").style.display="block";
+ document.getElementById("tb-name").textContent=cl.name;
+ document.getElementById("tb-job").value=st.job;
+ document.getElementById("tb-init").value=st.init;
+ document.getElementById("tb-date").textContent=st.opened;
+ render();window.scrollTo(0,0);
+ var v=document.querySelector("nav button[data-v=checklists]");if(v)v.click();
+}
+function doImport(){
+ var f=document.getElementById("impfile");
+ f.onchange=function(){
+  var file=f.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(){try{handleImportData(JSON.parse(r.result));}catch(e){alert("Couldn't read that file: "+e.message);}f.value="";};
+  r.readAsText(file);
+ };
+ f.click();
+}
+/* drag & drop import */
+(function(){
+ var dz=document.getElementById("dropzone"),depth=0;
+ window.addEventListener("dragenter",function(e){e.preventDefault();depth++;dz.classList.add("show");});
+ window.addEventListener("dragover",function(e){e.preventDefault();});
+ window.addEventListener("dragleave",function(e){depth--;if(depth<=0){depth=0;dz.classList.remove("show");}});
+ window.addEventListener("drop",function(e){
+  e.preventDefault();depth=0;dz.classList.remove("show");
+  var file=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+  if(!file)return;
+  var r=new FileReader();
+  r.onload=function(){try{handleImportData(JSON.parse(r.result));}catch(err){alert("Couldn't read that file: "+err.message);}};
+  r.readAsText(file);
+ });
+})();
+window.addEventListener("beforeunload",function(){if(st.cl)persist();});
+
+/* ---------- tabs ---------- */
+document.querySelectorAll("nav button").forEach(function(b){
+ b.onclick=function(){
+  document.querySelectorAll("nav button").forEach(function(x){x.classList.remove("on");});
+  b.classList.add("on");
+  document.querySelectorAll(".view").forEach(function(v){v.classList.remove("on");});
+  document.getElementById("v-"+b.dataset.v).classList.add("on");
+ };
+});
+document.getElementById("bno").textContent="Build "+BUILD;
+
+/* ---------- GIS list ---------- */
+(function(){
+ var ul=document.getElementById("gislist");
+ GIS.forEach(function(g){
+  var li=document.createElement("li");
+  li.innerHTML="<a href='"+g[1]+"' target='_blank' rel='noopener'>"+esc(g[0])+"</a>";
+  ul.appendChild(li);
+ });
+})();
+
+/* ================= tools ================= */
+function parseDMS(str){
+ var s=String(str).replace(/[°'"″′]/g," ").trim();
+ if(!s)return null;
+ var parts=s.split(/\s+/).map(Number);
+ if(parts.some(isNaN))return null;
+ var d=parts[0]||0,m=parts[1]||0,sec=parts[2]||0;
+ if(parts.length>3||m>=60||sec>=60||m<0||sec<0)return null;
+ var sign=d<0||Object.is(d,-0)?-1:1;
+ return sign*(Math.abs(d)+m/60+sec/3600);
+}
+function fmtDMS(deg){
+ var neg=deg<0;deg=Math.abs(deg);
+ var d=Math.floor(deg),rem=(deg-d)*60,m=Math.floor(rem),s=Math.round((rem-m)*60);
+ if(s===60){s=0;m++;}if(m===60){m=0;d++;}
+ return (neg?"-":"")+d+"\u00B0"+String(m).padStart(2,"0")+"'"+String(s).padStart(2,"0")+"\"";
+}
+function norm360(a){return ((a%360)+360)%360;}
+
+/* bearing <-> azimuth */
+function quadToAz(str){
+ var m=String(str).trim().toUpperCase().match(/^([NS])\s*(.*?)\s*([EW])$/);
+ if(!m)return null;
+ var ang=parseDMS(m[2]);
+ if(ang===null||ang<0||ang>90)return null;
+ if(m[1]==="N"&&m[3]==="E")return ang;
+ if(m[1]==="S"&&m[3]==="E")return 180-ang;
+ if(m[1]==="S"&&m[3]==="W")return 180+ang;
+ return norm360(360-ang);
+}
+function azToQuad(az){
+ az=norm360(az);
+ if(az<=90)return "N "+fmtDMS(az)+" E";
+ if(az<180)return "S "+fmtDMS(180-az)+" E";
+ if(az<=270)return "S "+fmtDMS(az-180)+" W";
+ return "N "+fmtDMS(360-az)+" W";
+}
+var qb=document.getElementById("qb"),az=document.getElementById("az"),
+ qbo=document.getElementById("qb-out"),azo=document.getElementById("az-out"),berr=document.getElementById("b-err");
+qb.oninput=function(){
+ azo.textContent="";berr.textContent="";
+ if(!qb.value.trim()){qbo.textContent="";return;}
+ var a=quadToAz(qb.value);
+ if(a===null){qbo.textContent="";berr.textContent="Format: N 45 30 15 W (angle 0\u201390).";return;}
+ qbo.textContent="= az "+fmtDMS(a)+"  ("+a.toFixed(4)+"\u00B0)";az.value="";
+};
+az.oninput=function(){
+ qbo.textContent="";berr.textContent="";
+ if(!az.value.trim()){azo.textContent="";return;}
+ var a=parseDMS(az.value);
+ if(a===null||a<0||a>360){azo.textContent="";berr.textContent="Azimuth 0\u2013360, as DMS or decimal.";return;}
+ azo.textContent="= "+azToQuad(a);qb.value="";
+};
+
+/* bearing add / subtract */
+var bop="+",lastResult=null;
+document.getElementById("bop").querySelectorAll("button").forEach(function(b){
+ b.onclick=function(){
+  document.getElementById("bop").querySelectorAll("button").forEach(function(x){x.classList.remove("on");});
+  b.classList.add("on");bop=b.dataset.op;calcBpm();
+ };
+});
+function calcBpm(){
+ var A=parseDMS(document.getElementById("ba").value),B=parseDMS(document.getElementById("bb").value),
+  o=document.getElementById("ba-out"),raw=document.getElementById("ba-raw"),err=document.getElementById("ba-err"),
+  chain=document.getElementById("bchain");
+ err.textContent="";o.textContent="";raw.textContent="";chain.style.display="none";lastResult=null;
+ if(document.getElementById("ba").value.trim()===""&&document.getElementById("bb").value.trim()==="")return;
+ if(A===null||B===null){err.textContent="Enter both values as DMS (123 45 50) or decimal.";return;}
+ var r=bop==="+"?A+B:A-B,n=norm360(r);
+ lastResult=n;
+ o.textContent=fmtDMS(n)+"  ("+n.toFixed(4)+"\u00B0)";
+ if(Math.abs(r-n)>1e-9)raw.textContent="raw: "+fmtDMS(r)+" ("+r.toFixed(4)+"\u00B0)";
+ chain.style.display="inline-block";
+}
+document.getElementById("ba").oninput=calcBpm;
+document.getElementById("bb").oninput=calcBpm;
+function chainResult(){
+ if(lastResult===null)return;
+ document.getElementById("ba").value=fmtDMS(lastResult).replace(/[°'"]/g," ").trim();
+ document.getElementById("bb").value="";calcBpm();
+ document.getElementById("bb").focus();
+}
+
+/* feet / metres */
+var FT=0.3048;
+var ft=document.getElementById("ft"),mt=document.getElementById("mt"),
+ fto=document.getElementById("ft-out"),mto=document.getElementById("mt-out");
+ft.oninput=function(){mto.textContent="";var v=parseFloat(ft.value);fto.textContent=isNaN(v)?"":"= "+(v*FT).toFixed(3)+" m";mt.value="";};
+mt.oninput=function(){fto.textContent="";var v=parseFloat(mt.value);mto.textContent=isNaN(v)?"":"= "+(v/FT).toFixed(3)+" ft";ft.value="";};
+
+/* area converter */
+var AU={m2:1,ft2:FT*FT,ac:4046.8564224,ha:10000};
+var AF={m2:function(v){return v>=10000?v.toFixed(0):v.toFixed(1);},
+ ft2:function(v){return v>=100000?v.toFixed(0):v.toFixed(0);},
+ ac:function(v){return v.toFixed(3);},ha:function(v){return v.toFixed(4);}};
+["m2","ft2","ac","ha"].forEach(function(u){
+ document.getElementById("a-"+u).oninput=function(){
+  var v=parseFloat(this.value);
+  ["m2","ft2","ac","ha"].forEach(function(o){
+   if(o===u)return;
+   var el=document.getElementById("a-"+o);
+   if(isNaN(v)){el.value="";return;}
+   var m2=v*AU[u];el.value=AF[o](m2/AU[o]);
+   el.title=(m2/AU[o]).toString();
+  });
+ };
+});
+
+/* invert calculator */
+var rimUnit="m";
+document.getElementById("rimunit").querySelectorAll("button").forEach(function(b){
+ b.onclick=function(){
+  document.getElementById("rimunit").querySelectorAll("button").forEach(function(x){x.classList.remove("on");});
+  b.classList.add("on");rimUnit=b.dataset.u;calcInv();
+ };
+});
+function addInvRow(label){
+ var host=document.getElementById("invrows");
+ var r=document.createElement("div");r.className="invrow";
+ r.innerHTML="<input type='text' class='ilabel' placeholder='"+(label||"N / S / Conc. 30 E")+"' autocomplete='off'>"+
+  "<input type='text' class='idepth' placeholder='0.00' autocomplete='off'>"+
+  "<span class='top'><input type='checkbox' class='itop'>top</span>"+
+  "<input type='text' class='isize' placeholder='—' disabled autocomplete='off'>"+
+  "<span class='res'>—</span>"+
+  "<button class='del' title='Remove'>✕</button>";
+ r.querySelector(".idepth").oninput=calcInv;
+ r.querySelector(".isize").oninput=calcInv;
+ r.querySelector(".itop").onchange=function(){
+  r.querySelector(".isize").disabled=!this.checked;
+  if(!this.checked)r.querySelector(".isize").value="";
+  calcInv();
+ };
+ r.querySelector(".del").onclick=function(){r.remove();calcInv();};
+ host.appendChild(r);
+}
+function rimMetres(){
+ var v=parseFloat(document.getElementById("rim").value);
+ if(isNaN(v))return null;
+ return rimUnit==="m"?v:v*FT;
+}
+function calcInv(){
+ var rm=rimMetres();
+ document.querySelectorAll("#invrows .invrow").forEach(function(r){
+  var out=r.querySelector(".res"),depth=parseFloat(r.querySelector(".idepth").value);
+  if(rm===null||isNaN(depth)){out.textContent="—";return;}
+  var inv=rm-depth;
+  if(r.querySelector(".itop").checked){
+   var sz=parseFloat(r.querySelector(".isize").value);
+   if(!isNaN(sz))inv-=sz/1000;
+  }
+  out.textContent=inv.toFixed(2)+" m / "+(inv/FT).toFixed(2)+" ft";
+ });
+}
+document.getElementById("rim").oninput=calcInv;
+addInvRow();addInvRow();
+function copyInverts(){
+ var rm=rimMetres(),lines=[];
+ if(rm===null){document.getElementById("invcopied").textContent="Enter a rim elevation first.";return;}
+ lines.push("Rim "+document.getElementById("rim").value+" "+rimUnit+(rimUnit==="ft"?" ("+rm.toFixed(3)+" m)":""));
+ document.querySelectorAll("#invrows .invrow").forEach(function(r){
+  var lab=r.querySelector(".ilabel").value||"?",res=r.querySelector(".res").textContent,dep=r.querySelector(".idepth").value;
+  if(res!=="—")lines.push(lab+": depth "+dep+" m \u2192 Inv. "+res);
+ });
+ var txt=lines.join("\n");
+ function done(){document.getElementById("invcopied").textContent="Copied.";setTimeout(function(){document.getElementById("invcopied").textContent="";},2000);}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){fallback();});}
+ else fallback();
+ function fallback(){
+  var t=document.createElement("textarea");t.value=txt;document.body.appendChild(t);t.select();
+  try{document.execCommand("copy");done();}catch(e){alert(txt);}t.remove();
+ }
+}
+
+/* ---------- boot ---------- */
+window.CHECKLISTS=CHECKLISTS;window.st=st;
+window.openCl=openCl;window.closeCl=closeCl;window.resetCl=resetCl;window.doExport=doExport;window.doImport=doImport;
+window.handleImportData=handleImportData;window.drawLib=drawLib;window.addInvRow=addInvRow;window.copyInverts=copyInverts;
+window.chainResult=chainResult;window.cksig=cksig;window.mark=mark;
+drawLib();
+</script>
+</body>
+</html>

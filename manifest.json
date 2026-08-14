@@ -1,0 +1,17 @@
+{
+ "name": "Elevate Office",
+ "short_name": "Elevate Office",
+ "start_url": ".",
+ "display": "standalone",
+ "background_color": "#F6F5F1",
+ "theme_color": "#22262C",
+ "description": "Checklists, calculators and reference for Elevate Land Surveying office staff",
+ "icons": [
+  {
+   "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzIyMjYyQyIvPjxyZWN0IHg9IjM2IiB5PSIzNiIgd2lkdGg9IjQ0MCIgaGVpZ2h0PSI0NDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzdGQThFMCIgc3Ryb2tlLXdpZHRoPSIxNCIvPjx0ZXh0IHg9IjI1NiIgeT0iMzMwIiBmb250LWZhbWlseT0iQXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjIwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iI0YyRjFFQyIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RU88L3RleHQ+PC9zdmc+",
+   "sizes": "any",
+   "type": "image/svg+xml",
+   "purpose": "any"
+  }
+ ]
+}
