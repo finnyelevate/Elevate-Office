@@ -151,6 +151,44 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .tag{display:inline-block;background:var(--blue-soft);color:var(--blue);font-size:11px;font-weight:600;padding:1px 7px;margin-left:6px;letter-spacing:.04em}
 .gis{columns:2;column-gap:30px}
 @media(max-width:640px){.tblock{grid-template-columns:1fr 1fr}.tb{border-bottom:1px solid var(--ink)}.gis{columns:1}.invrow,.invhead{grid-template-columns:1fr 1fr auto;grid-auto-rows:auto}.invhead{display:none}}
+/* proration */
+.side{border:1px solid var(--hair);margin-bottom:14px;background:#FCFBF8}
+.sideh{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--panel);border-bottom:1px solid var(--hair);flex-wrap:wrap}
+.sideh input.sname{border:none;border-bottom:1px dashed var(--hair);font-family:"Barlow Semi Condensed";font-weight:600;font-size:15px;letter-spacing:.03em;background:transparent;outline:none;width:150px;text-transform:uppercase}
+.sideh input.sname:focus{border-bottom-color:var(--blue)}
+.sidebadge{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--faint);display:flex;align-items:center;gap:6px}
+.sidebadge input{border:1px solid var(--hair);padding:4px 7px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;width:118px;outline:none;color:var(--blue);font-style:italic;background:var(--panel)}
+.sidebadge input:focus{border-color:var(--blue)}
+.side.manual .sidebadge input{font-style:normal;background:var(--blue-soft)}
+.smode{font-family:"Barlow Semi Condensed";font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px}
+.side.manual .smode{background:var(--blue);color:#fff}
+.side .smode:empty{display:none}
+.side.manual .sfield{background:var(--na-soft);color:var(--faint);pointer-events:none}
+.pgrid{display:grid;grid-template-columns:34px 1fr 1fr;align-items:stretch}
+.pgh{font-family:"Barlow Semi Condensed";font-weight:600;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);padding:8px 10px;border-bottom:1px solid var(--hair)}
+.pcell{padding:6px 10px;border-bottom:1px solid #EFEDE6;display:flex;align-items:center;gap:6px}
+.pcell input{width:100%;border:1px solid var(--hair);padding:7px 9px;font-family:"IBM Plex Mono",monospace;font-size:14px;outline:none;background:var(--panel)}
+.pcell input:focus{border-color:var(--blue)}
+.pcell .num{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--faint)}
+.pout{font-family:"IBM Plex Mono",monospace;font-size:14px;color:var(--blue)}
+.sfoot{display:grid;grid-template-columns:1fr 1fr;background:var(--panel);border-top:2px solid var(--ink)}
+.sf{padding:9px 12px}
+.sf label{display:block;font-family:"Barlow Semi Condensed";font-weight:600;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:3px}
+.sf .mono{font-family:"IBM Plex Mono",monospace;font-size:14px}
+.sf input{border:1px solid var(--hair);padding:7px 9px;font-family:"IBM Plex Mono",monospace;font-size:14px;outline:none;width:130px}
+.sf input:focus{border-color:var(--blue)}
+.check{font-size:12px;margin-top:2px}
+.check.ok{color:var(--green)}
+.addrow2{padding:8px 10px}
+/* absolute accuracy */
+.acchead{display:grid;grid-template-columns:1.2fr 1fr 1fr 1.3fr auto;gap:8px;font-family:"Barlow Semi Condensed";font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:5px}
+.accrow{display:grid;grid-template-columns:1.2fr 1fr 1fr 1.3fr auto;gap:8px;align-items:center;margin-bottom:8px}
+.accrow input{border:1px solid var(--hair);padding:8px 9px;font-family:"IBM Plex Mono",monospace;font-size:14px;width:100%;outline:none}
+.accrow input:focus{border-color:var(--blue)}
+.accrow .res{font-family:"IBM Plex Mono",monospace;font-size:13.5px;color:var(--blue);white-space:nowrap}
+.accrow.gov .res{font-weight:700;color:var(--orange)}
+.accrow .del{border:none;background:none;color:var(--faint);cursor:pointer;font-size:15px}
+@media(max-width:640px){.acchead{display:none}.accrow{grid-template-columns:1fr 1fr auto}}
 #dropzone{display:none;position:fixed;inset:0;background:rgba(36,86,166,.12);border:4px dashed var(--blue);z-index:50;align-items:center;justify-content:center;font-family:"Barlow Semi Condensed";font-weight:600;font-size:22px;color:var(--blue);letter-spacing:.05em;text-transform:uppercase}
 #dropzone.show{display:flex}
 /* print */
@@ -288,6 +326,29 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
     </div>
     <div class="hint">Depths always entered in metres as booked by the crew. Invert = rim − depth (− pipe size when measured to top of pipe). Results show in metres and feet.</div>
   </div>
+
+  <div class="tool" style="max-width:760px">
+    <h3>Proration</h3>
+    <div id="prsides"></div>
+    <div class="row" style="margin-top:6px">
+      <button class="btn ghost" onclick="addSide()">+ Add side</button>
+      <button class="btn" onclick="copyProration()">Copy results</button>
+      <span class="hint" id="prcopied" style="margin:0"></span>
+    </div>
+    <div class="hint">Enter the plan (record) calls and the measured field distance — the factor derives from field ÷ Σ plan and every call prorates, with a Σ check that the prorated calls rebuild the field. Or type a factor directly (Helmerts, combined scale) to apply it; the field box then shows the implied distance. Enter on the last call adds a row.</div>
+  </div>
+
+  <div class="tool" style="max-width:760px">
+    <h3>Absolute accuracy (95%)</h3>
+    <div class="acchead"><span>Point / monument</span><span>&#963; Northing (m)</span><span>&#963; Easting (m)</span><span>Accuracy</span><span></span></div>
+    <div id="accrows"></div>
+    <div class="row" style="margin-top:6px">
+      <button class="btn ghost" onclick="addAccRow()">+ Add point</button>
+      <button class="btn" onclick="copyAccuracy()">Copy results</button>
+      <span class="hint" id="acccopied" style="margin:0"></span>
+    </div>
+    <div class="hint">Accuracy = 1.96 &#215; &#8730;(&#963;N&#178; + &#963;E&#178;) — horizontal, 95% confidence. The governing (largest) value is highlighted; that's the one for the accuracy statement.</div>
+  </div>
 </div>
 
 <div class="view" id="v-samples">
@@ -391,8 +452,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.2";
-const NEWS=["New Training tab: 34 walkthrough videos grouped by topic (Beginner, GPS, Surface & cross-sections, PMBC & closure, BCLS/PM, General)","Video links open directly; obsolete videos left out","New tool: feet-inches \u2192 decimal feet + metres, for reading architectural plans into CAD"];
+const BUILD="1.3";
+const NEWS=["New tool: Proration \u2014 per-side cards, multiple plan calls against one field distance, factor derived or typed manually, copy to calc notes","New tool: Absolute accuracy \u2014 \u03c3N/\u03c3E per point, 1.96\u00d7\u221a(\u03c3N\u00b2+\u03c3E\u00b2) at 95%, governing point highlighted"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1235,11 +1296,159 @@ function copyInverts(){
  }
 }
 
+
+/* ---------- proration ---------- */
+function prEl(html){var d=document.createElement("div");d.innerHTML=html;return d.firstElementChild;}
+function prFmt(v,n){return isFinite(v)?v.toFixed(n):"\u2014";}
+var prSideN=0;
+function addSide(name){
+ prSideN++;
+ var s=prEl('<div class="side">'+
+  '<div class="sideh"><input class="sname" value="'+(name||("SIDE "+prSideN))+'">'+
+  '<span class="sidebadge">factor <input class="sfactor" placeholder="derived" title="Leave blank to derive from field \u00f7 \u03a3 plan, or type a factor to apply it directly"><span class="smode"></span></span>'+
+  '<button class="del" title="Remove side">\u2715</button></div>'+
+  '<div class="pgrid"><div class="pgh">#</div><div class="pgh">Plan (record)</div><div class="pgh">Prorated</div></div>'+
+  '<div class="prows"></div>'+
+  '<div class="addrow2"><button class="btn ghost">+ Add plan distance</button></div>'+
+  '<div class="sfoot">'+
+   '<div class="sf"><label>\u03a3 plan</label><span class="mono splan">\u2014</span></div>'+
+   '<div class="sf"><label>Field (measured)</label><input class="sfield" placeholder="0.000"><div class="check scheck"></div></div>'+
+  '</div></div>');
+ s.querySelector(".del").onclick=function(){s.remove();};
+ s.querySelector(".addrow2 .btn").onclick=function(){addPrRow(s);};
+ s.querySelector(".sfield").addEventListener("input",function(){calcSide(s);});
+ var fin=s.querySelector(".sfactor");
+ fin.addEventListener("input",function(){
+  s.classList.toggle("manual",fin.value.trim()!=="");
+  if(fin.value.trim()==="")s.querySelector(".sfield").value="";
+  calcSide(s);
+ });
+ document.getElementById("prsides").appendChild(s);
+ addPrRow(s);addPrRow(s);
+ return s;
+}
+function addPrRow(s){
+ var rows=s.querySelector(".prows");
+ var n=rows.children.length+1;
+ var r=prEl('<div class="pgrid"><div class="pcell"><span class="num">'+n+'</span></div>'+
+  '<div class="pcell"><input class="plan" placeholder="0.000" autocomplete="off"></div>'+
+  '<div class="pcell"><span class="pout pror">\u2014</span></div></div>');
+ var inp=r.querySelector(".plan");
+ inp.addEventListener("input",function(){calcSide(s);});
+ inp.addEventListener("keydown",function(e){
+  if(e.key==="Enter"){
+   var all=s.querySelectorAll(".plan");
+   if(this===all[all.length-1])addPrRow(s);
+   var all2=s.querySelectorAll(".plan");var i=[].indexOf.call(all2,this);
+   if(all2[i+1])all2[i+1].focus();
+  }
+ });
+ rows.appendChild(r);
+}
+function calcSide(s){
+ var plans=[].map.call(s.querySelectorAll(".plan"),function(i){return parseFloat(i.value);});
+ var sum=plans.reduce(function(a,v){return a+(isNaN(v)?0:v);},0);
+ var fin=s.querySelector(".sfactor");
+ var manual=fin.value.trim()!=="";
+ var fieldBox=s.querySelector(".sfield");
+ var f=NaN, mode="";
+ s.querySelector(".splan").textContent=sum>0?prFmt(sum,3):"\u2014";
+ if(manual){
+  f=parseFloat(fin.value);
+  mode=(isFinite(f)&&f>0)?"manual":"";
+  if(!(isFinite(f)&&f>0))f=NaN;
+  fieldBox.value=(isFinite(f)&&sum>0)?prFmt(sum*f,3):"";
+  fieldBox.placeholder="implied";
+ } else {
+  fieldBox.placeholder="0.000";
+  var field=parseFloat(fieldBox.value);
+  f=(sum>0&&!isNaN(field)&&field>0)?field/sum:NaN;
+  fin.value="";fin.placeholder=isFinite(f)?f.toFixed(8):"derived";
+ }
+ s.querySelector(".smode").textContent=mode;
+ var outs=s.querySelectorAll(".pror"),tot=0;
+ plans.forEach(function(v,ix){
+  if(isFinite(f)&&!isNaN(v)){var p=v*f;tot+=p;outs[ix].textContent=prFmt(p,3);}
+  else outs[ix].textContent="\u2014";
+ });
+ var chk=s.querySelector(".scheck");
+ if(isFinite(f)&&!manual){chk.className="check scheck ok";chk.textContent="\u03a3 prorated = "+prFmt(tot,3)+" \u2713";}
+ else if(isFinite(f)&&manual){chk.className="check scheck";chk.textContent="field implied from factor";}
+ else{chk.className="check scheck";chk.textContent="";}
+}
+function copyProration(){
+ var lines=[];
+ document.querySelectorAll("#prsides .side").forEach(function(s){
+  var fin=s.querySelector(".sfactor");
+  var manual=fin.value.trim()!=="";
+  var f=manual?fin.value.trim():fin.placeholder;
+  if(f==="derived"||f==="\u2014")return;
+  lines.push(s.querySelector(".sname").value+" \u2014 field "+s.querySelector(".sfield").value+" / plan "+s.querySelector(".splan").textContent+"  factor "+f+(manual?" (manual)":" (derived)"));
+  var plans=s.querySelectorAll(".plan"),outs=s.querySelectorAll(".pror");
+  plans.forEach(function(p,i){if(p.value)lines.push("  "+p.value+" -> "+outs[i].textContent);});
+ });
+ copyText(lines.join("\n")||"(nothing to copy yet)","prcopied");
+}
+
+/* ---------- absolute accuracy ---------- */
+var K95=1.96;
+function addAccRow(){
+ var host=document.getElementById("accrows");
+ var r=prEl('<div class="accrow">'+
+  '<input class="alab" placeholder="Mon. / point" autocomplete="off">'+
+  '<input class="asn" placeholder="0.000" autocomplete="off">'+
+  '<input class="ase" placeholder="0.000" autocomplete="off">'+
+  '<span class="res">\u2014</span>'+
+  '<button class="del" title="Remove">\u2715</button></div>');
+ r.querySelector(".asn").addEventListener("input",calcAcc);
+ r.querySelector(".ase").addEventListener("input",calcAcc);
+ r.querySelector(".del").onclick=function(){r.remove();calcAcc();};
+ host.appendChild(r);
+ return r;
+}
+function calcAcc(){
+ var best=-1,bestRow=null;
+ document.querySelectorAll("#accrows .accrow").forEach(function(r){
+  r.classList.remove("gov");
+  var sn=parseFloat(r.querySelector(".asn").value),se=parseFloat(r.querySelector(".ase").value);
+  var out=r.querySelector(".res");
+  if(isNaN(sn)||isNaN(se)||sn<0||se<0){out.textContent="\u2014";r.dataset.acc="";return;}
+  var comb=Math.sqrt(sn*sn+se*se),acc=K95*comb;
+  out.textContent=acc.toFixed(3)+" m  (\u03c3 "+comb.toFixed(4)+")";
+  r.dataset.acc=acc;
+  if(acc>best){best=acc;bestRow=r;}
+ });
+ if(bestRow)bestRow.classList.add("gov");
+}
+function copyAccuracy(){
+ var lines=["Absolute accuracy \u2014 horizontal, 95% confidence (k=1.96)"];
+ var best=-1,bestLab="";
+ document.querySelectorAll("#accrows .accrow").forEach(function(r){
+  if(!r.dataset.acc)return;
+  var lab=r.querySelector(".alab").value||"?";
+  var acc=parseFloat(r.dataset.acc);
+  lines.push("  "+lab+": \u03c3N "+r.querySelector(".asn").value+"  \u03c3E "+r.querySelector(".ase").value+"  \u2192 "+acc.toFixed(3)+" m");
+  if(acc>best){best=acc;bestLab=lab;}
+ });
+ if(best>=0)lines.push("Governing: "+bestLab+" \u2014 "+best.toFixed(3)+" m");
+ copyText(lines.length>1?lines.join("\n"):"(nothing to copy yet)","acccopied");
+}
+function copyText(txt,elId){
+ var el=document.getElementById(elId);
+ function done(){el.textContent="Copied.";setTimeout(function(){el.textContent="";},2000);}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){fb();});}
+ else fb();
+ function fb(){var t=document.createElement("textarea");t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand("copy");done();}catch(e){alert(txt);}t.remove();}
+}
+addSide();
+addAccRow();addAccRow();
+
 /* ---------- boot ---------- */
 window.CHECKLISTS=CHECKLISTS;window.st=st;
 window.openCl=openCl;window.closeCl=closeCl;window.resetCl=resetCl;window.doExport=doExport;window.doImport=doImport;
 window.handleImportData=handleImportData;window.drawLib=drawLib;window.addInvRow=addInvRow;window.copyInverts=copyInverts;
 window.chainResult=chainResult;window.cksig=cksig;window.mark=mark;
+window.addSide=addSide;window.addAccRow=addAccRow;window.copyProration=copyProration;window.copyAccuracy=copyAccuracy;window.calcAcc=calcAcc;
 drawLib();
 </script>
 </body>

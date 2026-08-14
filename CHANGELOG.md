@@ -1,5 +1,10 @@
 # Elevate Office — changelog
 
+## Build 1.3 — 2026-08-14
+- New tool: Proration. Per-side cards named as you like (NORTH PL...); enter multiple plan (record) calls — Enter on the last row adds another — against one measured field distance. Factor = field ÷ Σ plan derives live at 8 decimals with full internal precision; every call shows its prorated value at 3 decimals and a Σ check confirms the prorated calls rebuild the field distance. Type a factor directly (Helmerts result, combined scale) to switch the card to manual mode: a blue tag shows, the field box becomes an output showing the implied distance, and Copy results labels each side (derived) or (manual) for the calc notes. Add/remove sides freely while working a calc.
+- New tool: Absolute accuracy (95%). One row per point/monument: enter σN and σE off the transformed-coordinates report; accuracy = 1.96 × √(σN² + σE²) shows with the combined σ beside it. The governing (largest) point is highlighted in orange — that's the accuracy-statement value — and Copy results outputs the table with the confidence basis noted (horizontal, 95%, k=1.96).
+- No changes to checklists, samples, or training.
+
 ## Build 1.2 — 2026-08-14
 - New Training tab: 34 walkthrough videos pulled from the SharePoint Training Videos folder, grouped by topic — Beginner (9), GPS (5), Surface/modelling/cross-sections (3), PMBC/closure/parcel map (5), BCLS & Project Manager (6), General/other (6).
 - Each entry links straight to the video (Vidyard, YouTube, Screencast) extracted from the folder's .txt pointer files; entries with a second reference link show it alongside.
