@@ -151,6 +151,15 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .tag{display:inline-block;background:var(--blue-soft);color:var(--blue);font-size:11px;font-weight:600;padding:1px 7px;margin-left:6px;letter-spacing:.04em}
 .gis{columns:2;column-gap:30px}
 @media(max-width:640px){.tblock{grid-template-columns:1fr 1fr}.tb{border-bottom:1px solid var(--ink)}.gis{columns:1}.invrow,.invhead{grid-template-columns:1fr 1fr auto;grid-auto-rows:auto}.invhead{display:none}}
+.remind{background:var(--panel);border:1px solid var(--orange);border-left:5px solid var(--orange);padding:14px 16px;margin-bottom:20px;position:relative}
+.remind h4{font-family:"Barlow Semi Condensed";font-weight:600;font-size:14px;letter-spacing:.07em;text-transform:uppercase;color:var(--orange);margin-bottom:6px}
+.remind .ritem{padding:6px 0;border-top:1px solid #F3E7D9;cursor:pointer}
+.remind .ritem:first-of-type{border-top:none}
+.remind .ritem:hover .rn{color:var(--blue);text-decoration:underline}
+.remind .rj{font-family:"IBM Plex Mono",monospace;font-weight:500;margin-right:8px}
+.remind .rd{font-size:12px;color:var(--faint)}
+.remind .x{position:absolute;top:8px;right:10px;border:none;background:none;color:var(--faint);font-size:13px;cursor:pointer;font-family:"Barlow Semi Condensed";letter-spacing:.04em}
+.unsv{font-family:"Barlow Semi Condensed";font-weight:600;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--orange);border:1px solid var(--orange);padding:1px 6px;white-space:nowrap}
 /* proration */
 .side{border:1px solid var(--hair);margin-bottom:14px;background:#FCFBF8}
 .sideh{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--panel);border-bottom:1px solid var(--hair);flex-wrap:wrap}
@@ -226,11 +235,12 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
   <div id="cl-lib">
     <h1 class="pg">Checklists</h1>
     <p class="sub">Pick a checklist to start, or import one saved to a job file to continue where a teammate left off. Progress auto-saves on this computer as you tick.</p>
+    <div id="remindcard"></div>
     <div id="newscard"></div>
     <div class="inprog" id="inprog" style="display:none"><h4>In progress on this computer</h4><div id="iplist"></div></div>
     <div class="tbar" style="margin-top:0">
       <button class="btn" onclick="doImport()">Import from job file</button>
-      <input type="file" id="impfile" accept=".json,application/json" style="display:none">
+      <input type="file" id="impfile" accept=".json,.pdf,application/json,application/pdf" style="display:none">
     </div>
     <div class="cards" id="cardhost"></div>
   </div>
@@ -246,9 +256,10 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
     </div>
     <div class="prog"><i id="progbar" style="width:0%"></i></div>
     <div class="tbar">
-      <button class="btn pri" id="savebtn" onclick="doExport()">Save to job file</button>
+      <button class="btn pri" id="savebtn" onclick="doExportPDF()">Save PDF to job file</button>
+      <button class="btn" onclick="doExport()">Save as JSON</button>
       <button class="btn" onclick="doImport()">Import</button>
-      <button class="btn" onclick="window.print()">Print / PDF</button>
+      <button class="btn ghost" onclick="window.print()">Print</button>
       <div class="spacer"></div>
       <button class="btn ghost" onclick="resetCl()">Clear</button>
     </div>
@@ -354,14 +365,50 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 <div class="view" id="v-samples">
   <h1 class="pg">Samples</h1>
   <p class="sub">Gold-standard examples of finished work. Links open in SharePoint — anything newly filed in the folders shows up under "open folder" right away.</p>
+  <h1 class="pg" style="font-size:18px">Legal plans <a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans" target="_blank" rel="noopener" style="font-size:11.5px;letter-spacing:.05em">open folder ↗</a></h1>
+  <p class="sub">Postings, reference plans, SRW, subdivisions, explanatory and strata examples.</p>
   <div class="lgrp">
-    <h3>Legal plans <a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans" target="_blank" rel="noopener">open folder ↗</a></h3>
+    <h3>Postings</h3>
     <ul>
-      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/posting%20plan%20sample.pdf" target="_blank" rel="noopener">Posting plan</a><span class="tag">posting</span></li>
-      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/posting%20plan%20sample%20IN%20NON%20INTEGRATED%20AREA%2BSTATIC%20GPS.pdf" target="_blank" rel="noopener">Posting plan — non-integrated area + static GPS</a><span class="tag">posting</span></li>
-      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/subdivisions/subdivision%20plan.pdf" target="_blank" rel="noopener">Subdivision plan</a><span class="tag">subdivision</span></li>
-      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/ex.%20plans/building%20envelope%20ex.%20plan.pdf" target="_blank" rel="noopener">Building envelope explanatory plan</a><span class="tag">ex. plan</span></li>
-      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/ex.%20plans/tree%20cov.%20plan%20multiple%20areas.pdf" target="_blank" rel="noopener">Tree covenant plan — multiple areas</a><span class="tag">ex. plan</span></li>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/posting%20plan%20sample.pdf" target="_blank" rel="noopener">Posting plan</a></li>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/posting%20plan%20sample%20IN%20NON%20INTEGRATED%20AREA%2BSTATIC%20GPS.pdf" target="_blank" rel="noopener">Posting plan — non-integrated area + static GPS</a></li>
+    </ul>
+  </div>
+  <div class="lgrp">
+    <h3>Reference plans</h3>
+    <ul>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/ref.%20plan%20for%20road%20closure.pdf" target="_blank" rel="noopener">Reference plan for road closure</a></li>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/sec.%20107%20to%20dedicate%20road.pdf" target="_blank" rel="noopener">Sec. 107 to dedicate road</a></li>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/ref.%20plan%20sec%20100%281%29%28a%29%20old%20area.pdf" target="_blank" rel="noopener">Ref. plan sec 100(1)(a) — old area</a></li>
+      <li><span class="note">More reference plans (sec 100(1)(a) + 107 define lot, EPP113453 example) — in the folder above.</span></li>
+    </ul>
+  </div>
+  <div class="lgrp">
+    <h3>SRW</h3>
+    <ul>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/0.5%20srw%20plan-surrey.pdf" target="_blank" rel="noopener">0.5 SRW plan — Surrey</a></li>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/volumetric%20srw%20sample.pdf" target="_blank" rel="noopener">Volumetric SRW sample</a></li>
+    </ul>
+  </div>
+  <div class="lgrp">
+    <h3>Subdivisions <a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/subdivisions" target="_blank" rel="noopener">open folder ↗</a></h3>
+    <ul>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/subdivisions/subdivision%20plan.pdf" target="_blank" rel="noopener">Subdivision plan</a></li>
+    </ul>
+  </div>
+  <div class="lgrp">
+    <h3>Ex. plans <a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/ex.%20plans" target="_blank" rel="noopener">open folder ↗</a></h3>
+    <ul>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/ex.%20plans/building%20envelope%20ex.%20plan.pdf" target="_blank" rel="noopener">Building envelope explanatory plan</a></li>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/ex.%20plans/tree%20cov.%20plan%20multiple%20areas.pdf" target="_blank" rel="noopener">Tree covenant plan — multiple areas</a></li>
+    </ul>
+  </div>
+  <div class="lgrp">
+    <h3>Strata <a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/strata" target="_blank" rel="noopener">open folder ↗</a></h3>
+    <ul>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/strata/strata%20townhouse%20units-final%20sample.pdf" target="_blank" rel="noopener">Strata townhouse units — final</a></li>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/strata/strata%20condo%20units-final%20sample.pdf" target="_blank" rel="noopener">Strata condo units — final</a></li>
+      <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/samples/legal%20plans/strata/form%20v/23-2167-Form%20V-duplex%20sample-final.xls" target="_blank" rel="noopener">Form V — duplex sample (unit entitlement)</a></li>
     </ul>
   </div>
   <h1 class="pg" style="font-size:18px;margin-top:26px">Non-legal plans</h1>
@@ -438,6 +485,13 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
     <ul>
       <li><a href="https://clss.nrcan.gc.ca/mb-nc/en/index.html" target="_blank" rel="noopener">Canada Lands plans (CLSS)</a></li>
       <li><a href="https://a100.gov.bc.ca/pub/pls/gator/gator$queryforms.menu" target="_blank" rel="noopener">Crown Grants (GATOR)</a></li>
+      <li><a href="https://geonetbc.gov.bc.ca/geonetbc" target="_blank" rel="noopener">GeoNetBC — geodetic control</a></li>
+    </ul>
+  </div>
+  <div class="lgrp">
+    <h3>Company reference</h3>
+    <ul>
+      <li><a href="https://www.google.com/maps/d/viewer?mid=1b2eNsbiIgDsWLYNYHdewCsDMLCDKmQ8" target="_blank" rel="noopener">Job map — past jobs (Google My Maps)</a></li>
     </ul>
   </div>
   <div class="lgrp">
@@ -452,8 +506,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.3";
-const NEWS=["New tool: Proration \u2014 per-side cards, multiple plan calls against one field distance, factor derived or typed manually, copy to calc notes","New tool: Absolute accuracy \u2014 \u03c3N/\u03c3E per point, 1.96\u00d7\u221a(\u03c3N\u00b2+\u03c3E\u00b2) at 95%, governing point highlighted"];
+const BUILD="1.4";
+const NEWS=["Save PDF to job file: one PDF that reads like the paper checklist AND imports back into the app with every tick restored","Import now accepts app-made PDFs as well as JSON (button or drag-and-drop)","Daily reminder card for checklists not yet saved to the job file; orange flag on the in-progress list","Samples: legal plans filled out (postings, reference plans, SRW, subdivisions, ex. plans, strata)","Resources: GeoNetBC and the past-jobs map added"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -755,7 +809,7 @@ function drawLib(){
    var d2=loadSaved(parts[1],parts[2]);if(!d2)continue;
    var total=cl.sections.reduce(function(a,s){return a+s.items.length;},0);
    var done=Object.keys(d2.marks||{}).length;
-   if(done>0)ip.push({cl:cl,jobKey:parts[2],job:d2.job||"",done:done,total:total,updated:d2.updated||""});
+   if(done>0)ip.push({cl:cl,jobKey:parts[2],job:d2.job||"",done:done,total:total,updated:d2.updated||"",unsaved:!d2.exported||(d2.updated&&d2.exported&&d2.updated>d2.exported)});
   }
  }
  ip.sort(function(a,b){return (b.updated||"").localeCompare(a.updated||"");});
@@ -764,11 +818,28 @@ function drawLib(){
  if(ip.length){wrap.style.display="block";
   ip.forEach(function(e){
    var r=document.createElement("div");r.className="ipitem";
-   r.innerHTML="<span class='j'>"+esc(e.job||"no job #")+"</span><span class='n'>"+esc(e.cl.name)+"</span><span class='p'>"+e.done+" / "+e.total+"</span>";
+   r.innerHTML="<span class='j'>"+esc(e.job||"no job #")+"</span><span class='n'>"+esc(e.cl.name)+"</span>"+(e.unsaved?"<span class='unsv'>unsaved to job file</span>":"")+"<span class='p'>"+e.done+" / "+e.total+"</span>";
    r.onclick=function(){openCl(e.cl.id,e.jobKey);};
    list.appendChild(r);
   });
  } else wrap.style.display="none";
+ drawReminder(ip);
+}
+function drawReminder(ip){
+ var host=document.getElementById("remindcard");
+ if(!host)return;
+ host.innerHTML="";
+ var due=ip.filter(function(e){return e.unsaved;});
+ if(!due.length)return;
+ if(sget("eo1:remind")===today())return;
+ var d=document.createElement("div");d.className="remind";
+ d.innerHTML="<button class='x'>Remind me tomorrow</button><h4>Not yet saved to job file</h4>"+
+  due.map(function(e,i){return "<div class='ritem' data-i='"+i+"'><span class='rj'>"+esc(e.job||"no job #")+"</span><span class='rn'>"+esc(e.cl.name)+"</span> <span class='rd'>"+e.done+" / "+e.total+" · last worked "+esc((e.updated||"").slice(0,10))+"</span></div>";}).join("");
+ d.querySelector(".x").onclick=function(){sset("eo1:remind",today());d.remove();};
+ d.querySelectorAll(".ritem").forEach(function(r){
+  r.onclick=function(){var e=due[+r.dataset.i];openCl(e.cl.id,e.jobKey);};
+ });
+ host.appendChild(d);
 }
 
 /* ---------- what's new ---------- */
@@ -936,7 +1007,7 @@ function doImport(){
  f.onchange=function(){
   var file=f.files[0];if(!file)return;
   var r=new FileReader();
-  r.onload=function(){try{handleImportData(JSON.parse(r.result));}catch(e){alert("Couldn't read that file: "+e.message);}f.value="";};
+  r.onload=function(){importFromText(r.result);f.value="";};
   r.readAsText(file);
  };
  f.click();
@@ -952,11 +1023,130 @@ function doImport(){
   var file=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
   if(!file)return;
   var r=new FileReader();
-  r.onload=function(){try{handleImportData(JSON.parse(r.result));}catch(err){alert("Couldn't read that file: "+err.message);}};
+  r.onload=function(){importFromText(r.result);};
   r.readAsText(file);
  });
 })();
 window.addEventListener("beforeunload",function(){if(st.cl)persist();});
+
+
+/* ---------- PDF export (self-contained, embeds app data) ---------- */
+function pdfSan(t){ /* ASCII-only for the PDF byte stream */
+ return String(t).replace(/\u2014/g,"-").replace(/\u2013/g,"-").replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/\u00d7/g,"x").replace(/\u00b0/g," deg").replace(/[^\x20-\x7E]/g,"?");
+}
+function pdfEsc(t){return t.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)");}
+function wrapText(t,maxChars){
+ var words=t.split(" "),lines=[],cur="";
+ words.forEach(function(w){
+  while(w.length>maxChars){ if(cur){lines.push(cur);cur="";} lines.push(w.slice(0,maxChars)); w=w.slice(maxChars); }
+  if(!cur)cur=w;
+  else if((cur+" "+w).length<=maxChars)cur+=" "+w;
+  else{lines.push(cur);cur=w;}
+ });
+ if(cur)lines.push(cur);
+ return lines;
+}
+function buildChecklistPDF(){
+ var W=612,H=792,M=54,LH=11.5,BODY=9,maxChars=Math.floor((W-2*M-16)/(BODY*0.6));
+ var pages=[],c=[],y;
+ function line(){pages.push(c.join("\n"));c=[];}
+ function newPage(){ if(c.length)line(); y=H-M-10; }
+ function txt(f,size,x,yy,str,gray){
+  c.push("BT /"+f+" "+size+" Tf "+(gray?gray+" g ":"0 g ")+x+" "+yy.toFixed(1)+" Td ("+pdfEsc(pdfSan(str))+") Tj ET");
+ }
+ function need(h){ if(y-h<M+18) newPage(); }
+ function box(x,yy,state){
+  c.push("0.35 g "+x+" "+(yy-1.5).toFixed(1)+" 8 8 re S");
+  if(state==="yes"){c.push("0.18 0.49 0.31 RG 1.2 w "+(x+1.5)+" "+(yy+2).toFixed(1)+" m "+(x+3.3)+" "+(yy-0.4).toFixed(1)+" l "+(x+6.8)+" "+(yy+5.6).toFixed(1)+" l S 0 G 0.7 w");}
+  if(state==="na"){c.push("0.54 0.56 0.6 RG 1.1 w "+(x+1.3)+" "+(yy-0.6).toFixed(1)+" m "+(x+6.7)+" "+(yy+5.5).toFixed(1)+" l "+(x+6.7)+" "+(yy-0.6).toFixed(1)+" m "+(x+1.3)+" "+(yy+5.5).toFixed(1)+" l S 0 G 0.7 w");}
+ }
+ newPage();
+ /* header */
+ txt("F1",9,M,y,"ELEVATE OFFICE",0.45); y-=16;
+ txt("F1",15,M,y,st.cl.name); y-=15;
+ txt("F2",BODY,M,y,"Job "+(st.job||"____")+"   Date "+st.opened+"   Progress "+countDone()+" / "+countTotal(),0.25); y-=8;
+ c.push("0 G 1 w "+M+" "+y.toFixed(1)+" m "+(W-M)+" "+y.toFixed(1)+" l S 0.7 w"); y-=16;
+ st.cl.sections.forEach(function(sec){
+  need(40);
+  var sdone=0, who={};
+  sec.items.forEach(function(t,ix){var mk=st.marks[key(sec.id,ix)];if(mk){sdone++;if(mk.by)who[mk.by]=mk.at;}});
+  txt("F1",11,M,y,sec.title.toUpperCase()+"   "+sdone+" / "+sec.items.length); y-=LH;
+  if(sec.pm){txt("F2",8,M,y,sec.note,0.45); y-=LH-1;}
+  y-=3;
+  sec.items.forEach(function(t,ix){
+   var mk=st.marks[key(sec.id,ix)];
+   var lines=wrapText(t,maxChars);
+   var blockH=lines.length*LH+(mk?LH:0)+4;
+   need(blockH);
+   box(M,y,mk?mk.v:null);
+   lines.forEach(function(l,li){ txt("F2",BODY,M+16,y,l); y-=LH; });
+   if(mk){ txt("F2",7.5,M+16,y,(mk.v==="na"?"[N/A] ":"[YES] ")+(mk.by||"-")+" "+mk.at,0.45); y-=LH; }
+   y-=3;
+  });
+  var names=Object.keys(who).map(function(n){return n+" "+who[n];}).join(", ");
+  need(LH+8);
+  txt("F2",8,M,y,(sdone===sec.items.length?"Section complete - completed by "+(names||"-"):"Completed by ___ on ___"),0.35);
+  y-=LH+10;
+ });
+ line();
+ /* payload */
+ var data={app:"elevate-office",v:1,checklist:st.cl.id,name:st.cl.name,sig:cksig(st.cl),job:st.job,opened:st.opened,marks:st.marks,saved:new Date().toISOString(),build:BUILD};
+ var b64=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+ /* assemble PDF */
+ var objs=[], n=0;
+ function obj(body){objs.push(body);return ++n;}
+ var fontRegular=obj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>");
+ var fontMono=obj("<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>");
+ var contentIds=pages.map(function(p,i){
+  var footer="BT /F2 7 Tf 0.5 g "+M+" 30 Td (Elevate Office Build "+BUILD+" - this PDF contains embedded checklist data; import it into the app to continue.  Page "+(i+1)+" of "+pages.length+") Tj ET";
+  var streamText="0.7 w 0 G 0 g\n"+p+"\n"+footer;
+  return obj("<< /Length "+streamText.length+" >>\nstream\n"+streamText+"\nendstream");
+ });
+ var pageIds=[], pagesId=n+contentIds.length+1;
+ contentIds.forEach(function(cid){
+  pageIds.push(obj("<< /Type /Page /Parent "+(0)+" 0 R /MediaBox [0 0 "+W+" "+H+"] /Resources << /Font << /F1 "+fontRegular+" 0 R /F2 "+fontMono+" 0 R >> >> /Contents "+cid+" 0 R >>"));
+ });
+ var kids=pageIds.map(function(id){return id+" 0 R";}).join(" ");
+ var pagesObj=obj("<< /Type /Pages /Kids ["+kids+"] /Count "+pageIds.length+" >>");
+ /* patch Parent refs */
+ pageIds.forEach(function(id){objs[id-1]=objs[id-1].replace("/Parent 0 0 R","/Parent "+pagesObj+" 0 R");});
+ var dataStream="EOAPPDATA1:"+b64+":END";
+ var dataObj=obj("<< /Type /ElevateOfficeData /Length "+dataStream.length+" >>\nstream\n"+dataStream+"\nendstream");
+ var catalog=obj("<< /Type /Catalog /Pages "+pagesObj+" 0 R >>");
+ var out="%PDF-1.4\n", offs=[];
+ objs.forEach(function(o,i){ offs.push(out.length); out+=(i+1)+" 0 obj\n"+o+"\nendobj\n"; });
+ var xref=out.length;
+ out+="xref\n0 "+(n+1)+"\n0000000000 65535 f \n";
+ offs.forEach(function(o){ out+=String(o).padStart(10,"0")+" 00000 n \n"; });
+ out+="trailer\n<< /Size "+(n+1)+" /Root "+catalog+" 0 R >>\nstartxref\n"+xref+"\n%%EOF";
+ return out;
+}
+function countDone(){var d=0;st.cl.sections.forEach(function(s){s.items.forEach(function(t,ix){if(st.marks[key(s.id,ix)])d++;});});return d;}
+function countTotal(){return st.cl.sections.reduce(function(a,s){return a+s.items.length;},0);}
+function doExportPDF(){
+ if(!st.cl){alert("Open a checklist first.");return;}
+ persist();
+ var pdf=buildChecklistPDF();
+ st.exported=new Date().toISOString();persist();
+ var bytes=new Uint8Array(pdf.length);
+ for(var i=0;i<pdf.length;i++)bytes[i]=pdf.charCodeAt(i)&0xFF;
+ var a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
+ a.download=(st.job||"job")+"-"+st.cl.short+" checklist.pdf";
+ document.body.appendChild(a);a.click();a.remove();
+ render();
+}
+function importFromText(txt){
+ if(txt.slice(0,5)==="%PDF-"){
+  var m=txt.match(/EOAPPDATA1:([A-Za-z0-9+\/=]+):END/);
+  if(!m){alert("This PDF doesn't contain Elevate Office data. Only PDFs saved by the app can be imported - use the JSON or app-made PDF from the job file.");return;}
+  try{ handleImportData(JSON.parse(decodeURIComponent(escape(atob(m[1]))))); }
+  catch(e){alert("Couldn't read the data inside that PDF: "+e.message);}
+  return;
+ }
+ try{ handleImportData(JSON.parse(txt)); }
+ catch(e){alert("Couldn't read that file: "+e.message);}
+}
 
 /* ---------- tabs ---------- */
 document.querySelectorAll("nav button").forEach(function(b){
@@ -1448,7 +1638,7 @@ window.CHECKLISTS=CHECKLISTS;window.st=st;
 window.openCl=openCl;window.closeCl=closeCl;window.resetCl=resetCl;window.doExport=doExport;window.doImport=doImport;
 window.handleImportData=handleImportData;window.drawLib=drawLib;window.addInvRow=addInvRow;window.copyInverts=copyInverts;
 window.chainResult=chainResult;window.cksig=cksig;window.mark=mark;
-window.addSide=addSide;window.addAccRow=addAccRow;window.copyProration=copyProration;window.copyAccuracy=copyAccuracy;window.calcAcc=calcAcc;
+window.addSide=addSide;window.addAccRow=addAccRow;window.doExportPDF=doExportPDF;window.buildChecklistPDF=buildChecklistPDF;window.importFromText=importFromText;window.drawReminder=drawReminder;window.copyProration=copyProration;window.copyAccuracy=copyAccuracy;window.calcAcc=calcAcc;
 drawLib();
 </script>
 </body>
