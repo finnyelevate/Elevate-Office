@@ -1,5 +1,9 @@
 # Elevate Office — changelog
 
+## Build 1.4.1 — 2026-08-17
+- Fix: the "unsaved to job file" flag now clears properly after Save PDF or JSON export. A timestamp race meant every export immediately re-flagged itself as unsaved, so the daily reminder and orange badge never went away.
+- Fix: importing a saved file (PDF or JSON) no longer shows the checklist as unsaved — it only flags again once you make a new change.
+
 ## Build 1.4 — 2026-08-17
 - Save PDF to job file: the app now generates its own checklist PDF — checked boxes, N/A crosses, initials + date stamps, section signoffs — with the full checklist state embedded invisibly in the same file. One artifact serves both workflows: anyone can read it as a normal PDF, and importing it into the app restores every tick to continue (e.g. PM Checks after the drafter's pass). Import accepts app-made PDFs and JSON alike, by button or drag-and-drop; PDFs from other sources are declined with a clear message. JSON export stays available; Print remains for quick paper copies.
 - Daily reminder: opening the app lists any checklists with changes not yet saved to the job file (job #, progress, last-worked date, click to open), dismissible until tomorrow. The in-progress list also flags them with an orange "unsaved to job file" badge.

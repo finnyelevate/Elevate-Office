@@ -506,8 +506,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.4";
-const NEWS=["Save PDF to job file: one PDF that reads like the paper checklist AND imports back into the app with every tick restored","Import now accepts app-made PDFs as well as JSON (button or drag-and-drop)","Daily reminder card for checklists not yet saved to the job file; orange flag on the in-progress list","Samples: legal plans filled out (postings, reference plans, SRW, subdivisions, ex. plans, strata)","Resources: GeoNetBC and the past-jobs map added"];
+const BUILD="1.4.1";
+const NEWS=["Save PDF to job file: one PDF that reads like the paper checklist AND imports back into the app with every tick restored","Import now accepts app-made PDFs as well as JSON (button or drag-and-drop)","Daily reminder card for checklists not yet saved to the job file; orange flag on the in-progress list","Samples: legal plans filled out (postings, reference plans, SRW, subdivisions, ex. plans, strata)","Resources: GeoNetBC and the past-jobs map added","Fix: exporting (PDF or JSON) now properly clears the unsaved-to-job-file flag, and importing a saved file no longer shows as unsaved"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -779,9 +779,9 @@ function today(){return new Date().toISOString().slice(0,10);}
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
 function skey(){return "eo1:"+st.cl.id+":"+(st.job||"_nojob");}
 
-function persist(){
+function persist(ts){
  if(!st.cl)return;
- sset(skey(),JSON.stringify({job:st.job,marks:st.marks,opened:st.opened,updated:new Date().toISOString(),exported:st.exported||null}));
+ sset(skey(),JSON.stringify({job:st.job,marks:st.marks,opened:st.opened,updated:ts||new Date().toISOString(),exported:st.exported||null}));
  sset("eo1:last",st.cl.id+":"+(st.job||"_nojob"));
 }
 function loadSaved(clId,jobKey){
@@ -977,7 +977,7 @@ function doExport(){
  persist();
  var data={app:"elevate-office",v:1,checklist:st.cl.id,name:st.cl.name,sig:cksig(st.cl),
   job:st.job,opened:st.opened,marks:st.marks,saved:new Date().toISOString(),build:BUILD};
- st.exported=data.saved;persist();
+ st.exported=data.saved;persist(data.saved);
  var a=document.createElement("a");
  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:"application/json"}));
  a.download=(st.job||"job")+"-"+st.cl.short+" checklist.json";
@@ -992,7 +992,7 @@ function handleImportData(d){
  }
  st.cl=cl;st.job=d.job||"";st.marks=d.marks||{};st.opened=d.opened||today();st.exported=d.saved||null;
  st.init=sget("eo1:init")||"";
- persist();
+ persist(st.exported||undefined);
  document.getElementById("cl-lib").style.display="none";
  document.getElementById("cl-open").style.display="block";
  document.getElementById("tb-name").textContent=cl.name;
@@ -1127,7 +1127,7 @@ function doExportPDF(){
  if(!st.cl){alert("Open a checklist first.");return;}
  persist();
  var pdf=buildChecklistPDF();
- st.exported=new Date().toISOString();persist();
+ st.exported=new Date().toISOString();persist(st.exported);
  var bytes=new Uint8Array(pdf.length);
  for(var i=0;i<pdf.length;i++)bytes[i]=pdf.charCodeAt(i)&0xFF;
  var a=document.createElement("a");
