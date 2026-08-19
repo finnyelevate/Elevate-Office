@@ -1,5 +1,16 @@
 # Elevate Office — changelog
 
+## Build 1.5 — 2026-08-18
+- Four new checklists, transcribed from the office PDFs on SharePoint: **Preliminary Strata** (Page 1 + Units), **Final Strata** (Page 1 with closure and PMBC, Units, Cross sections, optional Building foundations), **Legal Plan 2026**, and **Ex. Plan 2025**. Duplicated "Unfreeze" items in the two PMBC sections were de-duplicated, a doubled word in the Final Units source was corrected, and "preffered" was corrected to "preferred" in both legal lists; the source PDFs remain the wording of record.
+- Dual-check system on both strata checklists: each item takes a first pass (Yes/N/A) plus a separate Chk stamp. The Chk button unlocks only after the first pass, warns when the same initials try to do both, and any change to the first pass clears the check. Section footers show both names; both passes travel in JSON, PDF, and print.
+- Strata Units, Cross sections, and Foundations pages can be added and removed per job, each with its own sheet-number field. Removing a page asks before deleting its ticks; mandatory pages keep a minimum of one. Pages, sheet numbers, and their ticks travel in all exports.
+- Per-item comments on every checklist (✎): independent of tick state, don't affect the progress bar, ride along in JSON and PDF, and print as indented notes.
+- Proration: once a side has a factor (derived or manual), an apply strip takes intermediate plan calls and shows each prorated value plus a cumulative chainage column. Copy results carries the applied block, labelled with the factor.
+- Proration: per-side m/ft toggle for plan calls (exact 0.3048 conversion). The field box and every output stay in metres; Copy results shows the full chain per call (ft → m plan → m prorated) and notes the conversion.
+- Invert calculator: direction/pipe column removed — rows are just depth → invert, numbered in Copy results; the field sketch remains the record of which invert is which.
+- Date cell removed from the checklist title block — per-item stamps carry the dates.
+- Update awareness: the app checks the live changelog on open, on tab focus, and every 30 minutes, and shows a "Build X is available — Refresh" bar when a newer build has shipped. Refreshing is safe mid-checklist (every tick is already persisted); "later" snoozes it for about half an hour. Browsers with the app closed simply pick the new build up on next launch.
+
 ## Build 1.4.1 — 2026-08-17
 - Fix: the "unsaved to job file" flag now clears properly after Save PDF or JSON export. A timestamp race meant every export immediately re-flagged itself as unsaved, so the daily reminder and orange badge never went away.
 - Fix: importing a saved file (PDF or JSON) no longer shows the checklist as unsaved — it only flags again once you make a new change.

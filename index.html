@@ -33,6 +33,12 @@ main{max-width:960px;margin:0 auto;padding:26px 18px 90px}
 .view{display:none}.view.on{display:block}
 h1.pg{font-family:"Barlow Semi Condensed";font-weight:700;font-size:24px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
 p.sub{color:var(--faint);margin-bottom:22px;max-width:660px}
+#updbar{display:none;position:sticky;top:0;z-index:60;background:var(--blue);color:#fff;padding:9px 16px;font-size:13.5px;align-items:center;gap:12px;justify-content:center}
+#updbar.show{display:flex}
+#updbar b{font-family:"Barlow Semi Condensed";letter-spacing:.04em}
+#updbar button{border:1px solid rgba(255,255,255,.7);background:transparent;color:#fff;padding:5px 14px;font:600 12.5px "Barlow Semi Condensed";letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+#updbar button:hover{background:rgba(255,255,255,.15)}
+#updbar .later{border:none;opacity:.7;text-transform:none;font-weight:400}
 #banner{display:none;background:var(--orange);color:#fff;padding:10px 16px;font-size:14px;font-weight:600;text-align:center}
 #banner.show{display:block}
 /* what's new */
@@ -110,6 +116,19 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .tog button{width:44px;height:28px;border:1px solid var(--hair);background:var(--panel);font-family:"Barlow Semi Condensed";font-weight:600;font-size:12px;letter-spacing:.05em;cursor:pointer;color:var(--faint)}
 .item.yes .tog .by{background:var(--green);border-color:var(--green);color:#fff}
 .item.na .tog .bn{background:var(--na);border-color:var(--na);color:#fff}
+.tog .bc{width:44px}
+.tog .bc:disabled{opacity:.35;cursor:default}
+.item.chkd .tog .bc{background:var(--blue);border-color:var(--blue);color:#fff}
+.tog .bnote{width:30px;color:var(--faint);opacity:.45}
+.tog .bnote:hover{opacity:1}
+.stamp .cstamp{margin-left:10px;color:var(--blue)}
+.note{margin-top:6px}
+.note textarea{width:100%;border:1px solid var(--hair);border-left:3px solid var(--blue);padding:6px 8px;font:13px/1.4 "IBM Plex Mono",monospace;color:#444;background:#FCFBF8;outline:none;resize:vertical}
+.sech .sheet{font-size:12px;color:var(--faint);margin-left:10px;white-space:nowrap}
+.sech .sheet input{width:44px;border:1px solid var(--hair);padding:3px 5px;font:12px "IBM Plex Mono",monospace;text-align:center;outline:none}
+.sech .rmpg{border:none;background:none;color:var(--faint);cursor:pointer;font-size:14px;margin-left:8px}
+.addpage{margin:0 0 16px}
+.addpage .btn{width:100%}
 /* tools */
 .tool{background:var(--panel);border:1px solid var(--hair);border-top:4px solid var(--blue);padding:20px;margin-bottom:16px;max-width:680px}
 .tool h3{font-family:"Barlow Semi Condensed";font-weight:600;font-size:17px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px}
@@ -131,13 +150,13 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .agrid input{width:100%;border:1px solid var(--hair);padding:9px 10px;font-family:"IBM Plex Mono",monospace;font-size:15px;outline:none}
 .agrid input:focus{border-color:var(--blue)}
 /* invert calc */
-.invrow{display:grid;grid-template-columns:1.1fr .9fr auto .7fr 1.5fr auto;gap:8px;align-items:center;margin-bottom:8px}
+.invrow{display:grid;grid-template-columns:.9fr auto .7fr 1.5fr auto;gap:8px;align-items:center;margin-bottom:8px}
 .invrow input[type=text]{border:1px solid var(--hair);padding:8px 9px;font-family:"IBM Plex Mono",monospace;font-size:14px;width:100%;outline:none}
 .invrow input[type=text]:focus{border-color:var(--blue)}
 .invrow .res{font-family:"IBM Plex Mono",monospace;font-size:13.5px;color:var(--blue);white-space:nowrap}
 .invrow .del{border:none;background:none;color:var(--faint);cursor:pointer;font-size:15px}
 .invrow .top{display:flex;gap:4px;align-items:center;font-size:12px;color:var(--faint);white-space:nowrap}
-.invhead{display:grid;grid-template-columns:1.1fr .9fr auto .7fr 1.5fr auto;gap:8px;font-family:"Barlow Semi Condensed";font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:5px}
+.invhead{display:grid;grid-template-columns:.9fr auto .7fr 1.5fr auto;gap:8px;font-family:"Barlow Semi Condensed";font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:5px}
 /* samples + resources */
 .lgrp{background:var(--panel);border:1px solid var(--hair);margin-bottom:14px;padding:16px 18px}
 .lgrp h3{font-family:"Barlow Semi Condensed";font-weight:600;font-size:15.5px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -174,6 +193,12 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .side .smode:empty{display:none}
 .side.manual .sfield{background:var(--na-soft);color:var(--faint);pointer-events:none}
 .pgrid{display:grid;grid-template-columns:34px 1fr 1fr;align-items:stretch}
+.punit{font-family:"Barlow Semi Condensed";font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:7px}
+.punit .seg button{padding:4px 10px;font-size:12px}
+.apply{border-top:1px dashed var(--hair);background:var(--panel);padding-bottom:4px}
+.aph{font-family:"Barlow Semi Condensed";font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);padding:10px 10px 2px;display:flex;gap:10px;align-items:center}
+.aph .afac{text-transform:none;letter-spacing:0;color:var(--blue);font-weight:400}
+.apg{display:grid;grid-template-columns:34px 1fr 1fr 1fr;align-items:stretch}
 .pgh{font-family:"Barlow Semi Condensed";font-weight:600;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);padding:8px 10px;border-bottom:1px solid var(--hair)}
 .pcell{padding:6px 10px;border-bottom:1px solid #EFEDE6;display:flex;align-items:center;gap:6px}
 .pcell input{width:100%;border:1px solid var(--hair);padding:7px 9px;font-family:"IBM Plex Mono",monospace;font-size:14px;outline:none;background:var(--panel)}
@@ -212,10 +237,16 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
  .item.yes::before{content:"\2611"}
  .item.na::before{content:"\2612"}
  .item .stamp{display:block}
+ .tog{display:none !important}
+ .addpage{display:none !important}
+ .sech .rmpg{display:none !important}
+ .note textarea{border:none;border-left:2px solid #999;background:#fff;padding:2px 6px}
+ .note[style*="none"]{display:none}
 }
 </style>
 </head>
 <body>
+<div id="updbar"><b id="updtxt">A newer build is available.</b><button onclick="updNow()">Refresh</button><button class="later" onclick="updLater()">later</button></div>
 <div id="banner">Opened in an in-app or private browser — changes here can be lost, so the app is read-only. Open in Chrome or Edge instead.</div>
 <header>
   <div class="logo">Elevate <span>Office</span></div>
@@ -251,7 +282,6 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
       <div class="tb"><label>Checklist</label><div class="v" id="tb-name" style="font-family:'Barlow Semi Condensed';letter-spacing:.03em"></div></div>
       <div class="tb"><label>Job No.</label><input class="mono" id="tb-job" placeholder="26-____" autocomplete="off"></div>
       <div class="tb"><label>Your initials</label><input id="tb-init" placeholder="e.g. FP" maxlength="4" autocomplete="off"></div>
-      <div class="tb"><label>Date</label><div class="v mono" id="tb-date"></div></div>
       <div class="tb"><label>Progress</label><div class="v mono" id="tb-prog">0 / 0</div></div>
     </div>
     <div class="prog"><i id="progbar" style="width:0%"></i></div>
@@ -328,10 +358,10 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
       <span class="seg" id="rimunit"><button class="on" data-u="m">m</button><button data-u="ft">ft</button></span>
       <span class="hint" style="margin:0">unit of the drawing / rim value</span>
     </div>
-    <div class="invhead"><span>Direction / pipe</span><span>Depth (m)</span><span>Top of pipe?</span><span>Size (mm)</span><span>Invert elev.</span><span></span></div>
+    <div class="invhead"><span>Depth (m)</span><span>Top of pipe?</span><span>Size (mm)</span><span>Invert elev.</span><span></span></div>
     <div id="invrows"></div>
     <div class="row" style="margin-top:6px">
-      <button class="btn ghost" onclick="addInvRow()">+ Add direction</button>
+      <button class="btn ghost" onclick="addInvRow()">+ Add invert</button>
       <button class="btn" onclick="copyInverts()">Copy results</button>
       <span class="hint" id="invcopied" style="margin:0"></span>
     </div>
@@ -506,8 +536,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.4.1";
-const NEWS=["Save PDF to job file: one PDF that reads like the paper checklist AND imports back into the app with every tick restored","Import now accepts app-made PDFs as well as JSON (button or drag-and-drop)","Daily reminder card for checklists not yet saved to the job file; orange flag on the in-progress list","Samples: legal plans filled out (postings, reference plans, SRW, subdivisions, ex. plans, strata)","Resources: GeoNetBC and the past-jobs map added","Fix: exporting (PDF or JSON) now properly clears the unsaved-to-job-file flag, and importing a saved file no longer shows as unsaved"];
+const BUILD="1.5";
+const NEWS=["Four new checklists: Preliminary Strata, Final Strata, Legal Plan, and Ex. Plan \u2014 transcribed from the 2026 office PDFs (Ex. Plan from the 2025 PDF)","Strata checklists use a dual-check system: every item takes a first pass plus a separate Chk stamp by a second person \u2014 both travel in PDF, JSON, and print","Strata Units, Sections, and Foundations pages can be added or removed per job, each with its own sheet number","Every checklist item can take a comment (\u270e) \u2014 comments ride along in exports and print as indented notes","Proration: apply a derived or manual factor to intermediate plan calls, with a cumulative chainage column, and enter plan calls in feet with exact 0.3048 conversion (field and outputs stay metric)","Invert calculator: direction/pipe column removed \u2014 rows are just depth \u2192 invert, numbered in Copy results","Date cell removed from the checklist title block \u2014 per-item stamps carry the dates","The app now checks for new builds while open and shows a refresh bar when one ships \u2014 no more stale versions on always-open browsers"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -750,12 +780,412 @@ const CHECKLISTS=[
   "Viewport checked(locked + to scale)",
   "Job # correct",
   "Date reviewed-signed by BCLS"]}
+]},
+{id:"prelim-strata-2026",name:"Preliminary Strata Checklist 2026",short:"prelim-strata",dual:true,sections:[
+ {id:"ps1",title:"Page 1",pm:false,items:[
+  "Heading has Proposed Strata Plan along with current legal description(check title and or latest legal plan prepared)",
+  "BCGS # included",
+  "Correct Civic address included under BCGS# (check job details and or architectural plans)",
+  "North Arrow and scale bar shown",
+  "Page size text shown",
+  "Same page size as rest of strata pages (ex. Size A, B, C, D etc.)",
+  "Legend showing all relevant symbols(LCP, C, SL, Sq.m etc.)",
+  "Integrated Survey area text shown",
+  "Leave field survey date blank",
+  "Includes correct BCLS name and # (matches with who is PM on job)",
+  "All angles are deflect by multiples of 45 and or 90 text",
+  "The building(s) shown on this plan have not been previously occupied text(if this is a new build)",
+  "The building(s) is within external boundaries text",
+  "Relevant dimensions shown on plan(all property dimensions) as per our latest legal plan and or field survey",
+  "Building foundation shown on plan",
+  "Parkade outline shown on plan",
+  "Section number and or Township number shown in CYAN text",
+  "Cancelled text shown for current lot #",
+  "Road names shown",
+  "Any SRW/Easements shown",
+  "Preliminary text shown in CYAN. Text box containing info about strata plan is based on arch. plans dated"]},
+ {id:"psu",title:"Units (floor plans)",pm:false,repeat:true,min:1,sheet:true,pageWord:"Units page",items:[
+  "Strata lines are based on latest architectural CAD files(Check in requests folder or with PM if unsure)",
+  "Strata lines are marked based on BOMA standards(check with PM on what is appropriate for each project)(CL of walls, exterior of walls, outside of core walls etc.)",
+  "Strata lines should be left marked on architectural drawings(Layer name as SL or units etc.)",
+  "Checked scaling (typically x 0.0254) is correct when bringing into our drawing. Check against some overall dimensions shown on architectural PDF and or CAD file",
+  "Strata lot # and unit # shown",
+  "Strata lot numbering should start and end in the same direction as unit #",
+  "Direction of strata lot numbering should stay consistent on each floor",
+  "Preliminary Form V should be filled with strata lot # and unit # (As a check on missing/skipping strata lot #)",
+  "Areas of each Strata lot shown in Sq.m to nearest tenth(ex. 130.1 Sq.m)",
+  "Areas of non habitable areas shown separately (ex. garage, crawl space, etc.)",
+  "Pt. (part) shown when multiple areas of each strata lots is shown(ex. non habitable, habitable, multiple floors)",
+  "Total area (TA or T) of unit shown(needed when we show multiple areas of the same strata lot)",
+  "Total Habitable area(THA) shown when there are non habitable areas shown for a strata lot",
+  "Common and LCP areas shown (Decks, Patios, porches etc.) and labelled properly (ex. LCP 1 for strata lot 1)",
+  "Dimensions not shown at this stage",
+  "North arrow shown(ensure we use one as per our latest frames)",
+  "Floor plans shown on title",
+  "Floor level shown",
+  "Strata plan# and page # shown on top right",
+  "Scale bar shown and page size shown",
+  "Page size matches all other pages(A, B, C, D etc)",
+  "Text explaining strata boundary dimensions(midpoint of party walls, exterior of structural wall etc.)",
+  "Text explaining limits/extents of Vertical boundary",
+  "BCLS Name and # shown(matches to PM of project)",
+  "Preliminary text and text box containing \"strata plans are based on arch files dated...\""]}
+]},
+{id:"final-strata-2026",name:"Final Strata Checklist 2026",short:"final-strata",dual:true,sections:[
+ {id:"fs1",title:"Page 1",pm:false,items:[
+  "Heading has Strata Plan of along with current legal description(check current title and or latest legal plan prepared)",
+  "BCGS # included",
+  "Correct Civic address included (check job details and or architectural plans)(include development name if applicable)",
+  "North Arrow and scale bar shown",
+  "Page size text shown",
+  "Same page size as rest of strata pages (ex. Size A, B, C, D etc.)",
+  "Legend showing all relevant symbols(LCP, C, SL, Sq.m, T, THA, PINS, Wt. etc.)",
+  "Coordinates for mapping purposes text",
+  "Integrated Survey area text shown",
+  "Field survey date makes sense(check field date folder)",
+  "Includes correct BCLS name and # (matches with who is PM on job)",
+  "All angles are deflect by multiples of 45 and or 90 text",
+  "The building(s) shown on this plan have not been previously occupied text(if this is a new build)",
+  "The building(s) shown on this plan have been previously occupied text(if this is a strata conversion)",
+  "The building(s) are within external boundaries text",
+  "Ensure statement regarding Agricultural land reserve is not needed(Is property in ALR?)",
+  "If property has a natural boundary ensure we are either showing 'PNB' and or statement regarding \"natural boundary is same as according to plan..\"",
+  "Relevant dimensions and evidence shown on plan(all property dimensions) as per our latest legal plan and or field survey",
+  "Building foundation shown on plan",
+  "Buildings are labelled properly (ie. triplex, duplex, Building 1 etc.)",
+  "Parkade outline shown on plan",
+  "Section number and or Township number shown in CYAN text",
+  "Cancelled text shown for current lot #",
+  "Road names shown",
+  "Any SRW/Easements shown",
+  "Bold outline around overall strata boundary"]},
+ {id:"fs1c",title:"Closure of strata plan (Page 1)",pm:false,items:[
+  "Closure of plan should be based on PDF and not CAD file(re-print for missing dims)",
+  "All bearings and distances shown on plan used in closure",
+  "Line work put in OCL Layer of the parent plan OR separate closure drawing (need to have this on record)",
+  "All scenery checked with parcel map(lot numbers, plan numbers)",
+  "All road names checked with city GIS or parcel map",
+  "Check legend has all appropriate symbols shown(review subsequent strata pages)",
+  "Any non standard abbreviation shown (NF, NA, U, Wt, PP, Ex., Ref., T, THA, NH, LCP etc.)",
+  "Check if title make sense(type of plan, legal description, spelling)",
+  "North arrow shown and orientation correct?",
+  "Scale bar shown and correct?",
+  "Appropriate page size and orientation shown (B,C,D size)(portrait/landscape?)",
+  "Witness statement shown if needed (check if plan shows witness pins, Wt. beside)",
+  "Monument numbers correctly shown(check parcel map)",
+  "Coordinates checked with mascot and or infinity report",
+  "Scale factor checked with mascot",
+  "Integrated survey area number and city shown(check mascot)",
+  "Ensure viewport is locked and to scale",
+  "BCGS number shown(check parcel map or nearest monument on mascot)",
+  "This plan lies within the metro/fraser valley district statement shown",
+  "Ensure statement regarding Agricultural land reserve is not needed(Is property in ALR?)",
+  "If property has a natural boundary ensure we are either showing 'PNB' and or statement regarding \"natural boundary is same as according to plan..\"",
+  "All angles are deflect by multiples of 45 and or 90 text",
+  "The building(s) shown on this plan have not been previously occupied text(if this is a new build)",
+  "The building(s) shown on this plan have been previously occupied text(if this is a strata conversion)",
+  "The building(s) are within external boundaries text",
+  "Buildings are labelled properly (ie. triplex, duplex, Building 1 etc.)",
+  "Check if BCLS name and # matches job PM",
+  "Check field date makes sense",
+  "Ensure parent plan corrected if needed/highlight correction in closure pdf"]},
+ {id:"fs1p",title:"PMBC of strata plan (Page 1)",pm:false,items:[
+  "PMBC linework brought in from legal drawing(use original legal lines or closure lines)",
+  "All linework scaled using 0.999.. Appropriate scale factor from base monument/gps point",
+  "Check monument/gps lines against published coordinates(ensures scaling was correct)(critical to check in case legal plan was not scaled)",
+  "Use parcel line layer for bolded outline",
+  "Ensure all radial lines are drawn to the radius point",
+  "Keep radius lines in PMBC other layer",
+  "Keep strata plan # as PMBC designation(ex. EPS1234)",
+  "Tie line layer for any monument tie or dashed tie lines",
+  "Keep road text in PMBC_road_name layer",
+  "Keep all non dimensioned lines and adjacent lot text in scenery layer",
+  "Use pline command to drawn survey limits line",
+  "Use scalez or flatten command to ensure no 3d or hidden lines",
+  "Unfreeze any items before saving legal drawing(ensures needed layers are not hidden)"]},
+ {id:"fsu",title:"Units (floor plans)",pm:false,repeat:true,min:1,sheet:true,pageWord:"Units page",items:[
+  "Title mentions floor plans + floor level(Main floor, Level 2 etc.)",
+  "Ensure page size and orientation text makes sense(does it match all other strata pages?)",
+  "Page # shown on top right(ensure it makes sense to all strata pages)",
+  "Strata lot# on top right(ensure it matches all other pages)",
+  "Page size and orientation matches all other pages(A, B, C, D etc)",
+  "North arrow shown(ensure we use one as per our latest frames)",
+  "Strata lot # shown for all strata lot areas (ex. PT. SL 1)",
+  "Strata lines have been confirmed by field measurements",
+  "LCP lines are based and confirmed by field measurements",
+  "Scale bar and page size shown and makes sense",
+  "All Strata lot dimensions are shown(2 decimal places) and updated/confirmed by field measurements",
+  "All LCP dimensions are shown(2 decimal places) and updated/confirmed by field measurements",
+  "All Strata lot areas are labelled(Pt. (part) shown when multiple areas of each strata lots is shown(ex. non habitable, habitable, multiple floors)",
+  "Areas of non habitable areas shown separately (ex. garage, crawl space, etc.)(Label with 'NH')",
+  "LCP areas are labelled properly and coincide with strata lot#(ex. LCP 1 Deck for SL 1)",
+  "All strata lot areas shown in Sq.m to nearest tenth(ex. 130.1 Sq.m). Ensure SL areas have been updated if strata lot lines have been revised",
+  "Total area (TA or T) of unit shown(needed when we show multiple areas of the same strata lot)(ensure this adds up and is updated)",
+  "Total Habitable area(THA) shown when there are non habitable areas shown for a strata lot(ensure this adds up and is updated)",
+  "Section arrows shown and match to same locations as shown on other unit pages",
+  "Arrows with text explaining strata boundary dimensions(midpoint of party walls, exterior of structural wall etc.)",
+  "Closure check on final dimensions(after field measured + updates) on all strata lot boundaries on this page",
+  "Closure check on final dimensions(after field measured + updates) on all LCP boundaries on this page",
+  "Checks to ensure enough measurements to connect each LCP unit to the strata lot",
+  "Enough measurements on plan to connect all strata lots shown on page(no islands)",
+  "Text with \"section arrows point in direction of view\"",
+  "Text explaining strata boundary to midpoint of the structural portion...",
+  "Text explaining limits/extents of Vertical boundaries",
+  "BCLS Name and # shown(matches to PM of project)",
+  "Date matches all other unit pages"]},
+ {id:"fss",title:"Cross sections",pm:false,repeat:true,min:1,sheet:true,pageWord:"Sections page",items:[
+  "Heading has Cross sections",
+  "Appropriate scale bar shown",
+  "Page size text shown",
+  "Same page size and orientations as rest of strata pages (ex. Size A, B, C, D etc.)",
+  "Page # on top right(ensure it makes sense to other strata pages)",
+  "Strata plan# top right(matches all other pages)",
+  "Each cross section has appropriate label(ex. Section A-A')",
+  "Does cross section show view as per direction of arrows(compare to units pages)",
+  "Compare each floor to strata pages(does labelling make sense)",
+  "Compare each floor to strata pages(does labelling of adjacent LCP make sense)",
+  "Compare each floor to strata pages(does linework make sense and to scale)",
+  "Solid lines between strata lots and adjacent LCP",
+  "Solid lines between strata lots and adjacent Common(ex. attic)",
+  "Dashed lines between same strata lots(even if shown on separate floors)",
+  "Dashed lines between NH areas",
+  "NH areas are labelled, also add description(ex. Pt. SL1 NH Garage)",
+  "Solid lines between different strata lots",
+  "Solid lines defining vertical boundary of LCP elements(Decks, patios, porches etc.) Not applicable for yard areas",
+  "Arrows and text defining strata lot boundary(exterior, party walls, ceiling, underside of slab etc.)",
+  "Text on bottom left defining strata lot boundary",
+  "Text on bottom left defining vertical boundary",
+  "BCLS name and # matches other pages",
+  "Date matches other strata pages"]},
+ {id:"fsf",title:"Building foundations",pm:false,repeat:true,min:0,sheet:true,pageWord:"Foundations page",optional:true,items:[
+  "Heading has BUILDING FOUNDATION(s)",
+  "Appropriate scale bar shown",
+  "Text on Page size and orientation makes sense",
+  "North Arrow and scale bar shown",
+  "Same page size and orientation as rest of strata pages (ex. Size A, B, C, D etc.)",
+  "Page number shown on top right(makes sense to number of strata pages)",
+  "Strata plan number is shown(matches to other pages)",
+  "Road names are shown and correct",
+  "Lot dimensions match what is shown on page 1",
+  "Scenery matches what is shown on page 1",
+  "Foundation dimensions shown to 2 decimal places for all lines",
+  "Foundation measurements and locations are based on surveyed locations(ex. match and review to cert we did)",
+  "Offsets(2 decimal places) shown to property line on all sides",
+  "Text about \"offset to property lines are perpendicular therto..\"",
+  "Correct BCLS name and #"]}
+]},
+{id:"legal-plan-2026",name:"Legal Plan Checklist 2026",short:"legal",sections:[
+ {id:"lp1",title:"Needs to be checked/while drafting the plan",pm:false,items:[
+  "Default template + automap + Annotation settings are current (Distances/ Bearings to Leroy 80)(see general config video)",
+  "Determine appropriate scale(not too much white space, or too crowded)",
+  "All distances shown to three decimal places(no 'm' beside dimensions)",
+  "Integration resolved?(shifted/rotated to monuments or GPS points)(check if ground monument calc was scaled)",
+  "Get infinity processing if in a non-integrated area(see video)",
+  "All irrelevant items frozen or deleted(especially when using a topo as base)",
+  "Ensure auto add database is on before creating new lot lines",
+  "Do new lots meet minimum widths/lengths & area?(check over PLA)",
+  "If possible have lot numbers + plan numbers in the same orientation for clarity (north facing preferred)",
+  "If possible have all distances and bearings facing same direction(north-south, east-west)",
+  "Use tick marks or arrows when dimensioning items going over multiple lots",
+  "Use ex_lot _lines layer for property lines that are not bolded",
+  "Use Outline layer for any bolded lines",
+  "Use 0 layer for tie lines(not monument ties)(keep dashed)",
+  "Use Mon_ties layer for line work to monuments",
+  "Use frame layer for plan numbers",
+  "Items such as arrows + tick marks not to be in any layer mentioned above(use distance layer)",
+  "All radial lines labelled with bearing (need for every point on a curve)",
+  "Arc distances + radius shown for curves",
+  "Wt placed by any witness point(Not needed for reference posts)",
+  "Bent pins labelled accordingly(BTB)",
+  "All set points shown appropriately(LP, IP etc.)",
+  "Check field notes of posting for any issues",
+  "Perform a control cleanup if needed(No multiple pt#)",
+  "Point protection is on",
+  "NF OR NA placed beside appropriate points(needed for closest legal and any point we dimension to)(if record of pin from a previous plan)",
+  "Any intersections with charges (SRW, easements) are either dimensioned and/or monumented",
+  "Areas shown appropriately (999.9 or less use m2, use ha for anything greater)(At least Leroy 80 size)",
+  "Cancelled lot number + plan shown in ghosted text(need for reference and subdivision plans)",
+  "New lot numbers shown above areas(needed for subdivision + reference plans)(should match PLA or existing proposed plans as approved by city)",
+  "'Road' shown when dedicating road (width shown if parallel), road name if available",
+  "Width shown of parallel bolded outline(SRW, easments, tree covenants)"]},
+ {id:"lp2",title:"While drafting - layout tab",pm:false,items:[
+  "Appropriate title of plan (use current title for legal description)(use part of, parts of, portion of, where needed)",
+  "BCGS number shown(check parcel map or nearest monument on mascot)",
+  "Appropriate Pursuant to Section..(not needed for subdivision plan)",
+  "Check legend has appropriate symbols shown(revise once site is posted)",
+  "Any non standard abbreviation shown (NF, NA, U, Wt, PP, Ex., Ref.)",
+  "Witness statement shown (only if witness pins shown on plan)",
+  "North arrow shown",
+  "Scale bar and page size shown",
+  "Integrated survey area number and city shown(check mascot)",
+  "Monument numbers correctly shown and labelled(check parcel map)",
+  "Does monument tie need 'calculated' beside?(needed if not shown as direct tie on Mascot)",
+  "District lot, section, block number shown in larger Cyan text on plan",
+  "Scale factor shown is correct(check mascot)",
+  "Coordinates are for mapping purposes statement shown",
+  "This plan lies within the metro/fraser valley district statement shown",
+  "Plan number shown on top right(appropriate space underneath)",
+  "New lot numbers shown above areas(needed for subdivision + reference plans)",
+  "Approving officer statement (needed for subdivision, sec. 107 ref plans)",
+  "Utm coordinates shown beside two monuments or GPS points(2 decimal places)",
+  "Ensure statement regarding Agricultural land reserve is not needed(Is property in ALR?)(Needed to be checked for any reference plans, subdivisions)",
+  "If property has a natural boundary ensure we are either showing 'PNB' and or statement regarding \"natural boundary is same as according to plan..\" (Needed to be checked for any reference plans, subdivisions)",
+  "Check if field date on plan matches with last field date (see field notes)",
+  "Check if BCLS name and # matches job PM",
+  "Ensure to upload all relevant field data and files(dwg, mbz, msz, pdf print, updated checklist etc.)"]},
+ {id:"lp3",title:"Closure of legal plan",pm:false,items:[
+  "Closure of plan should be based on PDF and not CAD file(re-print for missing dims)",
+  "All bearings and distances shown on plan used in closure",
+  "Line work put in OCL Layer of the parent plan OR separate closure drawing (need to have this on record)",
+  "Areas also checked and shown on closures(not needed for posting plan)",
+  "All scenery checked with parcel map(lot numbers, plan numbers)",
+  "All road names checked with city GIS or parcel map",
+  "Perform a control cleanup if needed(No multiple pt#)",
+  "Check legend has appropriate symbols shown(any not needed or any missing?)",
+  "Check if title make sense(type of plan, legal description, spelling)",
+  "North arrow shown and orientation correct?",
+  "Scale bar shown and correct?",
+  "Appropriate page size and orientation shown (B,C,D size)(portrait/landscape?)",
+  "Any non standard abbreviation shown (NF, NA, U, Wt, PP, Ex., Ref.)",
+  "Ensure 'U' is beside any legal that has no clear origin(We have no record of who or what plan set the legal evidence)",
+  "Witness statement shown (check if plan shows witness pins, Wt. beside)",
+  "Monument numbers correctly shown(check parcel map)",
+  "Coordinates checked with mascot and or infinity report",
+  "Scale factor checked with mascot",
+  "Integrated survey area number and city shown(check mascot)",
+  "Ensure viewport is locked and to scale",
+  "BCGS number shown(check parcel map or nearest monument on mascot)",
+  "This plan lies within the metro/fraser valley district statement shown",
+  "Ensure statement regarding Agricultural land reserve is not needed(Is property in ALR?)(Needed to be checked for any reference plans, subdivisions)",
+  "If property has a natural boundary ensure we are either showing 'PNB' and or statement regarding \"natural boundary is same as according to plan..\" (Needed to be checked for any reference plans, subdivisions)",
+  "Check if BCLS name and # matches job PM",
+  "Check field date makes sense",
+  "Ensure parent plan corrected if needed/highlight correction in closure pdf",
+  "Point protection is on",
+  "Ensure to upload all updated field data + files(dwg, mbz, msz, pdf print, etc.)"]},
+ {id:"lp4",title:"PMBC of legal plan",pm:false,items:[
+  "PMBC linework brought in from legal drawing(use original legal lines or closure lines)",
+  "All linework scaled using 0.999.. Appropriate scale factor from base monument/gps point",
+  "Check monument/gps lines against published coordinates(ensures scaling was correct)(critical to check in case legal plan was not scaled)",
+  "Use parcel line layer for bolded outline + new lot lines(subdivision + reference plans)",
+  "Use interest line layer for bolded outline(SRW, covenants, easements)",
+  "Ensure all radial lines are drawn to the radius point",
+  "Keep radius lines in PMBC other layer",
+  "New lot numbers kept in pmbc designation layer(also for SRW, easements, covenants)",
+  "Tie line layer for any monument tie or dashed tie lines",
+  "Keep road text in PMBC_road_name layer",
+  "Keep all non dimensioned lines and adjacent lot text in scenery layer",
+  "Use pline command to drawn survey limits line",
+  "Use scalez or flatten command to ensure no 3d or hidden lines",
+  "Unfreeze any items before saving legal drawing(ensures needed layers are not hidden)",
+  "Control csv file made(see a previous sample)(only need one even if multiple legal plans)",
+  "Ensure to upload all relevant files to a PMBC folder(dwg, mbz, msz, control excel file etc.)",
+  "Have a unique naming for the file ex. 20-0000-posting-pmbc, 20-0000-srw1-pmbc",
+  "Ensure to upload an updated legal checklist"]}
+]},
+{id:"ex-plan-2025",name:"Ex. Plan Checklist 2025",short:"ex-plan",sections:[
+ {id:"xp1",title:"Needs to be checked/while drafting the plan",pm:false,items:[
+  "Default template + automap + Annotation settings are current (Distances/ Bearings to Leroy 80)(see general config video)",
+  "Determine appropriate scale(not too much white space, or too crowded)",
+  "All distances shown to three decimal places(no 'm' beside dimensions)",
+  "Plan drafted based on an existing legal plan",
+  "Ensure auto add database is on before creating NEW lines",
+  "If possible have lot numbers + plan numbers in the same orientation for clarity (north facing preferred)",
+  "If possible have all distances and bearings facing same direction(north-south, east-west)",
+  "Use tick marks or arrows when dimensioning items going over multiple lots",
+  "Use ex_lot _lines layer for property lines that are not bolded",
+  "Use Outline layer for any bolded lines",
+  "Use 0 layer for tie lines(not monument ties)(keep dashed)",
+  "Use frame layer for plan numbers",
+  "Items such as arrows + tick marks not to be in any layer mentioned above(use distance layer)",
+  "All radial lines labelled with bearing (need for every point on a curve)",
+  "Arc distances + radius shown for curves",
+  "Areas shown appropriately (999.9 or less use m2, use ha for anything greater)(At least Leroy 80 size)",
+  "Book of reference(needed when showing multiple areas)",
+  "Unique labelling when showing multiple areas(ex. Area 1, Area 2, hatched, non-hatched)",
+  "Width shown of parallel bolded outline(SRW, easments, tree covenants)"]},
+ {id:"xp2",title:"While drafting - layout tab",pm:false,items:[
+  "Appropriate title of plan (use current title for legal description)(use part of, parts of, portion of, where needed)",
+  "BCGS number shown(check parcel map or nearest monument on mascot)",
+  "Appropriate Pursuant to Section..99(1)(e)",
+  "Check legend has appropriate symbols shown(ex., m2, ref.)",
+  "Purpose mentioned(To accompany restrictive..., for easement purposes etc.)",
+  "Integrated survey area number and city shown(check mascot)",
+  "Plan shows bearing derivation(astronomic, grid bearings are derived from plan...)",
+  "This plan shows horizontal ground level statement",
+  "District lot, section, block number shown in larger Cyan text on plan",
+  "Scale factor shown is correct",
+  "This plan lies within the metro/fraser valley district statement shown",
+  "Plan number shown on top right(appropriate space underneath)",
+  "Statement regarding This plan is based on___"]},
+ {id:"xp3",title:"Closure of legal plan",pm:false,items:[
+  "Closure of plan should be based on PDF and not CAD file(re-print for missing dims)",
+  "All bearings and distances shown on plan used in closure",
+  "Line work put in OCL Layer of the parent plan OR separate closure drawing (need to have this on record)",
+  "Areas also checked and shown on closures",
+  "Check areas and totals areas shown on book of reference",
+  "Area labels shown on plan matches book of reference",
+  "All scenery checked with parcel map(lot numbers, plan numbers)",
+  "All road names checked with city GIS or parcel map",
+  "Check legend has appropriate symbols shown(any not needed or any missing?)",
+  "Check if title make sense(type of plan, legal description, spelling of EXPLANATORY, is part(s) of/portion(s) of needed?)",
+  "North arrow shown and orientation correct?",
+  "Scale bar shown and correct?",
+  "Appropriate page size and orientation shown (B,C,D size)(portrait/landscape?)",
+  "Any non standard abbreviation shown (m2, ha, Ex., Ref.)",
+  "Scale factor checked with mascot and or existing legal plan(for plan showing grid bearings)",
+  "Integrated survey area number and city shown(check mascot)",
+  "Ensure viewport is locked and to scale",
+  "BCGS number shown(check parcel map or nearest monument on mascot)",
+  "This plan lies within the metro/fraser valley district statement shown",
+  "Purpose mentioned(To accompany restrictive..., for easement purposes etc.)",
+  "Ensure parent plan corrected if needed/highlight correction in closure pdf",
+  "Unfreeze any items before saving legal drawing(ensure needed layers are not hidden)"]},
+ {id:"xp4",title:"PMBC of legal plan",pm:false,items:[
+  "PMBC linework brought in from legal drawing(use original legal lines or closure lines)",
+  "All linework scaled using 0.999.. Appropriate scale factor from base monument/gps point",
+  "Keep the tie line between monuments(only needed if ex. Plan is based on one of our legal plans)",
+  "Use interest line layer for bolded outline(SRW, covenants, easements)",
+  "Ensure all radial lines are drawn to the radius point",
+  "Keep radius lines in PMBC other layer",
+  "Labels(SRW, covenant, easement) kept in pmbc designation layer",
+  "Tie line layer for any monument tie or dashed tie lines",
+  "Keep road text in PMBC_road_name layer",
+  "Keep all non dimensioned lines and adjacent lot text in scenery layer",
+  "Use pline command to drawn survey limits line",
+  "Use scalez or flatten command to ensure no 3d or hidden lines",
+  "Unfreeze any items before saving legal drawing(ensures needed layers are not hidden)",
+  "Control csv file made(see a previous sample)(only need one even if multiple legal plans)"]}
 ]}
 ];
 const GIS=[["Abbotsford","https://maps.abbotsford.ca/Html5Viewer/"],["Burnaby","https://gis.burnaby.ca/burnabymap/index.html"],["Chilliwack","https://maps.chilliwack.com/b/"],["City of Langley","https://map.langleycity.ca/html5viewer/?viewer=ext"],["Coquitlam","https://coquitlam.maps.arcgis.com/apps/webappviewer/index.html?id=2d58aee859754918ae54d30da4bbba49"],["Delta","https://maps.delta.ca/Html5Viewer/index.html?viewer=DeltaMapExternal.viewer/"],["Fraser Valley","https://maps.fvrd.ca/portal/apps/webappviewer/index.html?id=eae55e6da5f14e11a9a5e07a78f339c5"],["Maple Ridge","https://gis.mapleridge.ca/ridgeview/"],["Mission","https://www.mission.ca/city-hall/departments/engineering/webmap/"],["New Westminster","http://arcgis.newwestcity.ca/Html5Viewer4122/index.html?viewer=CNWPublicMap"],["North Vancouver City","http://gisext2.cnv.org/citymap/#splash-modal"],["North Vancouver District","https://www.geoweb.dnv.org/"],["Pitt Meadows","https://www.pittmeadows.ca/city-services/city-maps-open-data"],["Port Coquitlam","https://www.portcoquitlam.ca/business-development/pocomap/"],["Port Moody","https://view.portmoody.ca/portal/apps/webappviewer/index.html?id=bb8dde24dcef4b06b1e66c4465a3b80c"],["Richmond","https://maps.richmond.ca/rim/"],["Surrey","https://cosmos.surrey.ca/external/"],["Township of Langley","https://mapsvr.tol.ca/geosource3/"],["Vancouver","https://maps.vancouver.ca/property/"],["West Vancouver District","https://westmap.westvancouver.ca/html5Viewer/?viewer=WestMap_2019.Default_Viewer"],["White Rock","https://cosmos.surrey.ca/external/WROMS/"]];
 
 /* ================= core app ================= */
-var st={cl:null,job:"",init:"",marks:{},opened:""};
+var st={cl:null,job:"",init:"",marks:{},notes:{},inst:{},opened:""};
+/* page instances: for sections with repeat:true, st.inst[secId]=[{u:stableId,sheet:""}...] */
+function ensureInst(cl,inst){
+ inst=inst&&typeof inst==="object"?inst:{};
+ cl.sections.forEach(function(s){
+  if(!s.repeat)return;
+  if(!Array.isArray(inst[s.id]))inst[s.id]=[];
+  inst[s.id]=inst[s.id].filter(function(p){return p&&typeof p.u==="number";});
+  var minN=(s.min===0?0:1);
+  while(inst[s.id].length<minN)inst[s.id].push({u:nextU(inst),sheet:""});
+ });
+ return inst;
+}
+function nextU(inst){
+ var m=0;Object.keys(inst).forEach(function(k){(inst[k]||[]).forEach(function(p){if(p.u>m)m=p.u;});});
+ return m+1;
+}
+/* iterate every live item key: cb(k, sec, pageOrNull) */
+function eachKey(cl,inst,cb){
+ cl.sections.forEach(function(sec){
+  if(sec.repeat){(inst[sec.id]||[]).forEach(function(p){sec.items.forEach(function(t,ix){cb(sec.id+"#"+p.u+"|"+ix,sec,p,t,ix);});});}
+  else sec.items.forEach(function(t,ix){cb(sec.id+"|"+ix,sec,null,t,ix);});
+ });
+}
+function totalFor(cl,inst){var n=0;eachKey(cl,ensureInst(cl,inst||{}),function(){n++;});return n;}
 var focusIx=-1;
 
 /* storage guarded — read-only mode if storage unusable (in-app browsers, some private modes) */
@@ -781,7 +1211,7 @@ function skey(){return "eo1:"+st.cl.id+":"+(st.job||"_nojob");}
 
 function persist(ts){
  if(!st.cl)return;
- sset(skey(),JSON.stringify({job:st.job,marks:st.marks,opened:st.opened,updated:ts||new Date().toISOString(),exported:st.exported||null}));
+ sset(skey(),JSON.stringify({job:st.job,marks:st.marks,notes:st.notes,inst:st.inst,opened:st.opened,updated:ts||new Date().toISOString(),exported:st.exported||null}));
  sset("eo1:last",st.cl.id+":"+(st.job||"_nojob"));
 }
 function loadSaved(clId,jobKey){
@@ -795,7 +1225,8 @@ function drawLib(){
  var host=document.getElementById("cardhost");host.innerHTML="";
  CHECKLISTS.forEach(function(c){
   var d=document.createElement("div");d.className="card";
-  d.innerHTML="<h3>"+esc(c.name.replace(/ Checklist 2026$/,"").replace(/ 2026$/,""))+"</h3><div class='yr mono'>2026</div><div class='st'>Open →</div>";
+  var yr=(c.name.match(/(\d{4})/)||[0,""])[1];
+  d.innerHTML="<h3>"+esc(c.name.replace(/ Checklist \d{4}$/,"").replace(/ \d{4}$/,""))+"</h3><div class='yr mono'>"+yr+"</div><div class='st'>Open →</div>";
   d.onclick=function(){openCl(c.id,null);};
   host.appendChild(d);
  });
@@ -807,7 +1238,7 @@ function drawLib(){
    var parts=k.split(":"),cl=byId(parts[1]);
    if(!cl)continue;
    var d2=loadSaved(parts[1],parts[2]);if(!d2)continue;
-   var total=cl.sections.reduce(function(a,s){return a+s.items.length;},0);
+   var total=totalFor(cl,d2.inst);
    var done=Object.keys(d2.marks||{}).length;
    if(done>0)ip.push({cl:cl,jobKey:parts[2],job:d2.job||"",done:done,total:total,updated:d2.updated||"",unsaved:!d2.exported||(d2.updated&&d2.exported&&d2.updated>d2.exported)});
   }
@@ -854,18 +1285,18 @@ function drawReminder(ip){
 
 /* ---------- open / render checklist ---------- */
 function openCl(id,jobKey){
- st.cl=byId(id);st.marks={};st.job="";st.exported=null;st.opened=today();focusIx=-1;
+ st.cl=byId(id);st.marks={};st.notes={};st.inst={};st.job="";st.exported=null;st.opened=today();focusIx=-1;
  st.init=sget("eo1:init")||"";
  if(jobKey!==null&&jobKey!==undefined){
   var d=loadSaved(id,jobKey);
-  if(d){st.job=d.job||"";st.marks=d.marks||{};st.opened=d.opened||st.opened;st.exported=d.exported||null;}
+  if(d){st.job=d.job||"";st.marks=d.marks||{};st.notes=d.notes||{};st.inst=d.inst||{};st.opened=d.opened||st.opened;st.exported=d.exported||null;}
  }
+ st.inst=ensureInst(st.cl,st.inst);
  document.getElementById("cl-lib").style.display="none";
  document.getElementById("cl-open").style.display="block";
  document.getElementById("tb-name").textContent=st.cl.name;
  document.getElementById("tb-job").value=st.job;
  document.getElementById("tb-init").value=st.init;
- document.getElementById("tb-date").textContent=st.opened;
  render();
  window.scrollTo(0,0);
 }
@@ -877,7 +1308,7 @@ function closeCl(back){
 }
 function resetCl(){
  if(confirm("Clear all marks on this checklist for this job?")){
-  sdel(skey());st.marks={};st.exported=null;render();
+  sdel(skey());st.marks={};st.notes={};st.inst=ensureInst(st.cl,{});st.exported=null;render();
  }
 }
 function key(sid,ix){return sid+"|"+ix;}
@@ -889,39 +1320,94 @@ function splitItem(t){
 }
 function render(){
  var host=document.getElementById("sections");host.innerHTML="";
- var done=0,total=0,rows=[];
- st.cl.sections.forEach(function(sec){
-  var sdone=0;
+ var done=0,total=0,chk=0,rows=[];
+ var dual=!!st.cl.dual;
+ function renderBlock(sec,page){
+  var sdone=0,schk=0,who={},cwho={};
   var el=document.createElement("div");el.className="sec"+(sec.pm?" pm":"");
   var items=document.createElement("div");items.className="items";
-  var who={};
   sec.items.forEach(function(t,ix){
    total++;
-   var k=key(sec.id,ix),mk=st.marks[k];
-   if(mk){done++;sdone++;if(mk.by){who[mk.by]=mk.at;}}
+   var k=page?sec.id+"#"+page.u+"|"+ix:key(sec.id,ix),mk=st.marks[k],note=st.notes[k];
+   if(mk){done++;sdone++;if(mk.by)who[mk.by]=mk.at;if(mk.c){chk++;schk++;if(mk.c.by)cwho[mk.c.by]=mk.c.at;}}
    var p=splitItem(t);
-   var it=document.createElement("div");it.className="item"+(mk?" "+mk.v:"");it.tabIndex=0;it.dataset.k=k;
-   var stamp=mk?"<div class='stamp'>"+(mk.v==="na"?"N/A":"✓")+" "+esc(mk.by||"—")+" · "+esc(mk.at)+"</div>":"";
-   it.innerHTML="<div class='txt'><span class='m'>"+esc(p.m)+"</span>"+(p.d?" <span class='more'>detail</span><div class='d'>"+esc(p.d)+"</div>":"")+stamp+
-    "</div><div class='tog'><button class='by' tabindex='-1'>Yes</button><button class='bn' tabindex='-1'>N/A</button></div>";
-   if(p.d)it.querySelector(".txt").onclick=function(e){if(!e.target.closest("button"))it.classList.toggle("open");};
+   var it=document.createElement("div");it.className="item"+(mk?" "+mk.v:"")+(mk&&mk.c?" chkd":"");it.tabIndex=0;it.dataset.k=k;
+   var stamp="";
+   if(mk){stamp="<div class='stamp'>"+(mk.v==="na"?"N/A":"\u2713")+" "+esc(mk.by||"\u2014")+" \u00b7 "+esc(mk.at)+(mk.c?"<span class='cstamp'>checked "+esc(mk.c.by)+" \u00b7 "+esc(mk.c.at)+"</span>":"")+"</div>";}
+   var noteHtml="<div class='note'"+(note?"":" style='display:none'")+"><textarea class='ntext' placeholder='Comment\u2026' rows='2'>"+esc(note||"")+"</textarea></div>";
+   var chkBtn=dual?"<button class='bc' tabindex='-1'"+(mk?"":" disabled")+">Chk</button>":"";
+   it.innerHTML="<div class='txt'><span class='m'>"+esc(p.m)+"</span>"+(p.d?" <span class='more'>detail</span><div class='d'>"+esc(p.d)+"</div>":"")+stamp+noteHtml+"</div>"+
+    "<div class='tog'><button class='by' tabindex='-1'>Yes</button><button class='bn' tabindex='-1'>N/A</button>"+chkBtn+"<button class='bnote' tabindex='-1' title='Add a comment'>\u270e</button></div>";
+   if(p.d)it.querySelector(".txt").onclick=function(e){if(!e.target.closest("button")&&!e.target.closest(".note"))it.classList.toggle("open");};
    it.querySelector(".by").onclick=function(){mark(k,"yes");};
    it.querySelector(".bn").onclick=function(){mark(k,"na");};
+   if(dual)it.querySelector(".bc").onclick=function(){markCheck(k);};
+   var nwrap=it.querySelector(".note"),nta=it.querySelector(".ntext");
+   it.querySelector(".bnote").onclick=function(){
+    var show=nwrap.style.display==="none";
+    nwrap.style.display=show?"block":(nta.value.trim()?"block":"none");
+    if(show)nta.focus();
+   };
+   nta.addEventListener("input",function(){
+    var v=nta.value;
+    if(v.trim())st.notes[k]=v;else delete st.notes[k];
+    persist();
+   });
+   nta.addEventListener("blur",function(){if(!nta.value.trim())nwrap.style.display="none";});
    it.addEventListener("focus",function(){focusIx=rows.indexOf(it);});
    items.appendChild(it);rows.push(it);
   });
-  var names=Object.keys(who).map(function(n){return "<b>"+esc(n)+"</b> "+esc(who[n]);}).join(" · ");
-  var foot=sdone===sec.items.length
-   ?"<span class='done'>Section complete</span>"+(names?" — completed by "+names:"")
-   :(sdone>0?"In progress — "+(names||"")+" ("+sdone+" of "+sec.items.length+")":"Completed by ___ on ___");
-  el.innerHTML="<div class='sech'><span class='car'>▼</span><h2>"+esc(sec.title)+"</h2><span class='cnt'>"+sdone+" / "+sec.items.length+"</span></div>"+
+  var names=Object.keys(who).map(function(n){return "<b>"+esc(n)+"</b> "+esc(who[n]);}).join(" \u00b7 ");
+  var cnames=Object.keys(cwho).map(function(n){return "<b>"+esc(n)+"</b> "+esc(cwho[n]);}).join(" \u00b7 ");
+  var foot;
+  if(dual){
+   foot=(sdone===sec.items.length?"<span class='done'>First pass complete</span>"+(names?" \u2014 by "+names:""):(sdone>0?"First pass \u2014 "+(names||"")+" ("+sdone+" of "+sec.items.length+")":"First pass by ___"));
+   foot+="<br>"+(schk===sec.items.length&&sec.items.length>0?"<span class='done'>Checked</span>"+(cnames?" \u2014 by "+cnames:""):(schk>0?"Checked \u2014 "+(cnames||"")+" ("+schk+" of "+sec.items.length+")":"Checked by ___"));
+  }else{
+   foot=sdone===sec.items.length
+    ?"<span class='done'>Section complete</span>"+(names?" \u2014 completed by "+names:"")
+    :(sdone>0?"In progress \u2014 "+(names||"")+" ("+sdone+" of "+sec.items.length+")":"Completed by ___ on ___");
+  }
+  var head=esc(sec.title)+(page?" \u2014 page":"");
+  var sheetHtml=page&&sec.sheet?"<span class='sheet'>sheet <input class='shno' value='"+esc(page.sheet||"")+"' placeholder='#' maxlength='6'></span>":"";
+  var delHtml=page?"<button class='rmpg' title='Remove this page'>\u2715</button>":"";
+  var cntTxt=sdone+" / "+sec.items.length+(dual?" \u00b7 "+schk+" chk":"");
+  el.innerHTML="<div class='sech'><span class='car'>\u25bc</span><h2>"+head+"</h2>"+sheetHtml+"<span class='cnt'>"+cntTxt+"</span>"+delHtml+"</div>"+
    (sec.pm?"<div class='pmnote'>"+esc(sec.note)+"</div>":"");
-  el.querySelector(".sech").onclick=function(){el.classList.toggle("closed");};
+  el.querySelector(".sech").onclick=function(e){if(e.target.closest("input")||e.target.closest(".rmpg"))return;el.classList.toggle("closed");};
+  if(page&&sec.sheet){
+   el.querySelector(".shno").addEventListener("input",function(){page.sheet=this.value;persist();});
+  }
+  if(page){
+   el.querySelector(".rmpg").onclick=function(){
+    var arr=st.inst[sec.id]||[],minN=(sec.min===0?0:1);
+    if(arr.length<=minN){alert("This checklist needs at least "+minN+" "+(sec.pageWord||"page")+".");return;}
+    var has=sec.items.some(function(t,ix){return st.marks[sec.id+"#"+page.u+"|"+ix]||st.notes[sec.id+"#"+page.u+"|"+ix];});
+    if(has&&!confirm("Remove this "+(sec.pageWord||"page")+"? Its ticks and comments will be deleted."))return;
+    st.inst[sec.id]=arr.filter(function(p){return p.u!==page.u;});
+    sec.items.forEach(function(t,ix){delete st.marks[sec.id+"#"+page.u+"|"+ix];delete st.notes[sec.id+"#"+page.u+"|"+ix];});
+    persist();render();
+   };
+  }
   el.appendChild(items);
   var sf=document.createElement("div");sf.className="secfoot";sf.innerHTML=foot;el.appendChild(sf);
   host.appendChild(el);
+ }
+ st.cl.sections.forEach(function(sec){
+  if(sec.repeat){
+   (st.inst[sec.id]||[]).forEach(function(p){renderBlock(sec,p);});
+   var add=document.createElement("div");add.className="addpage";
+   var word=sec.pageWord||"page";
+   add.innerHTML="<button class='btn ghost'>+ Add "+esc(word)+(sec.optional&&!(st.inst[sec.id]||[]).length?" (optional)":"")+"</button>";
+   add.querySelector("button").onclick=function(){
+    st.inst[sec.id]=st.inst[sec.id]||[];
+    st.inst[sec.id].push({u:nextU(st.inst),sheet:""});
+    persist();render();
+   };
+   host.appendChild(add);
+  } else renderBlock(sec,null);
  });
- document.getElementById("tb-prog").textContent=done+" / "+total;
+ document.getElementById("tb-prog").textContent=done+" / "+total+(dual?" \u00b7 "+chk+" checked":"");
  document.getElementById("progbar").style.width=(total?100*done/total:0)+"%";
  var sb=document.getElementById("savebtn");
  sb.classList.toggle("pulse",done===total&&total>0&&!st.exported);
@@ -931,6 +1417,7 @@ var flashed=false;
 function mark(k,v){
  if(!canStore&&!confirm("This browser can't save your work — marks will be lost when you close. Continue anyway?"))return;
  var cur=st.marks[k];
+ if(cur&&cur.c&&(cur.v!==v||true)){delete cur.c;} /* any change to the first pass invalidates the check */
  if(cur&&cur.v===v){delete st.marks[k];}
  else{
   if(!st.init){document.getElementById("tb-init").focus();
@@ -940,6 +1427,15 @@ function mark(k,v){
   st.exported=null;
  }
  persist();render();
+}
+function markCheck(k){
+ var mk=st.marks[k];
+ if(!mk)return;
+ if(mk.c){delete mk.c;st.exported=null;persist();render();return;}
+ if(!st.init){document.getElementById("tb-init").focus();alert("Enter your initials first \u2014 the check stamp records who checked.");return;}
+ if(st.init===mk.by&&!confirm("You did the first pass on this item \u2014 the check pass should be a second person. Stamp the check as "+st.init+" anyway?"))return;
+ mk.c={by:st.init,at:today()};
+ st.exported=null;persist();render();
 }
 document.getElementById("tb-job").addEventListener("input",function(){
  var old=skey();st.job=this.value.trim();
@@ -975,8 +1471,8 @@ document.addEventListener("keydown",function(e){
 function doExport(){
  if(!st.cl){alert("Open a checklist first.");return;}
  persist();
- var data={app:"elevate-office",v:1,checklist:st.cl.id,name:st.cl.name,sig:cksig(st.cl),
-  job:st.job,opened:st.opened,marks:st.marks,saved:new Date().toISOString(),build:BUILD};
+ var data={app:"elevate-office",v:2,checklist:st.cl.id,name:st.cl.name,sig:cksig(st.cl),
+  job:st.job,opened:st.opened,marks:st.marks,notes:st.notes,inst:st.inst,saved:new Date().toISOString(),build:BUILD};
  st.exported=data.saved;persist(data.saved);
  var a=document.createElement("a");
  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:"application/json"}));
@@ -990,7 +1486,7 @@ function handleImportData(d){
  if(d.sig&&d.sig!==cksig(cl)){
   if(!confirm("Heads up: the wording of \""+cl.name+"\" has changed since this file was saved. Ticks will be matched by position — review carefully. Continue?"))return;
  }
- st.cl=cl;st.job=d.job||"";st.marks=d.marks||{};st.opened=d.opened||today();st.exported=d.saved||null;
+ st.cl=cl;st.job=d.job||"";st.marks=d.marks||{};st.notes=d.notes||{};st.inst=ensureInst(cl,d.inst||{});st.opened=d.opened||today();st.exported=d.saved||null;
  st.init=sget("eo1:init")||"";
  persist(st.exported||undefined);
  document.getElementById("cl-lib").style.display="none";
@@ -998,7 +1494,6 @@ function handleImportData(d){
  document.getElementById("tb-name").textContent=cl.name;
  document.getElementById("tb-job").value=st.job;
  document.getElementById("tb-init").value=st.init;
- document.getElementById("tb-date").textContent=st.opened;
  render();window.scrollTo(0,0);
  var v=document.querySelector("nav button[data-v=checklists]");if(v)v.click();
 }
@@ -1064,33 +1559,49 @@ function buildChecklistPDF(){
  /* header */
  txt("F1",9,M,y,"ELEVATE OFFICE",0.45); y-=16;
  txt("F1",15,M,y,st.cl.name); y-=15;
- txt("F2",BODY,M,y,"Job "+(st.job||"____")+"   Date "+st.opened+"   Progress "+countDone()+" / "+countTotal(),0.25); y-=8;
+ txt("F2",BODY,M,y,"Job "+(st.job||"____")+"   Date "+st.opened+"   Progress "+countDone()+" / "+countTotal()+(st.cl.dual?"   Checked "+countChecked():""),0.25); y-=8;
  c.push("0 G 1 w "+M+" "+y.toFixed(1)+" m "+(W-M)+" "+y.toFixed(1)+" l S 0.7 w"); y-=16;
- st.cl.sections.forEach(function(sec){
+ var dual=!!st.cl.dual;
+ function pdfBlock(sec,page){
   need(40);
-  var sdone=0, who={};
-  sec.items.forEach(function(t,ix){var mk=st.marks[key(sec.id,ix)];if(mk){sdone++;if(mk.by)who[mk.by]=mk.at;}});
-  txt("F1",11,M,y,sec.title.toUpperCase()+"   "+sdone+" / "+sec.items.length); y-=LH;
+  var sdone=0,schk=0,who={},cwho={};
+  sec.items.forEach(function(t,ix){
+   var k=page?sec.id+"#"+page.u+"|"+ix:key(sec.id,ix),mk=st.marks[k];
+   if(mk){sdone++;if(mk.by)who[mk.by]=mk.at;if(mk.c){schk++;if(mk.c.by)cwho[mk.c.by]=mk.c.at;}}
+  });
+  var head=sec.title.toUpperCase()+(page?" - PAGE"+(page.sheet?" (SHEET "+page.sheet+")":""):"")+"   "+sdone+" / "+sec.items.length+(dual?"  ("+schk+" CHECKED)":"");
+  txt("F1",11,M,y,head); y-=LH;
   if(sec.pm){txt("F2",8,M,y,sec.note,0.45); y-=LH-1;}
   y-=3;
   sec.items.forEach(function(t,ix){
-   var mk=st.marks[key(sec.id,ix)];
+   var k=page?sec.id+"#"+page.u+"|"+ix:key(sec.id,ix),mk=st.marks[k],note=st.notes[k];
    var lines=wrapText(t,maxChars);
-   var blockH=lines.length*LH+(mk?LH:0)+4;
+   var noteLines=note?wrapText("Note: "+note.replace(/\s+/g," ").trim(),maxChars-4):[];
+   var blockH=lines.length*LH+(mk?LH:0)+noteLines.length*LH+4;
    need(blockH);
    box(M,y,mk?mk.v:null);
-   lines.forEach(function(l,li){ txt("F2",BODY,M+16,y,l); y-=LH; });
-   if(mk){ txt("F2",7.5,M+16,y,(mk.v==="na"?"[N/A] ":"[YES] ")+(mk.by||"-")+" "+mk.at,0.45); y-=LH; }
+   lines.forEach(function(l){ txt("F2",BODY,M+16,y,l); y-=LH; });
+   if(mk){ txt("F2",7.5,M+16,y,(mk.v==="na"?"[N/A] ":"[YES] ")+(mk.by||"-")+" "+mk.at+(mk.c?"    [CHECKED] "+mk.c.by+" "+mk.c.at:""),0.45); y-=LH; }
+   noteLines.forEach(function(l){ txt("F2",7.5,M+28,y,l,0.4); y-=LH; });
    y-=3;
   });
   var names=Object.keys(who).map(function(n){return n+" "+who[n];}).join(", ");
-  need(LH+8);
-  txt("F2",8,M,y,(sdone===sec.items.length?"Section complete - completed by "+(names||"-"):"Completed by ___ on ___"),0.35);
-  y-=LH+10;
+  var cnames=Object.keys(cwho).map(function(n){return n+" "+cwho[n];}).join(", ");
+  need(LH*(dual?2:1)+8);
+  if(dual){
+   txt("F2",8,M,y,(sdone===sec.items.length?"First pass complete - by "+(names||"-"):"First pass by ___"),0.35); y-=LH;
+   txt("F2",8,M,y,(schk===sec.items.length&&sec.items.length>0?"Checked - by "+(cnames||"-"):"Checked by ___"),0.35); y-=LH+10;
+  }else{
+   txt("F2",8,M,y,(sdone===sec.items.length?"Section complete - completed by "+(names||"-"):"Completed by ___ on ___"),0.35); y-=LH+10;
+  }
+ }
+ st.cl.sections.forEach(function(sec){
+  if(sec.repeat){(st.inst[sec.id]||[]).forEach(function(p){pdfBlock(sec,p);});}
+  else pdfBlock(sec,null);
  });
  line();
  /* payload */
- var data={app:"elevate-office",v:1,checklist:st.cl.id,name:st.cl.name,sig:cksig(st.cl),job:st.job,opened:st.opened,marks:st.marks,saved:new Date().toISOString(),build:BUILD};
+ var data={app:"elevate-office",v:2,checklist:st.cl.id,name:st.cl.name,sig:cksig(st.cl),job:st.job,opened:st.opened,marks:st.marks,notes:st.notes,inst:st.inst,saved:new Date().toISOString(),build:BUILD};
  var b64=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
  /* assemble PDF */
  var objs=[], n=0;
@@ -1121,8 +1632,9 @@ function buildChecklistPDF(){
  out+="trailer\n<< /Size "+(n+1)+" /Root "+catalog+" 0 R >>\nstartxref\n"+xref+"\n%%EOF";
  return out;
 }
-function countDone(){var d=0;st.cl.sections.forEach(function(s){s.items.forEach(function(t,ix){if(st.marks[key(s.id,ix)])d++;});});return d;}
-function countTotal(){return st.cl.sections.reduce(function(a,s){return a+s.items.length;},0);}
+function countDone(){var d=0;eachKey(st.cl,st.inst,function(k){if(st.marks[k])d++;});return d;}
+function countChecked(){var d=0;eachKey(st.cl,st.inst,function(k){if(st.marks[k]&&st.marks[k].c)d++;});return d;}
+function countTotal(){return totalFor(st.cl,st.inst);}
 function doExportPDF(){
  if(!st.cl){alert("Open a checklist first.");return;}
  persist();
@@ -1139,7 +1651,7 @@ function doExportPDF(){
 function importFromText(txt){
  if(txt.slice(0,5)==="%PDF-"){
   var m=txt.match(/EOAPPDATA1:([A-Za-z0-9+\/=]+):END/);
-  if(!m){alert("This PDF doesn't contain Elevate Office data. Only PDFs saved by the app can be imported - use the JSON or app-made PDF from the job file.");return;}
+  if(!m){alert("This PDF doesn't contain Elevate Office data, so it can't be imported.\n\nOnly PDFs made with the app's \"Save PDF to job file\" button carry the checklist state inside them. A PDF made through the browser's Print dialog (Print > Save as PDF) looks the same on paper but has no data inside \u2014 the app can't read ticks back out of it.\n\nTo continue this checklist in the app, use the app-made PDF or the JSON from the job file. If only a printed PDF exists, ask Finny about a one-off reconstruction.");return;}
   try{ handleImportData(JSON.parse(decodeURIComponent(escape(atob(m[1]))))); }
   catch(e){alert("Couldn't read the data inside that PDF: "+e.message);}
   return;
@@ -1158,6 +1670,27 @@ document.querySelectorAll("nav button").forEach(function(b){
  };
 });
 document.getElementById("bno").textContent="Build "+BUILD;
+
+/* ---------- update check (live CHANGELOG.md is the version beacon) ---------- */
+var updSnoozed=0;
+function updNow(){ if(st.cl)persist(); location.reload(); }
+function updLater(){ updSnoozed=Date.now(); document.getElementById("updbar").classList.remove("show"); }
+function checkUpdate(){
+ if(location.protocol==="file:")return;
+ fetch("CHANGELOG.md?u="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():"";}).then(function(t){
+  var m=t.match(/##\s*Build\s+([\d.]+)/);
+  if(!m)return;
+  if(m[1]!==BUILD&&Date.now()-updSnoozed>25*60*1000){
+   document.getElementById("updtxt").textContent="Build "+m[1]+" is available \u2014 your work is saved, refreshing is safe.";
+   document.getElementById("updbar").classList.add("show");
+  }
+  if(m[1]===BUILD)document.getElementById("updbar").classList.remove("show");
+ }).catch(function(){});
+}
+checkUpdate();
+setInterval(checkUpdate,30*60*1000);
+document.addEventListener("visibilitychange",function(){if(!document.hidden)checkUpdate();});
+window.updNow=updNow;window.updLater=updLater;window.checkUpdate=checkUpdate;
 
 const TRAINING=[
 {group:"Beginner",videos:[
@@ -1429,11 +1962,10 @@ document.getElementById("rimunit").querySelectorAll("button").forEach(function(b
   b.classList.add("on");rimUnit=b.dataset.u;calcInv();
  };
 });
-function addInvRow(label){
+function addInvRow(){
  var host=document.getElementById("invrows");
  var r=document.createElement("div");r.className="invrow";
- r.innerHTML="<input type='text' class='ilabel' placeholder='"+(label||"N / S / Conc. 30 E")+"' autocomplete='off'>"+
-  "<input type='text' class='idepth' placeholder='0.00' autocomplete='off'>"+
+ r.innerHTML="<input type='text' class='idepth' placeholder='0.00' autocomplete='off'>"+
   "<span class='top'><input type='checkbox' class='itop'>top</span>"+
   "<input type='text' class='isize' placeholder='—' disabled autocomplete='off'>"+
   "<span class='res'>—</span>"+
@@ -1472,9 +2004,10 @@ function copyInverts(){
  var rm=rimMetres(),lines=[];
  if(rm===null){document.getElementById("invcopied").textContent="Enter a rim elevation first.";return;}
  lines.push("Rim "+document.getElementById("rim").value+" "+rimUnit+(rimUnit==="ft"?" ("+rm.toFixed(3)+" m)":""));
+ var i=0;
  document.querySelectorAll("#invrows .invrow").forEach(function(r){
-  var lab=r.querySelector(".ilabel").value||"?",res=r.querySelector(".res").textContent,dep=r.querySelector(".idepth").value;
-  if(res!=="—")lines.push(lab+": depth "+dep+" m \u2192 Inv. "+res);
+  var res=r.querySelector(".res").textContent,dep=r.querySelector(".idepth").value;
+  if(res!=="—"){i++;lines.push(i+": depth "+dep+" m \u2192 Inv. "+res);}
  });
  var txt=lines.join("\n");
  function done(){document.getElementById("invcopied").textContent="Copied.";setTimeout(function(){document.getElementById("invcopied").textContent="";},2000);}
@@ -1495,17 +2028,35 @@ function addSide(name){
  prSideN++;
  var s=prEl('<div class="side">'+
   '<div class="sideh"><input class="sname" value="'+(name||("SIDE "+prSideN))+'">'+
+  '<span class="punit" title="Unit the plan calls are entered in \u2014 field and outputs stay in metres">plan in <span class="seg useg"><button class="on" data-u="m">m</button><button data-u="ft">ft</button></span></span>'+
   '<span class="sidebadge">factor <input class="sfactor" placeholder="derived" title="Leave blank to derive from field \u00f7 \u03a3 plan, or type a factor to apply it directly"><span class="smode"></span></span>'+
   '<button class="del" title="Remove side">\u2715</button></div>'+
   '<div class="pgrid"><div class="pgh">#</div><div class="pgh">Plan (record)</div><div class="pgh">Prorated</div></div>'+
   '<div class="prows"></div>'+
   '<div class="addrow2"><button class="btn ghost">+ Add plan distance</button></div>'+
   '<div class="sfoot">'+
-   '<div class="sf"><label>\u03a3 plan</label><span class="mono splan">\u2014</span></div>'+
-   '<div class="sf"><label>Field (measured)</label><input class="sfield" placeholder="0.000"><div class="check scheck"></div></div>'+
+   '<div class="sf"><label>\u03a3 plan (m)</label><span class="mono splan">\u2014</span></div>'+
+   '<div class="sf"><label>Field, m (measured)</label><input class="sfield" placeholder="0.000"><div class="check scheck"></div></div>'+
+  '</div>'+
+  '<div class="apply" style="display:none">'+
+   '<div class="aph">Apply factor \u2014 intermediate plan calls <span class="afac mono"></span></div>'+
+   '<div class="apg ahdr"><div class="pgh">#</div><div class="pgh aplanh">Plan (m)</div><div class="pgh">Prorated (m)</div><div class="pgh">Cumulative (m)</div></div>'+
+   '<div class="arows"></div>'+
+   '<div class="addrow2"><button class="btn ghost aadd">+ Add intermediate distance</button></div>'+
   '</div></div>');
+ s.dataset.unit="m";
+ s.querySelectorAll(".useg button").forEach(function(b){
+  b.onclick=function(){
+   s.querySelectorAll(".useg button").forEach(function(x){x.classList.remove("on");});
+   b.classList.add("on");s.dataset.unit=b.dataset.u;
+   s.querySelector(".aplanh").textContent="Plan ("+s.dataset.unit+")";
+   var ph=s.querySelector(".pgrid .pgh:nth-child(2)");if(ph)ph.textContent="Plan (record, "+s.dataset.unit+")";
+   calcSide(s);
+  };
+ });
  s.querySelector(".del").onclick=function(){s.remove();};
- s.querySelector(".addrow2 .btn").onclick=function(){addPrRow(s);};
+ s.querySelector(".addrow2:not(.apply .addrow2) .btn, .side > .addrow2 .btn").onclick=function(){addPrRow(s);};
+ s.querySelector(".aadd").onclick=function(){addApplyRow(s);};
  s.querySelector(".sfield").addEventListener("input",function(){calcSide(s);});
  var fin=s.querySelector(".sfactor");
  fin.addEventListener("input",function(){
@@ -1516,6 +2067,25 @@ function addSide(name){
  document.getElementById("prsides").appendChild(s);
  addPrRow(s);addPrRow(s);
  return s;
+}
+function addApplyRow(s){
+ var rows=s.querySelector(".arows");
+ var r=prEl('<div class="apg"><div class="pcell"><span class="num">'+(rows.children.length+1)+'</span></div>'+
+  '<div class="pcell"><input class="aplan" placeholder="0.000" autocomplete="off"></div>'+
+  '<div class="pcell"><span class="pout apror">\u2014</span></div>'+
+  '<div class="pcell"><span class="pout acum">\u2014</span></div></div>');
+ var inp=r.querySelector(".aplan");
+ inp.addEventListener("input",function(){calcSide(s);});
+ inp.addEventListener("keydown",function(e){
+  if(e.key==="Enter"){
+   var all=s.querySelectorAll(".aplan");
+   if(this===all[all.length-1])addApplyRow(s);
+   var all2=s.querySelectorAll(".aplan");var i=[].indexOf.call(all2,this);
+   if(all2[i+1])all2[i+1].focus();
+  }
+ });
+ rows.appendChild(r);
+ return r;
 }
 function addPrRow(s){
  var rows=s.querySelector(".prows");
@@ -1536,7 +2106,8 @@ function addPrRow(s){
  rows.appendChild(r);
 }
 function calcSide(s){
- var plans=[].map.call(s.querySelectorAll(".plan"),function(i){return parseFloat(i.value);});
+ var U=s.dataset.unit==="ft"?FT:1;
+ var plans=[].map.call(s.querySelectorAll(".plan"),function(i){var v=parseFloat(i.value);return isNaN(v)?NaN:v*U;});
  var sum=plans.reduce(function(a,v){return a+(isNaN(v)?0:v);},0);
  var fin=s.querySelector(".sfactor");
  var manual=fin.value.trim()!=="";
@@ -1565,6 +2136,21 @@ function calcSide(s){
  if(isFinite(f)&&!manual){chk.className="check scheck ok";chk.textContent="\u03a3 prorated = "+prFmt(tot,3)+" \u2713";}
  else if(isFinite(f)&&manual){chk.className="check scheck";chk.textContent="field implied from factor";}
  else{chk.className="check scheck";chk.textContent="";}
+ /* apply-factor strip */
+ var ap=s.querySelector(".apply");
+ if(isFinite(f)&&f>0){
+  ap.style.display="block";
+  s.querySelector(".afac").textContent="factor "+f.toFixed(8);
+  if(!s.querySelector(".arows").children.length)addApplyRow(s);
+  var cum=0;
+  s.querySelectorAll(".arows .apg").forEach(function(r){
+   var v=parseFloat(r.querySelector(".aplan").value);
+   var po=r.querySelector(".apror"),co=r.querySelector(".acum");
+   if(isNaN(v)){po.textContent="\u2014";co.textContent="\u2014";return;}
+   var p=v*U*f;cum+=p;
+   po.textContent=prFmt(p,3);co.textContent=prFmt(cum,3);
+  });
+ } else { ap.style.display="none"; }
 }
 function copyProration(){
  var lines=[];
@@ -1573,9 +2159,22 @@ function copyProration(){
   var manual=fin.value.trim()!=="";
   var f=manual?fin.value.trim():fin.placeholder;
   if(f==="derived"||f==="\u2014")return;
-  lines.push(s.querySelector(".sname").value+" \u2014 field "+s.querySelector(".sfield").value+" / plan "+s.querySelector(".splan").textContent+"  factor "+f+(manual?" (manual)":" (derived)"));
+  var ft=s.dataset.unit==="ft";
+  lines.push(s.querySelector(".sname").value+" \u2014 field "+s.querySelector(".sfield").value+" m / plan "+s.querySelector(".splan").textContent+" m  factor "+f+(manual?" (manual)":" (derived)")+(ft?"  [plan calls entered in feet, converted at 0.3048 exact]":""));
   var plans=s.querySelectorAll(".plan"),outs=s.querySelectorAll(".pror");
-  plans.forEach(function(p,i){if(p.value)lines.push("  "+p.value+" -> "+outs[i].textContent);});
+  plans.forEach(function(p,i){
+   if(!p.value)return;
+   var v=parseFloat(p.value);
+   lines.push(ft&&!isNaN(v)?"  "+p.value+" ft = "+(v*FT).toFixed(3)+" m -> "+outs[i].textContent+" m":"  "+p.value+" -> "+outs[i].textContent);
+  });
+  var arows=s.querySelectorAll(".arows .apg"),ap=[];
+  arows.forEach(function(r){
+   var pv=r.querySelector(".aplan").value,po=r.querySelector(".apror").textContent,co=r.querySelector(".acum").textContent;
+   if(!pv||po==="\u2014")return;
+   var v=parseFloat(pv);
+   ap.push(ft&&!isNaN(v)?"    "+pv+" ft = "+(v*FT).toFixed(3)+" m -> "+po+" m  (cum "+co+" m)":"    "+pv+" -> "+po+"  (cum "+co+")");
+  });
+  if(ap.length){lines.push("  Applied to factor "+f+":");lines=lines.concat(ap);}
  });
  copyText(lines.join("\n")||"(nothing to copy yet)","prcopied");
 }
