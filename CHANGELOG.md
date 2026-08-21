@@ -1,5 +1,11 @@
 # Elevate Office — changelog
 
+## Build 1.6 — 2026-08-21
+- New tool: Calculator — a single expression line with add, subtract, multiply, divide, and parentheses. Paste numbers with commas, × and ÷ both work, the result shows live, and Enter keeps the line on a running tape; tape results can be copied or clicked back into the next expression so chained work never re-keys numbers.
+- New tool: Combined scale factor — enter northing, easting, orthometric elevation, and geoid separation (pre-filled −18.2 m for the Lower Mainland, editable) from a corrected network RTK observation; the tool derives ellipsoidal height and computes grid, elevation, and combined factors to 8 decimals on GRS80, matching NRCan/mascot output. Copy results carries the inputs, all three factors, and the RTK-basis statement into the calc notes. A standing note on the tool restricts use to corrected dual-frequency network RTK observations or better.
+- Resources: workflow note added for bringing vector architectural PDFs into MicroSurvey with PDFIMPORT — scale by reference off a labelled dimension, verify against a second, keep imported linework as reference-only on its own layers, and treat a PDFIMPORT that returns nothing as the signal the PDF is a scan.
+- Fix: the update check now skips quietly when fetch is unavailable (file:// testing).
+
 ## Build 1.5 — 2026-08-18
 - Four new checklists, transcribed from the office PDFs on SharePoint: **Preliminary Strata** (Page 1 + Units), **Final Strata** (Page 1 with closure and PMBC, Units, Cross sections, optional Building foundations), **Legal Plan 2026**, and **Ex. Plan 2025**. Duplicated "Unfreeze" items in the two PMBC sections were de-duplicated, a doubled word in the Final Units source was corrected, and "preffered" was corrected to "preferred" in both legal lists; the source PDFs remain the wording of record.
 - Dual-check system on both strata checklists: each item takes a first pass (Yes/N/A) plus a separate Chk stamp. The Chk button unlocks only after the first pass, warns when the same initials try to do both, and any change to the first pass clears the check. Section footers show both names; both passes travel in JSON, PDF, and print.

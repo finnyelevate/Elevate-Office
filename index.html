@@ -193,6 +193,18 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .side .smode:empty{display:none}
 .side.manual .sfield{background:var(--na-soft);color:var(--faint);pointer-events:none}
 .pgrid{display:grid;grid-template-columns:34px 1fr 1fr;align-items:stretch}
+.warnline{background:#fdf6e7;border-left:3px solid #c96a1b;color:#7a5215;font-size:12.5px;padding:8px 10px;margin:2px 0 10px;line-height:1.45}
+.calcin{width:100%;max-width:560px;font:500 17px "IBM Plex Mono",monospace;padding:10px 12px;border:1px solid var(--hair);background:var(--panel)}
+.calcout{font:600 17px "IBM Plex Mono",monospace;color:var(--blue);min-height:24px;padding:4px 2px}
+.calctape{max-width:560px;border-top:1px dashed var(--hair);margin-top:8px}
+.tline{display:flex;align-items:center;gap:10px;padding:5px 2px;border-bottom:1px solid var(--hair);font:13.5px "IBM Plex Mono",monospace}
+.tline .texp{color:var(--faint);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tline .tres{color:var(--ink);font-weight:600;cursor:pointer}
+.tline .tres:hover{color:var(--blue);text-decoration:underline}
+.tline .tcopy{border:none;background:none;color:var(--faint);cursor:pointer;font-size:12px;padding:2px 4px}
+.tline .tcopy:hover{color:var(--blue)}
+.wnote{font-size:13.5px;line-height:1.55;color:var(--ink);max-width:660px;padding:4px 0}
+.wnote b{font-family:"Barlow Semi Condensed";letter-spacing:.03em}
 .punit{font-family:"Barlow Semi Condensed";font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:7px}
 .punit .seg button{padding:4px 10px;font-size:12px}
 .apply{border-top:1px dashed var(--hair);background:var(--panel);padding-bottom:4px}
@@ -303,6 +315,14 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
   <p class="sub">Quick calculators for everyday office work.</p>
 
   <div class="tool">
+    <h3>Calculator</h3>
+    <div class="row"><input type="text" class="calcin" id="calcin" placeholder="150.535 / 24.384 * 2" autocomplete="off" spellcheck="false"></div>
+    <div class="row"><span class="calcout" id="calcout"></span></div>
+    <div class="calctape" id="calctape" style="display:none"></div>
+    <div class="hint">Add, subtract, multiply, divide, parentheses. Paste numbers with commas, &#215; and &#247; both work. Enter keeps the line on the tape below &#8212; click any tape result to drop it back into the expression, or copy it.</div>
+  </div>
+
+  <div class="tool">
     <h3>Quadrant bearing ↔ azimuth</h3>
     <div class="row"><label>Quadrant bearing</label><input type="text" id="qb" placeholder='N 45 30 15 W'><span class="out" id="qb-out"></span></div>
     <div class="row"><label>Azimuth</label><input type="text" id="az" placeholder="314 29 45"><span class="out" id="az-out"></span></div>
@@ -389,6 +409,25 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
       <span class="hint" id="acccopied" style="margin:0"></span>
     </div>
     <div class="hint">Accuracy = 1.96 &#215; &#8730;(&#963;N&#178; + &#963;E&#178;) — horizontal, 95% confidence. The governing (largest) value is highlighted; that's the one for the accuracy statement.</div>
+  </div>
+
+  <div class="tool">
+    <h3>Combined scale factor</h3>
+    <div class="warnline">Use only with coordinates from corrected dual-frequency network RTK observations (or better). Autonomous or uncorrected positions are not a valid basis for a scale factor entering the calc record.</div>
+    <div class="row"><label>Northing (m)</label><input type="text" class="sm" id="sfN" placeholder="5454680.001" autocomplete="off" style="width:150px">
+      <label style="margin-left:10px">Easting (m)</label><input type="text" class="sm" id="sfE" placeholder="531435.908" autocomplete="off" style="width:130px">
+      <label style="margin-left:10px">Zone</label><select id="sfZone"><option>7</option><option>8</option><option>9</option><option selected>10</option><option>11</option></select></div>
+    <div class="row"><label>Orthometric elev. H (m)</label><input type="text" class="sm" id="sfH" autocomplete="off">
+      <label style="margin-left:10px">Geoid sep. N (m)</label><input type="text" class="sm" id="sfNs" value="-18.2" autocomplete="off">
+      <span class="hint" style="margin:0">from the mascot listing / NRCan output</span></div>
+    <div class="row"><label>Ellipsoidal h</label><span class="out" id="sf-h">&#8212;</span></div>
+    <div class="row"><label>Grid factor</label><span class="out" id="sf-grid">&#8212;</span>
+      <label style="margin-left:14px">Elevation factor</label><span class="out" id="sf-elev">&#8212;</span></div>
+    <div class="row"><label>Combined</label><span class="out" id="sf-csf" style="font-weight:700">&#8212;</span>
+      <button class="btn" style="margin-left:14px" onclick="copyScaleFactor()">Copy results</button>
+      <span class="hint" id="sfcopied" style="margin:0"></span></div>
+    <div class="err" id="sf-err"></div>
+    <div class="hint">UTM on GRS80: grid factor from the easting's offset to the 500&#8202;000&#8202;m central meridian at the latitude implied by the northing; elevation factor R/(R+h) with h = H + geoid separation. Matches NRCan/mascot output to 8 decimals. The combined factor drops straight into the proration card's factor box.</div>
   </div>
 </div>
 
@@ -525,6 +564,10 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
     </ul>
   </div>
   <div class="lgrp">
+    <h3>Workflow notes</h3>
+    <div class="wnote"><b>Arch PDF &#8594; CAD (MicroSurvey).</b> Vector arch PDFs only &#8212; run PDFIMPORT, pick the page or attached underlay, then immediately SCALE with the Reference option off one labelled dimension and verify against a second dimension elsewhere on the sheet before coordinating anything. Keep imported linework on its own layer set; it is reference geometry only &#8212; measurements are held as measured. If PDFIMPORT returns nothing useful, the PDF is a scan: chase the CAD file, don't trace pixels.</div>
+  </div>
+  <div class="lgrp">
     <h3>Checklist source PDFs</h3>
     <ul>
       <li><a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Checklists" target="_blank" rel="noopener">Checklists folder on SharePoint ↗</a></li>
@@ -536,8 +579,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.5";
-const NEWS=["Four new checklists: Preliminary Strata, Final Strata, Legal Plan, and Ex. Plan \u2014 transcribed from the 2026 office PDFs (Ex. Plan from the 2025 PDF)","Strata checklists use a dual-check system: every item takes a first pass plus a separate Chk stamp by a second person \u2014 both travel in PDF, JSON, and print","Strata Units, Sections, and Foundations pages can be added or removed per job, each with its own sheet number","Every checklist item can take a comment (\u270e) \u2014 comments ride along in exports and print as indented notes","Proration: apply a derived or manual factor to intermediate plan calls, with a cumulative chainage column, and enter plan calls in feet with exact 0.3048 conversion (field and outputs stay metric)","Invert calculator: direction/pipe column removed \u2014 rows are just depth \u2192 invert, numbered in Copy results","Date cell removed from the checklist title block \u2014 per-item stamps carry the dates","The app now checks for new builds while open and shows a refresh bar when one ships \u2014 no more stale versions on always-open browsers"];
+const BUILD="1.6";
+const NEWS=["Calculator under Tools: type or paste an expression (+ \u2212 \u00d7 \u00f7, parentheses, commas fine), Enter keeps a tape of results you can copy or reuse","Combined scale factor tool: northing, easting, orthometric elevation + geoid separation \u2192 grid, elevation, and combined factors to 8 decimals, matching NRCan/mascot output, with the RTK-basis note carried into Copy results","Resources: workflow note on bringing vector arch PDFs into MicroSurvey with PDFIMPORT"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1671,12 +1714,104 @@ document.querySelectorAll("nav button").forEach(function(b){
 });
 document.getElementById("bno").textContent="Build "+BUILD;
 
+/* ---------- calculator ---------- */
+function calcEval(s){
+ s=s.replace(/,/g,"").replace(/\u00d7/g,"*").replace(/\u00f7/g,"/").replace(/\u2212/g,"-");
+ var i=0;
+ function ws(){while(i<s.length&&s[i]===" ")i++;}
+ function num(){ws();var st=i;if(s[i]==="+"||s[i]==="-")i++;var d=false;while(i<s.length&&/[0-9.]/.test(s[i])){d=true;i++;}if(!d)throw 0;var v=parseFloat(s.slice(st,i));if(isNaN(v))throw 0;return v;}
+ function factor(){ws();if(s[i]==="("){i++;var v=expr();ws();if(s[i]!==")")throw 0;i++;return v;}return num();}
+ function term(){var v=factor();for(;;){ws();if(s[i]==="*"){i++;v*=factor();}else if(s[i]==="/"){i++;v/=factor();}else return v;}}
+ function expr(){var v=term();for(;;){ws();if(s[i]==="+"){i++;v+=term();}else if(s[i]==="-"){i++;v-=term();}else return v;}}
+ var v=expr();ws();if(i<s.length)throw 0;if(!isFinite(v))throw 0;return v;
+}
+function calcFmt(v){
+ var r=parseFloat(v.toFixed(9));
+ return String(r);
+}
+function calcLive(){
+ var inp=document.getElementById("calcin"),out=document.getElementById("calcout");
+ var t=inp.value.trim();
+ if(!t){out.textContent="";return;}
+ try{out.textContent="= "+calcFmt(calcEval(t));out.style.color="";}
+ catch(e){out.textContent="\u2026";out.style.color="var(--faint)";}
+}
+function calcCommit(){
+ var inp=document.getElementById("calcin");
+ var t=inp.value.trim();if(!t)return;
+ var v;try{v=calcEval(t);}catch(e){return;}
+ var tape=document.getElementById("calctape");
+ tape.style.display="block";
+ var line=document.createElement("div");line.className="tline";
+ var res=calcFmt(v);
+ line.innerHTML="<span class='texp'></span><span class='tres' title='use in expression'></span><button class='tcopy' title='copy result'>copy</button>";
+ line.querySelector(".texp").textContent=t+" =";
+ line.querySelector(".tres").textContent=res;
+ line.querySelector(".tres").onclick=function(){inp.value+=res;inp.focus();calcLive();};
+ line.querySelector(".tcopy").onclick=function(){
+  var b=this;
+  (navigator.clipboard?navigator.clipboard.writeText(res):Promise.reject()).then(function(){b.textContent="copied";setTimeout(function(){b.textContent="copy";},900);}).catch(function(){});
+ };
+ tape.insertBefore(line,tape.firstChild);
+ while(tape.children.length>50)tape.removeChild(tape.lastChild);
+ inp.value="";calcLive();
+}
+document.getElementById("calcin").addEventListener("input",calcLive);
+document.getElementById("calcin").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();calcCommit();}});
+window.calcEval=calcEval;window.calcCommit=calcCommit;
+
+/* ---------- combined scale factor ---------- */
+function sfCalc(){
+ var N=parseFloat(document.getElementById("sfN").value.replace(/,/g,"")),
+     E=parseFloat(document.getElementById("sfE").value.replace(/,/g,"")),
+     H=parseFloat(document.getElementById("sfH").value.replace(/,/g,"")),
+     Ns=parseFloat(document.getElementById("sfNs").value.replace(/,/g,"")),
+     err=document.getElementById("sf-err");
+ err.textContent="";
+ var oh=document.getElementById("sf-h"),og=document.getElementById("sf-grid"),oe=document.getElementById("sf-elev"),oc=document.getElementById("sf-csf");
+ if(isNaN(N)||isNaN(E)||isNaN(H)||isNaN(Ns)){oh.textContent="\u2014";og.textContent="\u2014";oe.textContent="\u2014";oc.textContent="\u2014";return null;}
+ if(E<100000||E>900000){err.textContent="Easting looks outside a UTM zone (expect ~250 000\u2013750 000 m).";}
+ var a=6378137,e2=0.00669438002290,k0=0.9996;
+ var lat=(N/111132.95)*Math.PI/180;
+ var s2=Math.sin(lat)*Math.sin(lat),t=1-e2*s2;
+ var M=a*(1-e2)/Math.pow(t,1.5),Nr=a/Math.sqrt(t),R=Math.sqrt(M*Nr);
+ var h=H+Ns;
+ var dE=E-500000;
+ var kg=k0*(1+dE*dE/(2*k0*k0*R*R));
+ var ke=R/(R+h);
+ var csf=kg*ke;
+ oh.textContent=h.toFixed(3)+" m";
+ og.textContent=kg.toFixed(8);
+ oe.textContent=ke.toFixed(8);
+ oc.textContent=csf.toFixed(8);
+ return {N:N,E:E,H:H,Ns:Ns,h:h,kg:kg,ke:ke,csf:csf,zone:document.getElementById("sfZone").value};
+}
+function copyScaleFactor(){
+ var r=sfCalc();
+ if(!r){document.getElementById("sfcopied").textContent="Enter all four values first.";return;}
+ var lines=[
+  "COMBINED SCALE FACTOR",
+  "UTM zone "+r.zone+"  N "+r.N.toFixed(3)+"  E "+r.E.toFixed(3),
+  "Orthometric H "+r.H.toFixed(3)+" m  geoid sep. "+r.Ns.toFixed(3)+" m  \u2192  ellipsoidal h "+r.h.toFixed(3)+" m",
+  "Grid factor "+r.kg.toFixed(8)+"  \u00d7  elevation factor "+r.ke.toFixed(8),
+  "Combined "+r.csf.toFixed(8),
+  "Basis: corrected dual-frequency network RTK observation (or better)."
+ ];
+ var txt=lines.join("\n");
+ (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){
+  document.getElementById("sfcopied").textContent="Copied.";
+  setTimeout(function(){document.getElementById("sfcopied").textContent="";},1500);
+ }).catch(function(){document.getElementById("sfcopied").textContent="Copy failed \u2014 select and copy manually.";});
+}
+["sfN","sfE","sfH","sfNs"].forEach(function(id){document.getElementById(id).addEventListener("input",sfCalc);});
+window.sfCalc=sfCalc;window.copyScaleFactor=copyScaleFactor;
+
 /* ---------- update check (live CHANGELOG.md is the version beacon) ---------- */
 var updSnoozed=0;
 function updNow(){ if(st.cl)persist(); location.reload(); }
 function updLater(){ updSnoozed=Date.now(); document.getElementById("updbar").classList.remove("show"); }
 function checkUpdate(){
- if(location.protocol==="file:")return;
+ if(location.protocol==="file:"||typeof fetch==="undefined")return;
  fetch("CHANGELOG.md?u="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():"";}).then(function(t){
   var m=t.match(/##\s*Build\s+([\d.]+)/);
   if(!m)return;
