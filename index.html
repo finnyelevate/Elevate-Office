@@ -205,6 +205,32 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .tline .tcopy:hover{color:var(--blue)}
 .wnote{font-size:13.5px;line-height:1.55;color:var(--ink);max-width:660px;padding:4px 0}
 .wnote b{font-family:"Barlow Semi Condensed";letter-spacing:.03em}
+.cu-drop{border:2px dashed var(--hair);padding:26px 18px;text-align:center;color:var(--faint);font-size:14px;max-width:760px;background:var(--panel);margin-bottom:14px}
+.cu-drop.over{border-color:var(--blue);color:var(--blue)}
+.cu-sum{font:600 14px "Barlow Semi Condensed";letter-spacing:.04em;margin:6px 0 8px}
+.cu-chips{display:flex;flex-wrap:wrap;gap:6px;max-width:760px}
+.cu-chip{border:1px solid var(--hair);background:var(--panel);padding:5px 10px;font:500 12.5px "IBM Plex Mono",monospace;color:var(--faint);cursor:pointer}
+.cu-chip.on{border-color:var(--blue);color:var(--ink);background:#eef3f9}
+.cu-units{display:flex;align-items:center;gap:10px;margin:14px 0 4px;font-size:14px}
+.cu-manual{border:1px solid var(--hair);background:var(--panel);padding:10px 12px;margin:14px 0;max-width:760px}
+.cu-manual h3{margin:0 0 6px;font:600 12px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.cu-cb{font-size:12.5px;color:var(--faint);display:inline-flex;align-items:center;gap:4px}
+.cu-tier{font:600 13px "Barlow Semi Condensed";letter-spacing:.09em;text-transform:uppercase;margin:18px 0 6px;color:var(--ink)}
+.cu-grp{border:1px solid var(--hair);margin-bottom:10px;max-width:760px;background:var(--panel)}
+.cu-gh{padding:7px 10px;font:600 13px "Barlow Semi Condensed";letter-spacing:.05em;border-bottom:1px solid var(--hair)}
+.cu-gh .cnt{color:var(--faint);font-weight:400;margin-left:6px}
+.cu-row{display:flex;align-items:baseline;gap:9px;padding:4px 10px;border-bottom:1px solid var(--hair);font:12.5px "IBM Plex Mono",monospace;cursor:pointer}
+.cu-row:last-child{border-bottom:none}
+.cu-pt{color:var(--faint);min-width:64px}
+.cu-b{color:var(--faint);text-decoration:line-through}
+.cu-a{color:var(--blue);font-weight:600}
+.cu-none{color:var(--faint);font-size:14px;padding:14px 0}
+.cu-unk{max-width:760px;margin:12px 0;font-size:13px;color:var(--faint)}
+.cu-unk summary{cursor:pointer}
+.cu-utok{display:inline-block;border:1px solid var(--hair);padding:2px 7px;margin:3px 3px 0 0;font:12px "IBM Plex Mono",monospace}
+.cu-dl{display:flex;align-items:center;gap:10px;margin:16px 0;flex-wrap:wrap}
+.cu-chg{font:600 14px "Barlow Semi Condensed";letter-spacing:.05em}
+.cu-err{border-left:3px solid #a33;background:#fbeeee;color:#7a2020;padding:10px 12px;max-width:760px;font-size:13.5px;margin:8px 0}
 .punit{font-family:"Barlow Semi Condensed";font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:7px}
 .punit .seg button{padding:4px 10px;font-size:12px}
 .apply{border-top:1px dashed var(--hair);background:var(--panel);padding-bottom:4px}
@@ -267,6 +293,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
     <button data-v="tools">Tools</button>
     <button data-v="samples">Samples</button>
     <button data-v="training">Training</button>
+    <button data-v="cleanup">Cleanup</button>
     <button data-v="resources">Resources</button>
   </nav>
   <div class="bno" id="bno"></div>
@@ -542,6 +569,13 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
   <div id="trainhost"></div>
 </div>
 
+<div class="view" id="v-cleanup">
+  <h1 class="pg">Code cleanup</h1>
+  <div class="warnline" style="max-width:760px">Descriptions only — point numbers, coordinates, and elevations are never touched, and the raw RW5 is never the input. Output files preserve the original delimiter, spacing, and line endings byte for byte outside the accepted changes.</div>
+  <div id="cu-drop" class="cu-drop">Drop the exported PNEZD points file here (.txt / .csv / .asc)<br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="cu-file" accept=".txt,.csv,.asc,.dat,text/plain" style="display:none"></label></div>
+  <div id="cu-body"></div>
+</div>
+
 <div class="view" id="v-resources">
   <h1 class="pg">Resources</h1>
   <p class="sub">Reference links used across jobs.</p>
@@ -579,8 +613,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.6";
-const NEWS=["Calculator under Tools: type or paste an expression (+ \u2212 \u00d7 \u00f7, parentheses, commas fine), Enter keeps a tape of results you can copy or reuse","Combined scale factor tool: northing, easting, orthometric elevation + geoid separation \u2192 grid, elevation, and combined factors to 8 decimals, matching NRCan/mascot output, with the RTK-basis note carried into Copy results","Resources: workflow note on bringing vector arch PDFs into MicroSurvey with PDFIMPORT"];
+const BUILD="1.7";
+const NEWS=["New: Code cleanup \u2014 drop an exported PNEZD points file (.txt/.csv/.asc) and it validates every description against the 2026 automap, offers pre-ticked fixes for confirmed miscodes (OIP B/T/BASE, TCONN, SPK, glued codes, underscores, hedge spacing), unticked suggestions, and one-off manual find/replace rules","Cleanup: drip lines booked in cm normalize to metres; on imperial jobs tree diameters and drip lines convert to feet (asked only when the file has trees)","Cleanup: point-range chips let you exclude issued search points or any block from cleanup; three outputs always \u2014 full cleaned file, corrections only, and a change log \u2014 with byte-identical formatting outside accepted changes"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1713,6 +1747,356 @@ document.querySelectorAll("nav button").forEach(function(b){
  };
 });
 document.getElementById("bno").textContent="Build "+BUILD;
+
+/* ---------- code cleanup tool ---------- */
+var CU_KEYS=("A A1 A2 A3 ASPH B BB BB1 BB2 BB3 BCHMH BCTBX BCTMH BLDG BM BMH BOLLARD BOLT BS BSCHK BSMT BT BT1 BT2 BT3 C CB CBR CBROUND CE CHK CN CONC CONC. CONP CP CR CS CSE CW D DB DB1 DB2 DB3 DIC DT EA EA1 EA2 EA3 EAVE EAVES EC EC1 EC2 EC3 F FH FHTOP FLAG FLAG1 FLAG2 FLAG3 FLOOR FNC GAS GUY GV GY HBX HMH HV HWM HY HYD IC ICD ICS ICV INV IP K K1 K2 K3 LE LN LP LPT LS LW MF MH MMH MON MONUMENT MUV MV MW MY_POST NB OAP OCC OCL OCM OCN OCNT OCONP OCP OIB OIP OIPB OIPDLS OIPIPE OIPIPE2 OIPNS OLP OMAG OMON OPCON OPIPE OPM OPP OPPIPE ORBR ORLT ORP OSC OSM OSP OSPK P PE PLE PLN PLS PLT PLW PN PNE PNSEW PP PPLT PPT PSE QCL QCL1 QCL2 QM QW QW1 QW2 RCB RFPK RMH ROOF RP RT RTB RTC RTW S SIC SIGN SIGNAL SILL SMH SUMP SV TB TBX TCED TCLU TCLUS TCON TDEC TFIR TH TMH TSTUMP U U1 U2 U3 UB UBX UV VEA VEA1 VEA2 VEA3 VEC VEC1 VEC2 VEC3 VEG VEG1 VEG2 VEG3 W WM WV WW WWCON WWCON1 WWCON2 WWCON3 WWCON4").split(" ");
+var CU_MWKEYS="SAN IC|SERVICE POLE|ROOF PEAK|ROOF PEEK|PPL N".split("|");
+var CU_PENDING=["OIPT"];
+var CU_TREES=["TCED","TCLU","TCLUS","TCON","TDEC","TFIR"];
+var CU_KEYSET={};CU_KEYS.forEach(function(k){CU_KEYSET[k.toUpperCase()]=1;});CU_PENDING.forEach(function(k){CU_KEYSET[k]=1;});
+var CU_KEYS_BYLEN=CU_KEYS.slice().sort(function(a,b){return b.length-a.length;});
+var cu={lines:null,name:"",delim:",",chips:[],focus:{},unitAns:"m",ticks:{},manual:[],hasTrees:false};
+
+function cuKnownLead(desc){
+ var u=desc.toUpperCase();
+ for(var i=0;i<CU_MWKEYS.length;i++){var mk=CU_MWKEYS[i];if(u===mk||u.indexOf(mk+" ")===0)return CU_MWKEYS[i];}
+ var t=u.split(" ")[0];
+ if(CU_KEYSET[t])return t;
+ return null;
+}
+function cuParse(text,name){
+ var rawLines=text.split(/(?<=\n)/);
+ if(rawLines.length&&rawLines[rawLines.length-1]==="")rawLines.pop();
+ var commaVotes=0,wsVotes=0;
+ rawLines.slice(0,25).forEach(function(l){
+  var s=l.replace(/\r?\n$/,"");
+  if(!s.trim())return;
+  if(s.split(",").length>=5)commaVotes++;
+  else if(s.trim().split(/\s+/).length>=5)wsVotes++;
+ });
+ var delim=commaVotes>=wsVotes?",":"ws";
+ var lines=[];
+ rawLines.forEach(function(l,ix){
+  var m=l.match(/\r?\n$/);var eol=m?m[0]:"";
+  var s=eol?l.slice(0,-eol.length):l;
+  var rec={raw:s,eol:eol,ix:ix,point:false,pt:null,desc:"",descStart:-1};
+  if(s.trim()){
+   if(delim===","){
+    var f=s.split(",");
+    if(f.length>=5&&f[1].trim()!==""&&!isNaN(parseFloat(f[1]))&&!isNaN(parseFloat(f[2]))&&!isNaN(parseFloat(f[3]))){
+     rec.point=true;rec.pt=f[0].trim();
+     rec.descStart=f[0].length+f[1].length+f[2].length+f[3].length+4;
+     rec.desc=s.slice(rec.descStart);
+    }
+   }else{
+    var mm=s.match(/^(\s*\S+\s+\S+\s+\S+\s+\S+\s+)(.*)$/);
+    var mm2=s.match(/^\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/);
+    if(mm&&mm2&&!isNaN(parseFloat(mm2[2]))&&!isNaN(parseFloat(mm2[3]))&&!isNaN(parseFloat(mm2[4]))){
+     rec.point=true;rec.pt=mm2[1];rec.descStart=mm[1].length;rec.desc=mm[2];
+    }else{
+     var mb=s.match(/^\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s*$/);
+     if(mb&&!isNaN(parseFloat(mb[2]))&&!isNaN(parseFloat(mb[3]))&&!isNaN(parseFloat(mb[4]))){
+      rec.point=true;rec.pt=mb[1];rec.descStart=s.length;rec.desc="";
+     }
+    }
+   }
+   if(delim===","&&!rec.point){
+    var f2=s.split(",");
+    if(f2.length===4&&!isNaN(parseFloat(f2[1]))&&!isNaN(parseFloat(f2[2]))&&!isNaN(parseFloat(f2[3]))){
+     rec.point=true;rec.pt=f2[0].trim();rec.descStart=s.length;rec.desc="";
+    }
+   }
+  }
+  lines.push(rec);
+ });
+ cu.lines=lines;cu.name=name;cu.delim=delim;cu.ticks={};cu.manual=[];cu.unitAns="m";
+ cuBuildChips();
+ cu.hasTrees=lines.some(function(r){if(!r.point)return false;var t=r.desc.trim().split(/\s+/)[0]||"";return CU_TREES.indexOf(t.toUpperCase())>=0;});
+ cuRender();
+}
+function cuBuildChips(){
+ var pts=cu.lines.filter(function(r){return r.point;});
+ var nums=[],nn=[];
+ pts.forEach(function(r){if(/^\d+$/.test(r.pt))nums.push(r);else nn.push(r);});
+ nums.sort(function(a,b){return parseInt(a.pt)-parseInt(b.pt);});
+ var chips=[],cur=null;
+ nums.forEach(function(r){
+  var n=parseInt(r.pt);
+  if(cur&&n<=cur.hi+1){cur.hi=Math.max(cur.hi,n);cur.recs.push(r);}
+  else{cur={lo:n,hi:n,recs:[r],nn:false};chips.push(cur);}
+ });
+ if(nn.length)chips.push({lo:null,hi:null,recs:nn,nn:true});
+ chips.forEach(function(c,ci){
+  c.id=ci;var blank=c.recs.filter(function(r){return r.desc.trim()==="";}).length;
+  c.blank=blank;c.total=c.recs.length;
+  c.label=(c.nn?"non-numeric":(c.lo===c.hi?String(c.lo):c.lo+"\u2013"+c.hi))+" \u00b7 "+c.total+" pt"+(c.total>1?"s":"")+(blank===c.total?" \u00b7 all blank":(blank?" \u00b7 "+blank+" blank":""));
+ });
+ cu.chips=chips;cu.focus={};chips.forEach(function(c){cu.focus[c.id]=true;});
+}
+function cuInFocus(rec){
+ for(var i=0;i<cu.chips.length;i++){var c=cu.chips[i];if(c.recs.indexOf(rec)>=0)return !!cu.focus[c.id];}
+ return true;
+}
+function cuTrimZeros(n){var s=String(parseFloat(n.toFixed(4)));return s;}
+/* pipeline: returns [{rule,label,tier,before,after}] applied steps for a desc */
+function cuSteps(rec,codedPts){
+ var steps=[],d=rec.desc;
+ function push(rule,label,tier,after){if(after!==d){steps.push({rule:rule,label:label,tier:tier,before:d,after:after});d=after;}}
+ if(d.trim()===""||!cuInFocus(rec))return steps;
+ /* structural */
+ if(d.indexOf("_")>=0)push("us","Underscores \u2192 spaces",1,d.replace(/_/g," "));
+ if(/\s+$/.test(d))push("tw","Trailing whitespace",1,d.replace(/\s+$/,""));
+ var lead=d.split(" ")[0],rest=d.slice(lead.length);
+ if(/^THCED$/i.test(lead))push("th","Space after TH (hedge/tree line)",1,lead.slice(0,2)+" "+lead.slice(2)+rest);
+ else if(/^THDEC$/i.test(lead))push("th","Space after TH (hedge/tree line)",1,lead.slice(0,2)+" "+lead.slice(2)+rest);
+ lead=d.split(" ")[0];rest=d.slice(lead.length);
+ if(!CU_KEYSET[lead.toUpperCase()]){
+  for(var i=0;i<CU_KEYS_BYLEN.length;i++){
+   var k=CU_KEYS_BYLEN[i];
+   if(lead.length>k.length&&lead.slice(0,k.length).toUpperCase()===k.toUpperCase()&&/^\d+$/.test(lead.slice(k.length))){
+    push("gl","Missing space after code",1,lead.slice(0,k.length)+" "+lead.slice(k.length)+rest);break;
+   }
+  }
+ }
+ var m=d.match(/^(OIP)\s+(B|T|BASE|BENT)(\s.*|$)/i);
+ if(m)push("oip","OIP pin family \u2192 OIPB / OIPT",1,m[1].toUpperCase()+(m[2].toUpperCase()==="T"?"T":"B")+(m[3]||""));
+ m=d.match(/^TCONN(\s.*|$)/i);
+ if(m)push("tconn","TCONN \u2192 TCON",1,"TCON"+(m[1]||""));
+ if(/(^|\s)SPK(\s|$)/i.test(d)&&!/(^|\s)OSPK(\s|$)/i.test(d.replace(/(^|\s)SPK(\s|$)/i,"$1$2")))
+  push("spk","SPK \u2192 OSPK",1,d.replace(/(^|\s)SPK(?=\s|$)/i,"$1OSPK"));
+ var tt=d.split(/\s+/);
+ if(CU_TREES.indexOf((tt[0]||"").toUpperCase())>=0&&tt.length>=3&&/^\d+(\.\d+)?$/.test(tt[1])&&/^\d+(\.\d+)?$/.test(tt[2])&&parseFloat(tt[2])>25){
+  var conv=tt.slice();conv[2]=cuTrimZeros(parseFloat(tt[2])/100);
+  push("drip","Drip line cm \u2192 m",1,conv.join(" "));
+ }
+ /* suggestions */
+ var t2=d.split(/\s+/);
+ if((t2[0]||"").toUpperCase()==="STUMP")push("stump","STUMP \u2192 TSTUMP",2,"TSTUMP"+d.slice(t2[0].length));
+ if(/^DOOR\s+SIL(\s|$)/i.test(d))push("sill","DOOR SIL \u2192 SILL",2,d.replace(/^DOOR\s+SIL/i,"SILL"));
+ if(/^CONWW(\s|$)/i.test(d))push("conww","CONWW \u2192 WWCON",2,d.replace(/^CONWW/i,"WWCON"));
+ if(/^BLOCK\s+WALL(\s|$)/i.test(d))push("rtb","BLOCK WALL \u2192 RTB",2,d.replace(/^BLOCK\s+WALL/i,"RTB"));
+ var t3=d.split(/\s+/);
+ if(t3.length>=2&&/^\d+$/.test(t3[0])&&codedPts[t3[0]]&&codedPts[t3[0]]!==rec)
+  push("chk","Leading point number \u2192 CHK (check shot)",2,"CHK "+t3[0]);
+ /* imperial */
+ if(cu.unitAns==="ft"){
+  var t4=d.split(/\s+/);
+  if(CU_TREES.indexOf((t4[0]||"").toUpperCase())>=0&&t4.length>=2&&/^\d+(\.\d+)?$/.test(t4[1])){
+   var c2=t4.slice();c2[1]=(parseFloat(t4[1])/30.48).toFixed(2);
+   if(t4.length>=3&&/^\d+(\.\d+)?$/.test(t4[2]))c2[2]=(parseFloat(t4[2])*3.28084).toFixed(2);
+   push("imp","Imperial drawing: tree cm/m \u2192 ft",1,c2.join(" "));
+  }
+  if((t4[0]||"").toUpperCase()==="TSTUMP"&&t4.length>=2&&/^\d+(\.\d+)?$/.test(t4[1])){
+   var c3=t4.slice();c3[1]=(parseFloat(t4[1])/30.48).toFixed(2);
+   push("imp","Imperial drawing: tree cm/m \u2192 ft",1,c3.join(" "));
+  }
+ }
+ /* manual rules */
+ cu.manual.forEach(function(r,ri){
+  if(r.range&&!cuInRange(rec.pt,r.range))return;
+  var nd;
+  if(r.whole){
+   var re=new RegExp("(^|\\s)"+cuEsc(r.find)+"(?=\\s|$)","gi");
+   nd=d.replace(re,function(mm,p1){return p1+r.repl;});
+  }else{
+   nd=d.split(r.find).join(r.repl);
+  }
+  if(nd!==d)push("man"+ri,"Manual: "+r.find+" \u2192 "+r.repl,3,nd);
+ });
+ return steps;
+}
+function cuEsc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}
+function cuInRange(pt,range){
+ if(!/^\d+$/.test(pt))return false;
+ var n=parseInt(pt);
+ return range.split(",").some(function(seg){
+  seg=seg.trim();var m=seg.match(/^(\d+)\s*-\s*(\d+)$/);
+  if(m)return n>=parseInt(m[1])&&n<=parseInt(m[2]);
+  return seg!==""&&n===parseInt(seg);
+ });
+}
+function cuCompute(){
+ var codedPts={};
+ cu.lines.forEach(function(r){if(r.point&&r.desc.trim()!=="")codedPts[r.pt]=r;});
+ var out=[];
+ cu.lines.forEach(function(r){
+  if(!r.point){out.push({rec:r,final:null,steps:[]});return;}
+  var steps=cuSteps(r,codedPts);
+  var d=r.desc;
+  steps.forEach(function(s){
+   var key=r.ix+":"+s.rule;
+   var on=(cu.ticks[key]!==undefined)?cu.ticks[key]:(s.tier!==2);
+   s.on=on;s.key=key;
+   if(on&&s.before===d)d=s.after;
+   else if(!on){/* skipped; subsequent steps that chained off it recompute below */}
+  });
+  /* recompute chain strictly: rerun with accepted flags */
+  d=r.desc;
+  steps.forEach(function(s){ if(s.on&&s.before===d)d=s.after; });
+  out.push({rec:r,final:d,steps:steps});
+ });
+ return out;
+}
+function cuUnknowns(comp){
+ var map={};
+ comp.forEach(function(c){
+  if(!c.rec.point||!cuInFocus(c.rec))return;
+  var d=(c.final!==null?c.final:c.rec.desc);
+  if(d.trim()==="")return;
+  if(!cuKnownLead(d.trim())){
+   var t=d.trim().split(/\s+/)[0];
+   map[t]=map[t]||{n:0,ex:d};map[t].n++;
+  }
+ });
+ return map;
+}
+function cuRender(){
+ var host=document.getElementById("cu-body");
+ if(!cu.lines){host.innerHTML="";return;}
+ var pts=cu.lines.filter(function(r){return r.point;}).length;
+ var blanks=cu.lines.filter(function(r){return r.point&&r.desc.trim()==="";}).length;
+ var h="<div class='cu-sum'>"+esc(cu.name)+" \u2014 "+pts+" points, "+(cu.delim===","?"comma":"whitespace")+"-delimited"+(blanks?", "+blanks+" blank description"+(blanks>1?"s":"")+" (passed through)":"")+"</div>";
+ h+="<div class='cu-chips'>"+cu.chips.map(function(c){
+  return "<button class='cu-chip"+(cu.focus[c.id]?" on":"")+"' data-c='"+c.id+"'>"+esc(c.label)+"</button>";
+ }).join("")+"</div><div class='hint'>All ranges included by default \u2014 tap to exclude a block from cleanup (excluded points pass through untouched).</div>";
+ if(cu.hasTrees){
+  h+="<div class='cu-units'><span>This file has trees \u2014 drawing units:</span> <span class='seg'><button data-u='m' class='"+(cu.unitAns==="m"?"on":"")+"'>Metric</button><button data-u='ft' class='"+(cu.unitAns==="ft"?"on":"")+"'>Imperial (ft)</button></span></div>";
+ }
+ h+="<div class='cu-manual'><h3>Add your own fix</h3><div class='row'><input type='text' id='cu-mf' placeholder='find' style='width:130px'> <span>\u2192</span> <input type='text' id='cu-mr' placeholder='replace' style='width:130px'> <label class='cu-cb'><input type='checkbox' id='cu-mw' checked> whole token</label> <input type='text' id='cu-mrange' placeholder='point range (optional)' style='width:150px'> <button class='btn' onclick='cuManAdd()'>Add rule</button></div><div id='cu-mprev' class='hint'></div></div>";
+ h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div>";
+ host.innerHTML=h;
+ host.querySelectorAll(".cu-chip").forEach(function(b){b.onclick=function(){var id=parseInt(b.dataset.c);cu.focus[id]=!cu.focus[id];cuRender();};});
+ host.querySelectorAll(".cu-units .seg button").forEach(function(b){b.onclick=function(){cu.unitAns=b.dataset.u;cuRender();};});
+ var mf=document.getElementById("cu-mf"),mr=document.getElementById("cu-mr");
+ function mprev(){
+  var f=mf.value;if(!f){document.getElementById("cu-mprev").textContent="";return;}
+  var whole=document.getElementById("cu-mw").checked,range=document.getElementById("cu-mrange").value.trim();
+  var n=0,hits=[];
+  cu.lines.forEach(function(r){
+   if(!r.point||!cuInFocus(r)||r.desc.trim()==="")return;
+   if(range&&!cuInRange(r.pt,range))return;
+   var hit=whole?new RegExp("(^|\\s)"+cuEsc(f)+"(\\s|$)","i").test(r.desc):r.desc.toLowerCase().indexOf(f.toLowerCase())>=0;
+   if(hit){n++;if(hits.length<4)hits.push(r.pt+": "+r.desc);}
+  });
+  document.getElementById("cu-mprev").textContent=n?("matches "+n+" point"+(n>1?"s":"")+" \u2014 "+hits.join("  |  ")+(n>4?"  \u2026":"")):"no matches";
+ }
+ mf.oninput=mprev;mr.oninput=mprev;
+ document.getElementById("cu-mw").onchange=mprev;document.getElementById("cu-mrange").oninput=mprev;
+ cuRenderReview();
+}
+function cuManAdd(){
+ var f=document.getElementById("cu-mf").value,r=document.getElementById("cu-mr").value;
+ if(!f)return;
+ cu.manual.push({find:f,repl:r,whole:document.getElementById("cu-mw").checked,range:document.getElementById("cu-mrange").value.trim()});
+ document.getElementById("cu-mf").value="";document.getElementById("cu-mr").value="";document.getElementById("cu-mrange").value="";
+ cuRenderReview();
+}
+function cuRenderReview(){
+ var comp=cuCompute();
+ var groups={};
+ comp.forEach(function(c){
+  c.steps.forEach(function(s){
+   var g=groups[s.rule]||(groups[s.rule]={label:s.label,tier:s.tier,rows:[]});
+   g.rows.push({pt:c.rec.pt,s:s});
+  });
+ });
+ var order=Object.keys(groups).sort(function(a,b){return groups[a].tier-groups[b].tier;});
+ var h="";
+ var tierName={1:"Fixes (pre-ticked)",2:"Suggestions (review each)",3:"Manual rules"};
+ var lastTier=0;
+ order.forEach(function(gid){
+  var g=groups[gid];
+  if(g.tier!==lastTier){h+="<h3 class='cu-tier'>"+tierName[g.tier]+"</h3>";lastTier=g.tier;}
+  h+="<div class='cu-grp'><div class='cu-gh'>"+esc(g.label)+" <span class='cnt'>"+g.rows.length+"</span></div>";
+  g.rows.forEach(function(r){
+   h+="<label class='cu-row'><input type='checkbox' data-k='"+r.s.key+"' "+(r.s.on?"checked":"")+"><span class='cu-pt'>"+esc(String(r.pt))+"</span><span class='cu-b'>"+esc(r.s.before)+"</span><span class='cu-a'>\u2192 "+esc(r.s.after)+"</span></label>";
+  });
+  h+="</div>";
+ });
+ if(!order.length)h+="<div class='cu-none'>No fixes or suggestions \u2014 the file is clean against the automap rules.</div>";
+ document.getElementById("cu-review").innerHTML=h;
+ document.querySelectorAll("#cu-review input[type=checkbox]").forEach(function(cb){
+  cb.onchange=function(){cu.ticks[cb.dataset.k]=cb.checked;cuRenderReview();};
+ });
+ var unk=cuUnknowns(comp),uk=Object.keys(unk).sort();
+ var uh="";
+ if(uk.length){
+  var tot=uk.reduce(function(a,k){return a+unk[k].n;},0);
+  uh="<details class='cu-unk'><summary>Not in automap \u2014 "+tot+" point"+(tot>1?"s":"")+", "+uk.length+" code"+(uk.length>1?"s":"")+" (informational only, nothing changed)</summary><div>"+uk.map(function(k){return "<span class='cu-utok'>"+esc(k)+" \u00d7"+unk[k].n+"</span>";}).join(" ")+"</div></details>";
+ }
+ document.getElementById("cu-unknown").innerHTML=uh;
+ var changed=comp.filter(function(c){return c.rec.point&&c.final!==null&&c.final!==c.rec.desc;}).length;
+ document.getElementById("cu-out").innerHTML="<div class='cu-dl'><span class='cu-chg'>"+changed+" point"+(changed===1?"":"s")+" will change</span><button class='btn pri' onclick='cuDownload(0)'>Full cleaned file</button><button class='btn' onclick='cuDownload(1)'>Corrections only</button><button class='btn' onclick='cuDownload(2)'>Change log</button></div>";
+}
+function cuFinalLine(c){
+ var r=c.rec;
+ if(!r.point||c.final===null||c.final===r.desc)return r.raw;
+ return r.raw.slice(0,r.descStart)+c.final;
+}
+function cuDownload(which){
+ var comp=cuCompute();
+ var name=cu.name.replace(/\.[^.]+$/,""),ext=(cu.name.match(/\.[^.]+$/)||[".txt"])[0];
+ var content="",fname="";
+ if(which===0){
+  content=comp.map(function(c){return cuFinalLine(c)+c.rec.eol;}).join("");
+  fname=name+"-CLEAN"+ext;
+ }else if(which===1){
+  var rows=comp.filter(function(c){return c.rec.point&&c.final!==null&&c.final!==c.rec.desc;});
+  content=rows.map(function(c){return cuFinalLine(c)+(c.rec.eol||"\n");}).join("");
+  fname=name+"-CORRECTIONS"+ext;
+ }else{
+  var L=[];
+  L.push("CODE CLEANUP CHANGE LOG");
+  L.push("File: "+cu.name+"   Date: "+new Date().toISOString().slice(0,10));
+  var offs=cu.chips.filter(function(ch){return !cu.focus[ch.id];});
+  L.push("Focus: "+(offs.length?("applied to included ranges; excluded: "+offs.map(function(ch){return ch.label;}).join("; ")):"entire file"));
+  if(cu.hasTrees)L.push("Drawing units: "+(cu.unitAns==="ft"?"imperial \u2014 tree diameters cm\u00f730.48 ft, drip lines m\u00d73.28084 ft":"metric \u2014 drip lines normalized cm\u2192m where >25"));
+  var blanks=cu.lines.filter(function(r){return r.point&&r.desc.trim()==="";}).length;
+  if(blanks)L.push(blanks+" blank descriptions passed through unchanged.");
+  L.push("");
+  var tierTag={1:"fix",2:"suggestion",3:"manual rule"};
+  comp.forEach(function(c){
+   c.steps.forEach(function(s){
+    if(s.on)L.push(c.rec.pt+"  ["+tierTag[s.tier]+": "+s.label+"]  "+s.before+"  \u2192  "+s.after);
+   });
+  });
+  var changed=comp.filter(function(c){return c.rec.point&&c.final!==null&&c.final!==c.rec.desc;}).length;
+  L.push("");L.push(changed+" points changed of "+cu.lines.filter(function(r){return r.point;}).length+".");
+  content=L.join("\r\n");
+  fname=name+"-CHANGELOG.txt";
+ }
+ var a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob([content],{type:"text/plain"}));
+ a.download=fname;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+}
+function cuLoadFile(file){
+ if(/\.rw5$/i.test(file.name)){
+  document.getElementById("cu-body").innerHTML="<div class='cu-err'>That's the raw observation file (RW5) \u2014 it is never touched. Export the PNEZD points file and drop that in instead.</div>";
+  return;
+ }
+ var fr=new FileReader();
+ fr.onload=function(){
+  var t=fr.result;
+  var probe=t.split(/\r?\n/).filter(function(l){return l.trim();}).slice(0,10);
+  var ok=probe.some(function(l){
+   var f=l.split(",").length>=5?l.split(","):l.trim().split(/\s+/);
+   return f.length>=5&&!isNaN(parseFloat(f[1]))&&!isNaN(parseFloat(f[2]));
+  });
+  if(!ok){
+   var fc=probe.length?Math.max.apply(null,probe.map(function(l){return Math.max(l.split(",").length,l.trim().split(/\s+/).length);})):0;
+   document.getElementById("cu-body").innerHTML="<div class='cu-err'>This doesn't parse as PNEZD (pt, N, E, elev, desc) \u2014 found rows of about "+fc+" column"+(fc===1?"":"s")+", expected 5. Check it's the exported points file.</div>";
+   return;
+  }
+  cuParse(t,file.name);
+ };
+ fr.readAsText(file);
+}
+window.cuParse=cuParse;window.cuLoadFile=cuLoadFile;window.cuManAdd=cuManAdd;window.cuDownload=cuDownload;window.cuCompute=cuCompute;window.cu=cu;window.cuRenderReview=cuRenderReview;
+document.getElementById("cu-file").addEventListener("change",function(e){if(e.target.files[0])cuLoadFile(e.target.files[0]);});
+var cuDrop=document.getElementById("cu-drop");
+cuDrop.addEventListener("dragover",function(e){e.preventDefault();cuDrop.classList.add("over");});
+cuDrop.addEventListener("dragleave",function(){cuDrop.classList.remove("over");});
+cuDrop.addEventListener("drop",function(e){e.preventDefault();cuDrop.classList.remove("over");if(e.dataTransfer.files[0])cuLoadFile(e.dataTransfer.files[0]);});
 
 /* ---------- calculator ---------- */
 function calcEval(s){

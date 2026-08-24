@@ -1,5 +1,15 @@
 # Elevate Office — changelog
 
+## Build 1.7 — 2026-08-24
+- New: Code cleanup, its own tab. Drop an exported PNEZD points file (.txt/.csv/.asc — the raw RW5 is refused) and every description validates against the current ELEV-AUTOMAP-2026 metric + imperial key lists. Point numbers, coordinates, and elevations are never touched; outputs preserve the original delimiter, spacing, and line endings byte for byte outside the accepted changes.
+- Pre-ticked fixes for confirmed miscodes: OIP B / OIP T / OIP BASE / OIP BENT → OIPB/OIPT (OIPT held on a known-pending list until the 2027 automap publishes it), TCONN → TCON, SPK → OSPK, codes glued to their numbers (OCNT8221 → OCNT 8221), underscores → spaces in descriptions only, trailing whitespace, and THCED/THDEC → TH CED / TH DEC. Every fix is per-point untickable.
+- Drip lines booked in centimetres (third token over 25) normalize to metres on every run. When the file has trees, a metric/imperial question appears; imperial converts tree diameters cm÷30.48 and drip lines m×3.28084 to feet, 2 decimals, trailing flags like MS preserved. The change log records the answer.
+- Unticked suggestions: STUMP → TSTUMP, DOOR SIL → SILL, CONWW → WWCON, BLOCK WALL → RTB, and leading-point-number descriptions (e.g. "1003 OSPK") → CHK check-shot form.
+- Add your own fix: one-off find/replace rules with live match preview before committing, whole-token matching by default, optional point-range scope. Rules die with the file.
+- Point-population chips summarize the file's numbering blocks (with blank counts) and let you exclude any block — issued search points, office COGO ranges — from cleanup entirely; exclusions are recorded in the change log.
+- Codes outside the automap are listed once, collapsed, as information only — legal-search vocabulary, control notes, and combined codes like BT-HWM are never flagged as wrong or altered. Blank descriptions pass through silently with a count in the summary and log.
+- Three outputs always: full cleaned file, corrections-only file, and a change log tagging every change as fix, suggestion, or manual rule.
+
 ## Build 1.6 — 2026-08-21
 - New tool: Calculator — a single expression line with add, subtract, multiply, divide, and parentheses. Paste numbers with commas, × and ÷ both work, the result shows live, and Enter keeps the line on a running tape; tape results can be copied or clicked back into the next expression so chained work never re-keys numbers.
 - New tool: Combined scale factor — enter northing, easting, orthometric elevation, and geoid separation (pre-filled −18.2 m for the Lower Mainland, editable) from a corrected network RTK observation; the tool derives ellipsoidal height and computes grid, elevation, and combined factors to 8 decimals on GRS80, matching NRCan/mascot output. Copy results carries the inputs, all three factors, and the RTK-basis statement into the calc notes. A standing note on the tool restricts use to corrected dual-frequency network RTK observations or better.
