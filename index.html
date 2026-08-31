@@ -613,8 +613,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.7";
-const NEWS=["New: Code cleanup \u2014 drop an exported PNEZD points file (.txt/.csv/.asc) and it validates every description against the 2026 automap, offers pre-ticked fixes for confirmed miscodes (OIP B/T/BASE, TCONN, SPK, glued codes, underscores, hedge spacing), unticked suggestions, and one-off manual find/replace rules","Cleanup: drip lines booked in cm normalize to metres; on imperial jobs tree diameters and drip lines convert to feet (asked only when the file has trees)","Cleanup: point-range chips let you exclude issued search points or any block from cleanup; three outputs always \u2014 full cleaned file, corrections only, and a change log \u2014 with byte-identical formatting outside accepted changes"];
+const BUILD="1.7.2";
+const NEWS=["New: Code cleanup \u2014 drop an exported PNEZD points file (.txt/.csv/.asc) and it validates every description against the 2026 automap, offers pre-ticked fixes for confirmed miscodes (OIP B/T/BASE, TCONN, SPK, glued codes, underscores, hedge spacing), unticked suggestions, and one-off manual find/replace rules","Cleanup: drip lines booked in cm normalize to metres; on imperial jobs tree diameters and drip lines convert to feet (asked only when the file has trees)","Cleanup: point-range chips let you exclude issued search points or any block from cleanup; three outputs always \u2014 full cleaned file, corrections only, and a change log \u2014 with byte-identical formatting outside accepted changes","PDF checklists: [YES]/[N/A]/[CHK] stamps now print bold black and comments print darker","Fix: the unsaved-to-job-file flag no longer comes back from merely reopening, closing, or refreshing \u2014 only real changes after a save flag it"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1286,9 +1286,11 @@ function today(){return new Date().toISOString().slice(0,10);}
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
 function skey(){return "eo1:"+st.cl.id+":"+(st.job||"_nojob");}
 
+function touch(){st.updated=new Date().toISOString();}
 function persist(ts){
  if(!st.cl)return;
- sset(skey(),JSON.stringify({job:st.job,marks:st.marks,notes:st.notes,inst:st.inst,opened:st.opened,updated:ts||new Date().toISOString(),exported:st.exported||null}));
+ if(ts)st.updated=ts;
+ sset(skey(),JSON.stringify({job:st.job,marks:st.marks,notes:st.notes,inst:st.inst,opened:st.opened,updated:st.updated||new Date().toISOString(),exported:st.exported||null}));
  sset("eo1:last",st.cl.id+":"+(st.job||"_nojob"));
 }
 function loadSaved(clId,jobKey){
@@ -1362,11 +1364,11 @@ function drawReminder(ip){
 
 /* ---------- open / render checklist ---------- */
 function openCl(id,jobKey){
- st.cl=byId(id);st.marks={};st.notes={};st.inst={};st.job="";st.exported=null;st.opened=today();focusIx=-1;
+ st.cl=byId(id);st.marks={};st.notes={};st.inst={};st.job="";st.exported=null;st.updated=null;st.opened=today();focusIx=-1;
  st.init=sget("eo1:init")||"";
  if(jobKey!==null&&jobKey!==undefined){
   var d=loadSaved(id,jobKey);
-  if(d){st.job=d.job||"";st.marks=d.marks||{};st.notes=d.notes||{};st.inst=d.inst||{};st.opened=d.opened||st.opened;st.exported=d.exported||null;}
+  if(d){st.job=d.job||"";st.marks=d.marks||{};st.notes=d.notes||{};st.inst=d.inst||{};st.opened=d.opened||st.opened;st.exported=d.exported||null;st.updated=d.updated||null;}
  }
  st.inst=ensureInst(st.cl,st.inst);
  document.getElementById("cl-lib").style.display="none";
@@ -1428,7 +1430,7 @@ function render(){
    nta.addEventListener("input",function(){
     var v=nta.value;
     if(v.trim())st.notes[k]=v;else delete st.notes[k];
-    persist();
+    touch();persist();
    });
    nta.addEventListener("blur",function(){if(!nta.value.trim())nwrap.style.display="none";});
    it.addEventListener("focus",function(){focusIx=rows.indexOf(it);});
@@ -1453,7 +1455,7 @@ function render(){
    (sec.pm?"<div class='pmnote'>"+esc(sec.note)+"</div>":"");
   el.querySelector(".sech").onclick=function(e){if(e.target.closest("input")||e.target.closest(".rmpg"))return;el.classList.toggle("closed");};
   if(page&&sec.sheet){
-   el.querySelector(".shno").addEventListener("input",function(){page.sheet=this.value;persist();});
+   el.querySelector(".shno").addEventListener("input",function(){page.sheet=this.value;touch();persist();});
   }
   if(page){
    el.querySelector(".rmpg").onclick=function(){
@@ -1463,7 +1465,7 @@ function render(){
     if(has&&!confirm("Remove this "+(sec.pageWord||"page")+"? Its ticks and comments will be deleted."))return;
     st.inst[sec.id]=arr.filter(function(p){return p.u!==page.u;});
     sec.items.forEach(function(t,ix){delete st.marks[sec.id+"#"+page.u+"|"+ix];delete st.notes[sec.id+"#"+page.u+"|"+ix];});
-    persist();render();
+    touch();persist();render();
    };
   }
   el.appendChild(items);
@@ -1479,7 +1481,7 @@ function render(){
    add.querySelector("button").onclick=function(){
     st.inst[sec.id]=st.inst[sec.id]||[];
     st.inst[sec.id].push({u:nextU(st.inst),sheet:""});
-    persist();render();
+    touch();persist();render();
    };
    host.appendChild(add);
   } else renderBlock(sec,null);
@@ -1503,20 +1505,20 @@ function mark(k,v){
   st.marks[k]={v:v,by:st.init,at:today()};
   st.exported=null;
  }
- persist();render();
+ touch();persist();render();
 }
 function markCheck(k){
  var mk=st.marks[k];
  if(!mk)return;
- if(mk.c){delete mk.c;st.exported=null;persist();render();return;}
+ if(mk.c){delete mk.c;st.exported=null;touch();persist();render();return;}
  if(!st.init){document.getElementById("tb-init").focus();alert("Enter your initials first \u2014 the check stamp records who checked.");return;}
  if(st.init===mk.by&&!confirm("You did the first pass on this item \u2014 the check pass should be a second person. Stamp the check as "+st.init+" anyway?"))return;
  mk.c={by:st.init,at:today()};
- st.exported=null;persist();render();
+ st.exported=null;touch();persist();render();
 }
 document.getElementById("tb-job").addEventListener("input",function(){
  var old=skey();st.job=this.value.trim();
- if(old!==skey()){sdel(old);}persist();
+ if(old!==skey()){sdel(old);}touch();persist();
 });
 document.getElementById("tb-init").addEventListener("input",function(){
  st.init=this.value.toUpperCase();this.value=st.init;sset("eo1:init",st.init);
@@ -1537,7 +1539,7 @@ document.addEventListener("keydown",function(e){
   var k=rows[focusIx].dataset.k,ix=focusIx;
   if(kx==="y")mark(k,"yes");
   else if(kx==="n")mark(k,"na");
-  else if(kx==="c"){if(st.marks[k]){delete st.marks[k];persist();render();}}
+  else if(kx==="c"){if(st.marks[k]){delete st.marks[k];touch();persist();render();}}
   else{rows[focusIx].classList.toggle("open");return;}
   focusIx=Math.min((st._rows||[]).length-1,ix+ (kx==="c"?0:1));
   if(st._rows&&st._rows[focusIx]){st._rows[focusIx].focus();if(st._rows[focusIx].scrollIntoView)st._rows[focusIx].scrollIntoView({block:"nearest"});}
@@ -1626,6 +1628,9 @@ function buildChecklistPDF(){
  function txt(f,size,x,yy,str,gray){
   c.push("BT /"+f+" "+size+" Tf "+(gray?gray+" g ":"0 g ")+x+" "+yy.toFixed(1)+" Td ("+pdfEsc(pdfSan(str))+") Tj ET");
  }
+ function btxt(size,x,yy,str){
+  c.push("BT /F2 "+size+" Tf 2 Tr 0.28 w 0 g 0 G "+x+" "+yy.toFixed(1)+" Td ("+pdfEsc(pdfSan(str))+") Tj 0 Tr ET");
+ }
  function need(h){ if(y-h<M+18) newPage(); }
  function box(x,yy,state){
   c.push("0.35 g "+x+" "+(yy-1.5).toFixed(1)+" 8 8 re S");
@@ -1658,8 +1663,15 @@ function buildChecklistPDF(){
    need(blockH);
    box(M,y,mk?mk.v:null);
    lines.forEach(function(l){ txt("F2",BODY,M+16,y,l); y-=LH; });
-   if(mk){ txt("F2",7.5,M+16,y,(mk.v==="na"?"[N/A] ":"[YES] ")+(mk.by||"-")+" "+mk.at+(mk.c?"    [CHECKED] "+mk.c.by+" "+mk.c.at:""),0.45); y-=LH; }
-   noteLines.forEach(function(l){ txt("F2",7.5,M+28,y,l,0.4); y-=LH; });
+   if(mk){
+    var mrk=(mk.v==="na"?"[N/A]":"[YES]"),mx=M+16;
+    btxt(8,mx,y,mrk); mx+=mrk.length*8*0.6+4;
+    var meta=(mk.by||"-")+" "+mk.at;
+    txt("F2",7.5,mx,y,meta,0.45); mx+=meta.length*7.5*0.6+12;
+    if(mk.c){ btxt(8,mx,y,"[CHK]"); mx+=5*8*0.6+4; txt("F2",7.5,mx,y,mk.c.by+" "+mk.c.at,0.45); }
+    y-=LH;
+   }
+   noteLines.forEach(function(l){ txt("F2",8,M+28,y,l,0.12); y-=LH; });
    y-=3;
   });
   var names=Object.keys(who).map(function(n){return n+" "+who[n];}).join(", ");

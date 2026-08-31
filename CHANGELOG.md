@@ -1,5 +1,10 @@
 # Elevate Office — changelog
 
+## Build 1.7.2 — 2026-08-31
+- Fix: the "unsaved to job file" flag no longer comes back after a save when you merely reopen the checklist, go back to the library, close the tab, or take an update-banner refresh. The saved record's "updated" timestamp now moves only on real changes (ticks, check stamps, comments, sheet numbers, pages added/removed, job number) — not on every save-to-browser. Anything genuinely changed after an export still flags correctly.
+- PDF checklists: the [YES] / [N/A] / [CHK] stamps now print bold black so the answers stand out, with initials and date slightly quieter beside them. Comments print darker and a step larger. Rendering only — the embedded data is unchanged, so PDFs from any build import identically.
+- Note: checklists exported on older builds may still show the flag once; the next Save PDF or JSON export on 1.7.2 clears it for good.
+
 ## Build 1.7 — 2026-08-24
 - New: Code cleanup, its own tab. Drop an exported PNEZD points file (.txt/.csv/.asc — the raw RW5 is refused) and every description validates against the current ELEV-AUTOMAP-2026 metric + imperial key lists. Point numbers, coordinates, and elevations are never touched; outputs preserve the original delimiter, spacing, and line endings byte for byte outside the accepted changes.
 - Pre-ticked fixes for confirmed miscodes: OIP B / OIP T / OIP BASE / OIP BENT → OIPB/OIPT (OIPT held on a known-pending list until the 2027 automap publishes it), TCONN → TCON, SPK → OSPK, codes glued to their numbers (OCNT8221 → OCNT 8221), underscores → spaces in descriptions only, trailing whitespace, and THCED/THDEC → TH CED / TH DEC. Every fix is per-point untickable.
