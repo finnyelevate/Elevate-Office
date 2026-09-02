@@ -52,6 +52,11 @@ p.sub{color:var(--faint);margin-bottom:22px;max-width:660px}
 .inprog h4{font-family:"Barlow Semi Condensed";font-weight:600;font-size:14px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
 .ipitem{background:var(--panel);border:1px solid var(--hair);padding:10px 14px;display:flex;gap:12px;align-items:center;margin-bottom:6px;cursor:pointer}
 .ipitem:hover{border-color:var(--blue)}
+.ipitem .ipdel{margin-left:4px;border:none;background:none;color:var(--faint);cursor:pointer;font-size:13px;padding:4px 6px}
+.ipitem .ipdel:hover{color:#a32020}
+.ipmore{border:1px solid var(--hair);background:var(--panel);padding:7px 14px;font:600 12px "Barlow Semi Condensed";letter-spacing:.07em;text-transform:uppercase;cursor:pointer;margin-top:2px}
+.ipmore:hover{border-color:var(--blue);color:var(--blue)}
+.iptidy{font-size:12.5px;color:var(--faint);padding:8px 2px}
 .ipitem .j{font-family:"IBM Plex Mono",monospace;font-weight:500}
 .ipitem .n{flex:1}
 .ipitem .p{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--faint)}
@@ -120,6 +125,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .tog .bc:disabled{opacity:.35;cursor:default}
 .item.chkd .tog .bc{background:var(--blue);border-color:var(--blue);color:#fff}
 .tog .bnote{width:30px;color:var(--faint);opacity:.45}
+.item .ntext,.item .noteview{color:#a32020}
 .tog .bnote:hover{opacity:1}
 .stamp .cstamp{margin-left:10px;color:var(--blue)}
 .note{margin-top:6px}
@@ -405,14 +411,14 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
       <span class="seg" id="rimunit"><button class="on" data-u="m">m</button><button data-u="ft">ft</button></span>
       <span class="hint" style="margin:0">unit of the drawing / rim value</span>
     </div>
-    <div class="invhead"><span>Depth (m)</span><span>Top of pipe?</span><span>Size (mm)</span><span>Invert elev.</span><span></span></div>
+    <div class="invhead"><span>Depth (m)</span><span>Top of pipe?</span><span>Size (m)</span><span>Invert elev.</span><span></span></div>
     <div id="invrows"></div>
     <div class="row" style="margin-top:6px">
       <button class="btn ghost" onclick="addInvRow()">+ Add invert</button>
       <button class="btn" onclick="copyInverts()">Copy results</button>
       <span class="hint" id="invcopied" style="margin:0"></span>
     </div>
-    <div class="hint">Depths always entered in metres as booked by the crew. Invert = rim − depth (− pipe size when measured to top of pipe). Results show in metres and feet.</div>
+    <div class="hint">Everything in metres: depths as booked, pipe size too (a 300 mm culvert is 0.3, a 150 is 0.15). Invert = rim − depth (− pipe size when measured to top of pipe). Results show in metres and feet.</div>
   </div>
 
   <div class="tool" style="max-width:760px">
@@ -598,6 +604,14 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
     </ul>
   </div>
   <div class="lgrp">
+    <h3>Training videos</h3>
+    <a class="rlink" href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos" target="_blank" rel="noopener">Training videos library (SharePoint)</a>
+    <a class="rlink" href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/beginner" target="_blank" rel="noopener">Beginner</a>
+    <a class="rlink" href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/gps%20items" target="_blank" rel="noopener">GPS items</a>
+    <a class="rlink" href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Automap" target="_blank" rel="noopener">Automap</a>
+    <a class="rlink" href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/bcls%2Bproject%20manager%20videos" target="_blank" rel="noopener">BCLS + project manager videos</a>
+  </div>
+  <div class="lgrp">
     <h3>Workflow notes</h3>
     <div class="wnote"><b>Arch PDF &#8594; CAD (MicroSurvey).</b> Vector arch PDFs only &#8212; run PDFIMPORT, pick the page or attached underlay, then immediately SCALE with the Reference option off one labelled dimension and verify against a second dimension elsewhere on the sheet before coordinating anything. Keep imported linework on its own layer set; it is reference geometry only &#8212; measurements are held as measured. If PDFIMPORT returns nothing useful, the PDF is a scan: chase the CAD file, don't trace pixels.</div>
   </div>
@@ -613,8 +627,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.7.2";
-const NEWS=["New: Code cleanup \u2014 drop an exported PNEZD points file (.txt/.csv/.asc) and it validates every description against the 2026 automap, offers pre-ticked fixes for confirmed miscodes (OIP B/T/BASE, TCONN, SPK, glued codes, underscores, hedge spacing), unticked suggestions, and one-off manual find/replace rules","Cleanup: drip lines booked in cm normalize to metres; on imperial jobs tree diameters and drip lines convert to feet (asked only when the file has trees)","Cleanup: point-range chips let you exclude issued search points or any block from cleanup; three outputs always \u2014 full cleaned file, corrections only, and a change log \u2014 with byte-identical formatting outside accepted changes","PDF checklists: [YES]/[N/A]/[CHK] stamps now print bold black and comments print darker","Fix: the unsaved-to-job-file flag no longer comes back from merely reopening, closing, or refreshing \u2014 only real changes after a save flag it"];
+const BUILD="1.8";
+const NEWS=["Comments print in red \u2014 on screen and in the PDF \u2014 so notes jump out of the checklist","The in-progress list shows the five most recent (unsaved ones always visible) with Show all below; every row has a \u2715 to remove it from this computer, and checklists saved to the job file and untouched for 30 days tidy themselves away automatically","Invert calculator: pipe size is now entered in metres like everything else \u2014 a 300 mm culvert is 0.3","Resources: training videos library linked (beginner, GPS, Automap, BCLS/PM sections)"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1310,6 +1324,18 @@ function drawLib(){
   host.appendChild(d);
  });
  /* in-progress */
+ var tidied=0,cutoff=new Date(Date.now()-30*24*3600*1000).toISOString();
+ var doomed=[];
+ for(var ti=0;ti<((canStore&&localStorage.length)||0);ti++){
+  var tk=localStorage.key(ti);
+  if(tk&&tk.indexOf("eo1:")===0&&tk!=="eo1:last"&&tk!=="eo1:init"&&tk!=="eo1:news"){
+   var tp=tk.split(":");if(!byId(tp[1]))continue;
+   var td=loadSaved(tp[1],tp[2]);if(!td)continue;
+   var tuns=!td.exported||(td.updated&&td.exported&&td.updated>td.exported);
+   if(!tuns&&td.updated&&td.updated<cutoff)doomed.push(tk);
+  }
+ }
+ doomed.forEach(function(k){sdel(k);tidied++;});
  var ip=[],i;
  for(i=0;i<((canStore&&localStorage.length)||0);i++){
   var k=localStorage.key(i);
@@ -1326,12 +1352,39 @@ function drawLib(){
  var wrap=document.getElementById("inprog"),list=document.getElementById("iplist");
  list.innerHTML="";
  if(ip.length){wrap.style.display="block";
-  ip.forEach(function(e){
+  var CAP=5,showAll=list.dataset.all==="1";
+  var visible=ip.filter(function(e,ix){return showAll||ix<CAP||e.unsaved;});
+  visible.forEach(function(e){
    var r=document.createElement("div");r.className="ipitem";
-   r.innerHTML="<span class='j'>"+esc(e.job||"no job #")+"</span><span class='n'>"+esc(e.cl.name)+"</span>"+(e.unsaved?"<span class='unsv'>unsaved to job file</span>":"")+"<span class='p'>"+e.done+" / "+e.total+"</span>";
+   r.innerHTML="<span class='j'>"+esc(e.job||"no job #")+"</span><span class='n'>"+esc(e.cl.name)+"</span>"+(e.unsaved?"<span class='unsv'>unsaved to job file</span>":"")+"<span class='p'>"+e.done+" / "+e.total+"</span><button class='ipdel' title='Remove from this computer' aria-label='Remove from this computer'>\u2715</button>";
    r.onclick=function(){openCl(e.cl.id,e.jobKey);};
+   r.querySelector(".ipdel").onclick=function(ev){
+    ev.stopPropagation();
+    var msg=e.unsaved
+     ?"This checklist has NOT been saved to the job file \u2014 this browser copy is the only copy. Remove it and discard those ticks?"
+     :"Remove "+(e.job||"this checklist")+" from this computer? It's saved to the job file \u2014 re-importing the PDF brings it back any time.";
+    if(!confirm(msg))return;
+    sdel("eo1:"+e.cl.id+":"+e.jobKey);
+    drawLib();
+   };
    list.appendChild(r);
   });
+  if(!showAll&&ip.length>visible.length){
+   var more=document.createElement("button");more.className="ipmore";
+   more.textContent="Show all ("+ip.length+")";
+   more.onclick=function(){list.dataset.all="1";drawLib();};
+   list.appendChild(more);
+  } else if(showAll&&ip.length>CAP){
+   var less=document.createElement("button");less.className="ipmore";
+   less.textContent="Show recent only";
+   less.onclick=function(){list.dataset.all="";drawLib();};
+   list.appendChild(less);
+  }
+  if(tidied){
+   var tn=document.createElement("div");tn.className="iptidy";
+   tn.textContent=tidied+" checklist"+(tidied>1?"s":"")+" saved to the job file and untouched for 30+ days "+(tidied>1?"were":"was")+" tidied off this computer \u2014 the job-file PDFs remain the record.";
+   list.appendChild(tn);
+  }
  } else wrap.style.display="none";
  drawReminder(ip);
 }
@@ -1671,7 +1724,7 @@ function buildChecklistPDF(){
     if(mk.c){ btxt(8,mx,y,"[CHK]"); mx+=5*8*0.6+4; txt("F2",7.5,mx,y,mk.c.by+" "+mk.c.at,0.45); }
     y-=LH;
    }
-   noteLines.forEach(function(l){ txt("F2",8,M+28,y,l,0.12); y-=LH; });
+   noteLines.forEach(function(l){ c.push("BT /F2 8 Tf 0.64 0.09 0.09 rg "+(M+28)+" "+y.toFixed(1)+" Td ("+pdfEsc(pdfSan(l))+") Tj 0 g ET"); y-=LH; });
    y-=3;
   });
   var names=Object.keys(who).map(function(n){return n+" "+who[n];}).join(", ");
@@ -2524,7 +2577,10 @@ function calcInv(){
   var inv=rm-depth;
   if(r.querySelector(".itop").checked){
    var sz=parseFloat(r.querySelector(".isize").value);
-   if(!isNaN(sz))inv-=sz/1000;
+   if(!isNaN(sz))inv-=sz;
+   var szn=r.querySelector(".isize");
+   szn.style.borderColor=(!isNaN(sz)&&sz>3)?"#c96a1b":"";
+   szn.title=(!isNaN(sz)&&sz>3)?"Pipe size looks large \u2014 this field is metres (a 300 mm culvert is 0.3)":"";
   }
   out.textContent=inv.toFixed(2)+" m / "+(inv/FT).toFixed(2)+" ft";
  });

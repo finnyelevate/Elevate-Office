@@ -1,5 +1,12 @@
 # Elevate Office — changelog
 
+## Build 1.8 — 2026-09-02
+- Comments now show in red — in the app and in the PDF — so notes like "Reverse. See notes" jump out instead of blending into the item text. The bold stamps from 1.7.2 are unchanged; embedded data untouched.
+- In-progress list managed: shows the five most recently worked checklists (anything unsaved always stays visible) with a Show all expander; every row has a ✕ to remove it from this computer — a calm confirm when it's saved to the job file, a strong warning when the browser copy is the only copy. Checklists saved to the job file and untouched for 30 days are tidied away automatically, with a one-line note when it happens; the job-file PDFs remain the record and re-import brings anything back.
+- Invert calculator: pipe size is entered in metres like every other number — a 300 mm culvert is 0.3, a 150 is 0.15. Values over 3 get a gentle "this field is metres" nudge.
+- Resources: Training videos group linking the SharePoint library and its beginner, GPS items, Automap, and BCLS + project manager sections.
+- Note: the toast-shield item from the queue doesn't apply to Elevate Office (no toast element exists in this app); it remains a Field Notes fix.
+
 ## Build 1.7.2 — 2026-08-31
 - Fix: the "unsaved to job file" flag no longer comes back after a save when you merely reopen the checklist, go back to the library, close the tab, or take an update-banner refresh. The saved record's "updated" timestamp now moves only on real changes (ticks, check stamps, comments, sheet numbers, pages added/removed, job number) — not on every save-to-browser. Anything genuinely changed after an export still flags correctly.
 - PDF checklists: the [YES] / [N/A] / [CHK] stamps now print bold black so the answers stand out, with initials and date slightly quieter beside them. Comments print darker and a step larger. Rendering only — the embedded data is unchanged, so PDFs from any build import identically.
