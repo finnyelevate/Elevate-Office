@@ -236,6 +236,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .cu-utok{display:inline-block;border:1px solid var(--hair);padding:2px 7px;margin:3px 3px 0 0;font:12px "IBM Plex Mono",monospace}
 .cu-dl{display:flex;align-items:center;gap:10px;margin:16px 0;flex-wrap:wrap}
 .cu-chg{font:600 14px "Barlow Semi Condensed";letter-spacing:.05em}
+.cu-cls{font:13px "IBM Plex Mono",monospace;color:var(--faint);margin:4px 0 2px}
+.cu-cls b{color:var(--ink)}
 .cu-err{border-left:3px solid #a33;background:#fbeeee;color:#7a2020;padding:10px 12px;max-width:760px;font-size:13.5px;margin:8px 0}
 .punit{font-family:"Barlow Semi Condensed";font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:7px}
 .punit .seg button{padding:4px 10px;font-size:12px}
@@ -299,7 +301,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
     <button data-v="tools">Tools</button>
     <button data-v="samples">Samples</button>
     <button data-v="training">Training</button>
-    <button data-v="cleanup">Cleanup</button>
+    <button data-v="cleanup">Points</button>
     <button data-v="resources">Resources</button>
   </nav>
   <div class="bno" id="bno"></div>
@@ -576,8 +578,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </div>
 
 <div class="view" id="v-cleanup">
-  <h1 class="pg">Code cleanup</h1>
-  <div class="warnline" style="max-width:760px">Descriptions only — point numbers, coordinates, and elevations are never touched, and the raw RW5 is never the input. Output files preserve the original delimiter, spacing, and line endings byte for byte outside the accepted changes.</div>
+  <h1 class="pg">Points — cleanup &amp; extraction</h1>
+  <div class="warnline" style="max-width:760px">Descriptions only — point numbers, coordinates, and elevations are never touched, and the raw RW5 is never the input. Output files preserve the original delimiter, spacing, and line endings byte for byte outside the accepted changes. Extraction splits the cleaned file into a control + calc file and a client file (check shots drop from both).</div>
   <div id="cu-drop" class="cu-drop">Drop the exported PNEZD points file here (.txt / .csv / .asc)<br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="cu-file" accept=".txt,.csv,.asc,.dat,text/plain" style="display:none"></label></div>
   <div id="cu-body"></div>
 </div>
@@ -627,8 +629,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.8";
-const NEWS=["Comments print in red \u2014 on screen and in the PDF \u2014 so notes jump out of the checklist","The in-progress list shows the five most recent (unsaved ones always visible) with Show all below; every row has a \u2715 to remove it from this computer, and checklists saved to the job file and untouched for 30 days tidy themselves away automatically","Invert calculator: pipe size is now entered in metres like everything else \u2014 a 300 mm culvert is 0.3","Resources: training videos library linked (beginner, GPS, Automap, BCLS/PM sections)"];
+const BUILD="1.9";
+const NEWS=["The Cleanup tab is now Points: drop one file, get every deliverable \u2014 cleaned file, corrections, change log, and two new extracts","Control + calc file: every point coded on the automap CONTROL layer (OCM, OCNT, OIP, OSPK, IP, MON\u2026) plus calc points (1\u201399, CALC, blanks) \u2014 for carrying a topo forward into a legal file","Client file: everything else, cleaned \u2014 control, calc, and check shots stripped out"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1818,6 +1820,24 @@ var CU_KEYS=("A A1 A2 A3 ASPH B BB BB1 BB2 BB3 BCHMH BCTBX BCTMH BLDG BM BMH BOL
 var CU_MWKEYS="SAN IC|SERVICE POLE|ROOF PEAK|ROOF PEEK|PPL N".split("|");
 var CU_PENDING=["OIPT"];
 var CU_TREES=["TCED","TCLU","TCLUS","TCON","TDEC","TFIR"];
+/* keys the 2026 automap places on the CONTROL layer, plus pending OIPT */
+var CU_CONTROL="CONP CP IP LP MON MONUMENT OAP OCC OCM OCN OCNT OCONP OCP OIB OIP OIPB OIPT OIPDLS OIPIPE OIPIPE2 OIPNS OLP OMAG OMON OPCON OPIPE OPM OPP OPPIPE ORBR ORLT ORP OSC OSM OSP OSPK RP".split(" ");
+var CU_CONTROLSET={};CU_CONTROL.forEach(function(k){CU_CONTROLSET[k]=1;});
+/* keys on the OCL (check) layer */
+var CU_CHKSET={CHK:1,BS:1,BSCHK:1,OCL:1};
+function cuClassify(rec,desc,steps){
+ if(!rec.point)return null;
+ if(/^STK/i.test(rec.pt))return "chk";
+ if(steps&&steps.some(function(s){return s.rule==="chk";}))return "chk";
+ var d=desc.trim();
+ var toks=d.toUpperCase().split(/\s+/);
+ if(d!==""&&(CU_CHKSET[toks[0]]||toks.indexOf("CHK")>=0))return "chk";
+ var lead=d===""?null:cuKnownLead(d);
+ if(lead&&CU_CONTROLSET[lead.toUpperCase()])return "control";
+ if(d===""||toks[0]==="CALC")return "calc";
+ if(/^\d+$/.test(rec.pt)&&parseInt(rec.pt)>=1&&parseInt(rec.pt)<=99)return "calc";
+ return "topo";
+}
 var CU_KEYSET={};CU_KEYS.forEach(function(k){CU_KEYSET[k.toUpperCase()]=1;});CU_PENDING.forEach(function(k){CU_KEYSET[k]=1;});
 var CU_KEYS_BYLEN=CU_KEYS.slice().sort(function(a,b){return b.length-a.length;});
 var cu={lines:null,name:"",delim:",",chips:[],focus:{},unitAns:"m",ticks:{},manual:[],hasTrees:false};
@@ -2091,7 +2111,12 @@ function cuRenderReview(){
  }
  document.getElementById("cu-unknown").innerHTML=uh;
  var changed=comp.filter(function(c){return c.rec.point&&c.final!==null&&c.final!==c.rec.desc;}).length;
- document.getElementById("cu-out").innerHTML="<div class='cu-dl'><span class='cu-chg'>"+changed+" point"+(changed===1?"":"s")+" will change</span><button class='btn pri' onclick='cuDownload(0)'>Full cleaned file</button><button class='btn' onclick='cuDownload(1)'>Corrections only</button><button class='btn' onclick='cuDownload(2)'>Change log</button></div>";
+ var cls={control:0,calc:0,chk:0,topo:0};
+ comp.forEach(function(c){var k=cuClassify(c.rec,c.final!==null?c.final:c.rec.desc,c.steps);if(k)cls[k]++;});
+ document.getElementById("cu-out").innerHTML=
+  "<div class='cu-dl'><span class='cu-chg'>"+changed+" point"+(changed===1?"":"s")+" will change</span><button class='btn pri' onclick='cuDownload(0)'>Full cleaned file</button><button class='btn' onclick='cuDownload(1)'>Corrections only</button><button class='btn' onclick='cuDownload(2)'>Change log</button></div>"+
+  "<div class='cu-cls'>Extraction \u2014 <b>"+cls.control+"</b> control \u00b7 <b>"+cls.calc+"</b> calc \u00b7 <b>"+cls.topo+"</b> deliverable \u00b7 "+cls.chk+" check shot"+(cls.chk===1?"":"s")+" (dropped from both)</div>"+
+  "<div class='cu-dl'><button class='btn' onclick='cuDownload(3)'>Control + calc file</button><button class='btn' onclick='cuDownload(4)'>Client file</button><span class='hint' style='margin:0'>Control = codes on the automap CONTROL layer. Calc = points 1\u201399, CALC, and blank descriptions. Both extracts use the cleaned descriptions and the whole file regardless of focus.</span></div>";
 }
 function cuFinalLine(c){
  var r=c.rec;
@@ -2109,6 +2134,11 @@ function cuDownload(which){
   var rows=comp.filter(function(c){return c.rec.point&&c.final!==null&&c.final!==c.rec.desc;});
   content=rows.map(function(c){return cuFinalLine(c)+(c.rec.eol||"\n");}).join("");
   fname=name+"-CORRECTIONS"+ext;
+ }else if(which===3||which===4){
+  var want=which===3?{control:1,calc:1}:{topo:1};
+  var rows2=comp.filter(function(c){return c.rec.point&&want[cuClassify(c.rec,c.final!==null?c.final:c.rec.desc,c.steps)];});
+  content=rows2.map(function(c){return cuFinalLine(c)+(c.rec.eol||"\n");}).join("");
+  fname=name+(which===3?"-CONTROL-CALC":"-CLIENT")+ext;
  }else{
   var L=[];
   L.push("CODE CLEANUP CHANGE LOG");
@@ -2118,6 +2148,9 @@ function cuDownload(which){
   if(cu.hasTrees)L.push("Drawing units: "+(cu.unitAns==="ft"?"imperial \u2014 tree diameters cm\u00f730.48 ft, drip lines m\u00d73.28084 ft":"metric \u2014 drip lines normalized cm\u2192m where >25"));
   var blanks=cu.lines.filter(function(r){return r.point&&r.desc.trim()==="";}).length;
   if(blanks)L.push(blanks+" blank descriptions passed through unchanged.");
+  var cl2={control:0,calc:0,chk:0,topo:0};
+  comp.forEach(function(c){var k=cuClassify(c.rec,c.final!==null?c.final:c.rec.desc,c.steps);if(k)cl2[k]++;});
+  L.push("Extraction split: "+cl2.control+" control, "+cl2.calc+" calc, "+cl2.topo+" deliverable, "+cl2.chk+" check shots dropped.");
   L.push("");
   var tierTag={1:"fix",2:"suggestion",3:"manual rule"};
   comp.forEach(function(c){

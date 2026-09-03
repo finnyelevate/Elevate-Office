@@ -1,5 +1,12 @@
 # Elevate Office — changelog
 
+## Build 1.9 — 2026-09-02
+- The Cleanup tab is now **Points** — one drop of the exported PNEZD file yields every deliverable. Two new extracts join the download row:
+- **Control + calc file**: every point whose code the 2026 automap places on the CONTROL layer (OCM, OCNT, OCN, OIP/OIPB/OIPT, OSPK, OMON, OMAG, ORBR, IP, LP, CP, MON, RP and the rest of the found/set-monument family — 37 keys, derived from the automap itself) plus calc points: numbers 1–99, CALC descriptions, and blank descriptions. For carrying a topo forward into a legal file.
+- **Client file**: everything else, using the cleaned descriptions — control, calc, and check shots stripped.
+- Check shots drop from both extracts: any CHK token, the BS/BSCHK/OCL check family, STK_ re-shot IDs, and leading-point-number descriptions the review identifies as check shots ("1003 OSPK"). Not needed for topo-to-legal or for the client.
+- The split (control · calc · deliverable · check shots dropped) shows above the extract buttons and is recorded in the change log. Extracts cover the whole file regardless of focus; formatting, numbering, and coordinates are byte-identical as always.
+
 ## Build 1.8 — 2026-09-02
 - Comments now show in red — in the app and in the PDF — so notes like "Reverse. See notes" jump out instead of blending into the item text. The bold stamps from 1.7.2 are unchanged; embedded data untouched.
 - In-progress list managed: shows the five most recently worked checklists (anything unsaved always stays visible) with a Show all expander; every row has a ✕ to remove it from this computer — a calm confirm when it's saved to the job file, a strong warning when the browser copy is the only copy. Checklists saved to the job file and untouched for 30 days are tidied away automatically, with a one-line note when it happens; the job-file PDFs remain the record and re-import brings anything back.
