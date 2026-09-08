@@ -238,6 +238,10 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .cu-chg{font:600 14px "Barlow Semi Condensed";letter-spacing:.05em}
 .cu-cls{font:13px "IBM Plex Mono",monospace;color:var(--faint);margin:4px 0 2px}
 .cu-cls b{color:var(--ink)}
+.cu-sc{margin-top:18px}
+.cu-scbase{font:13px "IBM Plex Mono",monospace;padding:6px 0;color:var(--ink)}
+.cu-scman{font-size:12.5px;color:var(--faint);margin:4px 0 8px}
+.cu-scman summary{cursor:pointer}
 .cu-err{border-left:3px solid #a33;background:#fbeeee;color:#7a2020;padding:10px 12px;max-width:760px;font-size:13.5px;margin:8px 0}
 .punit{font-family:"Barlow Semi Condensed";font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:7px}
 .punit .seg button{padding:4px 10px;font-size:12px}
@@ -629,8 +633,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.9";
-const NEWS=["The Cleanup tab is now Points: drop one file, get every deliverable \u2014 cleaned file, corrections, change log, and two new extracts","Control + calc file: every point coded on the automap CONTROL layer (OCM, OCNT, OIP, OSPK, IP, MON\u2026) plus calc points (1\u201399, CALC, blanks) \u2014 for carrying a topo forward into a legal file","Client file: everything else, cleaned \u2014 control, calc, and check shots stripped out"];
+const BUILD="1.10";
+const NEWS=["Points tab: Scale about a point \u2014 metres \u2194 feet, or a custom factor (paste a combined scale factor for grid \u2192 ground and the tool applies 1/CSF)","The scale point is a point number from the file (SCPT descriptions auto-proposed) or manual N/E/Z; N and E scale about it, elevations scale about zero on unit conversions and stay untouched on grid \u2192 ground","Scaled file keeps every point number, description, and format; a scale log records the mode, base point, factor, and elevation treatment"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1872,16 +1876,19 @@ function cuParse(text,name){
      rec.point=true;rec.pt=f[0].trim();
      rec.descStart=f[0].length+f[1].length+f[2].length+f[3].length+4;
      rec.desc=s.slice(rec.descStart);
+     rec.cf=[f[0],f[1],f[2],f[3]];
     }
    }else{
     var mm=s.match(/^(\s*\S+\s+\S+\s+\S+\s+\S+\s+)(.*)$/);
     var mm2=s.match(/^\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/);
     if(mm&&mm2&&!isNaN(parseFloat(mm2[2]))&&!isNaN(parseFloat(mm2[3]))&&!isNaN(parseFloat(mm2[4]))){
      rec.point=true;rec.pt=mm2[1];rec.descStart=mm[1].length;rec.desc=mm[2];
+     rec.wf=s.match(/^(\s*)(\S+)(\s+)(\S+)(\s+)(\S+)(\s+)(\S+)(\s+)/);
     }else{
      var mb=s.match(/^\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s*$/);
      if(mb&&!isNaN(parseFloat(mb[2]))&&!isNaN(parseFloat(mb[3]))&&!isNaN(parseFloat(mb[4]))){
       rec.point=true;rec.pt=mb[1];rec.descStart=s.length;rec.desc="";
+      rec.wf=s.match(/^(\s*)(\S+)(\s+)(\S+)(\s+)(\S+)(\s+)(\S+)(\s*)$/);
      }
     }
    }
@@ -1889,12 +1896,16 @@ function cuParse(text,name){
     var f2=s.split(",");
     if(f2.length===4&&!isNaN(parseFloat(f2[1]))&&!isNaN(parseFloat(f2[2]))&&!isNaN(parseFloat(f2[3]))){
      rec.point=true;rec.pt=f2[0].trim();rec.descStart=s.length;rec.desc="";
+     rec.cf=[f2[0],f2[1],f2[2],f2[3]];
     }
    }
   }
   lines.push(rec);
  });
  cu.lines=lines;cu.name=name;cu.delim=delim;cu.ticks={};cu.manual=[];cu.unitAns="m";
+ cu.scale={base:null,mode:"ft",custom:"",kind:"csf",elev:true,ptInput:"",mN:"",mE:"",mZ:"0"};
+ var scpt=lines.find(function(r){return r.point&&/^(SCPT|SCALE\s*(PT|POINT))(\s|$)/i.test(r.desc.trim());});
+ if(scpt)cu.scale.ptInput=scpt.pt;
  cuBuildChips();
  cu.hasTrees=lines.some(function(r){if(!r.point)return false;var t=r.desc.trim().split(/\s+/)[0]||"";return CU_TREES.indexOf(t.toUpperCase())>=0;});
  cuRender();
@@ -2048,7 +2059,7 @@ function cuRender(){
   h+="<div class='cu-units'><span>This file has trees \u2014 drawing units:</span> <span class='seg'><button data-u='m' class='"+(cu.unitAns==="m"?"on":"")+"'>Metric</button><button data-u='ft' class='"+(cu.unitAns==="ft"?"on":"")+"'>Imperial (ft)</button></span></div>";
  }
  h+="<div class='cu-manual'><h3>Add your own fix</h3><div class='row'><input type='text' id='cu-mf' placeholder='find' style='width:130px'> <span>\u2192</span> <input type='text' id='cu-mr' placeholder='replace' style='width:130px'> <label class='cu-cb'><input type='checkbox' id='cu-mw' checked> whole token</label> <input type='text' id='cu-mrange' placeholder='point range (optional)' style='width:150px'> <button class='btn' onclick='cuManAdd()'>Add rule</button></div><div id='cu-mprev' class='hint'></div></div>";
- h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div>";
+ h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div><div id='cu-scale'></div>";
  host.innerHTML=h;
  host.querySelectorAll(".cu-chip").forEach(function(b){b.onclick=function(){var id=parseInt(b.dataset.c);cu.focus[id]=!cu.focus[id];cuRender();};});
  host.querySelectorAll(".cu-units .seg button").forEach(function(b){b.onclick=function(){cu.unitAns=b.dataset.u;cuRender();};});
@@ -2067,7 +2078,7 @@ function cuRender(){
  }
  mf.oninput=mprev;mr.oninput=mprev;
  document.getElementById("cu-mw").onchange=mprev;document.getElementById("cu-mrange").oninput=mprev;
- cuRenderReview();
+ cuRenderReview();cuRenderScale();
 }
 function cuManAdd(){
  var f=document.getElementById("cu-mf").value,r=document.getElementById("cu-mr").value;
@@ -2123,6 +2134,85 @@ function cuFinalLine(c){
  if(!r.point||c.final===null||c.final===r.desc)return r.raw;
  return r.raw.slice(0,r.descStart)+c.final;
 }
+/* ---------- scale ---------- */
+function cuCoordOf(rec){
+ var n,e,z;
+ if(rec.cf){n=rec.cf[1];e=rec.cf[2];z=rec.cf[3];}
+ else if(rec.wf){n=rec.wf[4];e=rec.wf[6];z=rec.wf[8];}
+ else return null;
+ return {n:parseFloat(n),e:parseFloat(e),z:parseFloat(z),ns:n.trim(),es:e.trim(),zs:z.trim()};
+}
+function cuDec(s){var m=String(s).match(/\.(\d+)$/);return m?m[1].length:0;}
+function cuFmtLike(v,likeStr){
+ var d=cuDec(likeStr);var out=v.toFixed(d);
+ return out;
+}
+function cuScaleFactor(){
+ var s=cu.scale;
+ if(s.mode==="ft")return {f:1/0.3048,label:"metres \u2192 feet (\u00d7 3.280839895)",suffix:"-FT"};
+ if(s.mode==="m")return {f:0.3048,label:"feet \u2192 metres (\u00d7 0.3048)",suffix:"-M"};
+ var v=parseFloat(String(s.custom).replace(/,/g,""));
+ if(isNaN(v)||v<=0)return null;
+ if(s.kind==="csf")return {f:1/v,label:"grid \u2192 ground: combined scale factor "+v+" \u2192 multiplier "+(1/v).toFixed(8),suffix:"-GROUND"};
+ return {f:v,label:"custom factor \u00d7 "+v,suffix:"-SCALED"};
+}
+function cuRenderScale(){
+ var host=document.getElementById("cu-scale");if(!host||!cu.lines)return;
+ var s=cu.scale,fac=cuScaleFactor();
+ var h="<div class='cu-manual cu-sc'><h3>Scale about a point</h3>";
+ h+="<div class='row'><label>Scale point (point #)</label><input type='text' id='cu-scpt' value='"+esc(s.ptInput)+"' style='width:110px' placeholder='e.g. 1001'> <button class='btn' onclick='cuScaleConfirmPt()'>Use this point</button>"+(s.ptInput&&!s.base?"<span class='hint' style='margin:0'>SCPT found \u2014 confirm it</span>":"")+"</div>";
+ h+="<details class='cu-scman'><summary>or enter the scale point manually</summary><div class='row'><label>N</label><input type='text' id='cu-scN' value='"+esc(s.mN)+"' style='width:130px'> <label>E</label><input type='text' id='cu-scE' value='"+esc(s.mE)+"' style='width:120px'> <label>Z</label><input type='text' id='cu-scZ' value='"+esc(s.mZ)+"' style='width:80px'> <button class='btn' onclick='cuScaleConfirmManual()'>Use these</button></div></details>";
+ if(s.base){
+  h+="<div class='cu-scbase'>Base: <b>"+esc(s.base.label)+"</b> \u2014 N "+s.base.ns+"  E "+s.base.es+"  Z "+s.base.zs+(s.base.desc!==undefined?"  \u00b7 "+esc(s.base.desc||"(blank)"):"")+"</div>";
+  if(s.elev&&Math.abs(s.base.z)>1e-9)h+="<div class='warnline'>Scale point elevation is "+s.base.zs+" \u2014 elevations scale about 0 per office practice (N/E scale about the scale point).</div>";
+ }
+ h+="<div class='row'><label>Scale</label><span class='seg cu-scmode'><button data-m='ft' class='"+(s.mode==="ft"?"on":"")+"'>m \u2192 ft</button><button data-m='m' class='"+(s.mode==="m"?"on":"")+"'>ft \u2192 m</button><button data-m='c' class='"+(s.mode==="c"?"on":"")+"'>Custom</button></span></div>";
+ if(s.mode==="c"){
+  h+="<div class='row'><span class='seg cu-sckind'><button data-k='csf' class='"+(s.kind==="csf"?"on":"")+"'>Grid \u2192 ground (1 / CSF)</button><button data-k='typed' class='"+(s.kind==="typed"?"on":"")+"'>Factor as typed</button></span> <input type='text' id='cu-scf' value='"+esc(s.custom)+"' placeholder='"+(s.kind==="csf"?"0.99960338":"1.00039678")+"' style='width:130px'>"+(fac?"<span class='hint' style='margin:0'>multiplier "+fac.f.toFixed(8)+"</span>":"")+"</div>";
+ }
+ h+="<div class='row'><label class='cu-cb'><input type='checkbox' id='cu-scelev' "+(s.elev?"checked":"")+"> scale elevations too (about 0)</label><span class='hint' style='margin:0'>"+(s.mode==="c"?"off by default for grid \u2192 ground \u2014 elevations are already ground values":"on for unit conversion")+"</span></div>";
+ h+="<div class='cu-dl'><button class='btn pri' onclick='cuDownload(5)' "+(s.base&&fac?"":"disabled")+">Scaled file</button><button class='btn' onclick='cuDownload(6)' "+(s.base&&fac?"":"disabled")+">Scale log</button><span class='hint' style='margin:0'>"+(fac?esc(fac.label):"enter a valid factor")+"</span></div>";
+ h+="<div class='hint'>N and E scale about the scale point (it keeps its coordinates); Z scales about zero. Descriptions come from the cleaned state; numbers, format, and line endings are otherwise untouched.</div></div>";
+ host.innerHTML=h;
+ host.querySelectorAll(".cu-scmode button").forEach(function(b){b.onclick=function(){s.mode=b.dataset.m;s.elev=(s.mode!=="c");cuRenderScale();};});
+ host.querySelectorAll(".cu-sckind button").forEach(function(b){b.onclick=function(){s.kind=b.dataset.k;cuRenderScale();};});
+ var f=document.getElementById("cu-scf");if(f)f.oninput=function(){s.custom=f.value;var fac2=cuScaleFactor();var sp=f.parentNode.querySelector(".hint");if(sp)sp.textContent=fac2?"multiplier "+fac2.f.toFixed(8):"enter a valid factor";document.querySelectorAll("#cu-scale .cu-dl .btn").forEach(function(bt){bt.disabled=!(s.base&&fac2);});};
+ document.getElementById("cu-scelev").onchange=function(){s.elev=this.checked;cuRenderScale();};
+ document.getElementById("cu-scpt").oninput=function(){s.ptInput=this.value;};
+ ["cu-scN","cu-scE","cu-scZ"].forEach(function(id){var el=document.getElementById(id);el.oninput=function(){s["m"+id.slice(-1)]=el.value;};});
+}
+function cuScaleConfirmPt(){
+ var s=cu.scale,pt=(s.ptInput||"").trim();
+ var rec=cu.lines.find(function(r){return r.point&&r.pt===pt;});
+ if(!rec){alert("Point "+pt+" isn't in this file.");return;}
+ var c=cuCoordOf(rec);if(!c){alert("Couldn't read coordinates for point "+pt+".");return;}
+ s.base={n:c.n,e:c.e,z:c.z,ns:c.ns,es:c.es,zs:c.zs,label:"point "+pt,desc:rec.desc.trim()};
+ cuRenderScale();
+}
+function cuScaleConfirmManual(){
+ var s=cu.scale,n=parseFloat(s.mN),e=parseFloat(s.mE),z=parseFloat(s.mZ||"0");
+ if(isNaN(n)||isNaN(e)){alert("Enter numeric N and E for the scale point.");return;}
+ if(isNaN(z))z=0;
+ s.base={n:n,e:e,z:z,ns:String(s.mN).trim(),es:String(s.mE).trim(),zs:String(isNaN(parseFloat(s.mZ))?"0":s.mZ).trim(),label:"manual entry"};
+ cuRenderScale();
+}
+function cuScaledLine(c,fac){
+ var r=c.rec;if(!r.point)return r.raw;
+ var co=cuCoordOf(r);if(!co)return r.raw;
+ var b=cu.scale.base,f=fac.f;
+ var nN=b.n+(co.n-b.n)*f,nE=b.e+(co.e-b.e)*f,nZ=cu.scale.elev?co.z*f:co.z;
+ var ns=cuFmtLike(nN,co.ns),es=cuFmtLike(nE,co.es),zs=cu.scale.elev?cuFmtLike(nZ,co.zs):co.zs;
+ var desc=(c.final!==null&&c.final!==r.desc)?c.final:r.desc;
+ if(r.cf){
+  function keep(orig,val){var m=orig.match(/^(\s*)(.*?)(\s*)$/);return m[1]+val+m[3];}
+  var head=r.cf[0]+","+keep(r.cf[1],ns)+","+keep(r.cf[2],es)+","+keep(r.cf[3],zs);
+  return r.desc===""&&r.descStart>=r.raw.length&&r.raw.split(",").length===4?head:head+","+desc;
+ }
+ var w=r.wf;
+ return w[1]+w[2]+w[3]+ns+w[5]+es+w[7]+zs+w[9]+desc;
+}
+window.cuScaleConfirmPt=cuScaleConfirmPt;window.cuScaleConfirmManual=cuScaleConfirmManual;window.cuRenderScale=cuRenderScale;window.cuScaledLine=cuScaledLine;window.cuScaleFactor=cuScaleFactor;
+
 function cuDownload(which){
  var comp=cuCompute();
  var name=cu.name.replace(/\.[^.]+$/,""),ext=(cu.name.match(/\.[^.]+$/)||[".txt"])[0];
@@ -2134,6 +2224,23 @@ function cuDownload(which){
   var rows=comp.filter(function(c){return c.rec.point&&c.final!==null&&c.final!==c.rec.desc;});
   content=rows.map(function(c){return cuFinalLine(c)+(c.rec.eol||"\n");}).join("");
   fname=name+"-CORRECTIONS"+ext;
+ }else if(which===5||which===6){
+  var fac=cuScaleFactor();if(!fac||!cu.scale.base)return;
+  if(which===5){
+   content=comp.map(function(c){return cuScaledLine(c,fac)+c.rec.eol;}).join("");
+   fname=name+fac.suffix+ext;
+  }else{
+   var b=cu.scale.base,SL=[];
+   SL.push("SCALE LOG");SL.push("File: "+cu.name+"   Date: "+new Date().toISOString().slice(0,10));
+   SL.push("Mode: "+fac.label);
+   SL.push("Scale point: "+b.label+"  N "+b.ns+"  E "+b.es+"  Z "+b.zs+(b.desc!==undefined?"  ("+(b.desc||"blank")+")":""));
+   SL.push("N/E scaled about the scale point (it keeps its coordinates).");
+   SL.push("Elevations: "+(cu.scale.elev?"scaled about 0 by the same factor":"left unchanged"));
+   if(cu.scale.elev&&Math.abs(b.z)>1e-9)SL.push("Note: scale point booked elevation "+b.zs+" is not zero; elevations were still scaled about 0 per office practice.");
+   SL.push("Descriptions: cleaned state at time of export ("+comp.filter(function(c){return c.rec.point&&c.final!==null&&c.final!==c.rec.desc;}).length+" changed).");
+   SL.push(cu.lines.filter(function(r){return r.point;}).length+" points written to "+name+fac.suffix+ext+".");
+   content=SL.join("\r\n");fname=name+"-SCALE-LOG.txt";
+  }
  }else if(which===3||which===4){
   var want=which===3?{control:1,calc:1}:{topo:1};
   var rows2=comp.filter(function(c){return c.rec.point&&want[cuClassify(c.rec,c.final!==null?c.final:c.rec.desc,c.steps)];});

@@ -1,5 +1,11 @@
 # Elevate Office — changelog
 
+## Build 1.10 — 2026-09-08
+- Points tab: **Scale about a point**. Three modes — metres → feet (× 3.280839895), feet → metres (× 0.3048), and custom: either paste a combined scale factor for grid → ground (the tool applies 1/CSF and shows the multiplier before you commit) or type a factor directly.
+- Scale point: a point number from the file — SCPT / SCALE PT / SCALE POINT descriptions are auto-proposed — confirmed with its N, E, Z, and description echoed back; or manual N/E/Z entry as a fallback (Z defaults to 0). Nothing scales until a base is confirmed.
+- N and E scale about the scale point (it keeps its coordinates). Elevations scale about zero by the same factor on unit conversions and are left untouched on custom / grid → ground scaling (toggle either way). If the scale point's booked elevation isn't zero the tool says so rather than scaling Z about it.
+- Output written at the input's decimal precision with descriptions from the cleaned state; point numbers, delimiter, spacing, and line endings otherwise byte-identical. Files suffixed -FT, -M, -GROUND, or -SCALED; a Scale log records mode, base point, factor, and elevation treatment.
+
 ## Build 1.9 — 2026-09-02
 - The Cleanup tab is now **Points** — one drop of the exported PNEZD file yields every deliverable. Two new extracts join the download row:
 - **Control + calc file**: every point whose code the 2026 automap places on the CONTROL layer (OCM, OCNT, OCN, OIP/OIPB/OIPT, OSPK, OMON, OMAG, ORBR, IP, LP, CP, MON, RP and the rest of the found/set-monument family — 37 keys, derived from the automap itself) plus calc points: numbers 1–99, CALC descriptions, and blank descriptions. For carrying a topo forward into a legal file.
