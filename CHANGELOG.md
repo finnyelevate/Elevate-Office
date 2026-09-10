@@ -1,5 +1,10 @@
 # Elevate Office — changelog
 
+## Build 1.11 — 2026-09-10
+- **Points from a drawing package.** Drop a MicroSurvey `.msz` (project zip) or `.mbz` (backup zip) onto the Points tab and the points are read straight from the coordinate database inside it (`db_coord.dbf`) — no CAD needed. Verified byte-identical against a points file exported from MicroSurvey CAD the same day. The package date is shown, a `.mbz` is flagged as a backup that may be older than the `.msz`, and a share-conflict copy of the database is reported if present (the primary is used). The points feed the normal pipeline — cleanup, extraction, scaling — or download directly as a points file. A bare `db_coord.dbf` is accepted too. Zero libraries: the zip is read with the browser's built-in decompression and dBase is parsed directly.
+- Scale: one factor field replaces the two-button mode. Below 1 reads as ground → grid (file suffixed -GRID), above 1 as grid → ground (-GROUND); a 1/x button flips between them. A booked monument carrying a scale factor in its description (e.g. `89H5014booked sf-0.99960238`) is auto-detected and offered as the scale point with the factor pre-filled and elevations left untouched — one tap, no retyping. Direction label and download state now refresh as you type; checkbox hint spacing fixed.
+- Combined scale factor: the geoid separation is no longer pre-filled with a regional guess. Enter the value from your GNSS export's Geoid Separation column, the mascot listing, or NRCan — the tool won't compute without it, and with it the result matches the export to 8 decimals.
+
 ## Build 1.10 — 2026-09-08
 - Points tab: **Scale about a point**. Three modes — metres → feet (× 3.280839895), feet → metres (× 0.3048), and custom: either paste a combined scale factor for grid → ground (the tool applies 1/CSF and shows the multiplier before you commit) or type a factor directly.
 - Scale point: a point number from the file — SCPT / SCALE PT / SCALE POINT descriptions are auto-proposed — confirmed with its N, E, Z, and description echoed back; or manual N/E/Z entry as a fallback (Z defaults to 0). Nothing scales until a base is confirmed.

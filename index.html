@@ -242,6 +242,9 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .cu-scbase{font:13px "IBM Plex Mono",monospace;padding:6px 0;color:var(--ink)}
 .cu-scman{font-size:12.5px;color:var(--faint);margin:4px 0 8px}
 .cu-scman summary{cursor:pointer}
+.cu-sfhit{background:#eef3f9;border-left:3px solid var(--blue);padding:8px 10px;margin:4px 0 10px;font-size:13px}
+.cu-pkg{background:var(--panel);border:1px solid var(--hair);padding:9px 12px;margin:0 0 10px;font-size:13.5px;max-width:760px}
+.cu-pkgwarn{display:block;color:#7a5215;font-size:12.5px;margin-top:3px}
 .cu-err{border-left:3px solid #a33;background:#fbeeee;color:#7a2020;padding:10px 12px;max-width:760px;font-size:13.5px;margin:8px 0}
 .punit{font-family:"Barlow Semi Condensed";font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:7px}
 .punit .seg button{padding:4px 10px;font-size:12px}
@@ -457,8 +460,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
       <label style="margin-left:10px">Easting (m)</label><input type="text" class="sm" id="sfE" placeholder="531435.908" autocomplete="off" style="width:130px">
       <label style="margin-left:10px">Zone</label><select id="sfZone"><option>7</option><option>8</option><option>9</option><option selected>10</option><option>11</option></select></div>
     <div class="row"><label>Orthometric elev. H (m)</label><input type="text" class="sm" id="sfH" autocomplete="off">
-      <label style="margin-left:10px">Geoid sep. N (m)</label><input type="text" class="sm" id="sfNs" value="-18.2" autocomplete="off">
-      <span class="hint" style="margin:0">from the mascot listing / NRCan output</span></div>
+      <label style="margin-left:10px">Geoid sep. N (m)</label><input type="text" class="sm" id="sfNs" placeholder="-18.794" autocomplete="off">
+      <span class="hint" style="margin:0">required — from your GNSS export's Geoid Separation column, the mascot listing, or NRCan</span></div>
     <div class="row"><label>Ellipsoidal h</label><span class="out" id="sf-h">&#8212;</span></div>
     <div class="row"><label>Grid factor</label><span class="out" id="sf-grid">&#8212;</span>
       <label style="margin-left:14px">Elevation factor</label><span class="out" id="sf-elev">&#8212;</span></div>
@@ -584,7 +587,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 <div class="view" id="v-cleanup">
   <h1 class="pg">Points — cleanup &amp; extraction</h1>
   <div class="warnline" style="max-width:760px">Descriptions only — point numbers, coordinates, and elevations are never touched, and the raw RW5 is never the input. Output files preserve the original delimiter, spacing, and line endings byte for byte outside the accepted changes. Extraction splits the cleaned file into a control + calc file and a client file (check shots drop from both).</div>
-  <div id="cu-drop" class="cu-drop">Drop the exported PNEZD points file here (.txt / .csv / .asc)<br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="cu-file" accept=".txt,.csv,.asc,.dat,text/plain" style="display:none"></label></div>
+  <div id="cu-drop" class="cu-drop">Drop the exported PNEZD points file here (.txt / .csv / .asc) — or a MicroSurvey drawing package (.msz / .mbz) and the points come straight out of its coordinate database<br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="cu-file" accept=".txt,.csv,.asc,.dat,.msz,.mbz,.dbf,text/plain" style="display:none"></label></div>
   <div id="cu-body"></div>
 </div>
 
@@ -633,8 +636,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.10";
-const NEWS=["Points tab: Scale about a point \u2014 metres \u2194 feet, or a custom factor (paste a combined scale factor for grid \u2192 ground and the tool applies 1/CSF)","The scale point is a point number from the file (SCPT descriptions auto-proposed) or manual N/E/Z; N and E scale about it, elevations scale about zero on unit conversions and stay untouched on grid \u2192 ground","Scaled file keeps every point number, description, and format; a scale log records the mode, base point, factor, and elevation treatment"];
+const BUILD="1.11";
+const NEWS=["Points from a drawing package: drop a MicroSurvey .msz or .mbz and the points come straight out of its coordinate database \u2014 no CAD needed \u2014 ready for cleanup, extraction, or scaling, or download as a points file","Scale: one factor field \u2014 below 1 reads as ground \u2192 grid, above 1 as grid \u2192 ground, with a 1/x button; a booked monument carrying sf-0.9996\u2026 in its description is auto-proposed as the scale point with the factor pre-filled","Combined scale factor: geoid separation is no longer pre-filled \u2014 enter the value from your GNSS export or listing so the result matches to 8 decimals"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1903,9 +1906,15 @@ function cuParse(text,name){
   lines.push(rec);
  });
  cu.lines=lines;cu.name=name;cu.delim=delim;cu.ticks={};cu.manual=[];cu.unitAns="m";
- cu.scale={base:null,mode:"ft",custom:"",kind:"csf",elev:true,ptInput:"",mN:"",mE:"",mZ:"0"};
+ cu.scale={base:null,mode:"ft",custom:"",elev:true,ptInput:"",mN:"",mE:"",mZ:"0",sfPt:null};
  var scpt=lines.find(function(r){return r.point&&/^(SCPT|SCALE\s*(PT|POINT))(\s|$)/i.test(r.desc.trim());});
  if(scpt)cu.scale.ptInput=scpt.pt;
+ lines.some(function(r){
+  if(!r.point)return false;
+  var m=r.desc.match(/\bsf\s*[-=:]?\s*([01]\.\d{3,})/i);
+  if(m){cu.scale.sfPt={pt:r.pt,val:m[1],desc:r.desc.trim()};return true;}
+  return false;
+ });
  cuBuildChips();
  cu.hasTrees=lines.some(function(r){if(!r.point)return false;var t=r.desc.trim().split(/\s+/)[0]||"";return CU_TREES.indexOf(t.toUpperCase())>=0;});
  cuRender();
@@ -2051,7 +2060,11 @@ function cuRender(){
  if(!cu.lines){host.innerHTML="";return;}
  var pts=cu.lines.filter(function(r){return r.point;}).length;
  var blanks=cu.lines.filter(function(r){return r.point&&r.desc.trim()==="";}).length;
- var h="<div class='cu-sum'>"+esc(cu.name)+" \u2014 "+pts+" points, "+(cu.delim===","?"comma":"whitespace")+"-delimited"+(blanks?", "+blanks+" blank description"+(blanks>1?"s":"")+" (passed through)":"")+"</div>";
+ var h="";
+ if(cu.pkg){
+  h+="<div class='cu-pkg'>Points read from <b>"+esc(cu.pkg.file)+"</b>"+(cu.pkg.date?" \u2014 package saved "+esc(cu.pkg.date):"")+(cu.pkg.backup?" <span class='cu-pkgwarn'>this is a backup (.mbz); the .msz is usually newer</span>":"")+(cu.pkg.conflicts?" <span class='cu-pkgwarn'>a share-conflict copy of the database also exists in the package \u2014 the primary was used</span>":"")+"<button class='btn' style='margin-left:10px' onclick='cuDownload(7)'>Points file</button></div>";
+ }
+ h+="<div class='cu-sum'>"+esc(cu.name)+" \u2014 "+pts+" points, "+(cu.delim===","?"comma":"whitespace")+"-delimited"+(blanks?", "+blanks+" blank description"+(blanks>1?"s":"")+" (passed through)":"")+"</div>";
  h+="<div class='cu-chips'>"+cu.chips.map(function(c){
   return "<button class='cu-chip"+(cu.focus[c.id]?" on":"")+"' data-c='"+c.id+"'>"+esc(c.label)+"</button>";
  }).join("")+"</div><div class='hint'>All ranges included by default \u2014 tap to exclude a block from cleanup (excluded points pass through untouched).</div>";
@@ -2153,13 +2166,15 @@ function cuScaleFactor(){
  if(s.mode==="m")return {f:0.3048,label:"feet \u2192 metres (\u00d7 0.3048)",suffix:"-M"};
  var v=parseFloat(String(s.custom).replace(/,/g,""));
  if(isNaN(v)||v<=0)return null;
- if(s.kind==="csf")return {f:1/v,label:"grid \u2192 ground: combined scale factor "+v+" \u2192 multiplier "+(1/v).toFixed(8),suffix:"-GROUND"};
- return {f:v,label:"custom factor \u00d7 "+v,suffix:"-SCALED"};
+ if(v<1)return {f:v,label:"ground \u2192 grid (\u00d7 "+v+")",suffix:"-GRID"};
+ if(v>1)return {f:v,label:"grid \u2192 ground (\u00d7 "+v+")",suffix:"-GROUND"};
+ return {f:1,label:"factor 1 \u2014 no change",suffix:"-SCALED"};
 }
 function cuRenderScale(){
  var host=document.getElementById("cu-scale");if(!host||!cu.lines)return;
  var s=cu.scale,fac=cuScaleFactor();
  var h="<div class='cu-manual cu-sc'><h3>Scale about a point</h3>";
+ if(s.sfPt&&!s.base)h+="<div class='cu-sfhit'>Scale factor found on point <b>"+esc(s.sfPt.pt)+"</b> ("+esc(s.sfPt.desc)+"): sf "+esc(s.sfPt.val)+" as written = ground \u2192 grid <button class='btn' onclick='cuScaleUseSf()'>Use this point + factor</button></div>";
  h+="<div class='row'><label>Scale point (point #)</label><input type='text' id='cu-scpt' value='"+esc(s.ptInput)+"' style='width:110px' placeholder='e.g. 1001'> <button class='btn' onclick='cuScaleConfirmPt()'>Use this point</button>"+(s.ptInput&&!s.base?"<span class='hint' style='margin:0'>SCPT found \u2014 confirm it</span>":"")+"</div>";
  h+="<details class='cu-scman'><summary>or enter the scale point manually</summary><div class='row'><label>N</label><input type='text' id='cu-scN' value='"+esc(s.mN)+"' style='width:130px'> <label>E</label><input type='text' id='cu-scE' value='"+esc(s.mE)+"' style='width:120px'> <label>Z</label><input type='text' id='cu-scZ' value='"+esc(s.mZ)+"' style='width:80px'> <button class='btn' onclick='cuScaleConfirmManual()'>Use these</button></div></details>";
  if(s.base){
@@ -2168,15 +2183,14 @@ function cuRenderScale(){
  }
  h+="<div class='row'><label>Scale</label><span class='seg cu-scmode'><button data-m='ft' class='"+(s.mode==="ft"?"on":"")+"'>m \u2192 ft</button><button data-m='m' class='"+(s.mode==="m"?"on":"")+"'>ft \u2192 m</button><button data-m='c' class='"+(s.mode==="c"?"on":"")+"'>Custom</button></span></div>";
  if(s.mode==="c"){
-  h+="<div class='row'><span class='seg cu-sckind'><button data-k='csf' class='"+(s.kind==="csf"?"on":"")+"'>Grid \u2192 ground (1 / CSF)</button><button data-k='typed' class='"+(s.kind==="typed"?"on":"")+"'>Factor as typed</button></span> <input type='text' id='cu-scf' value='"+esc(s.custom)+"' placeholder='"+(s.kind==="csf"?"0.99960338":"1.00039678")+"' style='width:130px'>"+(fac?"<span class='hint' style='margin:0'>multiplier "+fac.f.toFixed(8)+"</span>":"")+"</div>";
+  h+="<div class='row'><label>Factor</label><input type='text' id='cu-scf' value='"+esc(s.custom)+"' placeholder='0.99960238 or 1.00039778' style='width:140px'> <button class='btn' onclick='cuScaleInvert()' title='reciprocal'>1/x</button> <span class='hint cu-scdir' style='margin:0 0 0 8px'>"+(fac?esc(fac.label):"below 1 = ground \u2192 grid, above 1 = grid \u2192 ground")+"</span></div>";
  }
- h+="<div class='row'><label class='cu-cb'><input type='checkbox' id='cu-scelev' "+(s.elev?"checked":"")+"> scale elevations too (about 0)</label><span class='hint' style='margin:0'>"+(s.mode==="c"?"off by default for grid \u2192 ground \u2014 elevations are already ground values":"on for unit conversion")+"</span></div>";
- h+="<div class='cu-dl'><button class='btn pri' onclick='cuDownload(5)' "+(s.base&&fac?"":"disabled")+">Scaled file</button><button class='btn' onclick='cuDownload(6)' "+(s.base&&fac?"":"disabled")+">Scale log</button><span class='hint' style='margin:0'>"+(fac?esc(fac.label):"enter a valid factor")+"</span></div>";
+ h+="<div class='row'><label class='cu-cb'><input type='checkbox' id='cu-scelev' "+(s.elev?"checked":"")+"> scale elevations too (about 0)</label><span class='hint' style='margin:0 0 0 12px'>"+(s.mode==="c"?"off by default for ground/grid scaling \u2014 elevations are already ground values":"on for unit conversion")+"</span></div>";
+ h+="<div class='cu-dl'><button class='btn pri' onclick='cuDownload(5)' "+(s.base&&fac?"":"disabled")+">Scaled file</button><button class='btn' onclick='cuDownload(6)' "+(s.base&&fac?"":"disabled")+">Scale log</button><span class='hint cu-sclab' style='margin:0'>"+(fac?esc(fac.label):(s.base?"enter a valid factor":"confirm a scale point"))+"</span></div>";
  h+="<div class='hint'>N and E scale about the scale point (it keeps its coordinates); Z scales about zero. Descriptions come from the cleaned state; numbers, format, and line endings are otherwise untouched.</div></div>";
  host.innerHTML=h;
  host.querySelectorAll(".cu-scmode button").forEach(function(b){b.onclick=function(){s.mode=b.dataset.m;s.elev=(s.mode!=="c");cuRenderScale();};});
- host.querySelectorAll(".cu-sckind button").forEach(function(b){b.onclick=function(){s.kind=b.dataset.k;cuRenderScale();};});
- var f=document.getElementById("cu-scf");if(f)f.oninput=function(){s.custom=f.value;var fac2=cuScaleFactor();var sp=f.parentNode.querySelector(".hint");if(sp)sp.textContent=fac2?"multiplier "+fac2.f.toFixed(8):"enter a valid factor";document.querySelectorAll("#cu-scale .cu-dl .btn").forEach(function(bt){bt.disabled=!(s.base&&fac2);});};
+ var f=document.getElementById("cu-scf");if(f)f.oninput=function(){s.custom=f.value;var fac2=cuScaleFactor();var sp=host.querySelector(".cu-scdir");if(sp)sp.textContent=fac2?fac2.label:"below 1 = ground \u2192 grid, above 1 = grid \u2192 ground";var lab=host.querySelector(".cu-sclab");if(lab)lab.textContent=fac2?fac2.label:(s.base?"enter a valid factor":"confirm a scale point");host.querySelectorAll("#cu-scale .cu-dl .btn, .cu-sc .cu-dl .btn").forEach(function(bt){bt.disabled=!(s.base&&fac2);});};
  document.getElementById("cu-scelev").onchange=function(){s.elev=this.checked;cuRenderScale();};
  document.getElementById("cu-scpt").oninput=function(){s.ptInput=this.value;};
  ["cu-scN","cu-scE","cu-scZ"].forEach(function(id){var el=document.getElementById(id);el.oninput=function(){s["m"+id.slice(-1)]=el.value;};});
@@ -2211,6 +2225,9 @@ function cuScaledLine(c,fac){
  var w=r.wf;
  return w[1]+w[2]+w[3]+ns+w[5]+es+w[7]+zs+w[9]+desc;
 }
+function cuScaleInvert(){var s=cu.scale,v=parseFloat(String(s.custom).replace(/,/g,""));if(isNaN(v)||v<=0)return;s.custom=(1/v).toFixed(8).replace(/0+$/,"").replace(/\.$/,"");cuRenderScale();}
+function cuScaleUseSf(){var s=cu.scale;if(!s.sfPt)return;s.ptInput=s.sfPt.pt;s.mode="c";s.elev=false;s.custom=s.sfPt.val;cuScaleConfirmPt();}
+window.cuScaleInvert=cuScaleInvert;window.cuScaleUseSf=cuScaleUseSf;
 window.cuScaleConfirmPt=cuScaleConfirmPt;window.cuScaleConfirmManual=cuScaleConfirmManual;window.cuRenderScale=cuRenderScale;window.cuScaledLine=cuScaledLine;window.cuScaleFactor=cuScaleFactor;
 
 function cuDownload(which){
@@ -2224,6 +2241,9 @@ function cuDownload(which){
   var rows=comp.filter(function(c){return c.rec.point&&c.final!==null&&c.final!==c.rec.desc;});
   content=rows.map(function(c){return cuFinalLine(c)+(c.rec.eol||"\n");}).join("");
   fname=name+"-CORRECTIONS"+ext;
+ }else if(which===7){
+  content=cu.lines.map(function(r){return r.raw+r.eol;}).join("");
+  fname=name+".txt";
  }else if(which===5||which===6){
   var fac=cuScaleFactor();if(!fac||!cu.scale.base)return;
   if(which===5){
@@ -2274,7 +2294,88 @@ function cuDownload(which){
  a.href=URL.createObjectURL(new Blob([content],{type:"text/plain"}));
  a.download=fname;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
 }
+/* ---------- drawing package (.msz / .mbz) reader ---------- */
+function cuZipEntries(buf){
+ var u8=new Uint8Array(buf),dv=new DataView(buf),eocd=-1;
+ for(var i=u8.length-22;i>=Math.max(0,u8.length-65557);i--){if(dv.getUint32(i,true)===0x06054b50){eocd=i;break;}}
+ if(eocd<0)throw new Error("not a zip");
+ var count=dv.getUint16(eocd+10,true),p=dv.getUint32(eocd+16,true),td=new TextDecoder(),out=[];
+ for(var k=0;k<count;k++){
+  if(dv.getUint32(p,true)!==0x02014b50)break;
+  var nlen=dv.getUint16(p+28,true),elen=dv.getUint16(p+30,true),clen=dv.getUint16(p+32,true);
+  out.push({name:td.decode(u8.subarray(p+46,p+46+nlen)),method:dv.getUint16(p+10,true),mtime:dv.getUint16(p+12,true),mdate:dv.getUint16(p+14,true),csize:dv.getUint32(p+20,true),usize:dv.getUint32(p+24,true),loff:dv.getUint32(p+42,true)});
+  p+=46+nlen+elen+clen;
+ }
+ return out;
+}
+function cuZipRead(buf,e){
+ var u8=new Uint8Array(buf),dv=new DataView(buf),q=e.loff;
+ if(dv.getUint32(q,true)!==0x04034b50)return Promise.reject(new Error("bad zip entry"));
+ var start=q+30+dv.getUint16(q+26,true)+dv.getUint16(q+28,true);
+ var data=u8.slice(start,start+e.csize);
+ if(e.method===0)return Promise.resolve(data);
+ if(e.method!==8)return Promise.reject(new Error("unsupported compression"));
+ if(typeof DecompressionStream==="undefined")return Promise.reject(new Error("This browser can't decompress the package \u2014 use a current Chrome or Edge."));
+ var ds=new DecompressionStream("deflate-raw"),w=ds.writable.getWriter();
+ w.write(data);w.close();
+ return new Response(ds.readable).arrayBuffer().then(function(ab){return new Uint8Array(ab);});
+}
+function cuDosDate(e){
+ var y=((e.mdate>>9)&0x7f)+1980,m=(e.mdate>>5)&0xf,d=e.mdate&0x1f,hh=(e.mtime>>11)&0x1f,mm=(e.mtime>>5)&0x3f;
+ return y+"-"+("0"+m).slice(-2)+"-"+("0"+d).slice(-2)+" "+("0"+hh).slice(-2)+":"+("0"+mm).slice(-2);
+}
+function cuParseDbf(u8){
+ var dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
+ var nrec=dv.getUint32(4,true),hl=dv.getUint16(8,true),rl=dv.getUint16(10,true);
+ var td=new TextDecoder("latin1"),fields=[],pos=32,off=1;
+ while(pos<hl&&u8[pos]!==0x0D){
+  var nm=td.decode(u8.subarray(pos,pos+11)).split("\0")[0];
+  fields.push({name:nm,type:String.fromCharCode(u8[pos+11]),len:u8[pos+16],off:off});off+=u8[pos+16];pos+=32;
+ }
+ var recs=[];
+ for(var r=0;r<nrec;r++){
+  var b=hl+r*rl;if(b+rl>u8.length)break;
+  if(u8[b]===0x2A)continue;
+  var o={};fields.forEach(function(f){o[f.name]=td.decode(u8.subarray(b+f.off,b+f.off+f.len));});
+  recs.push(o);
+ }
+ return {fields:fields,recs:recs};
+}
+function cuDbfToPnezd(dbf){
+ var clean=function(s){return (s||"").replace(/[\x00-\x1f]/g,"").trim();};
+ var rows=[];
+ dbf.recs.forEach(function(o){
+  var num=clean(o.NUM);if(!num)return;
+  var N=parseFloat(o.NORTH),E=parseFloat(o.EAST),Z=parseFloat(o.ELEVATION);
+  if(isNaN(N)||isNaN(E))return;
+  rows.push({num:num,N:N,E:E,Z:isNaN(Z)?0:Z,d:clean(o.DESC)});
+ });
+ rows.sort(function(a,b){var an=/^\d+$/.test(a.num),bn=/^\d+$/.test(b.num);if(an&&bn)return parseInt(a.num)-parseInt(b.num);if(an)return -1;if(bn)return 1;return a.num<b.num?-1:1;});
+ return rows.map(function(r){return r.num+","+r.N.toFixed(5)+","+r.E.toFixed(5)+","+r.Z.toFixed(5)+","+r.d;}).join("\n")+(rows.length?"\n":"");
+}
+function cuLoadPackage(buf,name){
+ var host=document.getElementById("cu-body");
+ var isMbz=/\.mbz$/i.test(name);
+ var entries;
+ try{entries=cuZipEntries(buf);}catch(e){host.innerHTML="<div class='cu-err'>"+esc(name)+" isn't a readable zip package.</div>";return Promise.resolve();}
+ var prim=entries.filter(function(e){return /(^|\/)db_coord\.dbf$/i.test(e.name);})[0];
+ var conflicts=entries.filter(function(e){return /(^|\/)db_coord-[^\/]*\.dbf$/i.test(e.name);});
+ if(!prim){host.innerHTML="<div class='cu-err'>No coordinate database (db_coord.dbf) inside "+esc(name)+" \u2014 is this a MicroSurvey project package?</div>";return Promise.resolve();}
+ return cuZipRead(buf,prim).then(function(u8){
+  var dbf=cuParseDbf(u8),text=cuDbfToPnezd(dbf);
+  var proj=(prim.name.split("/")[0]||name).replace(/\.msj$/i,"");
+  cu.pkg={file:name,project:proj,date:cuDosDate(prim),count:text?text.trim().split("\n").length:0,conflicts:conflicts.length,backup:isMbz};
+  cuParse(text,proj+"-pts.txt");
+ }).catch(function(err){host.innerHTML="<div class='cu-err'>Couldn't read the package: "+esc(String(err.message||err))+"</div>";});
+}
 function cuLoadFile(file){
+ if(/\.(msz|mbz)$/i.test(file.name)){
+  var fr0=new FileReader();fr0.onload=function(){cuLoadPackage(fr0.result,file.name);};fr0.readAsArrayBuffer(file);return;
+ }
+ if(/\.dbf$/i.test(file.name)){
+  var fr1=new FileReader();fr1.onload=function(){var dbf=cuParseDbf(new Uint8Array(fr1.result));cu.pkg={file:file.name,project:file.name.replace(/\.dbf$/i,""),date:"",count:0,conflicts:0,backup:false};var t=cuDbfToPnezd(dbf);cu.pkg.count=t?t.trim().split("\n").length:0;cuParse(t,file.name.replace(/\.dbf$/i,"")+"-pts.txt");};fr1.readAsArrayBuffer(file);return;
+ }
+ cu.pkg=null;
  if(/\.rw5$/i.test(file.name)){
   document.getElementById("cu-body").innerHTML="<div class='cu-err'>That's the raw observation file (RW5) \u2014 it is never touched. Export the PNEZD points file and drop that in instead.</div>";
   return;
