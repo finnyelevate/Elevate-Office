@@ -238,6 +238,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .cu-chg{font:600 14px "Barlow Semi Condensed";letter-spacing:.05em}
 .cu-cls{font:13px "IBM Plex Mono",monospace;color:var(--faint);margin:4px 0 2px}
 .cu-cls b{color:var(--ink)}
+.cu-tickbar{display:flex;gap:8px;align-items:center;margin:14px 0 4px}
 .cu-sc{margin-top:18px}
 .cu-scbase{font:13px "IBM Plex Mono",monospace;padding:6px 0;color:var(--ink)}
 .cu-scman{font-size:12.5px;color:var(--faint);margin:4px 0 8px}
@@ -636,8 +637,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.11";
-const NEWS=["Points from a drawing package: drop a MicroSurvey .msz or .mbz and the points come straight out of its coordinate database \u2014 no CAD needed \u2014 ready for cleanup, extraction, or scaling, or download as a points file","Scale: one factor field \u2014 below 1 reads as ground \u2192 grid, above 1 as grid \u2192 ground, with a 1/x button; a booked monument carrying sf-0.9996\u2026 in its description is auto-proposed as the scale point with the factor pre-filled","Combined scale factor: geoid separation is no longer pre-filled \u2014 enter the value from your GNSS export or listing so the result matches to 8 decimals"];
+const BUILD="1.11.1";
+const NEWS=["Points from a drawing package: drop a MicroSurvey .msz or .mbz and the points come straight out of its coordinate database \u2014 no CAD needed \u2014 ready for cleanup, extraction, or scaling, or download as a points file","Scale: one factor field \u2014 below 1 reads as ground \u2192 grid, above 1 as grid \u2192 ground, with a 1/x button; a booked monument carrying sf-0.9996\u2026 in its description is auto-proposed as the scale point with the factor pre-filled","Combined scale factor: geoid separation is no longer pre-filled \u2014 enter the value from your GNSS export or listing so the result matches to 8 decimals","Fix: dragging a file onto the Points tab now goes to Points (it was being grabbed by the checklist importer); package banner offers the uncorrected points file explicitly, and Untick all / Tick all controls sit above the fixes"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1651,13 +1652,15 @@ function doImport(){
 /* drag & drop import */
 (function(){
  var dz=document.getElementById("dropzone"),depth=0;
- window.addEventListener("dragenter",function(e){e.preventDefault();depth++;dz.classList.add("show");});
+ function onPoints(){var v=document.getElementById("v-cleanup");return v&&v.classList.contains("on");}
+ window.addEventListener("dragenter",function(e){e.preventDefault();depth++;dz.textContent=onPoints()?"Drop points file or drawing package":"Drop checklist file to import";dz.classList.add("show");});
  window.addEventListener("dragover",function(e){e.preventDefault();});
  window.addEventListener("dragleave",function(e){depth--;if(depth<=0){depth=0;dz.classList.remove("show");}});
  window.addEventListener("drop",function(e){
   e.preventDefault();depth=0;dz.classList.remove("show");
   var file=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
   if(!file)return;
+  if(onPoints()){if(window.cuLoadFile)cuLoadFile(file);return;}
   var r=new FileReader();
   r.onload=function(){importFromText(r.result);};
   r.readAsText(file);
@@ -2062,7 +2065,7 @@ function cuRender(){
  var blanks=cu.lines.filter(function(r){return r.point&&r.desc.trim()==="";}).length;
  var h="";
  if(cu.pkg){
-  h+="<div class='cu-pkg'>Points read from <b>"+esc(cu.pkg.file)+"</b>"+(cu.pkg.date?" \u2014 package saved "+esc(cu.pkg.date):"")+(cu.pkg.backup?" <span class='cu-pkgwarn'>this is a backup (.mbz); the .msz is usually newer</span>":"")+(cu.pkg.conflicts?" <span class='cu-pkgwarn'>a share-conflict copy of the database also exists in the package \u2014 the primary was used</span>":"")+"<button class='btn' style='margin-left:10px' onclick='cuDownload(7)'>Points file</button></div>";
+  h+="<div class='cu-pkg'>Points read from <b>"+esc(cu.pkg.file)+"</b>"+(cu.pkg.date?" \u2014 package saved "+esc(cu.pkg.date):"")+(cu.pkg.backup?" <span class='cu-pkgwarn'>this is the automatic backup (.mbz) \u2014 a different snapshot from the .msz; check its date before trusting it as current</span>":"")+(cu.pkg.conflicts?" <span class='cu-pkgwarn'>a share-conflict copy of the database also exists in the package \u2014 the primary was used</span>":"")+"<button class='btn' style='margin-left:10px' onclick='cuDownload(7)'>Points file \u2014 uncorrected</button><span class='hint' style='margin:0 0 0 8px'>exactly as in the database, no fixes applied</span></div>";
  }
  h+="<div class='cu-sum'>"+esc(cu.name)+" \u2014 "+pts+" points, "+(cu.delim===","?"comma":"whitespace")+"-delimited"+(blanks?", "+blanks+" blank description"+(blanks>1?"s":"")+" (passed through)":"")+"</div>";
  h+="<div class='cu-chips'>"+cu.chips.map(function(c){
@@ -2093,6 +2096,12 @@ function cuRender(){
  document.getElementById("cu-mw").onchange=mprev;document.getElementById("cu-mrange").oninput=mprev;
  cuRenderReview();cuRenderScale();
 }
+function cuTickAll(on){
+ /* on=true restores defaults (fixes + manual rules ticked, suggestions unticked); on=false clears every tick */
+ cuCompute().forEach(function(c){c.steps.forEach(function(s){cu.ticks[s.key]=on?(s.tier!==2):false;});});
+ cuRenderReview();
+}
+window.cuTickAll=cuTickAll;
 function cuManAdd(){
  var f=document.getElementById("cu-mf").value,r=document.getElementById("cu-mr").value;
  if(!f)return;
@@ -2122,6 +2131,7 @@ function cuRenderReview(){
   });
   h+="</div>";
  });
+ if(order.length)h="<div class='cu-tickbar'><button class='btn' onclick='cuTickAll(false)'>Untick all</button><button class='btn' onclick='cuTickAll(true)'>Tick all fixes</button><span class='hint' style='margin:0 0 0 8px'>untick everything and the full cleaned file comes out uncorrected</span></div>"+h;
  if(!order.length)h+="<div class='cu-none'>No fixes or suggestions \u2014 the file is clean against the automap rules.</div>";
  document.getElementById("cu-review").innerHTML=h;
  document.querySelectorAll("#cu-review input[type=checkbox]").forEach(function(cb){
@@ -2369,6 +2379,9 @@ function cuLoadPackage(buf,name){
  }).catch(function(err){host.innerHTML="<div class='cu-err'>Couldn't read the package: "+esc(String(err.message||err))+"</div>";});
 }
 function cuLoadFile(file){
+ if(/\.msd$/i.test(file.name)){
+  document.getElementById("cu-body").innerHTML="<div class='cu-err'>That's a legacy .msd project (pre-2008 format). Open it once in MicroSurvey CAD and it converts to .msz, which this tool reads.</div>";return;
+ }
  if(/\.(msz|mbz)$/i.test(file.name)){
   var fr0=new FileReader();fr0.onload=function(){cuLoadPackage(fr0.result,file.name);};fr0.readAsArrayBuffer(file);return;
  }
