@@ -1,5 +1,13 @@
 # Elevate Office — changelog
 
+## Build 1.12 — 2026-09-18
+- Points tab: **Match points** — for the searches where it isn't apparent which found monument is which plan corner. Plan side = the file's calc points (1–99, CALC, blanks) or a second file; local side = the file's control-layer points (OCNT, OSPK, OLP, OIP…) or a second file, with each code shown as a chip so city control monuments can be excluded in a tap. Everything else in the file is ignored by the matcher.
+- Method: matches the *figure* the points make — triangles with equal side lengths, same handedness — then tests each candidate pairing by fitting rotation + translation (never scale) and counting how many more points it explains; the pairing explaining the most points with the smallest residuals wins. Tries 5, 10, 15, then 20 cm, stops at the first solution, and reports which step it needed and whether the pairing stays stable when loosened to 30 cm.
+- Output in the MS CAD Helmert layout (Local --> Plan, Vn, Ve, Dist, Direction), unmatched points on both sides (disturbed pins / monuments not found), and the rotation and translation as reference only. Copy pairs (`104 --> 7`) or the whole table; nothing is written to the change log — run the Helmert in MS CAD with the pairs you're confident in, as always.
+- Scale is strictly diagnostic: if nothing fits at scale 1 but the figure would fit with one side converted, the tool says which side looks like feet and points at the Scale panel. It never scales anything itself.
+- Verified on a real search (job 3621): 382-shot topo on assumed coordinates against 14 plan corners — nothing at 5 cm, solved at 10 cm with OLP 104 → 7, OLP 106 → 5, OIP 296 → 12 (residuals 3–6 cm, rotation 2.414°), stable to 30 cm; confirmed against the MS CAD Helmert. And on 23-2362: four found pins matched to calc corners at 5 cm in the same coordinate system.
+- Scale about a point and Match points now sit as collapsible panels under the downloads, closed by default.
+
 ## Build 1.11.1 — 2026-09-10
 - Fix: dragging a file anywhere on the Points tab now goes to the Points loader. The app-wide checklist import was grabbing every drop, so a dragged .msz showed "Drop checklist file to import" and never reached the Points tab (Choose file worked; drag didn't). The overlay now says "Drop points file or drawing package" on Points and routes accordingly; on Checklists it behaves as before.
 - Points: the package banner's button is now "Points file — uncorrected" with a note that it's exactly what the database holds, no fixes applied — the quick path when an .msz is dropped just to get a points file. Above the fixes, Untick all / Tick all fixes controls: untick everything and the full cleaned file comes out uncorrected too.
