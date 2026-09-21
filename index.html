@@ -249,7 +249,10 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .cu-fold[open]>summary::before{content:"\25BE"}
 .cu-fold>.cu-manual{border:none;margin:0;border-top:1px solid var(--hair)}
 .cu-fold>.cu-manual>h3{display:none}
-.cu-mtsrc{font:13px "IBM Plex Mono",monospace}
+.cu-mtsrc{font:13px "IBM Plex Mono",monospace;margin:0 10px;display:inline-block;min-width:260px}
+.cu-mt .row>label:first-child{min-width:82px;display:inline-block}
+.jobnote{width:100%;color:#a32020;font-size:13px;padding:6px 2px 0}
+#tb-job.needjob{outline:2px solid #a32020;outline-offset:2px}
 .cu-mtsum{font-size:13.5px;margin:10px 0 6px}
 .cu-ok{color:#2a7a3a;font-weight:600}
 .cu-mtt{border-collapse:collapse;font:12.5px "IBM Plex Mono",monospace;margin:4px 0}
@@ -357,6 +360,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
     <div class="tbar">
       <button class="btn pri" id="savebtn" onclick="doExportPDF()">Save PDF to job file</button>
       <button class="btn" onclick="doExport()">Save as JSON</button>
+      <div id="jobnote" class="jobnote" style="display:none"></div>
       <button class="btn" onclick="doImport()">Import</button>
       <button class="btn ghost" onclick="window.print()">Print</button>
       <div class="spacer"></div>
@@ -651,8 +655,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.12";
-const NEWS=["Points tab: Match points \u2014 finds which found monuments correspond to which plan calc corners when it isn\u2019t apparent, by matching the figure they make (rotation + translation only, never scale)","Tries 5, 10, 15, 20 cm and reports which tolerance it needed and whether the pairing stays stable when loosened; results in the MS CAD Helmert layout with unmatched points listed on both sides \u2014 copy the pairs, run the Helmert in MS CAD as usual","Scale and Match now sit as collapsible panels under the downloads"];
+const BUILD="1.12.1";
+const NEWS=["Points tab: Match points \u2014 finds which found monuments correspond to which plan calc corners when it isn\u2019t apparent, by matching the figure they make (rotation + translation only, never scale)","Tries 5, 10, 15, 20 cm and reports which tolerance it needed and whether the pairing stays stable when loosened; results in the MS CAD Helmert layout with unmatched points listed on both sides \u2014 copy the pairs, run the Helmert in MS CAD as usual","Scale and Match now sit as collapsible panels under the downloads","Save PDF / Save as JSON now require a job number \u2014 the field is highlighted if it\u2019s empty"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1624,8 +1628,18 @@ document.addEventListener("keydown",function(e){
 });
 
 /* ---------- export / import ---------- */
+function needJob(){
+ if(st.job&&st.job.trim())return true;
+ var j=document.getElementById("tb-job");
+ j.classList.add("needjob");j.focus();
+ var n=document.getElementById("jobnote");
+ if(n){n.textContent="Enter the job number before saving to the job file.";n.style.display="block";}
+ j.addEventListener("input",function h(){j.classList.remove("needjob");if(n)n.style.display="none";j.removeEventListener("input",h);});
+ return false;
+}
 function doExport(){
  if(!st.cl){alert("Open a checklist first.");return;}
+ if(!needJob())return;
  persist();
  var data={app:"elevate-office",v:2,checklist:st.cl.id,name:st.cl.name,sig:cksig(st.cl),
   job:st.job,opened:st.opened,marks:st.marks,notes:st.notes,inst:st.inst,saved:new Date().toISOString(),build:BUILD};
@@ -1805,6 +1819,7 @@ function countChecked(){var d=0;eachKey(st.cl,st.inst,function(k){if(st.marks[k]
 function countTotal(){return totalFor(st.cl,st.inst);}
 function doExportPDF(){
  if(!st.cl){alert("Open a checklist first.");return;}
+ if(!needJob())return;
  persist();
  var pdf=buildChecklistPDF();
  st.exported=new Date().toISOString();persist(st.exported);

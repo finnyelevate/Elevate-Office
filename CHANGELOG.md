@@ -1,5 +1,9 @@
 # Elevate Office — changelog
 
+## Build 1.12.1 — 2026-09-21
+- Save PDF to job file and Save as JSON now require a job number. With the field empty, nothing is written: the Job No. box is outlined red and focused with a note beneath the buttons, and the highlight clears as soon as you type. Prevents exports that can't be filed or found later.
+- Points: Match points panel labels no longer run into their values, and the two Second file buttons line up.
+
 ## Build 1.12 — 2026-09-18
 - Points tab: **Match points** — for the searches where it isn't apparent which found monument is which plan corner. Plan side = the file's calc points (1–99, CALC, blanks) or a second file; local side = the file's control-layer points (OCNT, OSPK, OLP, OIP…) or a second file, with each code shown as a chip so city control monuments can be excluded in a tap. Everything else in the file is ignored by the matcher.
 - Method: matches the *figure* the points make — triangles with equal side lengths, same handedness — then tests each candidate pairing by fitting rotation + translation (never scale) and counting how many more points it explains; the pairing explaining the most points with the smallest residuals wins. Tries 5, 10, 15, then 20 cm, stops at the first solution, and reports which step it needed and whether the pairing stays stable when loosened to 30 cm.
