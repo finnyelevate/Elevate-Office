@@ -213,6 +213,16 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .wnote b{font-family:"Barlow Semi Condensed";letter-spacing:.03em}
 .cu-drop{border:2px dashed var(--hair);padding:26px 18px;text-align:center;color:var(--faint);font-size:14px;max-width:760px;background:var(--panel);margin-bottom:14px}
 .cu-drop.over{border-color:var(--blue);color:var(--blue)}
+.cu-drop.has{padding:12px 18px;font-size:13px}
+.cu-shelf{display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:760px;margin:0 0 12px}
+.cu-src{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--hair);background:var(--panel);padding:5px 6px 5px 8px;font:13px "IBM Plex Mono",monospace;cursor:pointer}
+.cu-src.on{border-color:var(--blue);background:#eef3f9;color:var(--ink)}
+.cu-srck{font:600 10px "Barlow Semi Condensed";letter-spacing:.08em;background:var(--ink);color:#fff;padding:1px 5px}
+.cu-srcn{color:var(--faint)}
+.cu-srcrep{color:var(--blue)}
+.cu-srcx{border:none;background:none;color:var(--faint);cursor:pointer;font-size:12px;padding:0 2px}
+.cu-srcx:hover{color:#a32020}
+.cu-srcsel{font:13px "IBM Plex Mono",monospace;padding:4px 6px;margin:0 8px 0 0;max-width:280px}
 .cu-sum{font:600 14px "Barlow Semi Condensed";letter-spacing:.04em;margin:6px 0 8px}
 .cu-chips{display:flex;flex-wrap:wrap;gap:6px;max-width:760px}
 .cu-chip{border:1px solid var(--hair);background:var(--panel);padding:5px 10px;font:500 12.5px "IBM Plex Mono",monospace;color:var(--faint);cursor:pointer}
@@ -260,6 +270,10 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .cu-mtt td{padding:3px 10px 3px 0;border-bottom:1px solid var(--hair)}
 .cu-mtt .cu-mtcode{color:var(--faint)}
 .cu-mtun{font-size:13px;color:var(--faint);margin:8px 0 4px}
+.cu-side{border:1px dashed var(--hair);padding:6px 10px;margin:6px 0}
+.cu-stage{font:600 12px "Barlow Semi Condensed";letter-spacing:.09em;text-transform:uppercase;color:var(--blue);margin:12px 0 2px}
+.cu-idbad{color:#a32020;font-weight:700}
+.cu-idwarn{background:#fdf6e7;border-left:3px solid #c96a1b;color:#7a5215;font-size:12.5px;padding:6px 10px;margin:6px 0}
 .cu-sfhit{background:#eef3f9;border-left:3px solid var(--blue);padding:8px 10px;margin:4px 0 10px;font-size:13px}
 .cu-pkg{background:var(--panel);border:1px solid var(--hair);padding:9px 12px;margin:0 0 10px;font-size:13.5px;max-width:760px}
 .cu-pkgwarn{display:block;color:#7a5215;font-size:12.5px;margin-top:3px}
@@ -599,14 +613,14 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 
 <div class="view" id="v-training">
   <h1 class="pg">Training</h1>
-  <p class="sub">Walkthrough videos for office work, grouped by topic. Links open the video (Vidyard, YouTube and others); a few carry a second reference link.</p>
+  <p class="sub">Walkthrough videos for office work, grouped by topic. Links open the video (Vidyard, SharePoint and others); a few carry a second reference link. <a href="https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/" target="_blank" rel="noopener">Open the whole library on SharePoint \u2197</a></p>
   <div id="trainhost"></div>
 </div>
 
 <div class="view" id="v-cleanup">
   <h1 class="pg">Points — cleanup &amp; extraction</h1>
   <div class="warnline" style="max-width:760px">Descriptions only — point numbers, coordinates, and elevations are never touched, and the raw RW5 is never the input. Output files preserve the original delimiter, spacing, and line endings byte for byte outside the accepted changes. Extraction splits the cleaned file into a control + calc file and a client file (check shots drop from both).</div>
-  <div id="cu-drop" class="cu-drop">Drop the exported PNEZD points file here (.txt / .csv / .asc) — or a MicroSurvey drawing package (.msz / .mbz) and the points come straight out of its coordinate database<br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="cu-file" accept=".txt,.csv,.asc,.dat,.msz,.mbz,.dbf,text/plain" style="display:none"></label></div>
+  <div id="cu-drop" class="cu-drop">Drop points files (.txt / .csv / .asc) or MicroSurvey drawing packages (.msz / .mbz) here — each one is added to the shelf; re-dropping the same file name replaces it<br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="cu-file" accept=".txt,.csv,.asc,.dat,.msz,.mbz,.dbf,text/plain" style="display:none"></label></div>
   <div id="cu-body"></div>
 </div>
 
@@ -655,8 +669,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.12.1";
-const NEWS=["Points tab: Match points \u2014 finds which found monuments correspond to which plan calc corners when it isn\u2019t apparent, by matching the figure they make (rotation + translation only, never scale)","Tries 5, 10, 15, 20 cm and reports which tolerance it needed and whether the pairing stays stable when loosened; results in the MS CAD Helmert layout with unmatched points listed on both sides \u2014 copy the pairs, run the Helmert in MS CAD as usual","Scale and Match now sit as collapsible panels under the downloads","Save PDF / Save as JSON now require a job number \u2014 the field is highlighted if it\u2019s empty"];
+const BUILD="1.14";
+const NEWS=["Match points: a General mode for stitching any two point sets \u2014 pick the numbering blocks for each side (the tool proposes the two that sit far apart), second files on either side, control-codes filter","Chained stages: after a match, Carry A + B forward makes the combined set side A for the next match \u2014 GPS \u2192 ground control, then ground + GPS \u2192 calc, each with its own pairs","Monument-ID hints: matching monument numbers on both sides seed the pairing and show \u2713ID; where an ID disagrees with the figure it\u2019s flagged \u2014 confusion about which control got tied, resolved by evidence","Descriptions on both sides in results, same-coordinate-system detection, and a faster engine for larger sets. The default Calc \u2192 tied-in mode is unchanged.","Points tab file shelf: every file or drawing package you drop is added, not replaced \u2014 tap a file to make it the one cleanup/extraction/scale act on, Reset clears the shelf, and Match points picks each side from any loaded file (no more Second file buttons); re-dropping the same file name replaces that entry","Training tab: 18 more videos added \u2014 the ones stored directly in SharePoint (Elevate Office app walkthroughs, Automap, area calc, Elevate system, and more) \u2014 each opening in the SharePoint player, plus a link to the whole library"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1879,7 +1893,33 @@ function cuClassify(rec,desc,steps){
 }
 var CU_KEYSET={};CU_KEYS.forEach(function(k){CU_KEYSET[k.toUpperCase()]=1;});CU_PENDING.forEach(function(k){CU_KEYSET[k]=1;});
 var CU_KEYS_BYLEN=CU_KEYS.slice().sort(function(a,b){return b.length-a.length;});
-var cu={lines:null,name:"",delim:",",chips:[],focus:{},unitAns:"m",ticks:{},manual:[],hasTrees:false};
+function cuNewState(){return {lines:null,name:"",delim:",",chips:[],focus:{},unitAns:"m",ticks:{},manual:[],hasTrees:false,pkg:null,scale:null,match:null};}
+var cu=cuNewState(),cuSources=[],cuMatch=null,cuPendingPkg=null,cuSeq=0;
+function cuMatchNew(){return {mode:"calc",planSrc:null,localSrc:null,excl:{},result:null,open:false,stages:[],autoDone:false,gen:{A:{carried:null,src:null,blocks:{},ctrlOnly:false,label:""},B:{carried:null,src:null,blocks:{},ctrlOnly:false,label:""}}};}
+function cuShelfAdd(name,kind,state){
+ var ex=cuSources.find(function(s){return s.name===name;});
+ if(ex){ex.state=state;ex.kind=kind;ex.replaced=true;cuSources.forEach(function(s){s.active=(s===ex);});return ex;}
+ var s={id:"s"+(++cuSeq),name:name,kind:kind,state:state,active:true};
+ cuSources.forEach(function(x){x.active=false;});cuSources.push(s);return s;
+}
+function cuActive(){return cuSources.find(function(s){return s.active;})||null;}
+function cuStateOf(id){var s=cuSources.find(function(x){return x.id===id;});return s?s.state:null;}
+function cuActivate(id){var s=cuSources.find(function(x){return x.id===id;});if(!s)return;cuSources.forEach(function(x){x.active=(x===s);});cu=s.state;cuRender();}
+function cuShelfRemove(id){
+ var ix=cuSources.findIndex(function(x){return x.id===id;});if(ix<0)return;
+ var wasActive=cuSources[ix].active;cuSources.splice(ix,1);
+ if(cuMatch){["A","B"].forEach(function(k){if(cuMatch.gen[k].src===id){cuMatch.gen[k].src=null;cuMatch.gen[k].blocks={};}});if(cuMatch.planSrc===id)cuMatch.planSrc=null;if(cuMatch.localSrc===id)cuMatch.localSrc=null;cuMatch.result=null;cuMatch.autoDone=false;}
+ if(!cuSources.length){cuShelfReset();return;}
+ if(wasActive){var last=cuSources[cuSources.length-1];last.active=true;cu=last.state;}
+ cuRender();
+}
+function cuShelfReset(){cuSources=[];cuMatch=null;cu=cuNewState();var dz=document.getElementById("cu-drop");if(dz)dz.classList.remove("has");cuRender();}
+function cuPtsOf(state){var keep=cu;cu=state;var pts;try{pts=cuTagCodes(cuFilePts());}finally{cu=keep;}return pts;}
+function cuShelfHtml(){
+ if(!cuSources.length)return "";
+ return "<div class='cu-shelf'>"+cuSources.map(function(s){var n=s.state.lines?s.state.lines.filter(function(r){return r.point;}).length:0;return "<span class='cu-src"+(s.active?" on":"")+"' data-id='"+s.id+"' title='switch to this file'><span class='cu-srck'>"+esc(s.kind.toUpperCase())+"</span>"+esc(s.name)+" <span class='cu-srcn'>"+n+"</span>"+(s.replaced?" <span class='cu-srcrep' title='re-dropped: replaced the earlier copy'>\u21bb</span>":"")+"<button class='cu-srcx' data-id='"+s.id+"' title='remove from shelf'>\u2715</button></span>";}).join("")+"<button class='btn cu-shelfreset' onclick='cuShelfReset()'>Reset</button><span class='hint' style='margin:0 0 0 8px'>drop more files to add them \u2014 the highlighted one is what cleanup, extraction, and scale act on; Match picks sides from all of them</span></div>";
+}
+window.cuShelfReset=cuShelfReset;window.cuActivate=cuActivate;window.cuShelfRemove=cuShelfRemove;window.cuStateOf=cuStateOf;window.cuPtsOf=cuPtsOf;
 
 function cuKnownLead(desc){
  var u=desc.toUpperCase();
@@ -1889,6 +1929,7 @@ function cuKnownLead(desc){
  return null;
 }
 function cuParse(text,name){
+ cu=cuNewState();cu.pkg=cuPendingPkg||null;cuPendingPkg=null;
  var rawLines=text.split(/(?<=\n)/);
  if(rawLines.length&&rawLines[rawLines.length-1]==="")rawLines.pop();
  var commaVotes=0,wsVotes=0;
@@ -1939,7 +1980,7 @@ function cuParse(text,name){
  });
  cu.lines=lines;cu.name=name;cu.delim=delim;cu.ticks={};cu.manual=[];cu.unitAns="m";
  cu.scale={base:null,mode:"ft",custom:"",elev:true,ptInput:"",mN:"",mE:"",mZ:"0",sfPt:null};
- cu.match={planFile:null,localFile:null,excl:{},result:null,open:false};
+ if(!cuMatch)cuMatch=cuMatchNew();cu.match=cuMatch;cuMatch.result=null;cuMatch.autoDone=false;
  var scpt=lines.find(function(r){return r.point&&/^(SCPT|SCALE\s*(PT|POINT))(\s|$)/i.test(r.desc.trim());});
  if(scpt)cu.scale.ptInput=scpt.pt;
  lines.some(function(r){
@@ -1950,6 +1991,8 @@ function cuParse(text,name){
  });
  cuBuildChips();
  cu.hasTrees=lines.some(function(r){if(!r.point)return false;var t=r.desc.trim().split(/\s+/)[0]||"";return CU_TREES.indexOf(t.toUpperCase())>=0;});
+ cuShelfAdd(cu.pkg?cu.pkg.file:name,cu.pkg?cu.pkg.kind:"txt",cu);
+ var dz0=document.getElementById("cu-drop");if(dz0)dz0.classList.add("has");
  cuRender();
 }
 function cuBuildChips(){
@@ -2093,7 +2136,7 @@ function cuRender(){
  if(!cu.lines){host.innerHTML="";return;}
  var pts=cu.lines.filter(function(r){return r.point;}).length;
  var blanks=cu.lines.filter(function(r){return r.point&&r.desc.trim()==="";}).length;
- var h="";
+ var h=cuShelfHtml();
  if(cu.pkg){
   h+="<div class='cu-pkg'>Points read from <b>"+esc(cu.pkg.file)+"</b>"+(cu.pkg.date?" \u2014 package saved "+esc(cu.pkg.date):"")+(cu.pkg.backup?" <span class='cu-pkgwarn'>this is the automatic backup (.mbz) \u2014 a different snapshot from the .msz; check its date before trusting it as current</span>":"")+(cu.pkg.conflicts?" <span class='cu-pkgwarn'>a share-conflict copy of the database also exists in the package \u2014 the primary was used</span>":"")+"<button class='btn' style='margin-left:10px' onclick='cuDownload(7)'>Points file \u2014 uncorrected</button><span class='hint' style='margin:0 0 0 8px'>exactly as in the database, no fixes applied</span></div>";
  }
@@ -2107,7 +2150,9 @@ function cuRender(){
  h+="<div class='cu-manual'><h3>Add your own fix</h3><div class='row'><input type='text' id='cu-mf' placeholder='find' style='width:130px'> <span>\u2192</span> <input type='text' id='cu-mr' placeholder='replace' style='width:130px'> <label class='cu-cb'><input type='checkbox' id='cu-mw' checked> whole token</label> <input type='text' id='cu-mrange' placeholder='point range (optional)' style='width:150px'> <button class='btn' onclick='cuManAdd()'>Add rule</button></div><div id='cu-mprev' class='hint'></div></div>";
  h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div><div id='cu-scale'></div><div id='cu-match'></div>";
  host.innerHTML=h;
- host.querySelectorAll(".cu-chip").forEach(function(b){b.onclick=function(){var id=parseInt(b.dataset.c);cu.focus[id]=!cu.focus[id];cuRender();};});
+ host.querySelectorAll(".cu-src").forEach(function(el){el.onclick=function(e){if(e.target.classList.contains("cu-srcx"))return;cuActivate(el.dataset.id);};});
+ host.querySelectorAll(".cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();cuShelfRemove(b.dataset.id);};});
+ host.querySelectorAll(".cu-chips .cu-chip[data-c]").forEach(function(b){b.onclick=function(){var id=parseInt(b.dataset.c);cu.focus[id]=!cu.focus[id];cuRender();};});
  host.querySelectorAll(".cu-units .seg button").forEach(function(b){b.onclick=function(){cu.unitAns=b.dataset.u;cuRender();};});
  var mf=document.getElementById("cu-mf"),mr=document.getElementById("cu-mr");
  function mprev(){
@@ -2198,18 +2243,53 @@ function cuParsePtsText(text){
  });
  return out;
 }
+function cuBlocks(pts){
+ var nums=[],nn=[];
+ pts.forEach(function(p){if(/^\d+$/.test(p.pt))nums.push(p);else nn.push(p);});
+ nums.sort(function(a,b){return parseInt(a.pt)-parseInt(b.pt);});
+ var blocks=[],cur=null;
+ nums.forEach(function(p){var n=parseInt(p.pt);if(cur&&n<=cur.hi+1){cur.hi=Math.max(cur.hi,n);cur.pts.push(p);}else{cur={lo:n,hi:n,pts:[p]};blocks.push(cur);}});
+ if(nn.length)blocks.push({lo:null,hi:null,pts:nn,nn:true});
+ blocks.forEach(function(b,i){b.id=String(i);b.label=(b.nn?"non-numeric":(b.lo===b.hi?String(b.lo):b.lo+"\u2013"+b.hi))+" \u00b7 "+b.pts.length;var cn=0,ce=0;b.pts.forEach(function(p){cn+=p.N;ce+=p.E;});b.cN=cn/b.pts.length;b.cE=ce/b.pts.length;});
+ return blocks;
+}
+function cuFilePts(){
+ var out=[];
+ cuCompute().forEach(function(c){if(!c.rec.point)return;var co=cuCoordOf(c.rec);if(!co)return;out.push({pt:c.rec.pt,N:co.n,E:co.e,desc:(c.final!==null?c.final:c.rec.desc).trim(),cls:cuClassify(c.rec,c.final!==null?c.final:c.rec.desc,c.steps)});});
+ return out;
+}
+function cuTagCodes(pts){pts.forEach(function(p){p.code=(cuKnownLead(p.desc)||p.desc.split(/\s+/)[0]||"?").toUpperCase();if(p.cls===undefined)p.cls=(p.code&&CU_CONTROLSET[p.code])?"control":"topo";});return pts;}
+function cuMonId(p){if(!p.code||!CU_CONTROLSET[p.code])return null;var rest=p.desc.slice(p.desc.toUpperCase().indexOf(p.code)+p.code.length).trim().split(/\s+/)[0]||"";return rest&&/\d/.test(rest)?rest.toUpperCase():null;}
+function cuSrcState(id){return (id&&cuStateOf(id))||cu;}
+function cuGenSideSet(side){
+ var g=cu.match.gen,S=g[side];
+ if(S.carried)return S.carried.slice();
+ var pts=cuPtsOf(cuSrcState(S.src));
+ var blocks=cuBlocks(pts);
+ var sel=Object.keys(S.blocks).filter(function(k){return S.blocks[k];});
+ if(sel.length){var keep={};blocks.forEach(function(b){if(S.blocks[b.id])b.pts.forEach(function(p){keep[p.pt]=1;});});pts=pts.filter(function(p){return keep[p.pt];});}
+ if(S.ctrlOnly)pts=pts.filter(function(p){return p.cls==="control";});
+ return pts;
+}
 function cuMatchSides(){
- var m=cu.match,plan=[],local=[];
- if(m.planFile)plan=m.planFile.pts.slice();
- else{
-  cuCompute().forEach(function(c){if(c.rec.point&&cuClassify(c.rec,c.final!==null?c.final:c.rec.desc,c.steps)==="calc"){var co=cuCoordOf(c.rec);if(co)plan.push({pt:c.rec.pt,N:co.n,E:co.e,desc:c.rec.desc.trim()});}});
+ var m=cu.match;
+ if(m.mode==="general"){
+  var A=cuGenSideSet("A"),B=cuGenSideSet("B");
+  B=B.filter(function(p){return !m.excl[p.code];});
+  return {plan:A,local:B};
  }
- if(m.localFile){local=m.localFile.pts.filter(function(p){var k=cuKnownLead(p.desc);return k&&CU_CONTROLSET[k.toUpperCase()];});}
- else{
-  cuCompute().forEach(function(c){if(c.rec.point&&cuClassify(c.rec,c.final!==null?c.final:c.rec.desc,c.steps)==="control"){var co=cuCoordOf(c.rec);if(co)local.push({pt:c.rec.pt,N:co.n,E:co.e,desc:c.rec.desc.trim()});}});
- }
- local.forEach(function(p){p.code=(cuKnownLead(p.desc)||p.desc.split(/\s+/)[0]||"?").toUpperCase();});
+ var ds=cuDefaultSides();
+ var plan=cuPtsOf(cuSrcState(ds.plan)).filter(function(p){return p.cls==="calc";});
+ var local=cuPtsOf(cuSrcState(ds.local)).filter(function(p){return p.cls==="control";});
  return {plan:plan,local:local};
+}
+function cuDefaultSides(){
+ var m=cu.match;
+ if(m.planSrc&&m.localSrc)return {plan:m.planSrc,local:m.localSrc};
+ var act=cuActive();
+ var bestP=null,bestL=null,nP=-1,nL=-1;
+ cuSources.forEach(function(s){var pts=cuPtsOf(s.state);var c=pts.filter(function(p){return p.cls==="calc";}).length,l=pts.filter(function(p){return p.cls==="control";}).length;if(c>nP||(c===nP&&s.active)){nP=c;bestP=s.id;}if(l>nL||(l===nL&&s.active)){nL=l;bestL=s.id;}});
+ return {plan:m.planSrc||bestP||(act&&act.id),local:m.localSrc||bestL||(act&&act.id)};
 }
 function cuRigidFit(pairs){
  var n=pairs.length,cpx=0,cpy=0,cfx=0,cfy=0;
@@ -2222,16 +2302,40 @@ function cuRigidFit(pairs){
 }
 function cuRigidApply(T,f){var c=Math.cos(T.th),s=Math.sin(T.th);return {N:c*f.N-s*f.E+T.tx,E:s*f.N+c*f.E+T.ty};}
 function cuDist(a,b){return Math.hypot(a.N-b.N,a.E-b.E);}
-function cuMatchSolve(plan,local,tol){
+function cuInliers(T,plan,local,tol,grid){
+ var pairs=[],used={};
+ var cell=grid.cell,map=grid.map;
+ local.forEach(function(f,ix){
+  var a=cuRigidApply(T,f),bi=-1,bd=Infinity;
+  var gx=Math.floor(a.N/cell),gy=Math.floor(a.E/cell);
+  for(var dx=-1;dx<=1;dx++)for(var dy=-1;dy<=1;dy++){var lst=map[(gx+dx)+","+(gy+dy)];if(!lst)continue;for(var k=0;k<lst.length;k++){var pi=lst[k];if(used[pi])continue;var d=Math.hypot(plan[pi].N-a.N,plan[pi].E-a.E);if(d<bd){bd=d;bi=pi;}}}
+  if(bi>=0&&bd<=tol){pairs.push({p:plan[bi],f:f,d:bd});used[bi]=1;}
+ });
+ return pairs;
+}
+function cuGrid(plan,tol){var cell=Math.max(tol*2,0.5),map={};plan.forEach(function(p,i){var k=Math.floor(p.N/cell)+","+Math.floor(p.E/cell);(map[k]=map[k]||[]).push(i);});return {cell:cell,map:map};}
+function cuScore(T,plan,local,tol,grid,best){
+ var pairs=cuInliers(T,plan,local,tol,grid);
+ if(pairs.length<3||(best&&pairs.length<best.pairs.length))return best;
+ var T2=cuRigidFit(pairs);pairs=cuInliers(T2,plan,local,tol,grid);
+ if(pairs.length<3)return best;
+ var ss=0;pairs.forEach(function(q){q.d=cuDist(q.p,cuRigidApply(T2,q.f));ss+=q.d*q.d;});
+ var rms=Math.sqrt(ss/pairs.length);
+ if(!best||pairs.length>best.pairs.length||(pairs.length===best.pairs.length&&rms<best.rms))return {pairs:pairs,T:T2,rms:rms,tol:tol};
+ return best;
+}
+/* triangle engine (small sets) */
+function cuMatchSolveTri(plan,local,tol,seed){
  if(plan.length<3||local.length<3)return null;
- var best=null;
+ var best=null,grid=cuGrid(plan,tol);
+ if(seed&&seed.length>=2)best=cuScore(cuRigidFit(seed),plan,local,tol,grid,best);
  var lp=[];
  for(var i=0;i<local.length;i++)for(var j=0;j<local.length;j++)if(i!==j)lp.push({i:i,j:j,d:cuDist(local[i],local[j])});
  function area(a,b,c){return (b.N-a.N)*(c.E-a.E)-(b.E-a.E)*(c.N-a.N);}
  for(var a=0;a<plan.length;a++)for(var b=a+1;b<plan.length;b++)for(var c=b+1;c<plan.length;c++){
   var P=[plan[a],plan[b],plan[c]],dab=cuDist(P[0],P[1]),dbc=cuDist(P[1],P[2]),dac=cuDist(P[0],P[2]);
   if(Math.min(dab,dbc,dac)<1)continue;
-  var pA=area(P[0],P[1],P[2]);if(Math.abs(pA)<0.5*dab*dbc*0.02)continue; /* skip near-collinear */
+  var pA=area(P[0],P[1],P[2]);if(Math.abs(pA)<0.5*dab*dbc*0.02)continue;
   for(var k=0;k<lp.length;k++){
    var e=lp[k];if(Math.abs(e.d-dab)>tol)continue;
    for(var m2=0;m2<local.length;m2++){
@@ -2239,94 +2343,189 @@ function cuMatchSolve(plan,local,tol){
     var F=[local[e.i],local[e.j],local[m2]];
     if(Math.abs(cuDist(F[1],F[2])-dbc)>tol||Math.abs(cuDist(F[0],F[2])-dac)>tol)continue;
     if(pA*area(F[0],F[1],F[2])<=0)continue;
-    var T=cuRigidFit([{p:P[0],f:F[0]},{p:P[1],f:F[1]},{p:P[2],f:F[2]}]);
-    var pairs=[],used={};
-    plan.forEach(function(p){
-     var bi=-1,bd=Infinity;
-     local.forEach(function(f,ix){if(used[ix])return;var d=cuDist(p,cuRigidApply(T,f));if(d<bd){bd=d;bi=ix;}});
-     if(bi>=0&&bd<=tol){pairs.push({p:p,f:local[bi]});used[bi]=1;}
-    });
-    if(pairs.length>=3){
-     var T2=cuRigidFit(pairs),ss=0;
-     pairs.forEach(function(q){var d=cuDist(q.p,cuRigidApply(T2,q.f));q.d=d;ss+=d*d;});
-     var rms=Math.sqrt(ss/pairs.length);
-     if(!best||pairs.length>best.pairs.length||(pairs.length===best.pairs.length&&rms<best.rms))best={pairs:pairs,T:T2,rms:rms,tol:tol};
-    }
+    best=cuScore(cuRigidFit([{p:P[0],f:F[0]},{p:P[1],f:F[1]},{p:P[2],f:F[2]}]),plan,local,tol,grid,best);
    }
   }
  }
  return best;
 }
+/* pair engine (larger sets) */
+function cuMatchSolvePair(plan,local,tol,seed){
+ if(plan.length<3||local.length<3)return null;
+ var best=null,grid=cuGrid(plan,tol);
+ if(seed&&seed.length>=2)best=cuScore(cuRigidFit(seed),plan,local,tol,grid,best);
+ function pairs(S){var o=[];for(var i=0;i<S.length;i++)for(var j=i+1;j<S.length;j++){var d=cuDist(S[i],S[j]);if(d>=1)o.push({i:i,j:j,d:d});}o.sort(function(a,b){return a.d-b.d;});return o;}
+ var pa=pairs(plan),pb=pairs(local),hyp=[];
+ var jb=0;
+ for(var ia=0;ia<pa.length;ia++){
+  var A=pa[ia];
+  while(jb<pb.length&&pb[jb].d<A.d-tol)jb++;
+  for(var k=jb;k<pb.length&&pb[k].d<=A.d+tol;k++)hyp.push([A,pb[k]]);
+ }
+ var CAP=6000;
+ hyp.sort(function(a,b){return b[0].d-a[0].d;});
+ if(hyp.length>CAP)hyp=hyp.slice(0,CAP);
+ var target=Math.min(plan.length,local.length)*0.9;
+ function Tfrom(P0,P1,F0,F1){
+  var th=Math.atan2(P1.E-P0.E,P1.N-P0.N)-Math.atan2(F1.E-F0.E,F1.N-F0.N),c=Math.cos(th),s=Math.sin(th);
+  var mpN=(P0.N+P1.N)/2,mpE=(P0.E+P1.E)/2,mfN=(F0.N+F1.N)/2,mfE=(F0.E+F1.E)/2;
+  return {th:th,tx:mpN-(c*mfN-s*mfE),ty:mpE-(s*mfN+c*mfE)};
+ }
+ for(var hi=0;hi<hyp.length;hi++){
+  var A=hyp[hi][0],B=hyp[hi][1];
+  best=cuScore(Tfrom(plan[A.i],plan[A.j],local[B.i],local[B.j]),plan,local,tol,grid,best);
+  best=cuScore(Tfrom(plan[A.i],plan[A.j],local[B.j],local[B.i]),plan,local,tol,grid,best);
+  if(best&&best.pairs.length>=target)break;
+ }
+ return best;
+}
+function cuMatchSolve(plan,local,tol,seed){
+ return (plan.length<=20&&local.length<=20)?cuMatchSolveTri(plan,local,tol,seed):cuMatchSolvePair(plan,local,tol,seed);
+}
+function cuIdSeeds(plan,local){
+ var ids={};plan.forEach(function(p){var id=cuMonId(p);if(id)(ids[id]=ids[id]||[]).push(p);});
+ var seeds=[];
+ local.forEach(function(f){var id=cuMonId(f);if(id&&ids[id]&&ids[id].length===1)seeds.push({p:ids[id][0],f:f,id:id});});
+ return seeds;
+}
 function cuMatchRun(){
  var sides=cuMatchSides(),m=cu.match;
- var local=sides.local.filter(function(p){return !m.excl[p.code];});
+ var plan=sides.plan,local=sides.local;
+ var seeds=cuIdSeeds(plan,local);
  var steps=[0.05,0.10,0.15,0.20],sol=null,at=null;
- for(var i=0;i<steps.length&&!sol;i++){sol=cuMatchSolve(sides.plan,local,steps[i]);if(sol)at=steps[i];}
- var res={plan:sides.plan,local:local,sol:sol,at:at,steps:steps,stable:null,unmatchedPlan:[],unmatchedLocal:[],scaleHint:null};
+ if(plan.length>400||local.length>400){m.result={tooMany:true,plan:plan,local:local};cuRenderMatch();return;}
+ for(var i=0;i<steps.length&&!sol;i++){sol=cuMatchSolve(plan,local,steps[i],seeds);if(sol)at=steps[i];}
+ var res={plan:plan,local:local,sol:sol,at:at,steps:steps,stable:null,unmatchedPlan:[],unmatchedLocal:[],scaleHint:null,seeds:seeds,idConf:[],idUnconfirmed:[],sameSystem:false};
  if(sol){
-  var wide=cuMatchSolve(sides.plan,local,0.30);
+  var wide=cuMatchSolve(plan,local,0.30,seeds);
   var key=function(s){return s.pairs.map(function(q){return q.f.pt+">"+q.p.pt;}).sort().join("|");};
   res.stable=!!(wide&&key(wide)===key(sol));
-  var mp={},mf={};sol.pairs.forEach(function(q){mp[q.p.pt]=1;mf[q.f.pt]=1;});
-  res.unmatchedPlan=sides.plan.filter(function(p){return !mp[p.pt];});
+  var mp={},mf={};sol.pairs.forEach(function(q){mp[q.p.pt]=q;mf[q.f.pt]=q;});
+  res.unmatchedPlan=plan.filter(function(p){return !mp[p.pt];});
   res.unmatchedLocal=local.filter(function(p){return !mf[p.pt];});
+  sol.pairs.forEach(function(q){var a=cuMonId(q.p),b=cuMonId(q.f);q.idFlag=(a&&b)?(a===b?"ok":"conflict"):"";if(q.idFlag==="conflict")res.idConf.push(q);});
+  seeds.forEach(function(sd){var q=mf[sd.f.pt];if(!q||q.p.pt!==sd.p.pt)res.idUnconfirmed.push(sd);});
+  res.sameSystem=Math.abs(sol.T.th)<1.75e-4&&Math.hypot(sol.T.tx,sol.T.ty)<1;
  }else{
-  /* scale diagnostic only: would a unit mismatch explain it? */
-  var sc=[0.3048,1/0.3048].map(function(k){var L=local.map(function(p){return {pt:p.pt,N:p.N*k,E:p.E*k,desc:p.desc};});return {k:k,s:cuMatchSolve(sides.plan,L,0.20*(k>1?k:1))};}).filter(function(x){return x.s;})[0];
-  if(sc)res.scaleHint="Nothing matches at scale 1, but "+sc.s.pairs.length+" points would match if both sides shared units \u2014 it looks like the "+(sc.k>1?"plan side is in feet and the local side in metres":"local side is in feet and the plan side in metres")+". No scaling has been applied; convert one file first (Scale panel).";
+  var sc=[0.3048,1/0.3048].map(function(k){var L=local.map(function(p){return {pt:p.pt,N:p.N*k,E:p.E*k,desc:p.desc,code:p.code};});return {k:k,s:cuMatchSolve(plan,L,0.20*(k>1?k:1))};}).filter(function(x){return x.s;})[0];
+  if(sc)res.scaleHint="Nothing matches at scale 1, but "+sc.s.pairs.length+" points would match if both sides shared units \u2014 it looks like the "+(sc.k>1?"A/plan side is in feet and the B/local side in metres":"B/local side is in feet and the A/plan side in metres")+". No scaling has been applied; convert one file first (Scale panel).";
  }
  m.result=res;
  cuRenderMatch();
 }
 function cuDms(a){a%=360;if(a<0)a+=360;var dg=Math.floor(a),mm=Math.floor((a-dg)*60),ss=((a-dg)*60-mm)*60;return dg+"\u00b0"+("0"+mm).slice(-2)+"'"+("0"+ss.toFixed(0)).slice(-2)+"\"";}
-function cuMatchRows(){
- var r=cu.match.result;if(!r||!r.sol)return [];
- return r.sol.pairs.map(function(q){var a=cuRigidApply(r.sol.T,q.f),vn=q.p.N-a.N,ve=q.p.E-a.E;return {local:q.f.pt,plan:q.p.pt,vn:vn,ve:ve,dist:Math.hypot(vn,ve),dir:cuDms(Math.atan2(ve,vn)*180/Math.PI),code:q.f.code};}).sort(function(a,b){return a.dist-b.dist;});
+function cuMatchRowsOf(r){
+ if(!r||!r.sol)return [];
+ return r.sol.pairs.map(function(q){var a=cuRigidApply(r.sol.T,q.f),vn=q.p.N-a.N,ve=q.p.E-a.E;return {local:q.f.pt,plan:q.p.pt,ldesc:q.f.desc,pdesc:q.p.desc,vn:vn,ve:ve,dist:Math.hypot(vn,ve),dir:cuDms(Math.atan2(ve,vn)*180/Math.PI),code:q.f.code,id:q.idFlag||""};}).sort(function(a,b){return a.dist-b.dist;});
+}
+function cuMatchRows(){return cuMatchRowsOf(cu.match.result);}
+function cuMatchCarry(){
+ var m=cu.match,r=m.result;if(!r||!r.sol)return;
+ var sides=cuMatchSides(),T=r.sol.T;
+ var carried=sides.plan.map(function(p){return {pt:p.pt,N:p.N,E:p.E,desc:p.desc,code:p.code,cls:p.cls};});
+ sides.local.forEach(function(f){var a=cuRigidApply(T,f);carried.push({pt:f.pt,N:a.N,E:a.E,desc:f.desc,code:f.code,cls:f.cls});});
+ m.stages.push({label:"Stage "+(m.stages.length+1)+": "+(m.mode==="general"?"B \u2192 A":"tied-in \u2192 calc"),rows:cuMatchRowsOf(r),res:r,mode:m.mode});
+ m.mode="general";
+ m.gen.A={carried:carried,label:"carried set ("+carried.length+" pts: stage "+m.stages.length+" A + B)",file:null,blocks:{},ctrlOnly:false};
+ m.gen.B={carried:null,src:(cuActive()||{}).id||null,blocks:{},ctrlOnly:false,label:""};
+ m.excl={};m.result=null;m.autoDone=true;
+ cuRenderMatch();
+}
+function cuMatchReset(){var m=cu.match;m.stages=[];m.result=null;m.gen={A:{carried:null,src:null,blocks:{},ctrlOnly:false,label:""},B:{carried:null,src:null,blocks:{},ctrlOnly:false,label:""}};m.autoDone=false;m.excl={};m.planSrc=null;m.localSrc=null;cuRenderMatch();}
+function cuGenAutoPropose(){
+ var m=cu.match;if(m.autoDone)return;m.autoDone=true;
+ var A=m.gen.A,B=m.gen.B;
+ if(!A.src&&!A.carried){A.src=(cuActive()||{}).id||null;}
+ if(!B.src&&!B.carried){var other=cuSources.find(function(s){return s.id!==A.src;});B.src=other?other.id:A.src;}
+ if(A.src!==B.src||A.carried){m.gen.hint=(A.src!==B.src?"sides are separate files \u2014 all points of each unless you pick blocks":"");A.blocks={};B.blocks={};return;}
+ var blocks=cuBlocks(cuPtsOf(cuSrcState(A.src)));
+ if(blocks.length<2)return;
+ var bestPair=null,bestSep=-1;
+ for(var i=0;i<blocks.length;i++)for(var j=i+1;j<blocks.length;j++){var sep=Math.hypot(blocks[i].cN-blocks[j].cN,blocks[i].cE-blocks[j].cE);if(sep>bestSep){bestSep=sep;bestPair=[blocks[i],blocks[j]];}}
+ if(bestSep<300){var sorted=blocks.slice().sort(function(a,b){return b.pts.length-a.pts.length;});bestPair=[sorted[0],sorted[1]];}
+ bestPair.sort(function(a,b){return (a.lo===null?1e12:a.lo)-(b.lo===null?1e12:b.lo);});
+ m.gen.A.blocks={};m.gen.A.blocks[bestPair[0].id]=true;
+ m.gen.B.blocks={};m.gen.B.blocks[bestPair[1].id]=true;
+ m.gen.hint=(bestSep>=300?"these two blocks sit "+Math.round(bestSep)+" m apart \u2014 likely different coordinate systems":"proposed the two largest blocks");
 }
 function cuRenderMatch(){
  var host=document.getElementById("cu-match");if(!host||!cu.lines)return;
- var m=cu.match,sides=cuMatchSides();
- var codes={};sides.local.forEach(function(p){codes[p.code]=(codes[p.code]||0)+1;});
+ var m=cu.match;
+ if(!m.gen)m.gen={A:{carried:null,file:null,blocks:{},ctrlOnly:false},B:{carried:null,file:null,blocks:{},ctrlOnly:false}};
+ if(!m.stages)m.stages=[];
+ if(m.mode==="general")cuGenAutoPropose();
  var h="<details class='cu-fold' id='cu-mtfold'"+(m.open?" open":"")+"><summary>Match points</summary><div class='cu-manual cu-mt'>";
- h+="<div class='row'><label>Plan side</label><span class='cu-mtsrc'>"+(m.planFile?esc(m.planFile.name)+" ("+sides.plan.length+" pts)":"calc points from this file ("+sides.plan.length+")")+"</span> <label class='btn cu-mtpick'>Second file<input type='file' data-side='plan' accept='.txt,.csv,.asc,.dat' style='display:none'></label>"+(m.planFile?" <button class='btn' onclick='cuMatchClear(\"plan\")'>use this file</button>":"")+"</div>";
- h+="<div class='row'><label>Local side</label><span class='cu-mtsrc'>"+(m.localFile?esc(m.localFile.name)+" ("+sides.local.length+" control pts)":"control-layer points from this file ("+sides.local.length+")")+"</span> <label class='btn cu-mtpick'>Second file<input type='file' data-side='local' accept='.txt,.csv,.asc,.dat' style='display:none'></label>"+(m.localFile?" <button class='btn' onclick='cuMatchClear(\"local\")'>use this file</button>":"")+"</div>";
- var ck=Object.keys(codes).sort();
- if(ck.length)h+="<div class='cu-chips cu-mtcodes'>"+ck.map(function(c){return "<button class='cu-chip"+(m.excl[c]?"":" on")+"' data-code='"+esc(c)+"'>"+esc(c)+" \u00d7"+codes[c]+"</button>";}).join("")+"</div><div class='hint'>Tap a code to exclude it (e.g. city control monuments that aren't plan corners).</div>";
+ h+="<div class='row'><span class='seg cu-mtmode'><button data-m='calc' class='"+(m.mode!=="general"?"on":"")+"'>Calc \u2192 tied-in</button><button data-m='general' class='"+(m.mode==="general"?"on":"")+"'>General</button></span><span class='hint' style='margin:0 0 0 10px'>"+(m.mode==="general"?"stitch any two point sets \u2014 pick the blocks for each side":"plan corners against found monuments (default)")+"</span>"+(m.stages.length?" <button class='btn' onclick='cuMatchReset()'>Start over</button>":"")+"</div>";
+ m.stages.forEach(function(st){h+=cuMatchTableHtml(st.rows,st.res,st.label,true);});
+ function srcSel(side,cur){return "<select class='cu-srcsel' data-side='"+side+"'>"+cuSources.map(function(s){return "<option value='"+s.id+"'"+(s.id===cur?" selected":"")+">"+esc(s.name)+"</option>";}).join("")+"</select>";}
+ if(m.mode==="general"){
+  ["A","B"].forEach(function(side){
+   var S=m.gen[side];
+   var srcBlocks=S.carried?[]:cuBlocks(cuPtsOf(cuSrcState(S.src)));
+   h+="<div class='cu-side'><div class='row'><label>Side "+side+(side==="A"?" (reference)":" (local)")+"</label>"+(S.carried?"<span class='cu-mtsrc'>"+esc(S.label)+"</span>":srcSel(side,S.src||(cuActive()||{}).id))+"</div>";
+   if(!S.carried){
+    h+="<div class='cu-chips cu-genblocks' data-side='"+side+"'>"+srcBlocks.map(function(b){return "<button class='cu-chip"+(S.blocks[b.id]?" on":"")+"' data-b='"+b.id+"'>"+esc(b.label)+"</button>";}).join("")+"</div>";
+    h+="<div class='row'><label class='cu-cb'><input type='checkbox' class='cu-genctrl' data-side='"+side+"' "+(S.ctrlOnly?"checked":"")+"> control-layer codes only</label><span class='hint' style='margin:0 0 0 10px'>no block selected = all points</span></div>";
+   }
+   h+="</div>";
+  });
+  if(m.gen.hint)h+="<div class='hint'>Proposed: "+esc(m.gen.hint)+"</div>";
+ }else{
+  var sides0=cuMatchSides(),ds=cuDefaultSides();
+  var codes={};sides0.local.forEach(function(p){codes[p.code]=(codes[p.code]||0)+1;});
+  h+="<div class='row'><label>Plan side</label>"+srcSel("plan",ds.plan)+"<span class='cu-mtsrc'>calc points ("+sides0.plan.length+")</span></div>";
+  h+="<div class='row'><label>Local side</label>"+srcSel("local",ds.local)+"<span class='cu-mtsrc'>control-layer points ("+sides0.local.length+")</span></div>";
+  var ck=Object.keys(codes).sort();
+  if(ck.length)h+="<div class='cu-chips cu-mtcodes'>"+ck.map(function(c){return "<button class='cu-chip"+(m.excl[c]?"":" on")+"' data-code='"+esc(c)+"'>"+esc(c)+" \u00d7"+codes[c]+"</button>";}).join("")+"</div><div class='hint'>Tap a code to exclude it (e.g. city control monuments that aren't plan corners).</div>";
+ }
  h+="<div class='cu-dl'><button class='btn pri' onclick='cuMatchRun()'>Find matches</button><span class='hint' style='margin:0'>rotation + translation only, no scale \u00b7 tries 5, 10, 15, 20 cm</span></div>";
  var r=m.result;
- if(r){
-  if(!r.sol){
-   h+="<div class='cu-err'>No consistent correspondence found at 5\u201320 cm among "+r.plan.length+" plan and "+r.local.length+" local points."+(r.scaleHint?"<br>"+esc(r.scaleHint):"")+"</div>";
-  }else{
-   var rows=cuMatchRows(),T=r.sol.T;
-   h+="<div class='cu-mtsum'>Solved at <b>"+(r.at*100).toFixed(0)+" cm</b>"+(r.at>0.05?" \u2014 nothing fit at "+(r.steps.slice(0,r.steps.indexOf(r.at)).map(function(x){return (x*100).toFixed(0);}).join(", "))+" cm":"")+" \u00b7 "+rows.length+" pairs \u00b7 rms "+r.sol.rms.toFixed(3)+" m \u00b7 "+(r.stable?"<span class='cu-ok'>stable when loosened to 30 cm</span>":"<span class='cu-pkgwarn' style='display:inline'>changes when loosened \u2014 treat with suspicion</span>")+"</div>";
-   h+="<table class='cu-mtt'><tr><th>Local</th><th></th><th>Plan</th><th>Vn</th><th>Ve</th><th>Dist</th><th>Direction</th><th></th></tr>";
-   rows.forEach(function(x){h+="<tr><td>"+esc(x.local)+"</td><td>--></td><td>"+esc(x.plan)+"</td><td>"+x.vn.toFixed(3)+"</td><td>"+x.ve.toFixed(3)+"</td><td>"+x.dist.toFixed(3)+"</td><td>"+x.dir+"</td><td class='cu-mtcode'>"+esc(x.code)+"</td></tr>";});
-   h+="</table>";
-   h+="<div class='cu-mtun'>Unmatched \u2014 local: "+(r.unmatchedLocal.length?r.unmatchedLocal.map(function(p){return esc(p.pt)+" ("+esc(p.code)+")";}).join(", "):"none")+" \u00b7 plan: "+(r.unmatchedPlan.length?r.unmatchedPlan.map(function(p){return esc(p.pt);}).join(", "):"none")+"</div>";
-   h+="<div class='hint'>Reference only: rotation "+cuDms(T.th*180/Math.PI)+", translation dN "+T.tx.toFixed(3)+" dE "+T.ty.toFixed(3)+". Run the Helmert in MS CAD with the pairs you're confident in.</div>";
-   h+="<div class='cu-dl'><button class='btn' onclick='cuMatchCopy(0)'>Copy pairs</button><button class='btn' onclick='cuMatchCopy(1)'>Copy table</button><span class='hint' id='cu-mtcopied' style='margin:0'></span></div>";
+ if(r&&r.tooMany)h+="<div class='cu-err'>Too many points to match ("+r.plan.length+" vs "+r.local.length+"). Narrow a side with a block or the control-codes filter.</div>";
+ else if(r){
+  if(!r.sol)h+="<div class='cu-err'>No consistent correspondence found at 5\u201320 cm among "+r.plan.length+" and "+r.local.length+" points."+(r.scaleHint?"<br>"+esc(r.scaleHint):"")+"</div>";
+  else{
+   h+=cuMatchTableHtml(cuMatchRows(),r,null,false);
+   h+="<div class='cu-dl'><button class='btn' onclick='cuMatchCopy(0)'>Copy pairs</button><button class='btn' onclick='cuMatchCopy(1)'>Copy table</button><button class='btn' onclick='cuMatchCarry()' title='use A + B (as matched) as side A for the next stage'>Carry A + B forward</button><span class='hint' id='cu-mtcopied' style='margin:0'></span></div>";
   }
  }
  h+="</div></details>";
  host.innerHTML=h;
  document.getElementById("cu-mtfold").addEventListener("toggle",function(){m.open=this.open;});
+ host.querySelectorAll(".cu-mtmode button").forEach(function(b){b.onclick=function(){m.mode=b.dataset.m;m.result=null;cuRenderMatch();};});
  host.querySelectorAll(".cu-mtcodes .cu-chip").forEach(function(b){b.onclick=function(){var c=b.dataset.code;if(m.excl[c])delete m.excl[c];else m.excl[c]=1;cuRenderMatch();};});
- host.querySelectorAll(".cu-mtpick input").forEach(function(inp){inp.onchange=function(){var f=inp.files[0];if(!f)return;var fr=new FileReader();fr.onload=function(){var pts=cuParsePtsText(fr.result);m[inp.dataset.side+"File"]={name:f.name,pts:pts};m.result=null;cuRenderMatch();};fr.readAsText(f);};});
+ host.querySelectorAll(".cu-genblocks .cu-chip").forEach(function(b){b.onclick=function(){var S=m.gen[b.parentNode.dataset.side];S.blocks[b.dataset.b]=!S.blocks[b.dataset.b];m.result=null;cuRenderMatch();};});
+ host.querySelectorAll(".cu-genctrl").forEach(function(c){c.onchange=function(){m.gen[c.dataset.side].ctrlOnly=c.checked;m.result=null;cuRenderMatch();};});
+ host.querySelectorAll(".cu-srcsel").forEach(function(sel){sel.onchange=function(){var side=sel.dataset.side;if(side==="A"||side==="B"){m.gen[side].src=sel.value;m.gen[side].blocks={};m.gen.hint="";}else{m[side+"Src"]=sel.value;}m.result=null;cuRenderMatch();};});
 }
-function cuMatchClear(side){cu.match[side+"File"]=null;cu.match.result=null;cuRenderMatch();}
-function cuMatchCopy(which){
- var rows=cuMatchRows(),r=cu.match.result;if(!rows.length)return;
+function cuMatchTableHtml(rows,r,label,isStage){
+ var gen=(r.mode==="general")||cu.match.mode==="general";
+ var h="";
+ if(label)h+="<div class='cu-stage'>"+esc(label)+"</div>";
+ h+="<div class='cu-mtsum'>Solved at <b>"+(r.at*100).toFixed(0)+" cm</b>"+(r.at>0.05?" \u2014 nothing fit at "+(r.steps.slice(0,r.steps.indexOf(r.at)).map(function(x){return (x*100).toFixed(0);}).join(", "))+" cm":"")+" \u00b7 "+rows.length+" pairs \u00b7 rms "+r.sol.rms.toFixed(3)+" m \u00b7 "+(r.stable?"<span class='cu-ok'>stable when loosened to 30 cm</span>":"<span class='cu-pkgwarn' style='display:inline'>changes when loosened \u2014 treat with suspicion</span>")+(r.sameSystem?" \u00b7 <span class='cu-ok'>same coordinate system</span>":"")+"</div>";
+ var wide=rows.some(function(x){return x.pdesc||x.ldesc;});
+ h+="<table class='cu-mtt'><tr><th>Local</th><th></th><th>Plan</th>"+(wide?"<th>Local desc</th><th>Plan desc</th>":"")+"<th>Vn</th><th>Ve</th><th>Dist</th><th>Direction</th><th></th></tr>";
+ rows.forEach(function(x){h+="<tr><td>"+esc(x.local)+"</td><td>--></td><td>"+esc(x.plan)+"</td>"+(wide?"<td class='cu-mtcode'>"+esc(x.ldesc||"")+"</td><td class='cu-mtcode'>"+esc(x.pdesc||"")+"</td>":"")+"<td>"+x.vn.toFixed(3)+"</td><td>"+x.ve.toFixed(3)+"</td><td>"+x.dist.toFixed(3)+"</td><td>"+x.dir+"</td><td class='cu-mtcode'>"+(x.id==="ok"?"<span class='cu-ok'>\u2713ID</span>":(x.id==="conflict"?"<span class='cu-idbad'>ID\u2260</span>":esc(x.code||"")))+"</td></tr>";});
+ h+="</table>";
+ if(r.idConf&&r.idConf.length)h+="<div class='cu-idwarn'>Monument IDs disagree with the geometry on "+r.idConf.length+" pair"+(r.idConf.length>1?"s":"")+": "+r.idConf.map(function(q){return esc(q.f.pt+" ("+q.f.desc+") sits on "+q.p.pt+" ("+q.p.desc+")");}).join("; ")+" \u2014 check the coding.</div>";
+ if(r.idUnconfirmed&&r.idUnconfirmed.length)h+="<div class='cu-idwarn'>Same monument ID on both sides but not paired by the figure: "+r.idUnconfirmed.map(function(s){return esc(s.f.pt+" / "+s.p.pt+" ("+s.id+")");}).join(", ")+"</div>";
+ h+="<div class='cu-mtun'>Unmatched \u2014 local: "+(r.unmatchedLocal.length?r.unmatchedLocal.map(function(p){return esc(p.pt)+(p.code?" ("+esc(p.code)+")":"");}).join(", "):"none")+" \u00b7 plan: "+(r.unmatchedPlan.length?r.unmatchedPlan.map(function(p){return esc(p.pt);}).join(", "):"none")+"</div>";
+ h+="<div class='hint'>Reference only: rotation "+cuDms(r.sol.T.th*180/Math.PI)+", translation dN "+r.sol.T.tx.toFixed(3)+" dE "+r.sol.T.ty.toFixed(3)+". Run the Helmert in MS CAD with the pairs you're confident in.</div>";
+ return h;
+}
+function cuMatchClear(side){cu.match[side+"Src"]=null;cu.match.result=null;cuRenderMatch();}
+function cuGenClear(side){cu.match.gen[side].src=null;cu.match.gen[side].blocks={};cu.match.result=null;cuRenderMatch();}
+function cuMatchCopy(which,stageIx){
+ var m=cu.match,r=(stageIx!==undefined)?m.stages[stageIx].res:m.result,rows=cuMatchRowsOf(r);if(!rows.length)return;
  var txt;
  if(which===0)txt=rows.map(function(x){return x.local+" --> "+x.plan;}).join("\n");
  else{
-  txt=["MATCH POINTS (rotation + translation, no scale) \u2014 solved at "+(r.at*100).toFixed(0)+" cm, rms "+r.sol.rms.toFixed(3)+" m, "+(r.stable?"stable":"NOT stable")+" at 30 cm",
-       "Local --> Plan       Vn       Ve     Dist   Direction"].concat(rows.map(function(x){return (x.local+"      ").slice(0,6)+" --> "+(x.plan+"     ").slice(0,5)+"  "+(x.vn>=0?" ":"")+x.vn.toFixed(3)+"  "+(x.ve>=0?" ":"")+x.ve.toFixed(3)+"  "+x.dist.toFixed(3)+"   "+x.dir;})).join("\n");
+  txt=["MATCH POINTS (rotation + translation, no scale) \u2014 solved at "+(r.at*100).toFixed(0)+" cm, rms "+r.sol.rms.toFixed(3)+" m, "+(r.stable?"stable":"NOT stable")+" at 30 cm"+(r.sameSystem?", same coordinate system":""),
+       "Local --> Plan       Vn       Ve     Dist   Direction   (local desc | plan desc)"].concat(rows.map(function(x){return (x.local+"      ").slice(0,6)+" --> "+(x.plan+"     ").slice(0,5)+"  "+(x.vn>=0?" ":"")+x.vn.toFixed(3)+"  "+(x.ve>=0?" ":"")+x.ve.toFixed(3)+"  "+x.dist.toFixed(3)+"   "+x.dir+(x.id==="ok"?"  [ID ok]":(x.id==="conflict"?"  [ID CONFLICT]":""))+"   ("+(x.ldesc||"")+" | "+(x.pdesc||"")+")";})).join("\n");
   txt+="\nUnmatched local: "+(r.unmatchedLocal.map(function(p){return p.pt;}).join(", ")||"none")+"   Unmatched plan: "+(r.unmatchedPlan.map(function(p){return p.pt;}).join(", ")||"none");
  }
  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){var e=document.getElementById("cu-mtcopied");if(e){e.textContent="Copied.";setTimeout(function(){e.textContent="";},1500);}}).catch(function(){});
 }
-window.cuMatchRun=cuMatchRun;window.cuMatchCopy=cuMatchCopy;window.cuMatchClear=cuMatchClear;window.cuRenderMatch=cuRenderMatch;window.cuMatchSolve=cuMatchSolve;window.cuParsePtsText=cuParsePtsText;window.cuMatchRows=cuMatchRows;
+window.cuMatchRun=cuMatchRun;window.cuMatchCopy=cuMatchCopy;window.cuMatchClear=cuMatchClear;window.cuGenClear=cuGenClear;window.cuRenderMatch=cuRenderMatch;window.cuMatchSolve=cuMatchSolve;window.cuParsePtsText=cuParsePtsText;window.cuMatchRows=cuMatchRows;window.cuMatchCarry=cuMatchCarry;window.cuMatchReset=cuMatchReset;window.cuBlocks=cuBlocks;window.cuTagCodes=cuTagCodes;
 
 /* ---------- scale ---------- */
 function cuCoordOf(rec){
@@ -2546,7 +2745,7 @@ function cuLoadPackage(buf,name){
  return cuZipRead(buf,prim).then(function(u8){
   var dbf=cuParseDbf(u8),text=cuDbfToPnezd(dbf);
   var proj=(prim.name.split("/")[0]||name).replace(/\.msj$/i,"");
-  cu.pkg={file:name,project:proj,date:cuDosDate(prim),count:text?text.trim().split("\n").length:0,conflicts:conflicts.length,backup:isMbz};
+  cuPendingPkg={file:name,project:proj,date:cuDosDate(prim),count:text?text.trim().split("\n").length:0,conflicts:conflicts.length,backup:isMbz,kind:isMbz?"mbz":"msz"};
   cuParse(text,proj+"-pts.txt");
  }).catch(function(err){host.innerHTML="<div class='cu-err'>Couldn't read the package: "+esc(String(err.message||err))+"</div>";});
 }
@@ -2558,9 +2757,9 @@ function cuLoadFile(file){
   var fr0=new FileReader();fr0.onload=function(){cuLoadPackage(fr0.result,file.name);};fr0.readAsArrayBuffer(file);return;
  }
  if(/\.dbf$/i.test(file.name)){
-  var fr1=new FileReader();fr1.onload=function(){var dbf=cuParseDbf(new Uint8Array(fr1.result));cu.pkg={file:file.name,project:file.name.replace(/\.dbf$/i,""),date:"",count:0,conflicts:0,backup:false};var t=cuDbfToPnezd(dbf);cu.pkg.count=t?t.trim().split("\n").length:0;cuParse(t,file.name.replace(/\.dbf$/i,"")+"-pts.txt");};fr1.readAsArrayBuffer(file);return;
+  var fr1=new FileReader();fr1.onload=function(){var dbf=cuParseDbf(new Uint8Array(fr1.result));cuPendingPkg={file:file.name,project:file.name.replace(/\.dbf$/i,""),date:"",count:0,conflicts:0,backup:false,kind:"dbf"};var t=cuDbfToPnezd(dbf);cuPendingPkg.count=t?t.trim().split("\n").length:0;cuParse(t,file.name.replace(/\.dbf$/i,"")+"-pts.txt");};fr1.readAsArrayBuffer(file);return;
  }
- cu.pkg=null;
+ cuPendingPkg=null;
  if(/\.rw5$/i.test(file.name)){
   document.getElementById("cu-body").innerHTML="<div class='cu-err'>That's the raw observation file (RW5) \u2014 it is never touched. Export the PNEZD points file and drop that in instead.</div>";
   return;
@@ -2582,7 +2781,7 @@ function cuLoadFile(file){
  };
  fr.readAsText(file);
 }
-window.cuParse=cuParse;window.cuLoadFile=cuLoadFile;window.cuManAdd=cuManAdd;window.cuDownload=cuDownload;window.cuCompute=cuCompute;window.cu=cu;window.cuRenderReview=cuRenderReview;
+window.cuParse=cuParse;window.cuLoadFile=cuLoadFile;window.cuManAdd=cuManAdd;window.cuDownload=cuDownload;window.cuCompute=cuCompute;window.cuRenderReview=cuRenderReview;
 document.getElementById("cu-file").addEventListener("change",function(e){if(e.target.files[0])cuLoadFile(e.target.files[0]);});
 var cuDrop=document.getElementById("cu-drop");
 cuDrop.addEventListener("dragover",function(e){e.preventDefault();cuDrop.classList.add("over");});
@@ -2713,6 +2912,21 @@ const TRAINING=[
   {t:"Layout sketch",u:"https://share.vidyard.com/watch/Ku1FW2X18GjWR5PXAiENon",h:"Vidyard",x:null,xh:null},
   {t:"Cert in feet (NEC)",u:"https://secure.vidyard.com/organizations/1318150/players/U5PrHudk8oox6thrYjeNAS",h:"Vidyard",x:null,xh:null},
   {t:"Forms cert example",u:"https://share.vidyard.com/watch/ggCdJS2dM8Vfz8FrX6FUin",h:"Vidyard",x:"https://screenrec.com/share/MPneaKqJfy",xh:"ScreenRec"},
+  {t:"3603 \u2014 viewport and layout",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/beginner/3603-viewport%20and%20layout.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"PL sketch \u2014 import data, Helmerts, sketch",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/beginner/PL%20SKETCH-IMPORTDATA-HELMERTS-SKETCH.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"PDF .ctb print issue",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/beginner/pdf.ctb%20print%20issue.mp4",h:"SharePoint",x:null,xh:null},
+]},
+{group:"Elevate Office app",videos:[
+  {t:"Points matching (Match points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20matching.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Points matching \u2014 PL sample",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20matching-PL%20SAMPLE.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Points upload for crew \u2014 example",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20upload%20for%20crew%20example.mp4",h:"SharePoint",x:null,xh:null},
+]},
+{group:"Automap",videos:[
+  {t:"Edit Automap",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Automap/Edit%20Automap-.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Process range \u2014 linework",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Automap/Process%20range-linework.mp4",h:"SharePoint",x:null,xh:null},
+]},
+{group:"Area calculation",videos:[
+  {t:"Sliding Bearing command \u2014 area calc",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Area%20calculation%20items/Sliding%20Bearing%20command-area%20calc.mp4",h:"SharePoint",x:null,xh:null},
 ]},
 {group:"GPS",videos:[
   {t:"Relating 2 sets of GPS data",u:"https://share.vidyard.com/watch/uabC3Go5g18AG1cRrMVasq",h:"Vidyard",x:null,xh:null},
@@ -2740,6 +2954,14 @@ const TRAINING=[
   {t:"Survey Hub — posting plan sign + PMBC + register",u:"https://share.vidyard.com/watch/iTqHGZxyEo99dydF3Cbity",h:"Vidyard",x:null,xh:null},
   {t:"Survey Hub — subdivision plan (Feb 2025)",u:"https://share.vidyard.com/watch/oNv3y9d1bkPmcJkKFjrRQQ?vyetoken=55d1ee92-5a82-48b5-ab3f-0e2b1412e02f",h:"Vidyard",x:null,xh:null},
   {t:"Web filing — block outline subdivision (after approval)",u:"https://share.vidyard.com/watch/roK8tQeBmNSexatKdrnU9T",h:"Vidyard",x:null,xh:null},
+  {t:"Survey Hub 2026 \u2014 sign + register PP",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/bcls%2Bproject%20manager%20videos/SURVEY%20HUB%202026-SIGN%2BREGISTER%20PP.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Monitoring Excel sheet (Claude)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/bcls%2Bproject%20manager%20videos/MONITORING%20EXCEL%20SHEET-CLAUDE.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"ChatGPT \u2014 prep job folder",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/bcls%2Bproject%20manager%20videos/chat%20gpt-prep%20job%20folder.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"ChatGPT \u2014 quote for new topo survey",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/bcls%2Bproject%20manager%20videos/chat%20gpt-quote%20for%20new%20topo%20survey.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"ChatGPT \u2014 quote for additional survey",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/bcls%2Bproject%20manager%20videos/chat%20gpt-quote%20for%20additional%20survey.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Elevate system \u2014 job schedule example",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/bcls%2Bproject%20manager%20videos/Elevate%20system/job%20schedule%20example.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Elevate system \u2014 new draft, attach to job schedule",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/bcls%2Bproject%20manager%20videos/Elevate%20system/New%20draft-attach%20to%20job%20schedule.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Elevate system \u2014 complete task + invoice",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/bcls%2Bproject%20manager%20videos/Elevate%20system/Complete%20task%20%2B%20invoice.mp4",h:"SharePoint",x:null,xh:null},
 ]},
 {group:"General / other",videos:[
   {t:"XREF insert / drawing",u:"https://share.vidyard.com/watch/AYw1WvagQi59yGhaygy9Rg",h:"Vidyard",x:null,xh:null},
@@ -2748,6 +2970,7 @@ const TRAINING=[
   {t:"Proration & double proration",u:"https://share.vidyard.com/watch/vsh8RxBPXoCXgw6y73koHJ",h:"Vidyard",x:null,xh:null},
   {t:"Using city GIS for manhole inverts",u:"https://share.vidyard.com/watch/nrKZ6VbaXaQ82UQjPuBi5j",h:"Vidyard",x:null,xh:null},
   {t:"Looking up newer plans in old legal areas",u:"https://share.vidyard.com/watch/ag5dLVDLVNvLE9YzqUmfic",h:"Vidyard",x:null,xh:null},
+  {t:"Using older drawings as base \u2014 transfer points command",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Using%20older%20drawings%20as%20base-transfer%20points%20command.mp4",h:"SharePoint",x:null,xh:null},
 ]},
 ];
 
