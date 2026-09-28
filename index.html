@@ -1743,7 +1743,7 @@ function doImport(){
 (function(){
  var dz=document.getElementById("dropzone"),depth=0;
  function onPoints(){var v=document.getElementById("v-cleanup");return v&&v.classList.contains("on");}
- window.addEventListener("dragenter",function(e){e.preventDefault();depth++;dz.textContent=onPoints()?"Drop points file or drawing package":"Drop checklist file to import";dz.classList.add("show");});
+ window.addEventListener("dragenter",function(e){e.preventDefault();depth++;dz.textContent=onPoints()?"Drop points file or drawing package":(window.pmOnView&&pmOnView())?"Drop job details file to import":"Drop checklist file to import";dz.classList.add("show");});
  window.addEventListener("dragover",function(e){e.preventDefault();});
  window.addEventListener("dragleave",function(e){depth--;if(depth<=0){depth=0;dz.classList.remove("show");}});
  window.addEventListener("drop",function(e){
@@ -1751,6 +1751,7 @@ function doImport(){
   var file=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
   if(!file)return;
   if(onPoints()){if(window.cuLoadFile)cuLoadFile(file);return;}
+  if(window.pmOnView&&pmOnView()){pmImportFile(file);return;}
   var r=new FileReader();
   r.onload=function(){importFromText(r.result);};
   r.readAsText(file);
@@ -1931,21 +1932,22 @@ function pmEncrypt(obj,key,salt,iter){var iv=crypto.getRandomValues(new Uint8Arr
 function pmLoadVaultFile(){
  var local=null;try{local=JSON.parse(sget("eo:pmvault")||"null");}catch(e){}
  return fetch("pm-vault.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(remote){
-  var pick=(local&&local.ts>remote.ts)?local:remote;sset("eo:pmvault",JSON.stringify(pick));return pick;
+  sset("eo:pmvault",JSON.stringify(remote));return remote;
  }).catch(function(){return local;});
 }
 function pmQuotesLoad(){try{PM.quotes=JSON.parse(sget("eo:pmq")||"[]");}catch(e){PM.quotes=[];}}
 function pmQuotesSave(){sset("eo:pmq",JSON.stringify(PM.quotes));}
 function pmNewQuote(){
  var q={id:"q"+Date.now(),updated:Date.now(),f:{},secs:[{name:"",hrs:{}}],disb:{},other:{label:"",amt:""},fci:"",notes:""};
- q.f.pm=sget("eo:pmname")||"";
+ q.f.pm=sget("eo:pmname")||"";q.f.assigned=sget("eo:pminit")||"";
  (PM.vault.disb||[]).forEach(function(d){q.disb[d.id]=d.def||0;});
  PM.quotes.unshift(q);PM.cur=q.id;pmQuotesSave();return q;
 }
 function pmCurQ(){return PM.quotes.find(function(q){return q.id===PM.cur;})||null;}
 function pmNum(v){var n=parseFloat(String(v==null?"":v).replace(/[$,\s]/g,""));return isNaN(n)?0:n;}
 function pmMoney(v,cents){var s=(cents===false&&Math.abs(v-Math.round(v))<0.005)?String(Math.round(v)):v.toFixed(2);return "$"+s.replace(/^(\d+)/,function(m){return m.replace(/\B(?=(\d{3})+$)/g,",");});}
-function pmH(h){return String(+(+h).toFixed(2));}
+function pmH(h){return (+h).toFixed(1);}
+function pmShort(r){return r.short||r.label;}
 function pmCalc(q){
  var V=PM.vault,out={secs:[],labour:0,roleHrs:{},disb:0,disbParts:[]};
  q.secs.forEach(function(s,ix){var sec={name:s.name||(q.secs.length>1?"Calculation "+(ix+1):""),rows:[],total:0};
@@ -1955,7 +1957,7 @@ function pmCalc(q){
  var oa=pmNum(q.other.amt);if(oa>0){out.disb+=oa;out.disbParts.push((q.other.label||"other")+" ("+pmMoney(oa,false)+")");}
  out.total=out.labour+out.disb;return out;
 }
-function pmTimeLine(C,kind){return PM.vault.rates.filter(function(r){return r.kind===kind&&C.roleHrs[r.id];}).map(function(r){return pmH(C.roleHrs[r.id])+" "+r.label;}).join(" + ");}
+function pmTimeLine(C,kind){return PM.vault.rates.filter(function(r){return r.kind===kind&&C.roleHrs[r.id];}).map(function(r){var h=C.roleHrs[r.id];return pmH(h)+" hr"+(h===1?"":"s")+" "+pmShort(r);}).join(" + ");}
 function pmJobText(q){
  var f=q.f,C=pmCalc(q),L=[],g=function(k){return (f[k]||"").trim();};
  L.push("Client: "+g("client"));L.push("Contact Name: "+g("contact"));L.push("Email: "+g("email"));L.push("Phone: "+g("phone"));
@@ -1973,7 +1975,7 @@ function pmJobText(q){
   var multi=C.secs.filter(function(s){return s.rows.length;}).length>1;
   C.secs.forEach(function(s){if(!s.rows.length)return;
    if(multi||s.name)L.push(s.name+":");
-   s.rows.forEach(function(x){L.push((x.r.kind==="field"?"Field: ":"Office: ")+pmH(x.h)+" hr"+(x.h===1?"":"s")+" "+x.r.label+" x "+pmMoney(x.r.rate,false)+"/hr = "+pmMoney(x.amt));});
+   s.rows.forEach(function(x){L.push((x.r.kind==="field"?"Field: ":"Office: ")+pmH(x.h)+" hr"+(x.h===1?"":"s")+" "+pmShort(x.r)+" x "+pmMoney(x.r.rate,false)+"/hr = "+pmMoney(x.amt));});
    if(multi)L.push(s.name+" Labour: "+pmMoney(s.total));
   });
   L.push("Total Labour"+(multi?" (Sublabour)":"")+": "+pmMoney(C.labour));
@@ -1999,7 +2001,7 @@ function pmUnlock(pass,remember){
  if(PM.busy)return Promise.resolve();PM.busy=true;PM.err="";var e0=document.getElementById("pm-err");if(e0)e0.textContent="Unlocking…";
  return pmLoadVaultFile().then(function(vf){
   if(!vf)throw new Error("novault");PM.vfile=vf;
-  return pmDerive(pass,pmUnB64(vf.salt),vf.iter).then(function(key){return pmDecrypt(vf,key).then(function(v){PM.key=key;PM.vault=v;
+  return pmDerive(pass,pmUnB64(vf.salt),vf.iter).then(function(key){return pmDecrypt(vf,key).then(function(v){PM.key=key;PM.vault=v;pmApplyLocalFci();
    if(remember)return crypto.subtle.exportKey("raw",key).then(function(raw){sset("eo:pmkey",JSON.stringify({salt:vf.salt,k:pmB64(raw)}));});
   });});
  }).then(function(){PM.busy=false;pmQuotesLoad();if(!pmCurQ())PM.cur=PM.quotes[0]?PM.quotes[0].id:null;pmRender();})
@@ -2009,7 +2011,7 @@ function pmAutoUnlock(){
  var st=null;try{st=JSON.parse(sget("eo:pmkey")||"null");}catch(e){}
  if(!st||!window.crypto||!crypto.subtle)return Promise.resolve(false);
  return pmLoadVaultFile().then(function(vf){if(!vf||vf.salt!==st.salt)throw 0;PM.vfile=vf;
-  return crypto.subtle.importKey("raw",pmUnB64(st.k),{name:"AES-GCM"},true,["encrypt","decrypt"]).then(function(key){return pmDecrypt(vf,key).then(function(v){PM.key=key;PM.vault=v;pmQuotesLoad();if(!pmCurQ())PM.cur=PM.quotes[0]?PM.quotes[0].id:null;return true;});});
+  return crypto.subtle.importKey("raw",pmUnB64(st.k),{name:"AES-GCM"},true,["encrypt","decrypt"]).then(function(key){return pmDecrypt(vf,key).then(function(v){PM.key=key;PM.vault=v;pmApplyLocalFci();pmQuotesLoad();if(!pmCurQ())PM.cur=PM.quotes[0]?PM.quotes[0].id:null;return true;});});
  }).catch(function(){sdel("eo:pmkey");return false;});
 }
 function pmLock(){PM.key=null;PM.vault=null;sdel("eo:pmkey");PM.err="";pmRender();}
@@ -2017,7 +2019,8 @@ function pmRenderMain(host){
  var V=PM.vault,q=pmCurQ();
  var h="<div class='pm-bar'><button class='btn pri' onclick='pmNewQ()'>New quote</button>";
  h+=PM.quotes.map(function(x){return "<span class='cu-src"+(x.id===PM.cur?" on":"")+"' data-q='"+x.id+"'>"+pmEsc(x.f.qn||"(no quote #)")+(x.f.client?" · "+pmEsc(x.f.client.slice(0,24)):"")+" <button class='cu-srcx' data-q='"+x.id+"' title='delete this draft'>✕</button></span>";}).join("");
- h+="<span style='flex:1'></span><button class='btn' onclick='pmLock()'>Lock</button></div>";
+ h+="<label class='btn'>Import job details<input type='file' id='pm-imp' accept='.txt,text/plain' style='display:none'></label><span style='flex:1'></span><button class='btn' onclick='pmLock()'>Lock</button></div>";
+ if(q&&q.importRep){var R=q.importRep;h+="<div class='cu-sfhit' id='pm-imprep'>Imported"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 "+R.read+" hour line"+(R.read===1?"":"s")+" read."+(R.unread.length?"<div class='cu-idbad' style='font-weight:400'>Couldn't read \u2014 enter manually: "+R.unread.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.rateDiff.length?"<div>Rates in the file differ from current (current rates are used): "+R.rateDiff.map(pmEsc).join("; ")+"</div>":"")+" <button class='btn' id='pm-impok'>OK</button></div>";}
  if(!q){h+="<p class='hint'>No quotes on this device yet — tap New quote.</p>"+pmRatesHtml();host.innerHTML=h;pmWireMain(host,null);return;}
  h+="<div class='pm-grid'>"+PM_FIELDS.map(function(fd){var v=q.f[fd[0]]||"";return "<label class='pm-f"+(fd[3]?" wide":"")+"'><span>"+fd[1]+(fd[0]==="qn"?" <b class='pm-req'>required to save</b>":"")+"</span>"+(fd[3]?"<textarea data-f='"+fd[0]+"' rows='3'>"+pmEsc(v)+"</textarea>":"<input type='text' data-f='"+fd[0]+"' value='"+pmEsc(v)+"' placeholder='"+pmEsc(fd[2])+"'"+(fd[0]==="qn"?" id='pm-qn' class='mono'":"")+">")+"</label>";}).join("")+"</div>";
  h+="<div class='pm-h'>Rate calculation</div>";
@@ -2029,7 +2032,7 @@ function pmRenderMain(host){
  h+="<button class='btn' onclick='pmAddSec()'>+ Add calculation</button>";
  h+="<div class='pm-h'>Disbursements</div><div class='pm-disb'>"+(V.disb||[]).map(function(d){return "<label><span>"+pmEsc(d.label.replace(/^./,function(c){return c.toUpperCase();}))+" "+pmMoney(d.price,false)+"</span><input type='number' min='0' step='1' class='pm-dn' data-d='"+d.id+"' value='"+pmEsc(q.disb[d.id]||0)+"'></label>";}).join("")+"<label><span>Other</span><input type='text' id='pm-olab' value='"+pmEsc(q.other.label)+"' placeholder='description' style='width:150px'> <input type='text' inputmode='decimal' id='pm-oamt' value='"+pmEsc(q.other.amt)+"' placeholder='$' style='width:80px'></label></div>";
  h+="<div class='pm-tot' id='pm-tot'></div>";
- h+="<div class='pm-h'>Field Crew Instructions</div><div class='row'>"+((V.fci||[]).length?"<select id='pm-fcisel'>"+V.fci.map(function(o,i){return "<option value='"+i+"'>"+pmEsc(o.label)+"</option>";}).join("")+"</select> <button class='btn' id='pm-fciins'>Insert</button>":"")+"<span class='hint' style='margin:0 0 0 8px'>options are edited under Rates &amp; passphrase</span></div><textarea id='pm-fci' rows='6' class='pm-ta'>"+pmEsc(q.fci)+"</textarea>";
+ h+="<div class='pm-h'>Field Crew Instructions</div><div class='row'>"+((V.fci||[]).length?"<select id='pm-fcisel'>"+V.fci.map(function(o,i){return "<option value='"+i+"'>"+pmEsc(o.label)+"</option>";}).join("")+"</select> <button class='btn' id='pm-fciins'>Insert</button>":"")+"<span class='hint' style='margin:0 0 0 8px'>options are edited under Rates &amp; crew instructions</span></div><textarea id='pm-fci' rows='6' class='pm-ta'>"+pmEsc(q.fci)+"</textarea>";
  h+="<div class='pm-h'>Notes appended after the fields</div><textarea id='pm-notes' rows='4' class='pm-ta' placeholder='Date received, source, transcription of the request…'>"+pmEsc(q.notes)+"</textarea>";
  h+="<div class='cu-dl'><button class='btn pri' onclick='pmDownload()'>Download job details (.txt)</button><button class='btn' onclick='pmCopyJob()'>Copy job details</button><button class='btn' onclick='pmCopyRow()' title='tab-separated row for To Do Quotes, columns A–K'>Copy tracker row</button><span class='hint' id='pm-copied' style='margin:0'></span></div><div class='jobnote' id='pm-qnote' style='display:none'>Enter the Quote # before saving the job details file.</div>";
  h+="<details class='cu-scman'><summary>Preview</summary><pre class='pm-pre' id='pm-pre'></pre></details>";
@@ -2038,7 +2041,7 @@ function pmRenderMain(host){
 }
 function pmRatesHtml(){
  var V=PM.vault;
- return "<details class='cu-fold' id='pm-ratesfold'><summary>Rates &amp; passphrase</summary><div class='cu-manual'><table class='pm-rt'>"+V.rates.map(function(r){return "<tr><td class='pm-k'>"+(r.kind==="field"?"Field":"Office")+"</td><td>"+pmEsc(r.label)+"</td><td><input type='text' inputmode='decimal' class='pm-rv' data-r='"+r.id+"' value='"+r.rate+"'></td></tr>";}).join("")+(V.disb||[]).map(function(d){return "<tr><td class='pm-k'>Disb.</td><td>"+pmEsc(d.label)+"</td><td><input type='text' inputmode='decimal' class='pm-dv' data-d='"+d.id+"' value='"+d.price+"'></td></tr>";}).join("")+"</table><div class='pm-h'>Field Crew Instruction options</div><div id='pm-fcied'>"+(V.fci||[]).map(function(o,i){return pmFciEdHtml(o,i);}).join("")+"</div><button class='btn' onclick='pmFciAdd()'>+ Add option</button><div class='cu-dl'><button class='btn pri' onclick='pmSaveRates()'>Save rates &amp; options</button></div><div class='row'><input type='password' id='pm-np1' placeholder='new passphrase' style='width:180px'> <input type='password' id='pm-np2' placeholder='repeat' style='width:180px'> <button class='btn' onclick='pmChangePass()'>Change passphrase</button></div><div class='hint' id='pm-vmsg'>Rates as of the vault dated "+pmEsc((PM.vfile&&PM.vfile.ts||"").slice(0,10))+". Saving rates or changing the passphrase downloads a new <b>pm-vault.json</b> — upload it to the repo (replacing the old one) so every PM gets it. Use 8+ characters; a short PIN can be guessed by anyone who downloads the file.</div></div></details>";
+ return "<details class='cu-fold' id='pm-ratesfold'><summary>Rates &amp; crew instructions</summary><div class='cu-manual'><table class='pm-rt'><tr><td class='pm-k'></td><td class='pm-k'>Role</td><td class='pm-k'>Short name</td><td class='pm-k'>Rate</td></tr>"+V.rates.map(function(r){return "<tr><td class='pm-k'>"+(r.kind==="field"?"Field":"Office")+"</td><td>"+pmEsc(r.label)+"</td><td class='pm-rate'>"+pmEsc(pmShort(r))+"</td><td class='pm-rate'>"+pmMoney(r.rate,false)+"/hr</td></tr>";}).join("")+(V.disb||[]).map(function(d){return "<tr><td class='pm-k'>Disb.</td><td>"+pmEsc(d.label)+"</td><td></td><td class='pm-rate'>"+pmMoney(d.price,false)+"</td></tr>";}).join("")+"</table><div class='hint'>Rates, disbursement prices and short names are locked — changes are made by Finny and arrive with a new vault file. Vault dated "+pmEsc((PM.vfile&&PM.vfile.ts||"").slice(0,10))+".</div><div class='pm-h'>Field Crew Instruction options</div><div id='pm-fcied'>"+(V.fci||[]).map(function(o,i){return pmFciEdHtml(o,i);}).join("")+"</div><button class='btn' onclick='pmFciAdd()'>+ Add option</button><div class='cu-dl'><button class='btn pri' onclick='pmSaveOptions()'>Save options</button></div><div class='hint' id='pm-vmsg'>Saved options apply on this device straight away. To give them to every PM, upload the <b>pm-vault.json</b> that Save downloads to the repo (it carries the same locked rates).</div></div></details>";
 }
 function pmFciEdHtml(o,i){return "<div class='pm-fcie' data-i='"+i+"'><div class='row'><input type='text' class='pm-fcil' value='"+pmEsc(o.label)+"' placeholder='e.g. Option 1 \u2013 Standard topo' style='width:340px'> <button class='btn pm-fcix' title='remove this option'>Remove</button></div><textarea class='pm-fcit pm-ta' rows='4'>"+pmEsc(o.text)+"</textarea></div>";}
 function pmFciAdd(){var ed=document.getElementById("pm-fcied");if(!ed)return;var d=document.createElement("div");d.innerHTML=pmFciEdHtml({label:"",text:""},ed.children.length);var el=d.firstChild;ed.appendChild(el);el.querySelector(".pm-fcix").onclick=function(){el.remove();};el.querySelector("input").focus();}
@@ -2046,9 +2049,11 @@ function pmWireMain(host,q){
  host.querySelectorAll(".pm-fcix").forEach(function(b){b.onclick=function(){b.closest(".pm-fcie").remove();};});
  host.querySelectorAll(".pm-bar .cu-src").forEach(function(el){el.onclick=function(e){if(e.target.classList.contains("cu-srcx"))return;PM.cur=el.dataset.q;pmRender();};});
  host.querySelectorAll(".pm-bar .cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();var x=PM.quotes.find(function(z){return z.id===b.dataset.q;});if(!confirm("Delete the draft "+((x&&x.f.qn)||"(no quote #)")+" from this device?"))return;PM.quotes=PM.quotes.filter(function(z){return z.id!==b.dataset.q;});if(PM.cur===b.dataset.q)PM.cur=PM.quotes[0]?PM.quotes[0].id:null;pmQuotesSave();pmRender();};});
+ var imp=document.getElementById("pm-imp");if(imp)imp.onchange=function(){if(imp.files[0])pmImportFile(imp.files[0]);imp.value="";};
  if(!q)return;
+ var ok=document.getElementById("pm-impok");if(ok)ok.onclick=function(){delete q.importRep;pmQuotesSave();var b=document.getElementById("pm-imprep");if(b)b.remove();};
  var save=function(){q.updated=Date.now();pmQuotesSave();pmUpdate();};
- host.querySelectorAll("[data-f]").forEach(function(el){el.oninput=function(){q.f[el.dataset.f]=el.value;if(el.dataset.f==="pm")sset("eo:pmname",el.value);if(el.dataset.f==="qn"){el.classList.remove("needjob");var n=document.getElementById("pm-qnote");if(n)n.style.display="none";var chip=host.querySelector(".pm-bar .cu-src.on");if(chip&&chip.firstChild)chip.firstChild.nodeValue=(el.value||"(no quote #)")+(q.f.client?" · "+q.f.client.slice(0,24):"")+" ";}save();};});
+ host.querySelectorAll("[data-f]").forEach(function(el){el.oninput=function(){q.f[el.dataset.f]=el.value;if(el.dataset.f==="pm")sset("eo:pmname",el.value);if(el.dataset.f==="assigned")sset("eo:pminit",el.value);if(el.dataset.f==="qn"){el.classList.remove("needjob");var n=document.getElementById("pm-qnote");if(n)n.style.display="none";var chip=host.querySelector(".pm-bar .cu-src.on");if(chip&&chip.firstChild)chip.firstChild.nodeValue=(el.value||"(no quote #)")+(q.f.client?" · "+q.f.client.slice(0,24):"")+" ";}save();};});
  host.querySelectorAll(".pm-sname").forEach(function(el){el.oninput=function(){q.secs[+el.dataset.s].name=el.value;save();};});
  host.querySelectorAll(".pm-hr").forEach(function(el){el.oninput=function(){var s=q.secs[+el.dataset.s];if(el.value.trim())s.hrs[el.dataset.r]=el.value.trim();else delete s.hrs[el.dataset.r];save();};});
  host.querySelectorAll("[data-rm]").forEach(function(b){b.onclick=function(){q.secs.splice(+b.dataset.rm,1);save();pmRender();};});
@@ -2073,22 +2078,94 @@ function pmCopyRow(){var q=pmCurQ();if(q)pmCopy(pmTrackerRow(q),"pm-copied");}
 function pmNewQ(){pmNewQuote();pmRender();var el=document.getElementById("pm-qn");if(el)el.focus();}
 function pmAddSec(){var q=pmCurQ();if(!q)return;q.secs.push({name:"",hrs:{}});pmQuotesSave();pmRender();}
 function pmDownloadVault(vf){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(vf,null,1)],{type:"application/json"}));a.download="pm-vault.json";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);}
-function pmSaveRates(){
- var V=PM.vault,bad=false;
- document.querySelectorAll(".pm-rv").forEach(function(el){var r=V.rates.find(function(x){return x.id===el.dataset.r;}),v=parseFloat(el.value);if(isNaN(v)||v<0)bad=true;else r.rate=v;});
- document.querySelectorAll(".pm-dv").forEach(function(el){var d=V.disb.find(function(x){return x.id===el.dataset.d;}),v=parseFloat(el.value);if(isNaN(v)||v<0)bad=true;else d.price=v;});
- if(bad){alert("Rates must be numbers.");return Promise.resolve();}
- var ed=document.getElementById("pm-fcied");if(ed){V.fci=[].slice.call(ed.querySelectorAll(".pm-fcie")).map(function(el){return {label:el.querySelector(".pm-fcil").value.trim(),text:el.querySelector(".pm-fcit").value.replace(/\r/g,"").replace(/\s+$/,"")};}).filter(function(o){return o.label||o.text;}).map(function(o,i){if(!o.label)o.label="Option "+(i+1);return o;});}
- return pmEncrypt(V,PM.key,pmUnB64(PM.vfile.salt),PM.vfile.iter).then(function(vf){PM.vfile=vf;sset("eo:pmvault",JSON.stringify(vf));pmDownloadVault(vf);pmRender();var m=document.getElementById("pm-vmsg");if(m)m.innerHTML="Saved on this device and downloaded <b>pm-vault.json</b> — upload it to the repo so the other PMs get the new rates.";});
+function pmReadFciEditor(){var ed=document.getElementById("pm-fcied");if(!ed)return null;return [].slice.call(ed.querySelectorAll(".pm-fcie")).map(function(el){return {label:el.querySelector(".pm-fcil").value.trim(),text:el.querySelector(".pm-fcit").value.replace(/\r/g,"").replace(/\s+$/,"")};}).filter(function(o){return o.label||o.text;}).map(function(o,i){if(!o.label)o.label="Option "+(i+1);return o;});}
+function pmApplyLocalFci(){var l=null;try{l=JSON.parse(sget("eo:pmfci")||"null");}catch(e){}if(l&&PM.vfile&&l.ts>PM.vfile.ts&&Array.isArray(l.fci))PM.vault.fci=l.fci;}
+function pmSaveOptions(){
+ var fci=pmReadFciEditor();if(!fci)return Promise.resolve();
+ PM.vault.fci=fci;sset("eo:pmfci",JSON.stringify({ts:new Date().toISOString(),fci:fci}));
+ return pmEncrypt(PM.vault,PM.key,pmUnB64(PM.vfile.salt),PM.vfile.iter).then(function(vf){pmDownloadVault(vf);pmRender();var d=document.getElementById("pm-ratesfold");if(d)d.open=true;var m=document.getElementById("pm-vmsg");if(m)m.innerHTML="Options saved on this device, and <b>pm-vault.json</b> downloaded — upload it to the repo so every PM gets them.";});
 }
-function pmChangePass(){
- var a=document.getElementById("pm-np1").value,b=document.getElementById("pm-np2").value;
- if(a.length<8){alert("Use at least 8 characters.");return Promise.resolve();}if(a!==b){alert("The two entries don't match.");return Promise.resolve();}
- var salt=crypto.getRandomValues(new Uint8Array(16)),iter=600000;
- return pmDerive(a,salt,iter).then(function(key){return pmEncrypt(PM.vault,key,salt,iter).then(function(vf){PM.key=key;PM.vfile=vf;sset("eo:pmvault",JSON.stringify(vf));
-  if(sget("eo:pmkey"))return crypto.subtle.exportKey("raw",key).then(function(raw){sset("eo:pmkey",JSON.stringify({salt:vf.salt,k:pmB64(raw)}));return vf;});return vf;});}).then(function(vf){pmDownloadVault(vf);pmRender();var m=document.getElementById("pm-vmsg");if(m)m.innerHTML="Passphrase changed on this device and <b>pm-vault.json</b> downloaded — upload it to the repo, then tell the PMs the new passphrase.";});
+/* ---------- PM: import a job details .txt ---------- */
+var PM_ALIAS={f2:["2-man field crew","2 man crew","2-man crew","2 man field crew","2man crew","two man crew"],f1:["1-man field crew","1 man crew","1-man crew","1 man field crew","1man crew","one man crew"],lft:["lidar field technician","lidar field tech"],dpp:["drone pilot (photogrammetry)","drone pilot (photo)","drone pilot photogrammetry","drone pilot photo"],dpl:["drone pilot (lidar)","drone pilot lidar"],lpo:["lidar & photogrammetry office technician","lidar and photogrammetry office technician","drone office tech","drone tech (office)","drone office technician","lidar office tech"],cad:["office cad technician","cad tech","cad technician","office cad tech"],sot:["senior office technician","senior cad tech","senior office tech","senior cad technician"],bcls:["bcls"]};
+function pmNorm(s){return String(s).toLowerCase().replace(/[^a-z0-9]/g,"");}
+function pmRole(txt){
+ var t=pmNorm(txt);if(!t)return null;var list=[];
+ PM.vault.rates.forEach(function(r){[r.label,r.short||""].concat(PM_ALIAS[r.id]||[]).forEach(function(a){var n=pmNorm(a);if(n)list.push({id:r.id,n:n});});});
+ var ex=list.filter(function(x){return x.n===t;})[0];if(ex)return ex.id;
+ list.sort(function(a,b){return b.n.length-a.n.length;});
+ var c=list.filter(function(x){return t.indexOf(x.n)>=0;})[0];return c?c.id:null;
 }
-window.pmFciAdd=pmFciAdd;window.pmLock=pmLock;window.pmNewQ=pmNewQ;window.pmAddSec=pmAddSec;window.pmDownload=pmDownload;window.pmCopyJob=pmCopyJob;window.pmCopyRow=pmCopyRow;window.pmSaveRates=pmSaveRates;window.pmChangePass=pmChangePass;window.pmUnlock=pmUnlock;window.pmJobText=pmJobText;window.pmCalc=pmCalc;window.PM=PM;window.pmTrackerRow=pmTrackerRow;window.pmRender=pmRender;
+var PM_LABELS=[["client",/^client\s*:/i],["contact",/^contact(\s*name)?\s*:/i],["email",/^e-?mail\s*:/i],["phone",/^phone\s*:/i],["site",/^site\s*address\s*:?/i],["qn",/^quote\s*#\s*:?/i],["legal",/^legal\s*desc\.?\s*:?/i],["pid",/^pid\s*:/i],["plans",/^relevant\s*plans\s*:/i],["services",/^services\s*provided\s*:/i],["task",/^additional\s*task\s*details\s*:/i],["pmc",/^additional\s*pm\s*comments\s*:/i],["zoning",/^zoning\s*:/i],["_eft",/^estimated\s*field\s*time\s*:/i],["_edt",/^estimated\s*draft\s*time\s*:/i],["_disb",/^disbursements\s*:/i],["pm",/^project\s*manager\s*:/i],["_task",/^task\s*#\s*:?/i]];
+function pmParseJob(text){
+ var lines=text.replace(/^﻿/,"").replace(/\r\n?/g,"\n").split("\n"),f={},raw={},i=0,last=null,fciAt=-1;
+ for(;i<lines.length;i++){
+  var l=lines[i],tl=l.trim();
+  if(/^field\s*crew\s*instructions\s*:?/i.test(tl)){fciAt=i;break;}
+  var hit=null;for(var k=0;k<PM_LABELS.length;k++){var m=tl.match(PM_LABELS[k][1]);if(m){hit=[PM_LABELS[k][0],tl.slice(m[0].length).trim()];break;}}
+  if(hit){last=hit[0];if(hit[0].charAt(0)==="_")raw[hit[0]]=hit[1];else f[hit[0]]=hit[1];}
+  else if(tl&&last&&last.charAt(0)!=="_"){f[last]=(f[last]?f[last]+" ":"")+tl;}
+  else if(tl&&last&&last.charAt(0)==="_"){raw[last]=(raw[last]?raw[last]+" ":"")+tl;}
+ }
+ if(!Object.keys(f).length&&fciAt<0)return null;
+ var fci=[],notes=[],sub=[],after=[];
+ if(fciAt>=0){var inl=lines[fciAt].trim().replace(/^field\s*crew\s*instructions\s*:?/i,"").trim();if(inl)fci.push(inl);i=fciAt+1;
+  for(;i<lines.length&&lines[i].trim()!=="";i++)fci.push(lines[i].replace(/\s+$/,""));}
+ var mode="notes";
+ for(;i<lines.length;i++){var s=lines[i].replace(/\s+$/,""),st=s.trim();
+  if(/^(sublabour|sub-labour|subtotal\s*labour|sublabor)\s*(calculation)?\s*:?$/i.test(st)){mode="sub";continue;}
+  if(mode==="sub"){sub.push(st);if(/^total\s*before\s*gst/i.test(st))mode="after";continue;}
+  if(mode==="after"){if(st&&!/^gst\s*extra\.?$/i.test(st))after.push(s);continue;}
+  notes.push(s);}
+ var q={id:"q"+Date.now(),updated:Date.now(),f:f,secs:[],disb:{},other:{label:"",amt:""},fci:fci.join("\n"),notes:notes.concat(after.length?[""].concat(after):[]).join("\n").replace(/^\s+|\s+$/g,"")};
+ var rep={read:0,unread:[],rateDiff:[]};
+ /* hours: Sublabour block first */
+ var cur=null,HR=/(\d+(?:\.\d+)?)\s*hrs?\.?\s+(.+?)\s*(?:x|@|×|\*)\s*\$\s*([\d,]+(?:\.\d+)?)\s*\/\s*hr/i;
+ sub.forEach(function(st){
+  if(!st||/^(field|office)\s*:?$/i.test(st))return;
+  if(/^total|^disbursements|labour\s*(\([^)]*\))?\s*:/i.test(st)&&/\$/.test(st))return;
+  var body=st.replace(/^(field|office)\s*:\s*/i,""),m=body.match(HR);
+  if(m){var id=pmRole(m[2]);if(!id){rep.unread.push(st);return;}
+   if(!cur){cur={name:"",hrs:{}};q.secs.push(cur);}
+   cur.hrs[id]=String(pmNum(cur.hrs[id])+parseFloat(m[1]));rep.read++;
+   var r=PM.vault.rates.find(function(x){return x.id===id;}),fr=pmNum(m[3]);if(r&&Math.abs(fr-r.rate)>0.001)rep.rateDiff.push((r.short||r.label)+": file $"+fr+", current $"+r.rate);
+   return;}
+  if(/:$/.test(st)&&!/\$/.test(st)){cur={name:st.replace(/:$/,"").trim(),hrs:{}};q.secs.push(cur);return;}
+  if(/\d\s*hrs?\b/i.test(st))rep.unread.push(st);
+ });
+ q.secs=q.secs.filter(function(s){return Object.keys(s.hrs).length;});
+ if(q.secs.length===1&&!sub.some(function(x){return /:$/.test(x)&&!/\$/.test(x)&&!/^(field|office)\s*:$/i.test(x);}))q.secs[0].name="";
+ /* fallback: Estimated Field/Draft Time lines */
+ if(!q.secs.length){var one={name:"",hrs:{}};
+  ["_eft","_edt"].forEach(function(k){var v=(raw[k]||"").trim();if(!v)return;
+   v.split("+").forEach(function(p){p=p.trim().replace(/\.$/,"");if(!p)return;
+    var m=p.match(/^(\d+(?:\.\d+)?)\s*(?:hrs?\.?)?\s*\(?\s*([^()]+?)\s*\)?$/i),id=m&&!/[:;]/.test(p)?pmRole(m[2]):null;
+    if(id){one.hrs[id]=String(pmNum(one.hrs[id])+parseFloat(m[1]));rep.read++;}else rep.unread.push(p);});});
+  if(Object.keys(one.hrs).length)q.secs.push(one);}
+ if(!q.secs.length)q.secs.push({name:"",hrs:{}});
+ /* disbursements */
+ (PM.vault.disb||[]).forEach(function(d){q.disb[d.id]=0;});
+ var dl=(raw._disb||"").replace(/=\s*\$?[\d,.]+\s*\.?\s*$/,"");
+ if(dl.trim()){var others=[],oamt=0;
+  dl.split("+").forEach(function(p){p=p.trim();if(!p)return;var amt=(p.match(/\$\s*([\d,.]+)\s*\)?\s*$/)||p.match(/\$\s*([\d,.]+)/)||[])[1];var bare=p.replace(/\([^)]*\)/g,"").trim(),m=bare.match(/^(\d+)\s+(.+)$/);
+   var nm=m?m[2].toLowerCase():"",n=m?parseInt(m[1]):0,id=null;
+   if(/^titles?$/.test(nm))id="title";else if(/^(legal\s*)?plans?$/.test(nm))id="plan";else if(/^checklists?(\s*fees?)?$/.test(nm))id="chk";else if(/^filing(\s*fees?)?$/.test(nm))id="filing";
+   if(id&&q.disb.hasOwnProperty(id))q.disb[id]=n;else if(amt){others.push(bare||p);oamt+=pmNum(amt);}else rep.unread.push("Disbursement: "+p);});
+  if(others.length){q.other={label:others.join(", "),amt:String(oamt)};}}
+ q.importRep=rep;return q;
+}
+function pmImportText(text,fname){
+ if(!PM.key){alert("Unlock the PM tab first.");return null;}
+ var q=pmParseJob(text);
+ if(!q){alert("That doesn't look like a job details file — no Client / Quote# fields found.");return null;}
+ q.importRep.file=fname||"";
+ var qn=(q.f.qn||"").trim(),ex=qn?PM.quotes.find(function(x){return (x.f.qn||"").trim()===qn;}):null;
+ if(ex&&confirm("A draft for "+qn+" already exists on this device.\n\nOK = replace that draft with the file\nCancel = open the file as a separate draft")){q.id=ex.id;PM.quotes=PM.quotes.filter(function(x){return x!==ex;});}
+ PM.quotes.unshift(q);PM.cur=q.id;pmQuotesSave();pmRender();return q;
+}
+function pmImportFile(file){var r=new FileReader();r.onload=function(){pmImportText(r.result,file.name);};r.readAsText(file);}
+function pmOnView(){var v=document.getElementById("v-pm");return v&&v.classList.contains("on");}
+window.pmImportText=pmImportText;window.pmImportFile=pmImportFile;window.pmParseJob=pmParseJob;window.pmOnView=pmOnView;
+window.pmFciAdd=pmFciAdd;window.pmLock=pmLock;window.pmNewQ=pmNewQ;window.pmAddSec=pmAddSec;window.pmDownload=pmDownload;window.pmCopyJob=pmCopyJob;window.pmCopyRow=pmCopyRow;window.pmSaveOptions=pmSaveOptions;window.pmUnlock=pmUnlock;window.pmJobText=pmJobText;window.pmCalc=pmCalc;window.PM=PM;window.pmTrackerRow=pmTrackerRow;window.pmRender=pmRender;
 (function(){var b=document.querySelector("nav button[data-v='pm']");if(b)b.addEventListener("click",function(){if(!PM.key)pmAutoUnlock().then(function(){pmRender();});});pmRender();})();
 
 
