@@ -264,6 +264,14 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .jobnote{width:100%;color:#a32020;font-size:13px;padding:6px 2px 0}
 #tb-job.needjob{outline:2px solid #a32020;outline-offset:2px}
 .cu-mtsum{font-size:13.5px;margin:10px 0 6px}
+.cu-tfm tr.on td{background:#eef3f9;font-weight:600}
+.cu-tfverdict{font-size:13.5px;margin:8px 0 6px;line-height:1.45}
+.cu-tfshift{border:1px solid var(--hair);background:#f7f7f4;padding:10px 12px;margin:8px 0;max-width:460px}
+.cu-tfsh-h{font:600 11px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.cu-tfsh-r{display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:13.5px}
+.cu-tfsh-r b{font:600 15px "IBM Plex Mono",monospace;color:var(--blue)}
+.cu-tfsh-r b.cu-tfrng{font-size:13px;word-break:break-all;text-align:right}
+.cu-tf .row>label:first-child{min-width:82px;display:inline-block}
 .cu-ok{color:#2a7a3a;font-weight:600}
 .cu-mtt{border-collapse:collapse;font:12.5px "IBM Plex Mono",monospace;margin:4px 0}
 .cu-mtt th{text-align:left;font:600 11px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase;color:var(--faint);padding:3px 10px 3px 0;border-bottom:1px solid var(--hair)}
@@ -669,7 +677,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.14";
+const BUILD="1.15";
 const NEWS=["Match points: a General mode for stitching any two point sets \u2014 pick the numbering blocks for each side (the tool proposes the two that sit far apart), second files on either side, control-codes filter","Chained stages: after a match, Carry A + B forward makes the combined set side A for the next match \u2014 GPS \u2192 ground control, then ground + GPS \u2192 calc, each with its own pairs","Monument-ID hints: matching monument numbers on both sides seed the pairing and show \u2713ID; where an ID disagrees with the figure it\u2019s flagged \u2014 confusion about which control got tied, resolved by evidence","Descriptions on both sides in results, same-coordinate-system detection, and a faster engine for larger sets. The default Calc \u2192 tied-in mode is unchanged.","Points tab file shelf: every file or drawing package you drop is added, not replaced \u2014 tap a file to make it the one cleanup/extraction/scale act on, Reset clears the shelf, and Match points picks each side from any loaded file (no more Second file buttons); re-dropping the same file name replaces that entry","Training tab: 18 more videos added \u2014 the ones stored directly in SharePoint (Elevate Office app walkthroughs, Automap, area calc, Elevate system, and more) \u2014 each opening in the SharePoint player, plus a link to the whole library"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
@@ -1913,7 +1921,7 @@ function cuShelfRemove(id){
  if(wasActive){var last=cuSources[cuSources.length-1];last.active=true;cu=last.state;}
  cuRender();
 }
-function cuShelfReset(){cuSources=[];cuMatch=null;cu=cuNewState();var dz=document.getElementById("cu-drop");if(dz)dz.classList.remove("has");cuRender();}
+function cuShelfReset(){cuSources=[];cuMatch=null;cuTf=null;cu=cuNewState();var dz=document.getElementById("cu-drop");if(dz)dz.classList.remove("has");cuRender();}
 function cuPtsOf(state){var keep=cu;cu=state;var pts;try{pts=cuTagCodes(cuFilePts());}finally{cu=keep;}return pts;}
 function cuShelfHtml(){
  if(!cuSources.length)return "";
@@ -2148,7 +2156,7 @@ function cuRender(){
   h+="<div class='cu-units'><span>This file has trees \u2014 drawing units:</span> <span class='seg'><button data-u='m' class='"+(cu.unitAns==="m"?"on":"")+"'>Metric</button><button data-u='ft' class='"+(cu.unitAns==="ft"?"on":"")+"'>Imperial (ft)</button></span></div>";
  }
  h+="<div class='cu-manual'><h3>Add your own fix</h3><div class='row'><input type='text' id='cu-mf' placeholder='find' style='width:130px'> <span>\u2192</span> <input type='text' id='cu-mr' placeholder='replace' style='width:130px'> <label class='cu-cb'><input type='checkbox' id='cu-mw' checked> whole token</label> <input type='text' id='cu-mrange' placeholder='point range (optional)' style='width:150px'> <button class='btn' onclick='cuManAdd()'>Add rule</button></div><div id='cu-mprev' class='hint'></div></div>";
- h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div><div id='cu-scale'></div><div id='cu-match'></div>";
+ h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div><div id='cu-scale'></div><div id='cu-match'></div><div id='cu-tf'></div>";
  host.innerHTML=h;
  host.querySelectorAll(".cu-src").forEach(function(el){el.onclick=function(e){if(e.target.classList.contains("cu-srcx"))return;cuActivate(el.dataset.id);};});
  host.querySelectorAll(".cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();cuShelfRemove(b.dataset.id);};});
@@ -2169,7 +2177,7 @@ function cuRender(){
  }
  mf.oninput=mprev;mr.oninput=mprev;
  document.getElementById("cu-mw").onchange=mprev;document.getElementById("cu-mrange").oninput=mprev;
- cuRenderReview();cuRenderScale();cuRenderMatch();
+ cuRenderReview();cuRenderScale();cuRenderMatch();cuRenderTf();
 }
 function cuTickAll(on){
  /* on=true restores defaults (fixes + manual rules ticked, suggestions unticked); on=false clears every tick */
@@ -2610,6 +2618,232 @@ function cuScaleInvert(){var s=cu.scale,v=parseFloat(String(s.custom).replace(/,
 function cuScaleUseSf(){var s=cu.scale;if(!s.sfPt)return;s.ptInput=s.sfPt.pt;s.mode="c";s.elev=false;s.custom=s.sfPt.val;cuScaleConfirmPt();}
 window.cuScaleInvert=cuScaleInvert;window.cuScaleUseSf=cuScaleUseSf;
 window.cuScaleConfirmPt=cuScaleConfirmPt;window.cuScaleConfirmManual=cuScaleConfirmManual;window.cuRenderScale=cuRenderScale;window.cuScaledLine=cuScaledLine;window.cuScaleFactor=cuScaleFactor;
+
+/* ---------- transform between two drawings (paired by point number) ---------- */
+var cuTf=null;
+function cuTfNew(){return {open:false,from:null,to:null,fitRange:"",excl:{},ptsSrc:null,ptsRange:"",keepZero:true};}
+function cuTfState(){if(!cuTf)cuTf=cuTfNew();var ids=cuSources.map(function(s){return s.id;});
+ if(cuTf.from&&ids.indexOf(cuTf.from)<0)cuTf.from=null;if(cuTf.to&&ids.indexOf(cuTf.to)<0)cuTf.to=null;if(cuTf.ptsSrc&&ids.indexOf(cuTf.ptsSrc)<0)cuTf.ptsSrc=null;
+ if(!cuTf.from&&ids.length)cuTf.from=ids[0];
+ if(!cuTf.to&&ids.length>1)cuTf.to=ids.filter(function(i){return i!==cuTf.from;})[0];
+ return cuTf;}
+function cuTfPts(state){
+ var out=[];if(!state||!state.lines)return out;
+ state.lines.forEach(function(r){if(!r.point)return;var c=cuCoordOf(r);if(!c||isNaN(c.n)||isNaN(c.e))return;out.push({pt:r.pt,N:c.n,E:c.e,Z:isNaN(c.z)?0:c.z,desc:r.desc.trim(),rec:r});});
+ return out;
+}
+function cuTfInRange(pt,range){
+ range=String(range||"").replace(/\.\./g,"-");
+ return range.split(",").some(function(seg){
+  seg=seg.trim();if(!seg)return false;
+  if(seg.toUpperCase()===String(pt).toUpperCase())return true;
+  var m=seg.match(/^(\d+)\s*-\s*(\d+)$/);
+  if(m&&/^\d+$/.test(pt)){var n=parseInt(pt);return n>=parseInt(m[1])&&n<=parseInt(m[2]);}
+  return false;
+ });
+}
+/* B = cb + s*R(th)*(A - ca); A,B as [N,E] */
+function cuTfFit(pairs,kind){
+ var n=pairs.length;if(!n)return null;
+ if(kind!=="shift"&&n<2)return null;
+ var ca=[0,0],cb=[0,0];pairs.forEach(function(p){ca[0]+=p.a.N;ca[1]+=p.a.E;cb[0]+=p.b.N;cb[1]+=p.b.E;});
+ ca[0]/=n;ca[1]/=n;cb[0]/=n;cb[1]/=n;
+ var sxx=0,sxy=0,syx=0,syy=0,na=0;
+ pairs.forEach(function(p){var ax=p.a.N-ca[0],ay=p.a.E-ca[1],bx=p.b.N-cb[0],by=p.b.E-cb[1];sxx+=ax*bx;sxy+=ax*by;syx+=ay*bx;syy+=ay*by;na+=ax*ax+ay*ay;});
+ var th=0,s=1;
+ if(kind==="rot"||kind==="full")th=Math.atan2(sxy-syx,sxx+syy);
+ if((kind==="scale"||kind==="full")&&na>0)s=((sxx+syy)*Math.cos(th)+(sxy-syx)*Math.sin(th))/na;
+ var c=Math.cos(th),si=Math.sin(th);
+ var T=function(N,E){var ax=N-ca[0],ay=E-ca[1];return [cb[0]+s*(c*ax-si*ay),cb[1]+s*(si*ax+c*ay)];};
+ var ss=0,mx=0,res=pairs.map(function(p){var q=T(p.a.N,p.a.E),vn=p.b.N-q[0],ve=p.b.E-q[1],d=Math.hypot(vn,ve);ss+=d*d;if(d>mx)mx=d;return {pt:p.pt,vn:vn,ve:ve,d:d};});
+ return {kind:kind,s:s,th:th,ca:ca,cb:cb,T:T,rms:Math.sqrt(ss/n),max:mx,res:res,n:n};
+}
+var CU_TF_KINDS=[["shift","Shift only"],["rot","Rotation + shift"],["scale","Scale + shift"],["full","Scale + rotation + shift"]];
+function cuTfFitAll(pairs){
+ var fits={};CU_TF_KINDS.forEach(function(k){fits[k[0]]=cuTfFit(pairs,k[0]);});
+ var avail=CU_TF_KINDS.map(function(k){return fits[k[0]];}).filter(Boolean);
+ if(!avail.length)return null;
+ var best=Math.min.apply(null,avail.map(function(f){return f.rms;}));
+ var pick=avail.filter(function(f){return f.rms<=best+0.003;})[0];
+ return {fits:fits,pick:pick,best:best};
+}
+function cuTfSfList(){
+ var out=[];
+ [cuTf.from,cuTf.to].forEach(function(id){var st=cuStateOf(id);if(!st||!st.lines)return;st.lines.forEach(function(r){if(!r.point)return;var m=r.desc.match(/\bsf\s*[-=:]?\s*([01]\.\d{3,})/i);if(m)out.push({pt:r.pt,val:parseFloat(m[1]),str:m[1],desc:r.desc.trim()});});});
+ return out;
+}
+function cuTfScaleNote(s){
+ if(Math.abs(s-1)<5e-8)return "no scale";
+ var dir=s>1?"grid → ground":"ground → grid";
+ var note="× "+s.toFixed(8)+" ("+dir+", 1/x = "+(1/s).toFixed(8)+")";
+ cuTfSfList().some(function(sf){
+  if(Math.abs(s-sf.val)<5e-7){note+=" — matches the factor booked on point "+sf.pt+" ("+sf.desc+")";return true;}
+  if(Math.abs(s-1/sf.val)<5e-7){note+=" — exactly 1 / the factor booked on point "+sf.pt+" ("+sf.desc+")";return true;}
+  return false;
+ });
+ return note;
+}
+function cuTfRot(th){var d=th*180/Math.PI;if(Math.abs(d)*3600<0.5)return "no rotation";return (d<0?"−":"")+cuDms(Math.abs(d));}
+function cuTfCompute(){
+ var t=cuTfState();
+ var A=cuTfPts(cuStateOf(t.from)),B=cuTfPts(cuStateOf(t.to));
+ var bm={};B.forEach(function(p){bm[p.pt.toUpperCase()]=p;});
+ var am={};A.forEach(function(p){am[p.pt.toUpperCase()]=p;});
+ var common=A.filter(function(p){return bm[p.pt.toUpperCase()];}).map(function(p){return {pt:p.pt,a:p,b:bm[p.pt.toUpperCase()]};});
+ var inFit=common.filter(function(p){return !t.excl[p.pt]&&(!t.fitRange.trim()||cuTfInRange(p.pt,t.fitRange));});
+ var R={A:A,B:B,common:common,inFit:inFit,onlyA:A.filter(function(p){return !bm[p.pt.toUpperCase()];}),onlyB:B.filter(function(p){return !am[p.pt.toUpperCase()];})};
+ R.fit=inFit.length?cuTfFitAll(inFit):null;
+ /* elevation: mean dZ over pairs where both elevations are non-zero */
+ var dz=inFit.filter(function(p){return Math.abs(p.a.Z)>1e-9&&Math.abs(p.b.Z)>1e-9;}).map(function(p){return p.b.Z-p.a.Z;});
+ R.dzN=dz.length;R.dz=dz.length?dz.reduce(function(x,y){return x+y;},0)/dz.length:0;
+ R.dzSpread=dz.length?Math.max.apply(null,dz)-Math.min.apply(null,dz):0;
+ /* per-block fits when the whole set doesn't fit tightly */
+ R.blocks=[];
+ if(R.fit&&R.fit.best>0.003){
+  cuBlocks(inFit.map(function(p){return {pt:p.pt,N:p.a.N,E:p.a.E,desc:p.a.desc};})).forEach(function(b){
+   if(b.pts.length<3)return;var keep={};b.pts.forEach(function(p){keep[p.pt]=1;});
+   var sub=inFit.filter(function(p){return keep[p.pt];});var f=cuTfFitAll(sub);if(!f)return;
+   var prev=R.blocks[R.blocks.length-1];
+   if(prev&&!b.nn&&!prev.nn){var both=prev.sub.concat(sub),fb=cuTfFitAll(both);if(fb&&fb.best<=0.003){prev.sub=both;prev.hi=b.hi;prev.label=prev.lo+"-"+b.hi;prev.n=both.length;prev.fit=fb.pick;return;}}
+   R.blocks.push({lo:b.lo,hi:b.hi,nn:b.nn,sub:sub,label:b.nn?"non-numeric":(b.lo===b.hi?String(b.lo):b.lo+"-"+b.hi),n:sub.length,fit:f.pick});
+  });
+  if(R.blocks.length<2)R.blocks=[];
+ }
+ /* points to move */
+ var ps=t.ptsSrc||t.from,pst=cuStateOf(ps),pp=cuTfPts(pst);
+ if(t.ptsRange.trim())pp=pp.filter(function(p){return cuTfInRange(p.pt,t.ptsRange);});
+ else if(ps===t.from)pp=R.onlyA.slice();
+ R.move=pp;R.moveSrc=ps;
+ if(R.fit&&pp.length){
+  var M=R.fit.pick,cn=0,ce=0;pp.forEach(function(p){cn+=p.N;ce+=p.E;});cn/=pp.length;ce/=pp.length;
+  var q=M.T(cn,ce);R.shN=q[0]-cn;R.shE=q[1]-ce;var worst=0;
+  R.moved=pp.map(function(p){var q2=M.T(p.N,p.E),zz=(t.keepZero&&Math.abs(p.Z)<1e-9)?p.Z:p.Z+R.dz;var dev=Math.hypot(q2[0]-p.N-R.shN,q2[1]-p.E-R.shE);if(dev>worst)worst=dev;return {p:p,N:q2[0],E:q2[1],Z:zz};});
+  R.worst=worst;
+ }
+ return R;
+}
+function cuTfRangeStr(pts){
+ var nums=[],other=[];pts.forEach(function(p){if(/^\d+$/.test(p.pt))nums.push(parseInt(p.pt));else other.push(p.pt);});
+ nums.sort(function(a,b){return a-b;});var segs=[],i=0;
+ while(i<nums.length){var j=i;while(j+1<nums.length&&nums[j+1]===nums[j]+1)j++;segs.push(j>i?nums[i]+".."+nums[j]:String(nums[i]));i=j+1;}
+ return segs.concat(other).join(",");
+}
+function cuTfSigned(v,d){var s=v.toFixed(d);if(parseFloat(s)===0)s=(0).toFixed(d);return (s.charAt(0)==="-"?"−"+s.slice(1):"+"+s);}
+function cuRenderTf(){
+ var host=document.getElementById("cu-tf");if(!host||!cu.lines)return;
+ var t=cuTfState();
+ var h="<details class='cu-fold' id='cu-tffold'"+(t.open?" open":"")+"><summary>Transform between drawings</summary><div class='cu-manual cu-tf'>";
+ if(cuSources.length<2){
+  h+="<div class='hint' style='margin:4px 0'>Drop both drawings (or points files) onto this tab — e.g. the UTM-local package and the plan package. Points are paired by identical point number; the tool works out whether the difference is a shift, a scale, a rotation, or a combination, and gives you the North / East / Elevation values for MicroSurvey's Shift Coordinates.</div></div></details>";
+  host.innerHTML=h;document.getElementById("cu-tffold").addEventListener("toggle",function(){t.open=this.open;});return;
+ }
+ function sel(key,cur){return "<select class='cu-tfsel' data-k='"+key+"'>"+cuSources.map(function(s){return "<option value='"+s.id+"'"+(s.id===cur?" selected":"")+">"+esc(s.name)+"</option>";}).join("")+"</select>";}
+ var R=cuTfCompute();
+ h+="<div class='row'><label>From</label>"+sel("from",t.from)+" <button class='btn' onclick='cuTfSwap()' title='swap From and To'>⇅</button><span class='hint' style='margin:0 0 0 8px'>the system your new points are in</span></div>";
+ h+="<div class='row'><label>To</label>"+sel("to",t.to)+"<span class='hint' style='margin:0 0 0 8px'>the drawing you're adding them to</span></div>";
+ if(t.from===t.to){h+="<div class='cu-err'>From and To are the same file — pick two different drawings.</div></div></details>";host.innerHTML=h;cuTfWire(host,t);return;}
+ h+="<div class='cu-mtsum'>"+R.common.length+" point numbers in both · "+R.onlyA.length+" only in From · "+R.onlyB.length+" only in To</div>";
+ h+="<div class='row'><label>Fit on</label><input type='text' id='cu-tfrange' value='"+esc(t.fitRange)+"' placeholder='all common points' style='width:220px'><span class='hint' style='margin:0 0 0 8px'>e.g. 1000-1999 or 1..28 — press Enter</span></div>";
+ if(!R.common.length){h+="<div class='cu-err'>No point numbers in common — nothing to compare. If the numbering differs between the drawings, use Match points to find the pairs first.</div></div></details>";host.innerHTML=h;cuTfWire(host,t);return;}
+ if(!R.fit){h+="<div class='cu-err'>No common points left in the fit — widen the range or re-tick points below.</div>";}
+ else{
+  var F=R.fit;
+  h+="<table class='cu-mtt cu-tfm'><tr><th>Model</th><th>Scale</th><th>Rotation</th><th>rms</th><th>max</th><th></th></tr>";
+  CU_TF_KINDS.forEach(function(k){var f=F.fits[k[0]];if(!f)return;var on=f===F.pick;h+="<tr"+(on?" class='on'":"")+"><td>"+k[1]+"</td><td>"+(k[0]==="scale"||k[0]==="full"?f.s.toFixed(8):"—")+"</td><td>"+(k[0]==="rot"||k[0]==="full"?cuTfRot(f.th):"—")+"</td><td>"+f.rms.toFixed(4)+"</td><td>"+f.max.toFixed(4)+"</td><td>"+(on?"<span class='cu-ok'>← fits</span>":"")+"</td></tr>";});
+  h+="</table>";
+  var P=F.pick,parts=[];
+  if(P.kind==="scale"||P.kind==="full")parts.push("scale "+cuTfScaleNote(P.s));
+  if(P.kind==="rot"||P.kind==="full")parts.push("rotation "+cuTfRot(P.th));
+  h+="<div class='cu-tfverdict'>"+(P.kind==="shift"?"<b>A plain shift</b> explains it":"<b>Not a plain shift.</b> Simplest model that fits: "+esc(CU_TF_KINDS.filter(function(k){return k[0]===P.kind;})[0][1].toLowerCase()))+" — rms "+(P.rms*1000).toFixed(1)+" mm over "+P.n+" points"+(parts.length?"; "+esc(parts.join("; ")):"")+".";
+  if(P.kind!=="shift"){var sf=F.fits.shift;h+=" A single shift would leave up to "+(sf.max*100).toFixed(1)+" cm — the right shift changes across the site.";}
+  h+="</div>";
+  if(R.dzN)h+="<div class='hint'>Elevations: "+(Math.abs(R.dz)<0.0005?"no offset":"offset "+cuTfSigned(R.dz,3)+" m")+" from "+R.dzN+" point"+(R.dzN>1?"s":"")+" with elevations on both sides"+(R.dzSpread>0.005?" — <span class='cu-idbad'>varies by "+R.dzSpread.toFixed(3)+" m, check</span>":"")+". Points at elevation 0 on both sides are ignored for this.</div>";
+  else h+="<div class='hint'>Elevations: no common point has an elevation on both sides — elevation shift 0.</div>";
+  if(R.blocks.length){
+   h+="<div class='cu-idwarn'>The whole set doesn't fit to within 3 mm. Fitted by numbering block:<br>"+R.blocks.map(function(b){var f=b.fit,bits=[];if(f.kind==="scale"||f.kind==="full")bits.push("scale "+cuTfScaleNote(f.s));if(f.kind==="rot"||f.kind==="full")bits.push("rotation "+cuTfRot(f.th));if(f.kind==="shift")bits.push("plain shift");return "<b>"+esc(b.label)+"</b> ("+b.n+" pts): "+esc(bits.join("; "))+", rms "+(f.rms*1000).toFixed(1)+" mm <button class='btn cu-tfblk' data-r='"+esc(b.label)+"'>Fit on this block</button>";}).join("<br>")+"<br>Different blocks were likely brought across differently (e.g. control scaled by the booked factor, calc points by another). Fit on the block your new points belong with.</div>";
+  }
+  /* residual table */
+  var resm={};P.res.forEach(function(r){resm[r.pt]=r;});
+  var lim=Math.max(0.02,3*P.rms);
+  h+="<details class='cu-scman'><summary>Common points — residuals after the fit ("+R.common.length+")</summary><table class='cu-mtt'><tr><th>Use</th><th>Pt</th><th>Desc</th><th>From → To dN</th><th>dE</th><th>dZ</th><th>Resid</th></tr>";
+  R.common.forEach(function(p){var r=resm[p.pt],used=!!r;h+="<tr><td><input type='checkbox' class='cu-tfuse' data-pt='"+esc(p.pt)+"'"+(t.excl[p.pt]?"":" checked")+"></td><td>"+esc(p.pt)+"</td><td class='cu-mtcode'>"+esc(p.a.desc)+"</td><td>"+cuTfSigned(p.b.N-p.a.N,3)+"</td><td>"+cuTfSigned(p.b.E-p.a.E,3)+"</td><td>"+cuTfSigned(p.b.Z-p.a.Z,3)+"</td><td>"+(used?(r.d>lim?"<span class='cu-idbad'>"+r.d.toFixed(3)+"</span>":r.d.toFixed(3)):"<span class='cu-mtcode'>not in fit</span>")+"</td></tr>";});
+  h+="</table></details>";
+ }
+ /* points to move */
+ h+="<div class='cu-stage'>Points to bring across</div>";
+ h+="<div class='row'><label>Points from</label>"+sel("ptsSrc",R.moveSrc)+" <input type='text' id='cu-tfpts' value='"+esc(t.ptsRange)+"' placeholder='"+(R.moveSrc===t.from?"points not in To":"all points")+"' style='width:200px'><span class='hint' style='margin:0 0 0 8px'>e.g. 24_1,28_1 — Enter</span></div>";
+ if(R.fit&&R.move.length){
+  var many=R.move.length>12;
+  h+="<div class='cu-mtun'>"+R.move.length+" point"+(R.move.length>1?"s":"")+": "+esc(R.move.slice(0,12).map(function(p){return p.pt;}).join(", "))+(many?" …":"")+"</div>";
+  h+="<div class='cu-tfshift'><div class='cu-tfsh-h'>MicroSurvey → Shift Coordinates → Shift using North/East/Elev</div>";
+  h+="<div class='cu-tfsh-r'><span>North Shift</span><b>"+R.shN.toFixed(3)+"</b></div><div class='cu-tfsh-r'><span>East Shift</span><b>"+R.shE.toFixed(3)+"</b></div><div class='cu-tfsh-r'><span>Elevation Shift</span><b>"+R.dz.toFixed(3)+"</b></div>";
+  h+="<div class='cu-tfsh-r'><span>Range of points to shift</span><b class='cu-tfrng'>"+esc(cuTfRangeStr(R.move))+"</b></div>";
+  h+="<div class='cu-dl' style='margin:6px 0 0'><button class='btn' onclick='cuTfCopy(0)'>Copy values</button><span class='hint' id='cu-tfcopied' style='margin:0'></span></div></div>";
+  if(R.worst>0.01)h+="<div class='cu-err'>One shift isn't exact across these points — off by up to "+(R.worst*100).toFixed(1)+" cm at the far ones, because the drawings differ by "+(R.fit.pick.kind==="rot"?"a rotation":"a scale")+". Use the transformed file below instead, or shift smaller groups.</div>";
+  else h+="<div class='hint'>Good to "+(R.worst*1000).toFixed(0)+" mm across these points"+(R.fit.pick.kind!=="shift"?" (the exact transform is in the file below; the shift is evaluated at the centre of these points)":"")+"."+(Math.abs(R.dz)>=0.0005&&t.keepZero?" MicroSurvey's elevation shift applies to every point, including any at elevation 0 — the file below leaves those at 0.":"")+"</div>";
+  h+="<div class='row'><label class='cu-cb'><input type='checkbox' id='cu-tfzero'"+(t.keepZero?" checked":"")+"> leave elevation-0 points at 0 in the file</label></div>";
+  h+="<div class='cu-dl'><button class='btn pri' onclick='cuTfDownload(0)'>Transformed points</button><button class='btn' onclick='cuTfDownload(1)'>Transform log</button><span class='hint' style='margin:0'>exact fitted model; format and line endings of the source kept</span></div>";
+ }else if(R.fit){
+  h+="<div class='hint'>"+(R.moveSrc===t.from&&!t.ptsRange.trim()?"Every point in From is already in To — type the point numbers to bring across, or pick another file under Points from.":"No points match that range.")+"</div>";
+ }
+ h+="</div></details>";
+ host.innerHTML=h;cuTfWire(host,t);
+}
+function cuTfWire(host,t){
+ document.getElementById("cu-tffold").addEventListener("toggle",function(){t.open=this.open;});
+ host.querySelectorAll(".cu-tfsel").forEach(function(s){s.onchange=function(){t[s.dataset.k]=s.value;if(s.dataset.k!=="ptsSrc")t.excl={};cuRenderTf();};});
+ var fr=document.getElementById("cu-tfrange");if(fr){fr.onkeydown=function(e){if(e.key==="Enter"){t.fitRange=fr.value;cuRenderTf();}};fr.onchange=function(){t.fitRange=fr.value;cuRenderTf();};}
+ var pr=document.getElementById("cu-tfpts");if(pr){pr.onkeydown=function(e){if(e.key==="Enter"){t.ptsRange=pr.value;cuRenderTf();}};pr.onchange=function(){t.ptsRange=pr.value;cuRenderTf();};}
+ host.querySelectorAll(".cu-tfuse").forEach(function(c){c.onchange=function(){if(c.checked)delete t.excl[c.dataset.pt];else t.excl[c.dataset.pt]=1;var d=c.closest("details");cuRenderTf();var d2=document.querySelector("#cu-tf .cu-scman");if(d2)d2.open=true;};});
+ host.querySelectorAll(".cu-tfblk").forEach(function(b){b.onclick=function(){t.fitRange=b.dataset.r;cuRenderTf();};});
+ var z=document.getElementById("cu-tfzero");if(z)z.onchange=function(){t.keepZero=z.checked;cuRenderTf();};
+}
+function cuTfSwap(){var t=cuTfState(),a=t.from;t.from=t.to;t.to=a;if(t.ptsSrc===t.to)t.ptsSrc=null;t.excl={};cuRenderTf();}
+function cuTfCopy(){
+ var R=cuTfCompute();if(!R.fit||!R.move.length)return;
+ var txt="North Shift: "+R.shN.toFixed(3)+"\nEast Shift: "+R.shE.toFixed(3)+"\nElevation Shift: "+R.dz.toFixed(3)+"\nRange of points to shift: "+cuTfRangeStr(R.move);
+ (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){var e=document.getElementById("cu-tfcopied");if(e){e.textContent="Copied.";setTimeout(function(){e.textContent="";},1500);}}).catch(function(){});
+}
+function cuTfLine(r,m){
+ var co=cuCoordOf(r);if(!co)return r.raw;
+ var ns=cuFmtLike(m.N,co.ns),es=cuFmtLike(m.E,co.es),zs=(m.Z===co.z)?co.zs:cuFmtLike(m.Z,co.zs);
+ if(r.cf){
+  function keep(orig,val){var mm=orig.match(/^(\s*)(.*?)(\s*)$/);return mm[1]+val+mm[3];}
+  var parts=r.raw.split(",");parts[1]=keep(r.cf[1],ns);parts[2]=keep(r.cf[2],es);parts[3]=keep(r.cf[3],zs);
+  return parts.join(",");
+ }
+ var w=r.wf;return w[1]+w[2]+w[3]+ns+w[5]+es+w[7]+zs+w[9]+r.desc;
+}
+function cuTfDownload(which){
+ var R=cuTfCompute(),t=cuTf;if(!R.fit||!R.moved||!R.moved.length)return;
+ var src=cuSources.find(function(s){return s.id===R.moveSrc;}),st=src.state;
+ var base=st.name.replace(/\.[^.]+$/,""),ext=(st.name.match(/\.[^.]+$/)||[".txt"])[0];
+ var content,fname;
+ if(which===0){
+  content=R.moved.map(function(m){return cuTfLine(m.p.rec,m)+(m.p.rec.eol||"\r\n");}).join("");
+  fname=base+"-TRANSFORMED"+ext;
+ }else{
+  var P=R.fit.pick,fromS=cuSources.find(function(s){return s.id===t.from;}),toS=cuSources.find(function(s){return s.id===t.to;}),L=[];
+  L.push("TRANSFORM LOG");L.push("Date: "+new Date().toISOString().slice(0,10));
+  L.push("From: "+fromS.name+"   To: "+toS.name);
+  L.push("Fit on: "+(t.fitRange.trim()||"all common points")+" — "+P.n+" points"+(Object.keys(t.excl).length?", excluded: "+Object.keys(t.excl).join(", "):""));
+  L.push("Model: "+CU_TF_KINDS.filter(function(k){return k[0]===P.kind;})[0][1]+"   rms "+P.rms.toFixed(4)+" m   max "+P.max.toFixed(4)+" m");
+  CU_TF_KINDS.forEach(function(k){var f=R.fit.fits[k[0]];if(f)L.push("  "+(k[1]+"                         ").slice(0,26)+"rms "+f.rms.toFixed(4)+"  max "+f.max.toFixed(4)+(k[0]==="scale"||k[0]==="full"?"  scale "+f.s.toFixed(8):"")+(k[0]==="rot"||k[0]==="full"?"  rotation "+cuTfRot(f.th):""));});
+  if(P.kind==="scale"||P.kind==="full")L.push("Scale: "+cuTfScaleNote(P.s));
+  if(P.kind==="rot"||P.kind==="full")L.push("Rotation: "+cuTfRot(P.th));
+  L.push("Centroid From: N "+P.ca[0].toFixed(3)+" E "+P.ca[1].toFixed(3)+"   To: N "+P.cb[0].toFixed(3)+" E "+P.cb[1].toFixed(3));
+  L.push("Elevation offset: "+R.dz.toFixed(3)+" m ("+R.dzN+" points with elevations on both sides)"+(t.keepZero?"; elevation-0 points left at 0":""));
+  L.push("");L.push("Equivalent single shift for these points (MicroSurvey Shift Coordinates):");
+  L.push("  North "+R.shN.toFixed(3)+"   East "+R.shE.toFixed(3)+"   Elev "+R.dz.toFixed(3)+"   range "+cuTfRangeStr(R.move)+"   (good to "+(R.worst*1000).toFixed(0)+" mm)");
+  L.push("");L.push("Points ("+src.name+"):");
+  R.moved.forEach(function(m){L.push("  "+m.p.pt+"   N "+m.p.N.toFixed(3)+" → "+m.N.toFixed(3)+"   E "+m.p.E.toFixed(3)+" → "+m.E.toFixed(3)+"   Z "+m.p.Z.toFixed(3)+" → "+m.Z.toFixed(3)+(m.p.desc?"   "+m.p.desc:""));});
+  L.push("");L.push("Residuals after fit:");
+  P.res.forEach(function(r){L.push("  "+(r.pt+"        ").slice(0,8)+" vN "+(r.vn>=0?" ":"")+r.vn.toFixed(4)+"  vE "+(r.ve>=0?" ":"")+r.ve.toFixed(4)+"  "+r.d.toFixed(4));});
+  content=L.join("\r\n");fname=base+"-TRANSFORM-LOG.txt";
+ }
+ var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([content],{type:"text/plain"}));a.download=fname;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+}
+window.cuRenderTf=cuRenderTf;window.cuTfSwap=cuTfSwap;window.cuTfCopy=cuTfCopy;window.cuTfDownload=cuTfDownload;window.cuTfCompute=cuTfCompute;window.cuTfState=cuTfState;window.cuTfFit=cuTfFit;
 
 function cuDownload(which){
  var comp=cuCompute();
