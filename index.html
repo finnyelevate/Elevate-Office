@@ -320,6 +320,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .pmq-price{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px;font-size:13px}
 .pmq-price input{border:1px solid var(--hair);padding:5px 8px;font-family:"IBM Plex Mono",monospace}
 #pm-qwarn ul{margin:4px 0 0 18px}
+.pm-unsaved{color:#a32020;font:700 10.5px "Barlow Semi Condensed";letter-spacing:.06em}
+.pm-savedrow{margin:-6px 0 12px}
 @media (max-width:640px){.pm-grid{grid-template-columns:1fr}}
 .cu-tfm tr.on td{background:#eef3f9;font-weight:600}
 .cu-tfverdict{font-size:13.5px;margin:8px 0 6px;line-height:1.45}
@@ -741,7 +743,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.17";
+const BUILD="1.17.1";
 const NEWS=["Match points: a General mode for stitching any two point sets \u2014 pick the numbering blocks for each side (the tool proposes the two that sit far apart), second files on either side, control-codes filter","Chained stages: after a match, Carry A + B forward makes the combined set side A for the next match \u2014 GPS \u2192 ground control, then ground + GPS \u2192 calc, each with its own pairs","Monument-ID hints: matching monument numbers on both sides seed the pairing and show \u2713ID; where an ID disagrees with the figure it\u2019s flagged \u2014 confusion about which control got tied, resolved by evidence","Descriptions on both sides in results, same-coordinate-system detection, and a faster engine for larger sets. The default Calc \u2192 tied-in mode is unchanged.","Points tab file shelf: every file or drawing package you drop is added, not replaced \u2014 tap a file to make it the one cleanup/extraction/scale act on, Reset clears the shelf, and Match points picks each side from any loaded file (no more Second file buttons); re-dropping the same file name replaces that entry","Training tab: 18 more videos added \u2014 the ones stored directly in SharePoint (Elevate Office app walkthroughs, Automap, area calc, Elevate system, and more) \u2014 each opening in the SharePoint player, plus a link to the whole library"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
@@ -1767,7 +1769,7 @@ function doImport(){
 (function(){
  var dz=document.getElementById("dropzone"),depth=0;
  function onPoints(){var v=document.getElementById("v-cleanup");return v&&v.classList.contains("on");}
- window.addEventListener("dragenter",function(e){e.preventDefault();depth++;dz.textContent=onPoints()?"Drop points file or drawing package":(window.pmOnView&&pmOnView())?"Drop job details file to import":"Drop checklist file to import";dz.classList.add("show");});
+ window.addEventListener("dragenter",function(e){e.preventDefault();depth++;dz.textContent=onPoints()?"Drop points file or drawing package":(window.pmOnView&&pmOnView())?"Drop a Word quote or job details file":"Drop checklist file to import";dz.classList.add("show");});
  window.addEventListener("dragover",function(e){e.preventDefault();});
  window.addEventListener("dragleave",function(e){depth--;if(depth<=0){depth=0;dz.classList.remove("show");}});
  window.addEventListener("drop",function(e){
@@ -2011,7 +2013,7 @@ function pmqCardHtml(q,s,ix){
 }
 function pmqPath(s,p){var m=p.split(":");return {k:m[0],j:m.length>1?(m[0]==="fill"?m.slice(1).join(":"):+m[1]):null};}
 function pmqWire(host,q){
- var save=function(){q.updated=Date.now();pmQuotesSave();pmUpdate();};
+ var save=function(){q.updated=Date.now();pmQuotesSave();pmUpdate();pmFlagUnsaved(q);};
  host.querySelectorAll(".pmq-f").forEach(function(el){
   el.oninput=function(){var s=q.secs[+el.dataset.s],P=pmqPath(s,el.dataset.p);
    if(P.k==="fill")s.fills[P.j]=el.value;else if(P.k==="lines"||P.k==="notes")s[P.k][P.j].t=el.value;else s[P.k]=el.value;
@@ -2104,11 +2106,12 @@ function pmqBodyXml(q){
  var d=pmqDisbLine(q);if(d)x.push(pmqPara("EQTerms",pmqRun(d)));
  x.push(pmqPara("EQSign",pmqRun(q.f.pm.trim())));
  x.push(pmqPara("EQContract",PMQ_CONTRACT.map(function(c){return pmqRun(c[1],c[0]);}).join("")));
- var tab=function(p){return "<w:tab w:val=\"left\" w:leader=\"underscore\" w:pos=\""+p+"\"/>";},stop=function(p){return "<w:tab w:val=\"left\" w:pos=\""+p+"\"/>";},T="<w:r><w:tab/></w:r>";
- [[[stop(1500),tab(5600),stop(5800),tab(TW)],pmqRun("Name:")+T+T+T+pmqRun("Phone #:")+T],
-  [[stop(1500),tab(TW)],pmqRun("Billing address:")+T+T],
-  [[stop(1500),tab(4300),stop(5000),stop(6100),tab(TW)],pmqRun("Date:")+T+T+T+pmqRun("Signature:")+T+T]].forEach(function(b,i){
-  x.push(pmqPara("EQBlank",b[1],(i===2?"<w:keepNext w:val=\"0\"/>":"")+"<w:tabs>"+b[0].join("")+"</w:tabs>"));});
+ var tab=function(p){return "<w:tab w:val=\"left\" w:leader=\"underscore\" w:pos=\""+p+"\"/>";},T="<w:r><w:tab/></w:r>";
+ /* each label sits right against its underline so Acrobat's Prepare Form names the fields Name, Phone, Billing address, Date, Signature */
+ [[[tab(5500),tab(TW)],pmqRun("Name: ")+T+pmqRun("    Phone #: ")+T,"<w:spacing w:before=\"360\"/>"],
+  [[tab(TW)],pmqRun("Billing address: ")+T,""],
+  [[tab(5500),tab(TW)],pmqRun("Date: ")+T+pmqRun("    Signature: ")+T,""]].forEach(function(b,i){
+  x.push(pmqPara("EQBlank",b[1],(i===2?"<w:keepNext w:val=\"0\"/>":"")+"<w:tabs>"+b[0].join("")+"</w:tabs>"+b[2]));});
  return {xml:x.join(""),n:P.length};
 }
 function pmqNumbering(n){
@@ -2139,6 +2142,7 @@ function pmqBuildDocx(q){
     if(f.name==="word/document.xml"){var d=dec.decode(f.data),a=d.indexOf("<w:body>")+8,b=d.lastIndexOf("<w:sectPr");f.data=enc.encode(d.slice(0,a)+B.xml+d.slice(b));}
     else if(f.name==="word/numbering.xml")f.data=enc.encode(pmqNumbering(B.n));
    });
+   pmqdParts(q,B.xml,files);
    return new Blob(pmqZip(files),{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
   });
  });
@@ -2149,11 +2153,99 @@ function pmqDownloadDocx(){
  if(iss.length){if(box){box.style.display="block";box.innerHTML="<b>Can’t build the quote yet:</b><ul>"+iss.map(function(i){return "<li>"+pmEsc(i)+"</li>";}).join("")+"</ul>";}if(!(q.f.qn||"").trim())pmNeedQn();return Promise.resolve();}
  if(box)box.style.display="none";
  var name=((q.f.docname||"").trim()||pmqDefaultName(q)).replace(/[\\\/:*?"<>|]+/g,"-").replace(/\.docx$/i,"")+".docx";
- return pmqBuildDocx(q).then(function(blob){var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);PMQ_LAST=blob;})
+ return pmqBuildDocx(q).then(function(blob){var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);PMQ_LAST=blob;pmMarkSaved(q);})
   .catch(function(err){if(box){box.style.display="block";box.innerHTML=(err&&err.message==="nomaster")?"Couldn’t load the quote template (quote-master.docx) — check it’s uploaded next to index.html and you’re online once.":"Couldn’t build the Word file: "+pmEsc(String(err&&err.message||err));}});
 }
 var PMQ_LAST=null;
 window.pmqDownloadDocx=pmqDownloadDocx;window.pmqFavExport=pmqFavExport;window.pmqFavImportText=pmqFavImportText;window.pmqServices=pmqServices;window.pmqCheck=pmqCheck;window.pmqBuildDocx=pmqBuildDocx;window.pmqFill=pmqFill;window.pmqApplyLib=pmqApplyLib;window.pmqNorm=pmqNorm;window.pmqDisbLine=pmqDisbLine;window.pmqDefaultName=pmqDefaultName;window.pmqFavs=pmqFavs;window.pmqApplyFav=pmqApplyFav;window.pmqLibById=pmqLibById;window.pmqUnfilled=pmqUnfilled;
+/* ---------- PM: draft hidden inside the Word quote; reopen a quote; sub-quotes ---------- */
+var PMQD_NS="urn:elevate-office:quote-draft";
+function pmqdUnesc(s){return String(s).replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,"\"").replace(/&apos;/g,"'").replace(/&#(\d+);/g,function(m,n){return String.fromCharCode(+n);}).replace(/&#x([0-9a-f]+);/gi,function(m,n){return String.fromCharCode(parseInt(n,16));}).replace(/&amp;/g,"&");}
+/* fingerprint of the visible words, so a later edit in Word can be spotted however Word re-saves the XML */
+function pmqdTextOf(bodyXml){var out=[];String(bodyXml).replace(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g,function(m,t){out.push(pmqdUnesc(t));return m;});return out.join("").replace(/\s+/g," ").trim();}
+function pmqdHash(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;return h.toString(16);}
+function pmqdSnapshot(q){var c=JSON.parse(JSON.stringify(q));delete c.importRep;delete c.id;delete c.exported;return c;}
+/* the extra parts that carry the draft: customXml item + its props + relationships + content type */
+function pmqdParts(q,bodyXml,files){
+ var enc=new TextEncoder(),dec=new TextDecoder(),n=1;
+ while(files.some(function(f){return f.name==="customXml/item"+n+".xml";}))n++;
+ var payload={app:"elevate-office",kind:"quote-draft",v:1,build:BUILD,saved:new Date().toISOString(),hash:pmqdHash(pmqdTextOf(bodyXml)),quote:pmqdSnapshot(q)};
+ var b64=pmB64(enc.encode(JSON.stringify(payload))),gid="{"+("xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx").replace(/x/g,function(){return (Math.random()*16|0).toString(16).toUpperCase();})+"}";
+ files.push({name:"customXml/item"+n+".xml",data:enc.encode("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<eoDraft xmlns=\""+PMQD_NS+"\" v=\"1\">"+b64+"</eoDraft>")});
+ files.push({name:"customXml/itemProps"+n+".xml",data:enc.encode("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<ds:datastoreItem ds:itemID=\""+gid+"\" xmlns:ds=\"http://schemas.openxmlformats.org/officeDocument/2006/customXml\"><ds:schemaRefs><ds:schemaRef ds:uri=\""+PMQD_NS+"\"/></ds:schemaRefs></ds:datastoreItem>")});
+ files.push({name:"customXml/_rels/item"+n+".xml.rels",data:enc.encode("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXmlProps\" Target=\"itemProps"+n+".xml\"/></Relationships>")});
+ files.forEach(function(f){
+  if(f.name==="word/_rels/document.xml.rels"){var s=dec.decode(f.data);f.data=enc.encode(s.replace("</Relationships>","<Relationship Id=\"rIdEQDraft\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml\" Target=\"../customXml/item"+n+".xml\"/></Relationships>"));}
+  else if(f.name==="[Content_Types].xml"){var t=dec.decode(f.data);f.data=enc.encode(t.replace("</Types>","<Override PartName=\"/customXml/itemProps"+n+".xml\" ContentType=\"application/vnd.openxmlformats-officedocument.customXmlProperties+xml\"/></Types>"));}
+ });
+}
+/* read the services back out of an app-made quote as Word now shows them (after any hand edits) */
+function pmqdReadServices(docXml){
+ var out=[],rows=docXml.split(/<w:tr[ >]/).slice(1);
+ var text=function(p){return pmqdTextOf(p);},style=function(p){var m=p.match(/<w:pStyle w:val="([^"]+)"/);return m?m[1]:"";};
+ rows.forEach(function(r){var ps=r.split(/<w:p[ >]/).slice(1),v={title:"",lead:"",lines:[],notes:[],price:""},any=false;
+  ps.forEach(function(p){var st=style(p),t=text(p);if(!t)return;
+   if(st==="EQService"){v.title=t;any=true;}else if(st==="EQLead")v.lead=t;else if(st==="EQScope")v.lines.push(t);else if(st==="EQScopeNote")v.notes.push(t);else if(st==="EQPrice")v.price=t;});
+  if(any)out.push(v);});
+ return out;
+}
+function pmqdImportDocx(buf,fname){
+ if(!PM.key){alert("Unlock the PM tab first.");return Promise.resolve(null);}
+ var ents;try{ents=cuZipEntries(buf);}catch(e){alert("That file isn't a readable Word document.");return Promise.resolve(null);}
+ var dec=new TextDecoder(),cx=ents.filter(function(e){return /^customXml\/item\d+\.xml$/i.test(e.name);}),de=ents.find(function(e){return e.name==="word/document.xml";});
+ if(!de){alert("That file isn't a Word document.");return Promise.resolve(null);}
+ return Promise.all(cx.map(function(e){return cuZipRead(buf,e).then(function(u){return dec.decode(u);});})).then(function(xs){
+  var hit=xs.find(function(x){return x.indexOf(PMQD_NS)>=0;});
+  if(!hit){alert("This Word quote wasn’t made by Elevate Office (1.17.1 or later), so it has no draft inside it.\n\nFor older quotes, open the job details .txt instead, or start a new quote.");return null;}
+  var m=hit.match(/<eoDraft[^>]*>([^<]+)<\/eoDraft>/),payload;
+  try{payload=JSON.parse(new TextDecoder().decode(pmUnB64(m[1].replace(/\s+/g,""))));}catch(e){alert("The draft inside this Word file couldn’t be read.");return null;}
+  return cuZipRead(buf,de).then(function(u){
+   var docXml=dec.decode(u),a=docXml.indexOf("<w:body>"),b=docXml.lastIndexOf("<w:sectPr");
+   var body=docXml.slice(a<0?0:a,b<0?docXml.length:b),changed=pmqdHash(pmqdTextOf(body))!==payload.hash;
+   var q=payload.quote;q.id="q"+Date.now();q.secs=(q.secs||[]).map(pmqNorm);
+   var rep={file:fname||"",fromDocx:true,read:0,unread:[],rateDiff:[],wordDiffs:[]};
+   if(changed){
+    var W=pmqdReadServices(docXml),P=pmqServices(q),diffs=[];
+    W.forEach(function(ws,i){var ps=P[i];if(!ps){diffs.push("Service "+(i+1)+" (“"+ws.title+"”) is only in the Word file");return;}
+     if(ws.title!==ps.title)diffs.push("Service "+(i+1)+" title: “"+ws.title+"”");
+     if(ws.lines.join("|")!==ps.lines.join("|"))diffs.push("Service "+(i+1)+" scope lines changed");
+     if(ws.notes.join("|")!==ps.notes.join("|"))diffs.push("Service "+(i+1)+" notes changed");
+     if(ws.price!==ps.price)diffs.push("Service "+(i+1)+" price: "+ws.price);});
+    if(P.length>W.length)diffs.push((P.length-W.length)+" service(s) removed in Word");
+    var take=confirm("This quote was edited in Word after it was made in the app.\n\n"+(diffs.length?diffs.slice(0,8).join("\n")+(diffs.length>8?"\n…":""):"(wording outside the services changed)")+"\n\nOK = take the services’ text from the Word file (hours stay from the app)\nCancel = open the app’s version as it was downloaded");
+    if(take){
+     W.forEach(function(ws,i){var s=q.secs[i];if(!s){s=pmqNorm({name:"",hrs:{}});q.secs.push(s);}
+      var t=ws.title.replace(/^Option \d+:\s*/,"");s.name=t;s.fills={};s.lead=ws.lead;
+      var offL=s.lines.filter(function(x){return !x.on;}),offN=s.notes.filter(function(x){return !x.on;});
+      s.lines=ws.lines.map(function(x){return {t:x,on:true,why:""};}).concat(offL);s.notes=ws.notes.map(function(x){return {t:x,on:true,why:""};}).concat(offN);
+      var pr=ws.price.replace(/^Additional\s+/i,"").replace(/\*+$/,"").trim(),calc=pmqServices(q)[i];
+      if(calc&&calc.price.replace(/^Additional\s+/i,"").replace(/\*+$/,"").trim()!==pr)s.price=pr.replace(/^\$/,"");});
+     if(q.secs.length>W.length)q.secs=q.secs.slice(0,W.length);
+     rep.wordDiffs=diffs;
+    }
+   }
+   q.updated=Date.now();q.exported=q.updated;q.importRep=rep;
+   var qn=(q.f.qn||"").trim(),ex=qn?PM.quotes.find(function(x){return (x.f.qn||"").trim()===qn;}):null;
+   if(ex&&confirm("A draft for "+qn+" already exists on this device.\n\nOK = replace that draft with the Word file\nCancel = open the Word file as a separate draft")){q.id=ex.id;PM.quotes=PM.quotes.filter(function(x){return x!==ex;});}
+   PM.quotes.unshift(q);PM.cur=q.id;pmQuotesSave();pmRender();return q;
+  });
+ });
+}
+/* sub-quote: 26-586 -> 26-586B (next free letter), same client and site, all services carried over for trimming */
+function pmqdNextSub(qn){
+ qn=(qn||"").trim();if(!qn)return "";
+ var m=qn.match(/^(.*\d)([A-Z])$/i),base=m?m[1]:qn,letter=m?m[2].toUpperCase():"A";
+ var used={};PM.quotes.forEach(function(x){used[(x.f.qn||"").trim().toUpperCase()]=1;});
+ var c=letter.charCodeAt(0)+1;while(c<=90&&used[(base+String.fromCharCode(c)).toUpperCase()])c++;
+ return c<=90?base+String.fromCharCode(c):base+"-2";
+}
+function pmqdSubQuote(){
+ var q=pmCurQ();if(!q)return;if(!(q.f.qn||"").trim()){pmNeedQn();return;}
+ var c=JSON.parse(JSON.stringify(q));c.id="q"+Date.now();c.f.qn=pmqdNextSub(q.f.qn);c.f.docname="";c.updated=Date.now();delete c.exported;
+ c.importRep={file:"",sub:q.f.qn,read:0,unread:[],rateDiff:[],wordDiffs:[]};
+ PM.quotes.unshift(c);PM.cur=c.id;pmQuotesSave();pmRender();
+}
+window.pmqdImportDocx=pmqdImportDocx;window.pmqdSubQuote=pmqdSubQuote;window.pmqdNextSub=pmqdNextSub;window.pmqdReadServices=pmqdReadServices;
 /* ---------- PM tab: encrypted vault + quote builder ---------- */
 function pmEsc(v){return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 var PM={key:null,vault:null,vfile:null,quotes:[],cur:null,err:"",busy:false};
@@ -2173,7 +2265,15 @@ function pmLoadVaultFile(){
   sset("eo:pmvault",JSON.stringify(remote));return remote;
  }).catch(function(){return local;});
 }
-function pmQuotesLoad(){try{PM.quotes=JSON.parse(sget("eo:pmq")||"[]");}catch(e){PM.quotes=[];}PM.quotes.forEach(function(q){(q.secs||[]).forEach(pmqNorm);});}
+function pmFlagUnsaved(q){var chip=document.querySelector(".pm-bar .cu-src.on");if(chip&&!chip.querySelector(".pm-unsaved")){var b=document.createElement("b");b.className="pm-unsaved";b.title="not downloaded since the last change";b.textContent="NOT SAVED";chip.insertBefore(b,chip.querySelector(".cu-srcx"));chip.insertBefore(document.createTextNode(" "),chip.querySelector(".cu-srcx"));}var c=document.getElementById("pm-unsavedct");if(c)c.outerHTML=pmUnsavedCount();}
+function pmUnsaved(q){return !q.exported||(q.updated||0)>q.exported;}
+function pmMarkSaved(q){q.exported=Date.now();if((q.updated||0)>q.exported)q.exported=q.updated;pmQuotesSave();var chip=document.querySelector(".pm-bar .cu-src.on .pm-unsaved");if(chip)chip.remove();var c=document.getElementById("pm-unsavedct");if(c)c.outerHTML=pmUnsavedCount();}
+function pmUnsavedCount(){var n=PM.quotes.filter(pmUnsaved).length;return "<span class='hint' id='pm-unsavedct' style='margin:0'>"+(n?"<b class='pm-req'>"+n+" quote"+(n>1?"s":"")+" not saved yet</b> \u2014 download the Word quote or job details to keep it":"")+"</span>";}
+function pmQuotesLoad(){try{PM.quotes=JSON.parse(sget("eo:pmq")||"[]");}catch(e){PM.quotes=[];}PM.quotes.forEach(function(q){(q.secs||[]).forEach(pmqNorm);});
+ /* same rule as the checklists: saved (downloaded) and untouched for 30+ days -> tidied off this device; unsaved drafts are never erased */
+ var cutoff=Date.now()-30*24*3600*1000,keep=PM.quotes.filter(function(q){return pmUnsaved(q)||Math.max(q.updated||0,q.exported||0)>=cutoff;});
+ if(keep.length<PM.quotes.length){PM.tidied=(PM.tidied||0)+(PM.quotes.length-keep.length);PM.quotes=keep;pmQuotesSave();}
+}
 function pmQuotesSave(){sset("eo:pmq",JSON.stringify(PM.quotes));}
 function pmNewQuote(){
  var q={id:"q"+Date.now(),updated:Date.now(),f:{},secs:[pmqNorm({name:"",hrs:{}})],disb:{},other:{label:"",amt:""},fci:"",notes:""};
@@ -2263,9 +2363,14 @@ function pmLock(){PM.key=null;PM.vault=null;sdel("eo:pmkey");PM.err="";pmRender(
 function pmRenderMain(host){
  var V=PM.vault,q=pmCurQ();
  var h="<div class='pm-bar'><button class='btn pri' onclick='pmNewQ()'>New quote</button>";
- h+=PM.quotes.map(function(x){return "<span class='cu-src"+(x.id===PM.cur?" on":"")+"' data-q='"+x.id+"'>"+pmEsc(x.f.qn||"(no quote #)")+(x.f.client?" · "+pmEsc(x.f.client.slice(0,24)):"")+" <button class='cu-srcx' data-q='"+x.id+"' title='delete this draft'>✕</button></span>";}).join("");
- h+="<label class='btn'>Import job details<input type='file' id='pm-imp' accept='.txt,text/plain' style='display:none'></label><span style='flex:1'></span><button class='btn' onclick='pmLock()'>Lock</button></div>";
- if(q&&q.importRep){var R=q.importRep;h+="<div class='cu-sfhit' id='pm-imprep'>Imported"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 "+R.read+" hour line"+(R.read===1?"":"s")+" read."+(R.unread.length?"<div class='cu-idbad' style='font-weight:400'>Couldn't read \u2014 enter manually: "+R.unread.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.rateDiff.length?"<div>Rates in the file differ from current (current rates are used): "+R.rateDiff.map(pmEsc).join("; ")+"</div>":"")+" <button class='btn' id='pm-impok'>OK</button></div>";}
+ h+=PM.quotes.map(function(x){return "<span class='cu-src"+(x.id===PM.cur?" on":"")+"' data-q='"+x.id+"'>"+pmEsc(x.f.qn||"(no quote #)")+(x.f.client?" · "+pmEsc(x.f.client.slice(0,24)):"")+" "+(pmUnsaved(x)?"<b class='pm-unsaved' title='not downloaded since the last change'>NOT SAVED</b> ":"")+"<button class='cu-srcx' data-q='"+x.id+"' title='delete this draft'>✕</button></span>";}).join("");
+ h+="<button class='btn' onclick='pmqdSubQuote()' title='copy this quote as the next lettered sub-quote, e.g. 26-586B'>Duplicate as sub-quote</button><label class='btn'>Open a quote (.docx or .txt)<input type='file' id='pm-imp' accept='.docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' style='display:none'></label><span style='flex:1'></span><button class='btn' onclick='pmLock()'>Lock</button></div>";
+ h+="<div class='pm-savedrow'>"+pmUnsavedCount()+(PM.tidied?"<span class='hint' style='margin:0 0 0 12px'>"+PM.tidied+" quote"+(PM.tidied>1?"s":"")+" saved to "+(PM.tidied>1?"their folders":"its folder")+" and untouched for 30+ days "+(PM.tidied>1?"were":"was")+" tidied off this computer \u2014 the downloaded files remain the record.</span>":"")+"</div>";
+ if(q&&q.importRep){var R=q.importRep,msg;
+  if(R.sub)msg="Sub-quote of <b>"+pmEsc(R.sub)+"</b> \u2014 client, site and every service carried over. Remove any services not needed with \u2715, then build the quote.";
+  else if(R.fromDocx)msg="Opened"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 the draft saved inside the Word quote."+(R.wordDiffs&&R.wordDiffs.length?"<div>Taken from the Word file: "+R.wordDiffs.map(pmEsc).join(" \u00b7 ")+"</div>":"");
+  else msg="Imported"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 "+R.read+" hour line"+(R.read===1?"":"s")+" read."+(R.unread.length?"<div class='cu-idbad' style='font-weight:400'>Couldn't read \u2014 enter manually: "+R.unread.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.rateDiff.length?"<div>Rates in the file differ from current (current rates are used): "+R.rateDiff.map(pmEsc).join("; ")+"</div>":"");
+  h+="<div class='cu-sfhit' id='pm-imprep'>"+msg+" <button class='btn' id='pm-impok'>OK</button></div>";}
  if(!q){h+="<p class='hint'>No quotes on this device yet — tap New quote.</p>"+pmRatesHtml()+pmqFavsHtml();host.innerHTML=h;pmWireMain(host,null);return;}
  h+="<div class='pm-grid'>"+PM_FIELDS.map(function(fd){var v=q.f[fd[0]]||"";return "<label class='pm-f"+(fd[3]?" wide":"")+"'><span>"+fd[1]+(fd[0]==="qn"?" <b class='pm-req'>required to save</b>":"")+"</span>"+(fd[3]?"<textarea data-f='"+fd[0]+"' rows='3'>"+pmEsc(v)+"</textarea>":"<input type='text' data-f='"+fd[0]+"' value='"+pmEsc(v)+"' placeholder='"+pmEsc(fd[2])+"'"+(fd[0]==="qn"?" id='pm-qn' class='mono'":"")+">")+"</label>";}).join("")+"</div>";
  h+="<div class='pm-h'>Services &amp; rate calculation</div><p class='hint' style='margin:0 0 8px'>Each service is one numbered item on the Word quote and one section of the job details calculation. Pick a job type to load the approved wording; everything can then be edited for this quote.</p>";
@@ -2290,12 +2395,12 @@ function pmFciAdd(){var ed=document.getElementById("pm-fcied");if(!ed)return;var
 function pmWireMain(host,q){
  host.querySelectorAll(".pm-fcix").forEach(function(b){b.onclick=function(){b.closest(".pm-fcie").remove();};});
  host.querySelectorAll(".pm-bar .cu-src").forEach(function(el){el.onclick=function(e){if(e.target.classList.contains("cu-srcx"))return;PM.cur=el.dataset.q;pmRender();};});
- host.querySelectorAll(".pm-bar .cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();var x=PM.quotes.find(function(z){return z.id===b.dataset.q;});if(!confirm("Delete the draft "+((x&&x.f.qn)||"(no quote #)")+" from this device?"))return;PM.quotes=PM.quotes.filter(function(z){return z.id!==b.dataset.q;});if(PM.cur===b.dataset.q)PM.cur=PM.quotes[0]?PM.quotes[0].id:null;pmQuotesSave();pmRender();};});
+ host.querySelectorAll(".pm-bar .cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();var x=PM.quotes.find(function(z){return z.id===b.dataset.q;});if(!confirm((x&&pmUnsaved(x)?"This quote was never downloaded since its last change \u2014 deleting it loses the draft.\n\n":"")+"Delete the draft "+((x&&x.f.qn)||"(no quote #)")+" from this device?"))return;PM.quotes=PM.quotes.filter(function(z){return z.id!==b.dataset.q;});if(PM.cur===b.dataset.q)PM.cur=PM.quotes[0]?PM.quotes[0].id:null;pmQuotesSave();pmRender();};});
  var imp=document.getElementById("pm-imp");if(imp)imp.onchange=function(){if(imp.files[0])pmImportFile(imp.files[0]);imp.value="";};
  pmqWireFavs(host);
  if(!q)return;
  var ok=document.getElementById("pm-impok");if(ok)ok.onclick=function(){delete q.importRep;pmQuotesSave();var b=document.getElementById("pm-imprep");if(b)b.remove();};
- var save=function(){q.updated=Date.now();pmQuotesSave();pmUpdate();};
+ var save=function(){q.updated=Date.now();pmQuotesSave();pmUpdate();pmFlagUnsaved(q);};
  host.querySelectorAll("[data-f]").forEach(function(el){el.oninput=function(){q.f[el.dataset.f]=el.value;if(el.dataset.f==="pm")sset("eo:pmname",el.value);if(el.dataset.f==="assigned")sset("eo:pminit",el.value);if(el.dataset.f==="qn"){el.classList.remove("needjob");var n=document.getElementById("pm-qnote");if(n)n.style.display="none";var chip=host.querySelector(".pm-bar .cu-src.on");if(chip&&chip.firstChild)chip.firstChild.nodeValue=(el.value||"(no quote #)")+(q.f.client?" · "+q.f.client.slice(0,24):"")+" ";}save();};});
  host.querySelectorAll(".pm-hr").forEach(function(el){el.oninput=function(){var s=q.secs[+el.dataset.s];if(el.value.trim())s.hrs[el.dataset.r]=el.value.trim();else delete s.hrs[el.dataset.r];save();};});
  host.querySelectorAll(".pm-dn").forEach(function(el){el.oninput=function(){q.disb[el.dataset.d]=el.value;save();};});
@@ -2315,11 +2420,11 @@ function pmUpdate(){
  var p=document.getElementById("pm-pre");if(p)p.textContent=pmJobText(q);
 }
 function pmNeedQn(){var q=pmCurQ();if(q&&(q.f.qn||"").trim())return false;var el=document.getElementById("pm-qn"),n=document.getElementById("pm-qnote");if(el){el.classList.add("needjob");el.focus();}if(n)n.style.display="block";return true;}
-function pmDownload(){var q=pmCurQ();if(!q||pmNeedQn())return;var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([pmJobText(q)],{type:"text/plain"}));a.download="quote-"+q.f.qn.trim().replace(/[^\w.-]+/g,"_")+"-job_details.txt";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);}
+function pmDownload(){var q=pmCurQ();if(!q||pmNeedQn())return;var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([pmJobText(q)],{type:"text/plain"}));a.download="quote-"+q.f.qn.trim().replace(/[^\w.-]+/g,"_")+"-job_details.txt";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);pmMarkSaved(q);}
 function pmCopyJob(){var q=pmCurQ();if(q)pmCopy(pmJobText(q),"pm-copied");}
 function pmCopyRow(){var q=pmCurQ();if(q)pmCopy(pmTrackerRow(q),"pm-copied");}
 function pmNewQ(){pmNewQuote();pmRender();var el=document.getElementById("pm-qn");if(el)el.focus();}
-function pmAddSec(){var q=pmCurQ();if(!q)return;q.secs.push(pmqNorm({name:"",hrs:{}}));pmQuotesSave();pmRender();}
+function pmAddSec(){var q=pmCurQ();if(!q)return;q.secs.push(pmqNorm({name:"",hrs:{}}));q.updated=Date.now();pmQuotesSave();pmRender();}
 function pmDownloadVault(vf){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(vf,null,1)],{type:"application/json"}));a.download="pm-vault.json";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);}
 function pmReadFciEditor(){var ed=document.getElementById("pm-fcied");if(!ed)return null;return [].slice.call(ed.querySelectorAll(".pm-fcie")).map(function(el){return {label:el.querySelector(".pm-fcil").value.trim(),text:el.querySelector(".pm-fcit").value.replace(/\r/g,"").replace(/\s+$/,"")};}).filter(function(o){return o.label||o.text;}).map(function(o,i){if(!o.label)o.label="Option "+(i+1);return o;});}
 function pmApplyLocalFci(){var l=null;try{l=JSON.parse(sget("eo:pmfci")||"null");}catch(e){}if(l&&PM.vfile&&l.ts>PM.vfile.ts&&Array.isArray(l.fci))PM.vault.fci=l.fci;}
@@ -2407,7 +2512,7 @@ function pmImportText(text,fname){
  if(ex&&confirm("A draft for "+qn+" already exists on this device.\n\nOK = replace that draft with the file\nCancel = open the file as a separate draft")){q.id=ex.id;PM.quotes=PM.quotes.filter(function(x){return x!==ex;});}
  PM.quotes.unshift(q);PM.cur=q.id;pmQuotesSave();pmRender();return q;
 }
-function pmImportFile(file){var r=new FileReader();r.onload=function(){pmImportText(r.result,file.name);};r.readAsText(file);}
+function pmImportFile(file){var r=new FileReader();if(/\.docx$/i.test(file.name)){r.onload=function(){pmqdImportDocx(r.result,file.name);};r.readAsArrayBuffer(file);return;}r.onload=function(){pmImportText(r.result,file.name);};r.readAsText(file);}
 function pmOnView(){var v=document.getElementById("v-pm");return v&&v.classList.contains("on");}
 window.pmImportText=pmImportText;window.pmImportFile=pmImportFile;window.pmParseJob=pmParseJob;window.pmOnView=pmOnView;
 window.pmFciAdd=pmFciAdd;window.pmLock=pmLock;window.pmNewQ=pmNewQ;window.pmAddSec=pmAddSec;window.pmDownload=pmDownload;window.pmCopyJob=pmCopyJob;window.pmCopyRow=pmCopyRow;window.pmSaveOptions=pmSaveOptions;window.pmUnlock=pmUnlock;window.pmJobText=pmJobText;window.pmCalc=pmCalc;window.PM=PM;window.pmTrackerRow=pmTrackerRow;window.pmRender=pmRender;
