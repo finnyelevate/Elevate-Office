@@ -743,7 +743,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.17.1";
+const BUILD="1.17.2";
 const NEWS=["Match points: a General mode for stitching any two point sets \u2014 pick the numbering blocks for each side (the tool proposes the two that sit far apart), second files on either side, control-codes filter","Chained stages: after a match, Carry A + B forward makes the combined set side A for the next match \u2014 GPS \u2192 ground control, then ground + GPS \u2192 calc, each with its own pairs","Monument-ID hints: matching monument numbers on both sides seed the pairing and show \u2713ID; where an ID disagrees with the figure it\u2019s flagged \u2014 confusion about which control got tied, resolved by evidence","Descriptions on both sides in results, same-coordinate-system detection, and a faster engine for larger sets. The default Calc \u2192 tied-in mode is unchanged.","Points tab file shelf: every file or drawing package you drop is added, not replaced \u2014 tap a file to make it the one cleanup/extraction/scale act on, Reset clears the shelf, and Match points picks each side from any loaded file (no more Second file buttons); re-dropping the same file name replaces that entry","Training tab: 18 more videos added \u2014 the ones stored directly in SharePoint (Elevate Office app walkthroughs, Automap, area calc, Elevate system, and more) \u2014 each opening in the SharePoint player, plus a link to the whole library"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
@@ -2673,7 +2673,8 @@ function cuTrimZeros(n){var s=String(parseFloat(n.toFixed(4)));return s;}
 /* pipeline: returns [{rule,label,tier,before,after}] applied steps for a desc */
 function cuSteps(rec,codedPts){
  var steps=[],d=rec.desc;
- function push(rule,label,tier,after){if(after!==d){steps.push({rule:rule,label:label,tier:tier,before:d,after:after});d=after;}}
+ /* each step works on the text as it stands after the ticked steps before it, so unticking one fix never cancels a later ticked one */
+ function push(rule,label,tier,after){if(after!==d){var key=rec.ix+":"+rule,on=(cu.ticks[key]!==undefined)?cu.ticks[key]:(tier!==2);steps.push({rule:rule,label:label,tier:tier,before:d,after:after,key:key,on:on});if(on)d=after;}}
  if(d.trim()===""||!cuInFocus(rec))return steps;
  /* structural */
  if(d.indexOf("_")>=0)push("us","Underscores \u2192 spaces",1,d.replace(/_/g," "));
@@ -2753,18 +2754,8 @@ function cuCompute(){
  var out=[];
  cu.lines.forEach(function(r){
   if(!r.point){out.push({rec:r,final:null,steps:[]});return;}
-  var steps=cuSteps(r,codedPts);
-  var d=r.desc;
-  steps.forEach(function(s){
-   var key=r.ix+":"+s.rule;
-   var on=(cu.ticks[key]!==undefined)?cu.ticks[key]:(s.tier!==2);
-   s.on=on;s.key=key;
-   if(on&&s.before===d)d=s.after;
-   else if(!on){/* skipped; subsequent steps that chained off it recompute below */}
-  });
-  /* recompute chain strictly: rerun with accepted flags */
-  d=r.desc;
-  steps.forEach(function(s){ if(s.on&&s.before===d)d=s.after; });
+  var steps=cuSteps(r,codedPts),d=r.desc;
+  steps.forEach(function(s){if(s.on)d=s.after;});
   out.push({rec:r,final:d,steps:steps});
  });
  return out;
@@ -2824,7 +2815,7 @@ function cuRender(){
 }
 function cuTickAll(on){
  /* on=true restores defaults (fixes + manual rules ticked, suggestions unticked); on=false clears every tick */
- cuCompute().forEach(function(c){c.steps.forEach(function(s){cu.ticks[s.key]=on?(s.tier!==2):false;});});
+ for(var pass=0;pass<3;pass++)cuCompute().forEach(function(c){c.steps.forEach(function(s){cu.ticks[s.key]=on?(s.tier!==2):false;});});
  cuRenderReview();
 }
 window.cuTickAll=cuTickAll;
