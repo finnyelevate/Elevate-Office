@@ -271,6 +271,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .pm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;max-width:900px}
 .pm-f{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--faint)}
 .pm-f.wide{grid-column:1/-1}
+.pm-props{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;align-items:flex-start}.pm-prop{width:100%}.pm-propg{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:8px 16px}.pm-proph{font:600 11px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin:4px 0 2px;display:flex;align-items:center;gap:8px}.pm-f textarea{resize:vertical}
 .pm-f span{font:600 11px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase}
 .pm-f input,.pm-f textarea,.pm-ta,.pm-rt input,.pm-disb input{border:1px solid var(--hair);padding:7px 9px;font:14px "IBM Plex Sans",sans-serif;background:var(--panel);color:var(--ink);outline:none}
 .pm-f input:focus,.pm-f textarea:focus,.pm-ta:focus,.pm-rt input:focus{border-color:var(--blue)}
@@ -322,7 +323,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 #pm-qwarn ul{margin:4px 0 0 18px}
 .pm-unsaved{color:#a32020;font:700 10.5px "Barlow Semi Condensed";letter-spacing:.06em}
 .pm-savedrow{margin:-6px 0 12px}
-@media (max-width:640px){.pm-grid{grid-template-columns:1fr}}
+@media (max-width:640px){.pm-grid,.pm-propg{grid-template-columns:1fr}}
 .cu-tfm tr.on td{background:#eef3f9;font-weight:600}
 .cu-tfverdict{font-size:13.5px;margin:8px 0 6px;line-height:1.45}
 .cu-tfshift{border:1px solid var(--hair);background:#f7f7f4;padding:10px 12px;margin:8px 0;max-width:460px}
@@ -743,7 +744,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.17.2";
+const BUILD="1.18";
 const NEWS=["Match points: a General mode for stitching any two point sets \u2014 pick the numbering blocks for each side (the tool proposes the two that sit far apart), second files on either side, control-codes filter","Chained stages: after a match, Carry A + B forward makes the combined set side A for the next match \u2014 GPS \u2192 ground control, then ground + GPS \u2192 calc, each with its own pairs","Monument-ID hints: matching monument numbers on both sides seed the pairing and show \u2713ID; where an ID disagrees with the figure it\u2019s flagged \u2014 confusion about which control got tied, resolved by evidence","Descriptions on both sides in results, same-coordinate-system detection, and a faster engine for larger sets. The default Calc \u2192 tied-in mode is unchanged.","Points tab file shelf: every file or drawing package you drop is added, not replaced \u2014 tap a file to make it the one cleanup/extraction/scale act on, Reset clears the shelf, and Match points picks each side from any loaded file (no more Second file buttons); re-dropping the same file name replaces that entry","Training tab: 18 more videos added \u2014 the ones stored directly in SharePoint (Elevate Office app walkthroughs, Automap, area calc, Elevate system, and more) \u2014 each opening in the SharePoint player, plus a link to the whole library"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
@@ -2053,6 +2054,15 @@ function pmqRerender(){var y=window.scrollY,a=document.activeElement,key=a&&a.da
 var PMQ_CONTRACT=[[1,"Quote Acceptance and Client Contract - Please sign and email back if you accept the terms of our agreement. "],[0,"By signing below, you are entering a contract with us indicating that you have the authorization and responsibility to approve and pay for this project. All cancellations must be notified 24 hours prior to the survey. If cancellations occur after the start of survey, all work done on the project will be charged at our hourly rates. "],[1,"Unless previously agreed, payment is required prior to any plans or files being released"],[0,". We can process multiple methods of payment including cheque, Interac E-Transfer, and credit card. 2% interest is charged after more than one month for all overdue accounts. This quote is valid for up to 3 months and hourly rates are subject to annual increases."]];
 function pmqX(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function pmqRun(s,b){return "<w:r>"+(b?"<w:rPr><w:b/><w:bCs/></w:rPr>":"")+"<w:t xml:space=\"preserve\">"+pmqX(s)+"</w:t></w:r>";}
+/* site bar: one address as before; several are stacked, one line per street (addresses sharing a street and city share a line: 5864 & 5868 Pioneer Avenue, Burnaby) */
+function pmqSiteLines(q){var A=pmProps(q).map(function(p){return String(p.site||"").replace(/\s*\n\s*/g," ").trim();}).filter(Boolean),groups=[],by={};
+ A.forEach(function(a){var m=a.match(/^(\d+[A-Za-z]?(?:\s*-\s*\d+[A-Za-z]?)?)\s+(\D.*)$/);
+  if(!m){groups.push({nums:null,rest:a});return;}var key=m[2].toLowerCase().replace(/\s+/g," ");
+  if(by[key])by[key].nums.push(m[1]);else{by[key]={nums:[m[1]],rest:m[2]};groups.push(by[key]);}});
+ return groups.map(function(g){if(!g.nums)return g.rest;var n=g.nums;return (n.length===1?n[0]:n.slice(0,-1).join(", ")+" & "+n[n.length-1])+" "+g.rest;});}
+function pmqSiteBar(q){var L=pmqSiteLines(q),many=pmProps(q).filter(function(p){return (p.site||"").trim();}).length>1;
+ if(L.length<=1)return pmqPara("EQSite",pmqRun((many?"Site addresses: ":"Site address: ")+(L[0]||"")));
+ return pmqPara("EQSite",pmqRun("Site addresses:")+"<w:r><w:tab/></w:r>"+L.map(function(l,i){return (i?"<w:r><w:br/><w:tab/></w:r>":"")+pmqRun(l);}).join(""),"<w:tabs><w:tab w:val=\"left\" w:pos=\"2100\"/></w:tabs>");}
 function pmqPara(st,inner,extra){return "<w:p><w:pPr><w:pStyle w:val=\""+st+"\"/>"+(extra||"")+"</w:pPr>"+inner+"</w:p>";}
 function pmqDate(d){return ["January","February","March","April","May","June","July","August","September","October","November","December"][d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();}
 function pmqTo(q){var c=(q.f.client||"").trim(),n=(q.f.contact||"").trim();if(c&&n&&c.toLowerCase()!==n.toLowerCase())return c+" - "+n;return c||n;}
@@ -2094,8 +2104,8 @@ function pmqBodyXml(q){
  var TW=9360,PW=1800,DW=TW-PW,x=[],P=pmqServices(q);
  x.push(pmqPara("EQDate",pmqRun(pmqDate(new Date()))));
  x.push(pmqPara("EQTo",pmqRun("To: "+pmqTo(q))+"<w:r><w:tab/></w:r>"+pmqRun("Quote# "+q.f.qn.trim())));
- x.push(pmqPara("EQSite",pmqRun("Site address: "+q.f.site.trim())));
- var rows=P.map(function(v,i){var last=i===P.length-1,bd=last?"":"<w:tcBorders><w:bottom w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"D9D9D9\"/></w:tcBorders>";
+ x.push(pmqSiteBar(q));
+ var rows=P.map(function(v,i){/* no drawn rule between services (Acrobat auto-detect turned each one into fields); space above each row instead */var bd="<w:tcMar><w:top w:w=\"220\" w:type=\"dxa\"/></w:tcMar>";
   var ps=[pmqPara("EQService",pmqRun(v.title))];
   if(v.lead)ps.push(pmqPara("EQLead",pmqRun(v.lead)));
   v.lines.forEach(function(l){ps.push(pmqPara("EQScope",pmqRun(l),"<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\""+(10+i)+"\"/></w:numPr>"));});
@@ -2250,6 +2260,13 @@ window.pmqdImportDocx=pmqdImportDocx;window.pmqdSubQuote=pmqdSubQuote;window.pmq
 function pmEsc(v){return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 var PM={key:null,vault:null,vfile:null,quotes:[],cur:null,err:"",busy:false};
 var PM_FIELDS=[["qn","Quote #","26-___"],["date","Date requested","e.g. Sep 28"],["assigned","Assigned (PM initials)",""],["client","Client",""],["contact","Contact Name",""],["email","Email",""],["phone","Phone",""],["site","Site Address",""],["legal","Legal Desc.",""],["pid","PID",""],["plans","Relevant plans",""],["services","Services Provided",""],["task","Additional Task Details","",1],["pmc","Additional PM comments","",1],["zoning","Zoning",""],["pm","Project Manager",""]];
+/* properties: property 1 lives in q.f.site/legal/pid; extra properties in q.xp=[{site,legal,pid}] */
+var PM_PK=["site","legal","pid"];
+function pmProps(q){var a=[{site:q.f.site||"",legal:q.f.legal||"",pid:q.f.pid||""}];(q.xp||[]).forEach(function(p){a.push({site:p.site||"",legal:p.legal||"",pid:p.pid||""});});return a;}
+function pmPropJoin(q,k){var P=pmProps(q),v=P.map(function(p){return String(p[k]||"").replace(/\s*\n\s*/g," ").trim();});
+ if(P.length===1)return v[0];while(v.length&&!v[v.length-1])v.pop();return v.map(function(x){return x||"\u2014";}).join(" / ");}
+function pmPropSplit(q){var parts={},n=1;PM_PK.forEach(function(k){var s=(q.f[k]||"").trim();parts[k]=s?s.split(/\s+\/\s+/).map(function(x){x=x.trim();return x==="\u2014"||x==="-"?"":x;}):[""];n=Math.max(n,parts[k].length);});
+ q.xp=[];for(var i=0;i<n;i++){var p={};PM_PK.forEach(function(k){p[k]=parts[k][i]||"";});if(i===0)PM_PK.forEach(function(k){q.f[k]=p[k];});else q.xp.push(p);}}
 function pmB64(u8){var s="";u8=new Uint8Array(u8);for(var i=0;i<u8.length;i++)s+=String.fromCharCode(u8[i]);return btoa(s);}
 function pmUnB64(b){var s=atob(b),u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u;}
 function pmDerive(pass,salt,iter){
@@ -2299,13 +2316,20 @@ function pmCalc(q){
  out.total=out.quoted+out.disb;return out;
 }
 function pmTimeLine(C,kind){return PM.vault.rates.filter(function(r){return r.kind===kind&&C.roleHrs[r.id];}).map(function(r){var h=C.roleHrs[r.id];return pmH(h)+" hr"+(h===1?"":"s")+" "+pmShort(r);}).join(" + ");}
+/* per-service breakdown under the Estimated Time lines (only when the quote has more than one service with hours) */
+function pmTimeSvc(C,kind,L){
+ var hs=C.secs.filter(function(s){return s.rows.length;});if(hs.length<2)return;
+ hs.forEach(function(s,ix){var parts=s.rows.filter(function(x){return x.r.kind===kind;}).map(function(x){return pmH(x.h)+" hr"+(x.h===1?"":"s")+" "+pmShort(x.r);});
+  if(!parts.length)return;var suf=s.status==="opt"?" (optional \u2014 not in total)":(s.status==="option"?" (option \u2014 not in total)":"");
+  L.push("   "+(s.name||("Service "+(C.secs.indexOf(s)+1)))+suf+": "+parts.join(" + "));});
+}
 function pmJobText(q){
  var f=q.f,C=pmCalc(q),L=[],g=function(k){return (f[k]||"").trim();};
  L.push("Client: "+g("client"));L.push("Contact Name: "+g("contact"));L.push("Email: "+g("email"));L.push("Phone: "+g("phone"));
- L.push("Site Address: "+g("site"));L.push("Quote# "+g("qn"));L.push("Legal Desc. "+g("legal"));L.push("PID: "+g("pid"));
+ L.push("Site Address: "+pmPropJoin(q,"site"));L.push("Quote# "+g("qn"));L.push("Legal Desc. "+pmPropJoin(q,"legal"));L.push("PID: "+pmPropJoin(q,"pid"));
  L.push("Relevant plans: "+g("plans"));L.push("Services Provided: "+g("services"));L.push("Additional Task Details: "+g("task").replace(/\s*\n\s*/g," "));
  L.push("Additional PM comments: "+g("pmc").replace(/\s*\n\s*/g," "));L.push("Zoning: "+g("zoning"));
- L.push("Estimated Field Time: "+pmTimeLine(C,"field"));L.push("Estimated Draft Time: "+pmTimeLine(C,"office"));
+ L.push("Estimated Field Time: "+pmTimeLine(C,"field"));pmTimeSvc(C,"field",L);L.push("Estimated Draft Time: "+pmTimeLine(C,"office"));pmTimeSvc(C,"office",L);
  L.push("Disbursements: "+(C.disbParts.length?C.disbParts.join(" + ")+" = "+pmMoney(C.disb,false):""));
  L.push("Project Manager: "+g("pm"));L.push("Task#");L.push("Field Crew Instructions:");
  if(q.fci.trim())L.push(q.fci.replace(/\r/g,"").replace(/\s+$/,""));
@@ -2329,7 +2353,7 @@ function pmJobText(q){
  }
  return L.join("\n").replace(/\r/g,"").split("\n").join("\r\n")+"\r\n";
 }
-function pmTrackerRow(q){var f=q.f,c=function(k){return (f[k]||"").replace(/[\t\r\n]+/g," ").trim();};return ["qn","client","contact","email","phone","site","services","task","date","assigned","pmc"].map(c).join("\t");}
+function pmTrackerRow(q){var f=q.f,c=function(k){return (f[k]||"").replace(/[\t\r\n]+/g," ").trim();};return ["qn","client","contact","email","phone","site","services","task","date","assigned","pmc"].map(function(k){return k==="site"?pmPropJoin(q,"site"):c(k);}).join("\t");}
 function pmCopy(txt,msgId){(navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){var e=document.getElementById(msgId);if(e){e.textContent="Copied.";setTimeout(function(){e.textContent="";},1600);}}).catch(function(){});}
 function pmRender(){
  var host=document.getElementById("pmhost");if(!host)return;
@@ -2372,7 +2396,7 @@ function pmRenderMain(host){
   else msg="Imported"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 "+R.read+" hour line"+(R.read===1?"":"s")+" read."+(R.unread.length?"<div class='cu-idbad' style='font-weight:400'>Couldn't read \u2014 enter manually: "+R.unread.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.rateDiff.length?"<div>Rates in the file differ from current (current rates are used): "+R.rateDiff.map(pmEsc).join("; ")+"</div>":"");
   h+="<div class='cu-sfhit' id='pm-imprep'>"+msg+" <button class='btn' id='pm-impok'>OK</button></div>";}
  if(!q){h+="<p class='hint'>No quotes on this device yet — tap New quote.</p>"+pmRatesHtml()+pmqFavsHtml();host.innerHTML=h;pmWireMain(host,null);return;}
- h+="<div class='pm-grid'>"+PM_FIELDS.map(function(fd){var v=q.f[fd[0]]||"";return "<label class='pm-f"+(fd[3]?" wide":"")+"'><span>"+fd[1]+(fd[0]==="qn"?" <b class='pm-req'>required to save</b>":"")+"</span>"+(fd[3]?"<textarea data-f='"+fd[0]+"' rows='3'>"+pmEsc(v)+"</textarea>":"<input type='text' data-f='"+fd[0]+"' value='"+pmEsc(v)+"' placeholder='"+pmEsc(fd[2])+"'"+(fd[0]==="qn"?" id='pm-qn' class='mono'":"")+">")+"</label>";}).join("")+"</div>";
+ h+="<div class='pm-grid'>"+PM_FIELDS.map(function(fd){if(fd[0]==="legal"||fd[0]==="pid")return "";if(fd[0]==="site")return pmPropsHtml(q);var v=q.f[fd[0]]||"";return "<label class='pm-f"+(fd[3]?" wide":"")+"'><span>"+fd[1]+(fd[0]==="qn"?" <b class='pm-req'>required to save</b>":"")+"</span>"+(fd[3]?"<textarea data-f='"+fd[0]+"' rows='3'>"+pmEsc(v)+"</textarea>":"<input type='text' data-f='"+fd[0]+"' value='"+pmEsc(v)+"' placeholder='"+pmEsc(fd[2])+"'"+(fd[0]==="qn"?" id='pm-qn' class='mono'":"")+">")+"</label>";}).join("")+"</div>";
  h+="<div class='pm-h'>Services &amp; rate calculation</div><p class='hint' style='margin:0 0 8px'>Each service is one numbered item on the Word quote and one section of the job details calculation. Pick a job type to load the approved wording; everything can then be edited for this quote.</p>";
  q.secs.forEach(function(s,ix){pmqNorm(s);h+=pmqCardHtml(q,s,ix);});
  h+="<button class='btn' onclick='pmAddSec()'>+ Add service</button>";
@@ -2402,6 +2426,9 @@ function pmWireMain(host,q){
  var ok=document.getElementById("pm-impok");if(ok)ok.onclick=function(){delete q.importRep;pmQuotesSave();var b=document.getElementById("pm-imprep");if(b)b.remove();};
  var save=function(){q.updated=Date.now();pmQuotesSave();pmUpdate();pmFlagUnsaved(q);};
  host.querySelectorAll("[data-f]").forEach(function(el){el.oninput=function(){q.f[el.dataset.f]=el.value;if(el.dataset.f==="pm")sset("eo:pmname",el.value);if(el.dataset.f==="assigned")sset("eo:pminit",el.value);if(el.dataset.f==="qn"){el.classList.remove("needjob");var n=document.getElementById("pm-qnote");if(n)n.style.display="none";var chip=host.querySelector(".pm-bar .cu-src.on");if(chip&&chip.firstChild)chip.firstChild.nodeValue=(el.value||"(no quote #)")+(q.f.client?" · "+q.f.client.slice(0,24):"")+" ";}save();};});
+ host.querySelectorAll("[data-xp]").forEach(function(el){el.oninput=function(){var p=(q.xp||[])[+el.dataset.xp];if(p){p[el.dataset.k]=el.value;save();}};});
+ host.querySelectorAll("[data-xpx]").forEach(function(el){el.onclick=function(e){e.preventDefault();q.xp.splice(+el.dataset.xpx,1);q.updated=Date.now();pmQuotesSave();pmRender();};});
+ var ap=document.getElementById("pm-addprop");if(ap)ap.onclick=function(){q.xp=q.xp||[];q.xp.push({site:"",legal:"",pid:""});q.updated=Date.now();pmQuotesSave();pmRender();var i=host.querySelectorAll("[data-xp][data-k='site']");if(i.length)i[i.length-1].focus();};
  host.querySelectorAll(".pm-hr").forEach(function(el){el.oninput=function(){var s=q.secs[+el.dataset.s];if(el.value.trim())s.hrs[el.dataset.r]=el.value.trim();else delete s.hrs[el.dataset.r];save();};});
  host.querySelectorAll(".pm-dn").forEach(function(el){el.oninput=function(){q.disb[el.dataset.d]=el.value;save();};});
  document.getElementById("pm-olab").oninput=function(){q.other.label=this.value;save();};
@@ -2423,6 +2450,12 @@ function pmNeedQn(){var q=pmCurQ();if(q&&(q.f.qn||"").trim())return false;var el
 function pmDownload(){var q=pmCurQ();if(!q||pmNeedQn())return;var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([pmJobText(q)],{type:"text/plain"}));a.download="quote-"+q.f.qn.trim().replace(/[^\w.-]+/g,"_")+"-job_details.txt";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);pmMarkSaved(q);}
 function pmCopyJob(){var q=pmCurQ();if(q)pmCopy(pmJobText(q),"pm-copied");}
 function pmCopyRow(){var q=pmCurQ();if(q)pmCopy(pmTrackerRow(q),"pm-copied");}
+function pmPropsHtml(q){var P=pmProps(q),multi=P.length>1;
+ return "<div class='pm-props wide'>"+P.map(function(p,i){var at=i===0?function(k){return "data-f='"+k+"'";}:function(k){return "data-xp='"+(i-1)+"' data-k='"+k+"'";};
+  return "<div class='pm-prop'>"+(multi?"<div class='pm-proph'>Property "+(i+1)+(i?" <button class='cu-srcx' data-xpx='"+(i-1)+"' title='remove this property'>\u2715</button>":"")+"</div>":"")+
+   "<div class='pm-propg'><label class='pm-f'><span>Site Address</span><input type='text' "+at("site")+" value='"+pmEsc(p.site)+"'></label><label class='pm-f'><span>PID</span><input type='text' "+at("pid")+" value='"+pmEsc(p.pid)+"' class='mono'></label>"+
+   "<label class='pm-f wide'><span>Legal Desc.</span><textarea "+at("legal")+" rows='2'>"+pmEsc(p.legal)+"</textarea></label></div></div>";}).join("")+
+  "<button class='btn' id='pm-addprop'>+ Add another property</button></div>";}
 function pmNewQ(){pmNewQuote();pmRender();var el=document.getElementById("pm-qn");if(el)el.focus();}
 function pmAddSec(){var q=pmCurQ();if(!q)return;q.secs.push(pmqNorm({name:"",hrs:{}}));q.updated=Date.now();pmQuotesSave();pmRender();}
 function pmDownloadVault(vf){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(vf,null,1)],{type:"application/json"}));a.download="pm-vault.json";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);}
@@ -2452,6 +2485,7 @@ function pmParseJob(text){
   var hit=null;for(var k=0;k<PM_LABELS.length;k++){var m=tl.match(PM_LABELS[k][1]);if(m){hit=[PM_LABELS[k][0],tl.slice(m[0].length).trim()];break;}}
   if(hit){last=hit[0];if(hit[0].charAt(0)==="_")raw[hit[0]]=hit[1];else f[hit[0]]=hit[1];}
   else if(tl&&last&&last.charAt(0)!=="_"){f[last]=(f[last]?f[last]+" ":"")+tl;}
+  else if(tl&&(last==="_eft"||last==="_edt")&&/^\s/.test(l)&&/:/.test(tl)){/* per-service breakdown line: hours come from the Sublabour block */}
   else if(tl&&last&&last.charAt(0)==="_"){raw[last]=(raw[last]?raw[last]+" ":"")+tl;}
  }
  if(!Object.keys(f).length&&fciAt<0)return null;
@@ -2501,7 +2535,7 @@ function pmParseJob(text){
    if(/^titles?$/.test(nm))id="title";else if(/^(legal\s*)?plans?$/.test(nm))id="plan";else if(/^checklists?(\s*fees?)?$/.test(nm))id="chk";else if(/^filing(\s*fees?)?$/.test(nm))id="filing";
    if(id&&q.disb.hasOwnProperty(id))q.disb[id]=n;else if(amt){others.push(bare||p);oamt+=pmNum(amt);}else rep.unread.push("Disbursement: "+p);});
   if(others.length){q.other={label:others.join(", "),amt:String(oamt)};}}
- q.secs.forEach(pmqNorm);q.importRep=rep;return q;
+ pmPropSplit(q);q.secs.forEach(pmqNorm);q.importRep=rep;return q;
 }
 function pmImportText(text,fname){
  if(!PM.key){alert("Unlock the PM tab first.");return null;}
