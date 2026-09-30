@@ -1,5 +1,11 @@
 # Elevate Office — changelog
 
+## Build 1.19.1 — 2026-09-30
+- **Word quote addressed to the client only:** "To: Schedio Spaces" instead of "To: Schedio Spaces - Simon Boisvert". The contact is used only when there is no client name, and it stays in the job details file as before.
+- **Optional add-ons say so on the quote:** an Optional add-on's title now ends "(Optional)", e.g. "Posting plan for Permit Purposes (Optional)", beside its "Additional $1,330" price (not added twice if the title already says optional). Reopening the Word quote reads it back without doubling it.
+- **Two services fit on one page more often:** GST EXTRA, the disbursements line and the signatory now follow straight after the last service; only the contract paragraph and the signature lines are kept together, so they still never split across pages. Spacing above each service and around the closing block is a little tighter; wording and font sizes are unchanged. When a quote doesn't fit, the contract and signature lines move to page 2 together. **Upload the new quote-master.docx** with this build.
+- Verified: 26-590 rebuilt from the draft inside its Word file now fits on one page; a four-service quote still breaks cleanly between services; Word files pass validation; all earlier checks still pass.
+
 ## Build 1.19 — 2026-09-30
 - **PM tab now has two parts: Quotes and Jobs** (switch at the top).
 - **Folders on this computer** (bottom of the PM tab, Edge or Chrome): each PM connects their OneDrive-synced *Job Files - Documents* and *Quotes - Documents* once; OneDrive uploads whatever the app saves. The app only ever creates folders and adds files. It never deletes or moves anything, never creates a quote folder and never changes an existing job folder.

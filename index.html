@@ -745,7 +745,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.19";
+const BUILD="1.19.1";
 const NEWS=["Match points: a General mode for stitching any two point sets \u2014 pick the numbering blocks for each side (the tool proposes the two that sit far apart), second files on either side, control-codes filter","Chained stages: after a match, Carry A + B forward makes the combined set side A for the next match \u2014 GPS \u2192 ground control, then ground + GPS \u2192 calc, each with its own pairs","Monument-ID hints: matching monument numbers on both sides seed the pairing and show \u2713ID; where an ID disagrees with the figure it\u2019s flagged \u2014 confusion about which control got tied, resolved by evidence","Descriptions on both sides in results, same-coordinate-system detection, and a faster engine for larger sets. The default Calc \u2192 tied-in mode is unchanged.","Points tab file shelf: every file or drawing package you drop is added, not replaced \u2014 tap a file to make it the one cleanup/extraction/scale act on, Reset clears the shelf, and Match points picks each side from any loaded file (no more Second file buttons); re-dropping the same file name replaces that entry","Training tab: 18 more videos added \u2014 the ones stored directly in SharePoint (Elevate Office app walkthroughs, Automap, area calc, Elevate system, and more) \u2014 each opening in the SharePoint player, plus a link to the whole library"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
@@ -2066,7 +2066,8 @@ function pmqSiteBar(q){var L=pmqSiteLines(q),many=pmProps(q).filter(function(p){
  return pmqPara("EQSite",pmqRun("Site addresses:")+"<w:r><w:tab/></w:r>"+L.map(function(l,i){return (i?"<w:r><w:br/><w:tab/></w:r>":"")+pmqRun(l);}).join(""),"<w:tabs><w:tab w:val=\"left\" w:pos=\"2100\"/></w:tabs>");}
 function pmqPara(st,inner,extra){return "<w:p><w:pPr><w:pStyle w:val=\""+st+"\"/>"+(extra||"")+"</w:pPr>"+inner+"</w:p>";}
 function pmqDate(d){return ["January","February","March","April","May","June","July","August","September","October","November","December"][d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();}
-function pmqTo(q){var c=(q.f.client||"").trim(),n=(q.f.contact||"").trim();if(c&&n&&c.toLowerCase()!==n.toLowerCase())return c+" - "+n;return c||n;}
+/* quote is addressed to the client; the contact only when there is no client (the contact stays in the job details) */
+function pmqTo(q){var c=(q.f.client||"").trim(),n=(q.f.contact||"").trim();return c||n;}
 function pmqDefaultName(q){var who=((q.f.contact||"").trim().split(/\s+/)[0])||((q.f.client||"").trim().split(/\s+/)[0])||"";return "Elev. Survey Quote "+(q.f.qn||"").trim()+(who?"-"+who:"");}
 function pmqDisbLine(q){
  var parts=[],tot=0,WL={chk:["checklist fee","checklist fees"],filing:["filing fee","filing fees"]};(PM.vault.disb||[]).forEach(function(d){var n=Math.round(pmNum(q.disb[d.id]));if(n>0){var lb=WL[d.id]||[d.label,d.plural];parts.push(n+" "+(n>1?lb[1]:lb[0]));tot+=n*d.price;}});
@@ -2081,6 +2082,7 @@ function pmqServices(q){
   list.push({s:s,ix:ix,sec:sec,ov:ov,num:num});});
  return list.map(function(x){var s=x.s,title=pmqTitle(s,x.ix);
   if(s.status==="option"){opt++;title="Option "+opt+": "+title;}
+  else if(s.status==="opt"&&!/optional/i.test(title))title+=" (Optional)";
   var price=x.ov&&x.ov.text!=null?x.ov.text:(x.num!=null?(cents?"$"+x.num.toFixed(2).replace(/^(\d+)/,function(m){return m.replace(/\B(?=(\d{3})+$)/g,",");}):pmMoney(x.num,false)):"");
   var notes=s.notes.filter(function(n){return n.on&&n.t.trim();}).map(function(n){return pmqFill(n.t,s.fills);});
   var star=(notes.map(function(n){var m=n.match(/^\*+/);return m?m[0]:"";}).filter(Boolean)[0])||"";
@@ -2106,20 +2108,20 @@ function pmqBodyXml(q){
  x.push(pmqPara("EQDate",pmqRun(pmqDate(new Date()))));
  x.push(pmqPara("EQTo",pmqRun("To: "+pmqTo(q))+"<w:r><w:tab/></w:r>"+pmqRun("Quote# "+q.f.qn.trim())));
  x.push(pmqSiteBar(q));
- var rows=P.map(function(v,i){/* no drawn rule between services (Acrobat auto-detect turned each one into fields); space above each row instead */var bd="<w:tcMar><w:top w:w=\"220\" w:type=\"dxa\"/></w:tcMar>";
+ var rows=P.map(function(v,i){/* no drawn rule between services (Acrobat auto-detect turned each one into fields); space above each row instead */var bd="<w:tcMar><w:top w:w=\"160\" w:type=\"dxa\"/></w:tcMar>";
   var ps=[pmqPara("EQService",pmqRun(v.title))];
   if(v.lead)ps.push(pmqPara("EQLead",pmqRun(v.lead)));
   v.lines.forEach(function(l){ps.push(pmqPara("EQScope",pmqRun(l),"<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\""+(10+i)+"\"/></w:numPr>"));});
   v.notes.forEach(function(n){ps.push(pmqPara("EQScopeNote",pmqRun(n)));});
   return "<w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w=\""+DW+"\" w:type=\"dxa\"/>"+bd+"</w:tcPr>"+ps.join("")+"</w:tc><w:tc><w:tcPr><w:tcW w:w=\""+PW+"\" w:type=\"dxa\"/>"+bd+"</w:tcPr>"+pmqPara("EQPrice",pmqRun(v.price))+"</w:tc></w:tr>";}).join("");
  x.push("<w:tbl><w:tblPr><w:tblStyle w:val=\"EQServiceTable\"/><w:tblW w:w=\""+TW+"\" w:type=\"dxa\"/><w:tblLayout w:type=\"fixed\"/><w:tblLook w:val=\"0000\"/></w:tblPr><w:tblGrid><w:gridCol w:w=\""+DW+"\"/><w:gridCol w:w=\""+PW+"\"/></w:tblGrid>"+rows+"</w:tbl>");
- x.push(pmqPara("EQTerms",pmqRun("GST EXTRA"),"<w:spacing w:before=\"200\"/>"));
+ x.push(pmqPara("EQTerms",pmqRun("GST EXTRA"),"<w:spacing w:before=\"160\"/>"));
  var d=pmqDisbLine(q);if(d)x.push(pmqPara("EQTerms",pmqRun(d)));
  x.push(pmqPara("EQSign",pmqRun(q.f.pm.trim())));
  x.push(pmqPara("EQContract",PMQ_CONTRACT.map(function(c){return pmqRun(c[1],c[0]);}).join("")));
  var tab=function(p){return "<w:tab w:val=\"left\" w:leader=\"underscore\" w:pos=\""+p+"\"/>";},T="<w:r><w:tab/></w:r>";
  /* each label sits right against its underline so Acrobat's Prepare Form names the fields Name, Phone, Billing address, Date, Signature */
- [[[tab(5500),tab(TW)],pmqRun("Name: ")+T+pmqRun("    Phone #: ")+T,"<w:spacing w:before=\"360\"/>"],
+ [[[tab(5500),tab(TW)],pmqRun("Name: ")+T+pmqRun("    Phone #: ")+T,"<w:spacing w:before=\"200\"/>"],
   [[tab(TW)],pmqRun("Billing address: ")+T,""],
   [[tab(5500),tab(TW)],pmqRun("Date: ")+T+pmqRun("    Signature: ")+T,""]].forEach(function(b,i){
   x.push(pmqPara("EQBlank",b[1],(i===2?"<w:keepNext w:val=\"0\"/>":"")+"<w:tabs>"+b[0].join("")+"</w:tabs>"+b[2]));});
@@ -2226,7 +2228,7 @@ function pmqdImportDocx(buf,fname){
     var take=confirm("This quote was edited in Word after it was made in the app.\n\n"+(diffs.length?diffs.slice(0,8).join("\n")+(diffs.length>8?"\n…":""):"(wording outside the services changed)")+"\n\nOK = take the services’ text from the Word file (hours stay from the app)\nCancel = open the app’s version as it was downloaded");
     if(take){
      W.forEach(function(ws,i){var s=q.secs[i];if(!s){s=pmqNorm({name:"",hrs:{}});q.secs.push(s);}
-      var t=ws.title.replace(/^Option \d+:\s*/,"");s.name=t;s.fills={};s.lead=ws.lead;
+      var t=ws.title.replace(/^Option \d+:\s*/,"");if(s.status==="opt")t=t.replace(/\s*\(optional\)$/i,"");s.name=t;s.fills={};s.lead=ws.lead;
       var offL=s.lines.filter(function(x){return !x.on;}),offN=s.notes.filter(function(x){return !x.on;});
       s.lines=ws.lines.map(function(x){return {t:x,on:true,why:""};}).concat(offL);s.notes=ws.notes.map(function(x){return {t:x,on:true,why:""};}).concat(offN);
       var pr=ws.price.replace(/^Additional\s+/i,"").replace(/\*+$/,"").trim(),calc=pmqServices(q)[i];
