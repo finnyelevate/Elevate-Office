@@ -271,6 +271,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .pm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;max-width:900px}
 .pm-f{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--faint)}
 .pm-f.wide{grid-column:1/-1}
+.pm-mode{margin:0 0 10px}.btn:disabled{opacity:.45;cursor:not-allowed}#pm-jappr{width:180px}.pm-dirs{display:flex;flex-direction:column;gap:6px}.pm-dir{display:grid;grid-template-columns:220px 1fr auto auto;gap:10px;align-items:center;font-size:13px}.pm-dok{color:#1f7a3a;font-size:12px}.pm-dno{color:var(--faint);font-size:12px}.pm-choose{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.pm-step{font:600 13px "Barlow Semi Condensed";letter-spacing:.06em;text-transform:uppercase;margin:16px 0 6px;display:flex;gap:8px;align-items:center}.pm-step b{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px}.pm-jfold{font-size:13px;margin:6px 0}.pm-jrec{font-size:13px;margin:4px 0 6px;color:var(--faint)}.pm-jrec.bad{color:#a32020;font-weight:600}.pm-jrec.ok{color:#1f7a3a}.pm-tree{max-width:520px}.pm-jdone ul{margin:6px 0 6px 18px;padding:0}@media (max-width:640px){.pm-dir{grid-template-columns:1fr}}
 .pm-props{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;align-items:flex-start}.pm-prop{width:100%}.pm-propg{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:8px 16px}.pm-proph{font:600 11px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin:4px 0 2px;display:flex;align-items:center;gap:8px}.pm-f textarea{resize:vertical}
 .pm-f span{font:600 11px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase}
 .pm-f input,.pm-f textarea,.pm-ta,.pm-rt input,.pm-disb input{border:1px solid var(--hair);padding:7px 9px;font:14px "IBM Plex Sans",sans-serif;background:var(--panel);color:var(--ink);outline:none}
@@ -744,7 +745,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.18";
+const BUILD="1.19";
 const NEWS=["Match points: a General mode for stitching any two point sets \u2014 pick the numbering blocks for each side (the tool proposes the two that sit far apart), second files on either side, control-codes filter","Chained stages: after a match, Carry A + B forward makes the combined set side A for the next match \u2014 GPS \u2192 ground control, then ground + GPS \u2192 calc, each with its own pairs","Monument-ID hints: matching monument numbers on both sides seed the pairing and show \u2713ID; where an ID disagrees with the figure it\u2019s flagged \u2014 confusion about which control got tied, resolved by evidence","Descriptions on both sides in results, same-coordinate-system detection, and a faster engine for larger sets. The default Calc \u2192 tied-in mode is unchanged.","Points tab file shelf: every file or drawing package you drop is added, not replaced \u2014 tap a file to make it the one cleanup/extraction/scale act on, Reset clears the shelf, and Match points picks each side from any loaded file (no more Second file buttons); re-dropping the same file name replaces that entry","Training tab: 18 more videos added \u2014 the ones stored directly in SharePoint (Elevate Office app walkthroughs, Automap, area calc, Elevate system, and more) \u2014 each opening in the SharePoint player, plus a link to the whole library"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
@@ -2256,9 +2257,173 @@ function pmqdSubQuote(){
  PM.quotes.unshift(c);PM.cur=c.id;pmQuotesSave();pmRender();
 }
 window.pmqdImportDocx=pmqdImportDocx;window.pmqdSubQuote=pmqdSubQuote;window.pmqdNextSub=pmqdNextSub;window.pmqdReadServices=pmqdReadServices;
+/* ---------- PM: folders on this computer (OneDrive-synced), save to quote folder, convert an accepted quote to a job ---------- */
+/* Rules: the app only ever creates folders and copies/writes files in. It never deletes or moves anything, never
+   creates a quote folder, and never touches an existing job folder. The job record itself is entered in the online app, which issues the job number. */
+var PMJ={dirs:{},loaded:false,j:null,msg:""};
+var PMJ_DIRS=[["jobs","Job Files - Documents","job folders are created here"],["quotes","Quotes - Documents","quote folders are read and saved into"]];
+function pmjFsOk(){return typeof window.showDirectoryPicker==="function";}
+function pmjIdb(){return new Promise(function(res){try{if(!window.indexedDB)return res(null);var r=indexedDB.open("eo-pm",1);r.onupgradeneeded=function(){r.result.createObjectStore("dirs");};r.onsuccess=function(){res(r.result);};r.onerror=function(){res(null);};}catch(e){res(null);}});}
+function pmjLoadDirs(){if(PMJ.loaded)return Promise.resolve();PMJ.loaded=true;return pmjIdb().then(function(db){if(!db)return;return new Promise(function(res){try{var out={},c=db.transaction("dirs").objectStore("dirs").openCursor();c.onsuccess=function(){var cur=c.result;if(cur){out[cur.key]=cur.value;cur.continue();}else{for(var k in out)if(!PMJ.dirs[k])PMJ.dirs[k]=out[k];res();}};c.onerror=function(){res();};}catch(e){res();}});});}
+function pmjSaveDir(k,h){PMJ.dirs[k]=h;return pmjIdb().then(function(db){if(!db)return;return new Promise(function(res){try{var t=db.transaction("dirs","readwrite");t.objectStore("dirs").put(h,k);t.oncomplete=res;t.onerror=res;}catch(e){res();}});});}
+function pmjPerm(h,rw){var o={mode:rw?"readwrite":"read"};return Promise.resolve(h.queryPermission?h.queryPermission(o):"granted").then(function(p){if(p==="granted")return true;return h.requestPermission?Promise.resolve(h.requestPermission(o)).then(function(p2){return p2==="granted";}):false;});}
+function pmjDirName(k){return (PMJ_DIRS.find(function(d){return d[0]===k;})||[k,k])[1];}
+function pmjDir(k,rw){var h=PMJ.dirs[k];if(!h)return Promise.reject(new Error("Connect the “"+pmjDirName(k)+"” folder first (Folders on this computer, below)."));
+ return pmjPerm(h,rw).then(function(ok){if(!ok)throw new Error("Permission to use “"+pmjDirName(k)+"” wasn’t given — try again and choose Allow.");return h;});}
+function pmjConnect(k){
+ if(!pmjFsOk()){alert("This browser can’t work with folders on the computer. Use Edge or Chrome.");return Promise.resolve();}
+ var want=pmjDirName(k);
+ return window.showDirectoryPicker({id:"eo-"+k,mode:"readwrite"}).then(function(h){
+  if(h.name!==want&&!confirm("You picked “"+h.name+"”, not “"+want+"”.\n\nUse it anyway?"))return;
+  return pmjSaveDir(k,h).then(function(){pmRender();});
+ }).catch(function(e){if(e&&e.name==="AbortError")return;alert("Couldn’t connect the folder: "+(e&&e.message||e));});
+}
+function pmjFoldersHtml(){
+ var h="<details class='cu-scman' id='pm-dirs'"+(PMJ.openDirs?" open":"")+"><summary>Folders on this computer</summary>";
+ if(!pmjFsOk())h+="<p class='hint'>Saving into the quote folder and creating job folders need Edge or Chrome.</p>";
+ else{h+="<p class='hint' style='margin:4px 0 8px'>Pick each OneDrive-synced folder once on this computer; OneDrive uploads whatever the app saves. The app only creates folders and adds files — it never deletes, moves or overwrites without asking.</p><div class='pm-dirs'>"+
+  PMJ_DIRS.map(function(d){var c=PMJ.dirs[d[0]];return "<div class='pm-dir'><b>"+pmEsc(d[1])+"</b><span class='hint' style='margin:0'>"+pmEsc(d[2])+"</span><span class='"+(c?"pm-dok":"pm-dno")+"'>"+(c?"connected: "+pmEsc(c.name):"not connected")+"</span><button class='btn' data-dir='"+d[0]+"'>"+(c?"Change":"Connect")+"</button></div>";}).join("")+"</div>";}
+ return h+"</details>";
+}
+function pmjWireFolders(host){host.querySelectorAll("[data-dir]").forEach(function(b){b.onclick=function(){PMJ.openDirs=true;pmjConnect(b.dataset.dir);};});var d=document.getElementById("pm-dirs");if(d)d.ontoggle=function(){PMJ.openDirs=d.open;};}
+/* folder helpers */
+function pmjChild(dir,name,kind){var p=kind==="file"?dir.getFileHandle(name):dir.getDirectoryHandle(name);return Promise.resolve(p).then(function(h){return h;},function(e){if(e&&(e.name==="NotFoundError"||e.name==="TypeMismatchError"))return null;throw e;});}
+async function pmjList(dir){var out=[];for await(var h of dir.values())out.push(h);return out;}
+async function pmjWrite(dir,name,data){var fh=await dir.getFileHandle(name,{create:true}),w=await fh.createWritable();await w.write(data);await w.close();}
+function pmjReEsc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}
+async function pmjFindQuoteFolders(qn,client,rw){
+ var root=await pmjDir("quotes",!!rw),base=String(qn||"").trim().replace(/[A-Z]$/i,""),hits=[],byClient=[];
+ if(!base)return [];
+ var re=new RegExp("(^|\\D)"+pmjReEsc(base)+"[A-Z]?(?=\\D|$)","i"),cw=String(client||"").trim().split(/\s+/)[0].toLowerCase();
+ (await pmjList(root)).forEach(function(h){if(h.kind!=="directory")return;if(re.test(h.name))hits.push(h);else if(cw.length>2&&h.name.toLowerCase().indexOf(cw)>=0)byClient.push(h);});
+ hits.sort(function(a,b){return a.name.localeCompare(b.name);});
+ /* older quote folders were numbered separately from the quote: trust a number match only if the files inside don't name a different quote */
+ var sure=[];for(var i=0;i<hits.length;i++){var nums=[];(await pmjList(hits[i])).forEach(function(h){var m=h.name.match(/\b(\d{2}-\d{2,5})[A-Z]?\b/g);if(m)nums=nums.concat(m.map(function(x){return x.replace(/[A-Z]$/i,"");}));});
+  if(!nums.length||nums.indexOf(base)>=0)sure.push(hits[i]);}
+ if(sure.length)return sure;
+ var all=hits.concat(byClient);all.ask=true;return all;
+}
+/* let the PM choose when more than one folder could be the one */
+function pmjChoose(boxId,list,lead){
+ if(list.length===1&&!list.ask)return Promise.resolve(list[0]);
+ return new Promise(function(res){var box=document.getElementById(boxId);if(!box){res(null);return;}
+  box.style.display="block";box.innerHTML=pmEsc(lead)+"<div class='pm-choose'>"+list.map(function(h,i){return "<button class='btn' data-ch='"+i+"'>"+pmEsc(h.name)+"</button>";}).join("")+(pmjFsOk()?"<button class='btn' data-ch='-2'>Choose another folder…</button>":"")+"<button class='btn' data-ch='-1'>Cancel</button></div>";
+  box.querySelectorAll("[data-ch]").forEach(function(b){b.onclick=function(){var i=+b.dataset.ch;box.innerHTML="";box.style.display="none";
+   if(i===-2){window.showDirectoryPicker({id:"eo-quotepick",mode:"readwrite",startIn:PMJ.dirs.quotes||"documents"}).then(res,function(){res(null);});return;}
+   res(i<0?null:list[i]);};});});
+}
+function pmjTxtName(q){return "quote-"+q.f.qn.trim().replace(/[^\w.-]+/g,"_")+"-job_details.txt";}
+/* ---- Quotes view: save the Word quote + job details straight into the existing quote folder ---- */
+async function pmjSaveToQuoteFolder(){
+ var q=pmCurQ();if(!q)return;var box=document.getElementById("pm-qsave"),say=function(html,bad){if(box){box.style.display="block";box.className=bad?"cu-err":"cu-sfhit";box.innerHTML=html;}};
+ var iss=pmqCheck(q);if(iss.length){var wb=document.getElementById("pm-qwarn");if(wb){wb.style.display="block";wb.innerHTML="<b>Can’t build the quote yet:</b><ul>"+iss.map(function(i){return "<li>"+pmEsc(i)+"</li>";}).join("")+"</ul>";}if(!(q.f.qn||"").trim())pmNeedQn();return;}
+ try{
+  var list=await pmjFindQuoteFolders(q.f.qn,q.f.client,true);
+  if(!list.length){list=[];list.ask=true;}
+  var dir=await pmjChoose("pm-qsave",list,!list.length?"No quote folder for "+q.f.qn+" in Quotes - Documents. If it has a different name, choose it; otherwise create it the usual way (the app never creates quote folders) and save again.":(list.ask?"Not sure which folder is quote "+q.f.qn+" (the files inside name a different quote) — which one?":"More than one folder could be quote "+q.f.qn+" — which one?"));if(!dir)return;
+  await pmjPerm(dir,true);
+  var docName=((q.f.docname||"").trim()||pmqDefaultName(q)).replace(/[\\\/:*?"<>|]+/g,"-").replace(/\.docx$/i,"")+".docx",txtName=pmjTxtName(q),saved=[],kept=[];
+  var blob=await pmqBuildDocx(q);
+  var items=[[docName,blob,"If it was edited in Word since, those edits are lost."],[txtName,new Blob([pmJobText(q)],{type:"text/plain"}),""]];
+  for(var i=0;i<items.length;i++){var it=items[i];
+   if(await pmjChild(dir,it[0],"file")&&!confirm("“"+it[0]+"” is already in "+dir.name+".\n\nReplace it with this version? "+it[2]+"\n\nOK = replace   Cancel = keep the one in the folder")){kept.push(it[0]);continue;}
+   await pmjWrite(dir,it[0],it[1]);saved.push(it[0]);}
+  if(saved.length)pmMarkSaved(q);
+  say(saved.length?"Saved to <b>Quotes - Documents › "+pmEsc(dir.name)+"</b>: "+saved.map(pmEsc).join(", ")+(kept.length?" (kept the existing "+kept.map(pmEsc).join(", ")+")":"")+".":"Nothing saved — the files already in "+pmEsc(dir.name)+" were kept.",!saved.length);
+ }catch(e){say(pmEsc(e&&e.message==="nomaster"?"Couldn’t load the quote template (quote-master.docx).":(e&&e.message||String(e))),true);}
+}
+/* ---- Jobs view ---- */
+function pmjNew(){return {qn:"",job:"",appr:pmjToday(),f:{client:"",contact:"",email:"",addr:"",bill:"",qn:""},src:"",folder:null,files:[],out:null,err:""};}
+function pmjToday(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+function pmjApprName(iso){var m=String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[1].slice(2)+"-"+m[2]+"-"+m[3]+"-approval":"";}
+function pmjRanges(job){var m=String(job||"").trim().match(/^(\d{2})-(\d{3,5})$/);if(!m)return null;var n=parseInt(m[2],10),t=Math.floor(n/1000)*1000,u=Math.floor(n/100)*100;return {th:t+"-"+(t+999),hu:u+"-"+(u+99),job:m[1]+"-"+m[2]};}
+function pmjJobTxtRe(){return /^quote[-_ ]?\d{2}-\d+[A-Z]?[-_ ]job[-_ ]details\.txt$/i;}
+function pmjFillFrom(J,q,src){var f=q.f||{};J.f.client=f.client||"";J.f.contact=f.contact||"";J.f.email=f.email||"";J.f.addr=pmPropJoin(q,"site");J.f.qn=f.qn||J.qn;J.src=src;}
+async function pmjDraftFromDocx(file){
+ var buf=await file.arrayBuffer(),ents=cuZipEntries(buf),dec=new TextDecoder();
+ for(var i=0;i<ents.length;i++){var e=ents[i];if(!/^customXml\/item\d+\.xml$/i.test(e.name))continue;var x=dec.decode(await cuZipRead(buf,e));
+  if(x.indexOf(PMQD_NS)<0)continue;var m=x.match(/<eoDraft[^>]*>([^<]+)<\/eoDraft>/);if(!m)continue;
+  try{return JSON.parse(dec.decode(pmUnB64(m[1].replace(/\s+/g,"")))).quote;}catch(er){return null;}}
+ return null;
+}
+async function pmjFind(){
+ var J=PMJ.j;J.err="";J.out=null;J.folder=null;J.files=[];J.src="";
+ var qn=J.qn.trim();if(!qn){J.err="Enter the Quote # first.";pmRender();return;}
+ var draft=PM.quotes.find(function(x){return (x.f.qn||"").trim().toUpperCase()===qn.toUpperCase();});
+ try{
+  var list=await pmjFindQuoteFolders(qn,draft&&draft.f.client);
+  if(!list.length){list=[];list.ask=true;}
+  var dir=await pmjChoose("pm-jchoose",list,!list.length?"No folder in Quotes - Documents is named for quote "+qn+". Choose it yourself, or Cancel.":(list.ask?"Not sure which folder is quote "+qn+" (the files inside name a different quote) — which one?":"More than one folder could be quote "+qn+" — which one?"));if(!dir){pmRender();return;}
+  J.folder=dir;var all=await pmjList(dir);J.files=all.map(function(h){return {name:h.kind==="directory"?h.name+"/":h.name,h:h};});
+  if(draft)pmjFillFrom(J,draft,"the draft on this computer");
+  else{
+   var docx=all.filter(function(h){return h.kind==="file"&&/\.docx$/i.test(h.name)&&!/^~\$/.test(h.name);}),txt=all.filter(function(h){return h.kind==="file"&&/job[ _-]?details.*\.txt$/i.test(h.name);}),q=null,src="";
+   for(var i=0;i<docx.length&&!q;i++){try{q=await pmjDraftFromDocx(await docx[i].getFile());if(q)src="the Word quote in the folder ("+docx[i].name+")";}catch(e){}}
+   if(!q&&txt.length){try{q=pmParseJob(await (await txt[0].getFile()).text());if(q)src="the job details file in the folder ("+txt[0].name+")";}catch(e){}}
+   if(q)pmjFillFrom(J,q,src);else{J.f.qn=qn;J.src="";}
+  }
+  if(!J.f.qn)J.f.qn=qn;
+ }catch(e){J.err=e&&e.message||String(e);}
+ pmRender();
+}
+function pmjReady(J){var R=pmjRanges(J.job),why=[];if(!J.folder)why.push("find the quote folder");if(!R)why.push("enter the job number as 26-3466");if(!PMJ.dirs.jobs)why.push("connect Job Files - Documents");if(!pmjApprName(J.appr))why.push("set the approval date");return why;}
+async function pmjCopyInto(src,dst,job,top,rep){
+ var list=await pmjList(src);
+ for(var i=0;i<list.length;i++){var h=list[i];
+  if(h.kind==="directory"){var sub=await dst.getDirectoryHandle(h.name,{create:true});await pmjCopyInto(h,sub,job,false,rep);continue;}
+  if(/^~\$|^desktop\.ini$|^thumbs\.db$/i.test(h.name))continue;
+  var name=top&&pmjJobTxtRe().test(h.name)?job+"-job details.txt":h.name;
+  if(await pmjChild(dst,name,"file")){rep.skipped.push(name);continue;}
+  try{await pmjWrite(dst,name,await h.getFile());rep.copied.push(name===h.name?name:h.name+" → "+name);}catch(e){rep.failed.push(h.name+" ("+(e&&e.message||e)+")");}}
+}
+async function pmjCreate(){
+ var J=PMJ.j,why=pmjReady(J);if(why.length){J.err="Before creating: "+why.join("; ")+".";pmRender();return;}
+ var R=pmjRanges(J.job);J.err="";J.out=null;
+ try{
+  var root=await pmjDir("jobs",true),th=await pmjChild(root,R.th,"dir");
+  if(!th){J.err="There’s no “"+R.th+"” folder in "+root.name+" — check the right folder is connected. Nothing was created.";pmRender();return;}
+  var hu=await pmjChild(th,R.hu,"dir"),newRange=!hu;
+  if(hu&&await pmjChild(hu,R.job,"dir")){J.err="The job folder "+R.th+" › "+R.hu+" › "+R.job+" already exists. Nothing was changed.";pmRender();return;}
+  if(!confirm("Create job folder "+R.job+"?\n\nJob Files - Documents › "+R.th+" › "+R.hu+" › "+R.job+(newRange?"\n(the "+R.hu+" folder will be created too)":"")+"\n\nand copy "+J.files.length+" item"+(J.files.length===1?"":"s")+" from "+J.folder.name+" into Office."))return;
+  if(!hu)hu=await th.getDirectoryHandle(R.hu,{create:true});
+  var jd=await hu.getDirectoryHandle(R.job,{create:true}),fd=await jd.getDirectoryHandle("Field",{create:true}),od=await jd.getDirectoryHandle("Office",{create:true});
+  await fd.getDirectoryHandle("Data",{create:true});await fd.getDirectoryHandle("Uploads",{create:true});await od.getDirectoryHandle("Obsolete",{create:true});
+  var rq=await od.getDirectoryHandle("Requests",{create:true}),ap=pmjApprName(J.appr);await rq.getDirectoryHandle(ap,{create:true});
+  var rep={copied:[],skipped:[],failed:[]};await pmjPerm(J.folder,false);await pmjCopyInto(J.folder,od,R.job,true,rep);
+  J.out={path:R.th+" › "+R.hu+" › "+R.job,newRange:newRange?R.hu:"",appr:ap,rep:rep};
+  var d=PM.quotes.find(function(x){return (x.f.qn||"").trim().toUpperCase()===J.f.qn.trim().toUpperCase();});if(d){d.job=R.job;pmQuotesSave();}
+ }catch(e){J.err=(e&&e.message)||String(e);}
+ pmRender();
+}
+function pmjRender(host){
+ var J=PMJ.j||(PMJ.j=pmjNew()),R=pmjRanges(J.job),why=pmjReady(J);
+ var h=pmModeBar()+"<div class='pm-h'>Convert an accepted quote to a job</div>";
+ if(!pmjFsOk())h+="<div class='cu-err'>Creating job folders needs Edge or Chrome.</div>";
+ h+="<div class='pm-step'><b>1</b> Accepted quote</div><div class='row'><label class='pm-f'><span>Quote #</span><input type='text' id='pm-jqn' class='mono' value='"+pmEsc(J.qn)+"' placeholder='26-561' style='width:140px'></label> <button class='btn pri' id='pm-jfind' style='align-self:flex-end'>Find quote folder</button></div><div id='pm-jchoose' style='display:none' class='cu-sfhit'></div>";
+ if(J.folder)h+="<div class='pm-jfold'>Quote folder: <b>"+pmEsc(J.folder.name)+"</b> — "+J.files.length+" item"+(J.files.length===1?"":"s")+" to copy into Office"+(J.files.length?": <span class='hint' style='margin:0'>"+J.files.map(function(x){return pmEsc(x.name)+(pmjJobTxtRe().test(x.name)&&R?" → "+pmEsc(R.job)+"-job details.txt":"");}).join(" · ")+"</span>":"")+"</div>";
+ if(J.folder||J.src){var sm=[J.f.client,J.f.addr].map(function(v){return String(v||"").trim();}).filter(Boolean);h+="<p class='hint' style='margin:4px 0'>"+(sm.length?"<b>"+sm.map(pmEsc).join(" · ")+"</b> — from "+pmEsc(J.src)+". Check it’s the right quote.":"No draft or job details found in the folder — check the folder is the right quote.")+"</p>";}
+ h+="<div class='pm-step'><b>2</b> Job number</div><div class='row'><label class='pm-f'><span>Job # (from the online app)</span><input type='text' id='pm-jno' class='mono' value='"+pmEsc(J.job)+"' placeholder='26-3466' style='width:140px'></label></div><p class='hint' style='margin:4px 0'>Enter the job in the online app first — it issues the job number.</p>";
+ h+="<div class='pm-step'><b>3</b> Job folder</div><div class='row'><label class='pm-f'><span>Approval date</span><input type='date' id='pm-jappr' value='"+pmEsc(J.appr)+"'></label></div>";
+ h+="<pre class='pm-pre pm-tree'>"+(R?"Job Files - Documents › "+R.th+" › "+R.hu+" › "+R.job+"\n":"Job Files - Documents › … › (job #)\n")+"  Field\n    Data\n    Uploads\n  Office\n    "+(J.folder?"("+J.files.length+" item"+(J.files.length===1?"":"s")+" from the quote folder)\n    ":"")+"Obsolete\n    Requests\n      "+pmEsc(pmjApprName(J.appr)||"yy-mm-dd-approval")+"</pre>";
+ h+="<div class='cu-dl'><button class='btn pri' id='pm-jcreate'"+(why.length?" disabled title='"+pmEsc("To do: "+why.join("; "))+"'":"")+">Create job folder</button><span class='hint' style='margin:0'>"+(why.length?"To do: "+pmEsc(why.join("; ")):"only adds folders and copies files — never deletes or overwrites")+"</span></div>";
+ if(J.err)h+="<div class='cu-err' style='display:block'>"+pmEsc(J.err)+"</div>";
+ if(J.out){var o=J.out,rp=o.rep;h+="<div class='cu-sfhit pm-jdone'><b>Job folder created:</b> Job Files - Documents › "+pmEsc(o.path)+(o.newRange?" (new range folder "+pmEsc(o.newRange)+")":"")+"<ul><li>Field › Data, Uploads · Office › Obsolete, Requests</li><li>"+rp.copied.length+" file"+(rp.copied.length===1?"":"s")+" copied into Office"+(rp.copied.length?": "+rp.copied.map(pmEsc).join(" · "):"")+"</li>"+(rp.skipped.length?"<li>Already there, left as is: "+rp.skipped.map(pmEsc).join(" · ")+"</li>":"")+(rp.failed.length?"<li class='cu-idbad'>Couldn’t copy: "+rp.failed.map(pmEsc).join(" · ")+"</li>":"")+"<li>Save the acceptance into Office › Requests › <b>"+pmEsc(o.appr)+"</b></li></ul>OneDrive uploads it in the background. <button class='btn' id='pm-jnext'>Convert another quote</button></div>";}
+ h+=pmjFoldersHtml();
+ host.innerHTML=h;pmWireMode(host);pmjWireFolders(host);
+ var qi=document.getElementById("pm-jqn");qi.oninput=function(){J.qn=qi.value;};qi.onkeydown=function(e){if(e.key==="Enter")pmjFind();};
+ document.getElementById("pm-jfind").onclick=pmjFind;
+ var jn=document.getElementById("pm-jno");jn.oninput=function(){J.job=jn.value.trim();};jn.onchange=function(){pmRender();};
+ document.getElementById("pm-jappr").onchange=function(){J.appr=this.value;pmRender();};
+ document.getElementById("pm-jcreate").onclick=pmjCreate;
+ var nx=document.getElementById("pm-jnext");if(nx)nx.onclick=function(){PMJ.j=pmjNew();pmRender();};
+}
+function pmModeBar(){return "<div class='pm-mode seg'><button data-mode='quotes' class='"+(PM.mode!=="jobs"?"on":"")+"'>Quotes</button><button data-mode='jobs' class='"+(PM.mode==="jobs"?"on":"")+"'>Jobs</button></div>";}
+function pmWireMode(host){host.querySelectorAll("[data-mode]").forEach(function(b){b.onclick=function(){PM.mode=b.dataset.mode;sset("eo:pmmode",PM.mode);pmRender();};});}
+function pmjStartFromQuote(){var q=pmCurQ();if(!q)return;PMJ.j=pmjNew();PMJ.j.qn=(q.f.qn||"").trim();pmjFillFrom(PMJ.j,q,"the draft on this computer");PM.mode="jobs";sset("eo:pmmode","jobs");pmRender();if(PMJ.j.qn&&PMJ.dirs.quotes)pmjFind();}
+window.pmjSaveToQuoteFolder=pmjSaveToQuoteFolder;window.pmjStartFromQuote=pmjStartFromQuote;window.PMJ=PMJ;window.pmjRanges=pmjRanges;window.pmjFind=pmjFind;window.pmjCreate=pmjCreate;window.pmjSaveDir=pmjSaveDir;
 /* ---------- PM tab: encrypted vault + quote builder ---------- */
 function pmEsc(v){return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
-var PM={key:null,vault:null,vfile:null,quotes:[],cur:null,err:"",busy:false};
+var PM={key:null,vault:null,vfile:null,quotes:[],cur:null,err:"",busy:false,mode:(typeof sget==="function"&&sget("eo:pmmode"))||"quotes"};
 var PM_FIELDS=[["qn","Quote #","26-___"],["date","Date requested","e.g. Sep 28"],["assigned","Assigned (PM initials)",""],["client","Client",""],["contact","Contact Name",""],["email","Email",""],["phone","Phone",""],["site","Site Address",""],["legal","Legal Desc.",""],["pid","PID",""],["plans","Relevant plans",""],["services","Services Provided",""],["task","Additional Task Details","",1],["pmc","Additional PM comments","",1],["zoning","Zoning",""],["pm","Project Manager",""]];
 /* properties: property 1 lives in q.f.site/legal/pid; extra properties in q.xp=[{site,legal,pid}] */
 var PM_PK=["site","legal","pid"];
@@ -2359,6 +2524,8 @@ function pmRender(){
  var host=document.getElementById("pmhost");if(!host)return;
  if(!window.crypto||!crypto.subtle){host.innerHTML="<div class='cu-err'>This browser can't open the PM tab (no secure crypto). Use the app at its https address in Chrome or Edge.</div>";return;}
  if(!PM.key){pmRenderLock(host);return;}
+ if(!PMJ.loaded){pmjLoadDirs().then(function(){pmRender();});}
+ if(PM.mode==="jobs"){pmjRender(host);return;}
  pmRenderMain(host);
 }
 function pmRenderLock(host){
@@ -2386,16 +2553,16 @@ function pmAutoUnlock(){
 function pmLock(){PM.key=null;PM.vault=null;sdel("eo:pmkey");PM.err="";pmRender();}
 function pmRenderMain(host){
  var V=PM.vault,q=pmCurQ();
- var h="<div class='pm-bar'><button class='btn pri' onclick='pmNewQ()'>New quote</button>";
+ var h=pmModeBar()+"<div class='pm-bar'><button class='btn pri' onclick='pmNewQ()'>New quote</button>";
  h+=PM.quotes.map(function(x){return "<span class='cu-src"+(x.id===PM.cur?" on":"")+"' data-q='"+x.id+"'>"+pmEsc(x.f.qn||"(no quote #)")+(x.f.client?" · "+pmEsc(x.f.client.slice(0,24)):"")+" "+(pmUnsaved(x)?"<b class='pm-unsaved' title='not downloaded since the last change'>NOT SAVED</b> ":"")+"<button class='cu-srcx' data-q='"+x.id+"' title='delete this draft'>✕</button></span>";}).join("");
- h+="<button class='btn' onclick='pmqdSubQuote()' title='copy this quote as the next lettered sub-quote, e.g. 26-586B'>Duplicate as sub-quote</button><label class='btn'>Open a quote (.docx or .txt)<input type='file' id='pm-imp' accept='.docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' style='display:none'></label><span style='flex:1'></span><button class='btn' onclick='pmLock()'>Lock</button></div>";
+ h+="<button class='btn' onclick='pmjStartFromQuote()' title='quote accepted: create the job folder from this quote'>Convert to job…</button><button class='btn' onclick='pmqdSubQuote()' title='copy this quote as the next lettered sub-quote, e.g. 26-586B'>Duplicate as sub-quote</button><label class='btn'>Open a quote (.docx or .txt)<input type='file' id='pm-imp' accept='.docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' style='display:none'></label><span style='flex:1'></span><button class='btn' onclick='pmLock()'>Lock</button></div>";
  h+="<div class='pm-savedrow'>"+pmUnsavedCount()+(PM.tidied?"<span class='hint' style='margin:0 0 0 12px'>"+PM.tidied+" quote"+(PM.tidied>1?"s":"")+" saved to "+(PM.tidied>1?"their folders":"its folder")+" and untouched for 30+ days "+(PM.tidied>1?"were":"was")+" tidied off this computer \u2014 the downloaded files remain the record.</span>":"")+"</div>";
  if(q&&q.importRep){var R=q.importRep,msg;
   if(R.sub)msg="Sub-quote of <b>"+pmEsc(R.sub)+"</b> \u2014 client, site and every service carried over. Remove any services not needed with \u2715, then build the quote.";
   else if(R.fromDocx)msg="Opened"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 the draft saved inside the Word quote."+(R.wordDiffs&&R.wordDiffs.length?"<div>Taken from the Word file: "+R.wordDiffs.map(pmEsc).join(" \u00b7 ")+"</div>":"");
   else msg="Imported"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 "+R.read+" hour line"+(R.read===1?"":"s")+" read."+(R.unread.length?"<div class='cu-idbad' style='font-weight:400'>Couldn't read \u2014 enter manually: "+R.unread.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.rateDiff.length?"<div>Rates in the file differ from current (current rates are used): "+R.rateDiff.map(pmEsc).join("; ")+"</div>":"");
   h+="<div class='cu-sfhit' id='pm-imprep'>"+msg+" <button class='btn' id='pm-impok'>OK</button></div>";}
- if(!q){h+="<p class='hint'>No quotes on this device yet — tap New quote.</p>"+pmRatesHtml()+pmqFavsHtml();host.innerHTML=h;pmWireMain(host,null);return;}
+ if(!q){h+="<p class='hint'>No quotes on this device yet — tap New quote.</p>"+pmRatesHtml()+pmqFavsHtml()+pmjFoldersHtml();host.innerHTML=h;pmWireMain(host,null);return;}
  h+="<div class='pm-grid'>"+PM_FIELDS.map(function(fd){if(fd[0]==="legal"||fd[0]==="pid")return "";if(fd[0]==="site")return pmPropsHtml(q);var v=q.f[fd[0]]||"";return "<label class='pm-f"+(fd[3]?" wide":"")+"'><span>"+fd[1]+(fd[0]==="qn"?" <b class='pm-req'>required to save</b>":"")+"</span>"+(fd[3]?"<textarea data-f='"+fd[0]+"' rows='3'>"+pmEsc(v)+"</textarea>":"<input type='text' data-f='"+fd[0]+"' value='"+pmEsc(v)+"' placeholder='"+pmEsc(fd[2])+"'"+(fd[0]==="qn"?" id='pm-qn' class='mono'":"")+">")+"</label>";}).join("")+"</div>";
  h+="<div class='pm-h'>Services &amp; rate calculation</div><p class='hint' style='margin:0 0 8px'>Each service is one numbered item on the Word quote and one section of the job details calculation. Pick a job type to load the approved wording; everything can then be edited for this quote.</p>";
  q.secs.forEach(function(s,ix){pmqNorm(s);h+=pmqCardHtml(q,s,ix);});
@@ -2404,11 +2571,11 @@ function pmRenderMain(host){
  h+="<div class='pm-tot' id='pm-tot'></div>";
  h+="<div class='pm-h'>Field Crew Instructions</div><div class='row'>"+((V.fci||[]).length?"<select id='pm-fcisel'>"+V.fci.map(function(o,i){return "<option value='"+i+"'>"+pmEsc(o.label)+"</option>";}).join("")+"</select> <button class='btn' id='pm-fciins'>Insert</button>":"")+"<span class='hint' style='margin:0 0 0 8px'>options are edited under Rates &amp; crew instructions</span></div><textarea id='pm-fci' rows='6' class='pm-ta'>"+pmEsc(q.fci)+"</textarea>";
  h+="<div class='pm-h'>Notes appended after the fields</div><textarea id='pm-notes' rows='4' class='pm-ta' placeholder='Date received, source, transcription of the request…'>"+pmEsc(q.notes)+"</textarea>";
- h+="<div class='pm-h'>Quote document</div><div class='row'><label class='pm-f' style='flex:1;max-width:560px'><span>Word file name</span><input type='text' id='pm-docname' value='"+pmEsc(q.f.docname||"")+"' placeholder='"+pmEsc(pmqDefaultName(q))+"'></label></div><div class='cu-dl'><button class='btn pri' onclick='pmqDownloadDocx()'>Download quote (.docx)</button><span class='hint' style='margin:0'>date, GST, disbursements, signatory and contract fill in automatically</span></div><div class='cu-err' id='pm-qwarn' style='display:none'></div>";
+ h+="<div class='pm-h'>Quote document</div><div class='row'><label class='pm-f' style='flex:1;max-width:560px'><span>Word file name</span><input type='text' id='pm-docname' value='"+pmEsc(q.f.docname||"")+"' placeholder='"+pmEsc(pmqDefaultName(q))+"'></label></div><div class='cu-dl'><button class='btn pri' onclick='pmjSaveToQuoteFolder()' title='saves the Word quote and the job details file into this quote’s folder in Quotes - Documents'>Save to quote folder</button><button class='btn' onclick='pmqDownloadDocx()'>Download quote (.docx)</button><span class='hint' style='margin:0'>date, GST, disbursements, signatory and contract fill in automatically</span></div><div class='cu-err' id='pm-qwarn' style='display:none'></div><div id='pm-qsave' style='display:none'></div>";
  h+="<div class='pm-h'>Job details file</div><div class='cu-dl'><button class='btn pri' onclick='pmDownload()'>Download job details (.txt)</button><button class='btn' onclick='pmCopyJob()'>Copy job details</button><button class='btn' onclick='pmCopyRow()' title='tab-separated row for To Do Quotes, columns A–K'>Copy tracker row</button><span class='hint' id='pm-copied' style='margin:0'></span></div><div class='jobnote' id='pm-qnote' style='display:none'>Enter the Quote # before saving the job details file.</div>";
  h+="<details class='cu-scman'><summary>Preview</summary><pre class='pm-pre' id='pm-pre'></pre></details>";
  h+=pmRatesHtml()+pmqFavsHtml();
- host.innerHTML=h;pmWireMain(host,q);pmUpdate();
+ h+=pmjFoldersHtml();host.innerHTML=h;pmWireMain(host,q);pmUpdate();
 }
 function pmRatesHtml(){
  var V=PM.vault;
@@ -2417,6 +2584,7 @@ function pmRatesHtml(){
 function pmFciEdHtml(o,i){return "<div class='pm-fcie' data-i='"+i+"'><div class='row'><input type='text' class='pm-fcil' value='"+pmEsc(o.label)+"' placeholder='e.g. Option 1 \u2013 Standard topo' style='width:340px'> <button class='btn pm-fcix' title='remove this option'>Remove</button></div><textarea class='pm-fcit pm-ta' rows='4'>"+pmEsc(o.text)+"</textarea></div>";}
 function pmFciAdd(){var ed=document.getElementById("pm-fcied");if(!ed)return;var d=document.createElement("div");d.innerHTML=pmFciEdHtml({label:"",text:""},ed.children.length);var el=d.firstChild;ed.appendChild(el);el.querySelector(".pm-fcix").onclick=function(){el.remove();};el.querySelector("input").focus();}
 function pmWireMain(host,q){
+ pmWireMode(host);pmjWireFolders(host);
  host.querySelectorAll(".pm-fcix").forEach(function(b){b.onclick=function(){b.closest(".pm-fcie").remove();};});
  host.querySelectorAll(".pm-bar .cu-src").forEach(function(el){el.onclick=function(e){if(e.target.classList.contains("cu-srcx"))return;PM.cur=el.dataset.q;pmRender();};});
  host.querySelectorAll(".pm-bar .cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();var x=PM.quotes.find(function(z){return z.id===b.dataset.q;});if(!confirm((x&&pmUnsaved(x)?"This quote was never downloaded since its last change \u2014 deleting it loses the draft.\n\n":"")+"Delete the draft "+((x&&x.f.qn)||"(no quote #)")+" from this device?"))return;PM.quotes=PM.quotes.filter(function(z){return z.id!==b.dataset.q;});if(PM.cur===b.dataset.q)PM.cur=PM.quotes[0]?PM.quotes[0].id:null;pmQuotesSave();pmRender();};});

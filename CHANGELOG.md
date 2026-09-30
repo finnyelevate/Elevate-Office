@@ -1,5 +1,15 @@
 # Elevate Office — changelog
 
+## Build 1.19 — 2026-09-30
+- **PM tab now has two parts: Quotes and Jobs** (switch at the top).
+- **Folders on this computer** (bottom of the PM tab, Edge or Chrome): each PM connects their OneDrive-synced *Job Files - Documents* and *Quotes - Documents* once; OneDrive uploads whatever the app saves. The app only ever creates folders and adds files. It never deletes or moves anything, never creates a quote folder and never changes an existing job folder.
+- **Save to quote folder** (Quotes, next to Download quote): saves the Word quote and the job details file straight into the quote's existing folder, found by its Quote # (26-561 never picks up 26-5610; if more than one folder could match, you choose). If either file is already there it asks before replacing it. If no folder matches, it says so, lets you choose the folder yourself, and creates nothing.
+- **Jobs — convert an accepted quote to a job:**
+  1. Enter the Quote # and **Find quote folder**, or press **Convert to job…** on the quote. The client and address are shown (from the draft on this computer or, if it has been tidied away, from the Word quote or job details file in the folder) so you can check it's the right quote. A folder whose number matches but whose files name a different quote (older folders were numbered separately) is never picked automatically — you choose, or pick any folder yourself.
+  2. Enter the job number issued by the online app (the job record is entered there first, as now).
+  3. **Create job folder** makes Job Files - Documents › 3000-3999 › 3400-3499 › 26-3466 with Field › Data, Uploads and Office › Obsolete, Requests › 26-09-30-approval (approval date editable), and copies everything from the quote folder into Office, renaming the job details file to "26-3466-job details.txt". A new hundreds range folder (e.g. 3500-3599) is created when needed. It stops without creating anything if the job folder already exists or the thousands folder isn't there.
+- Verified against a stand-in of the folders: save/replace/keep in the quote folder, lookalike folders untouched, details read from the Word quote and from an older job details file, folder structure, renaming, subfolders copied, originals left in place, existing job refused, new range, missing range; all earlier PM, Points and Transform checks still pass.
+
 ## Build 1.18 — 2026-09-29
 - **Several properties on one quote.** On the PM tab, Site Address, PID and Legal Desc. are now grouped as a property, with **+ Add another property** underneath; each extra property has its own address, PID and legal description and a ✕ to remove it. The Legal Desc. box is now full width and grows onto more lines. Quotes for one property look and work exactly as before.
 - **Word quote:** with more than one property the teal bar reads "SITE ADDRESSES:" with the addresses stacked, one line per street — addresses that share a street and city share a line ("5864 & 5868 Pioneer Avenue, Burnaby", "5864, 5868 & 5872 …"). One property: unchanged.
