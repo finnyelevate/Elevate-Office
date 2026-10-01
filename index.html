@@ -745,7 +745,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.22.1";
+const BUILD="1.22.2";
 const NEWS=["Match points: a General mode for stitching any two point sets \u2014 pick the numbering blocks for each side (the tool proposes the two that sit far apart), second files on either side, control-codes filter","Chained stages: after a match, Carry A + B forward makes the combined set side A for the next match \u2014 GPS \u2192 ground control, then ground + GPS \u2192 calc, each with its own pairs","Monument-ID hints: matching monument numbers on both sides seed the pairing and show \u2713ID; where an ID disagrees with the figure it\u2019s flagged \u2014 confusion about which control got tied, resolved by evidence","Descriptions on both sides in results, same-coordinate-system detection, and a faster engine for larger sets. The default Calc \u2192 tied-in mode is unchanged.","Points tab file shelf: every file or drawing package you drop is added, not replaced \u2014 tap a file to make it the one cleanup/extraction/scale act on, Reset clears the shelf, and Match points picks each side from any loaded file (no more Second file buttons); re-dropping the same file name replaces that entry","Training tab: 18 more videos added \u2014 the ones stored directly in SharePoint (Elevate Office app walkthroughs, Automap, area calc, Elevate system, and more) \u2014 each opening in the SharePoint player, plus a link to the whole library"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
@@ -2133,15 +2133,26 @@ function pmqNumbering(n){
 }
 var PMQ_CRC=null;
 function pmqCrc(u){if(!PMQ_CRC){PMQ_CRC=new Uint32Array(256);for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;PMQ_CRC[n]=c>>>0;}}var crc=0xFFFFFFFF;for(var i=0;i<u.length;i++)crc=PMQ_CRC[(crc^u[i])&0xFF]^(crc>>>8);return (crc^0xFFFFFFFF)>>>0;}
+/* Word-style package: every part deflate-compressed (as Word saves), real timestamps. SharePoint/Office's upload had trouble
+   merging the uncompressed packages the app wrote before 1.22.2 ("Upload blocked"); Word-saved copies of the same quote were fine. */
+function pmqDeflate(d){
+ if(typeof CompressionStream==="undefined")return Promise.resolve(null);
+ try{var cs=new CompressionStream("deflate-raw"),w=cs.writable.getWriter();w.write(d);w.close();
+  return new Response(cs.readable).arrayBuffer().then(function(ab){return new Uint8Array(ab);}).catch(function(){return null;});}catch(e){return Promise.resolve(null);}
+}
+function pmqDosTime(t){t=t||new Date();return {time:(t.getHours()<<11)|(t.getMinutes()<<5)|(Math.floor(t.getSeconds()/2)),date:((t.getFullYear()-1980)<<9)|((t.getMonth()+1)<<5)|t.getDate()};}
 function pmqZip(files){
- var enc=new TextEncoder(),parts=[],cen=[],off=0;
- files.forEach(function(f){var nm=enc.encode(f.name),d=f.data,crc=pmqCrc(d),lh=new DataView(new ArrayBuffer(30)),ch=new DataView(new ArrayBuffer(46));
-  lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,0,true);lh.setUint16(10,0,true);lh.setUint16(12,0x21,true);lh.setUint32(14,crc,true);lh.setUint32(18,d.length,true);lh.setUint32(22,d.length,true);lh.setUint16(26,nm.length,true);lh.setUint16(28,0,true);
-  ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(10,0,true);ch.setUint16(12,0,true);ch.setUint16(14,0x21,true);ch.setUint32(16,crc,true);ch.setUint32(20,d.length,true);ch.setUint32(24,d.length,true);ch.setUint16(28,nm.length,true);ch.setUint32(42,off,true);
-  parts.push(new Uint8Array(lh.buffer),nm,d);cen.push(new Uint8Array(ch.buffer),nm);off+=30+nm.length+d.length;});
- var cs=cen.reduce(function(a,b){return a+b.length;},0),e=new DataView(new ArrayBuffer(22));
- e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
- return parts.concat(cen,[new Uint8Array(e.buffer)]);
+ var enc=new TextEncoder(),dt=pmqDosTime();
+ return Promise.all(files.map(function(f){return pmqDeflate(f.data);})).then(function(packed){
+  var parts=[],cen=[],off=0;
+  files.forEach(function(f,i){var nm=enc.encode(f.name),d=f.data,crc=pmqCrc(d),z=packed[i],useZ=!!(z&&z.length<d.length),body=useZ?z:d,meth=useZ?8:0,lh=new DataView(new ArrayBuffer(30)),ch=new DataView(new ArrayBuffer(46));
+   lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,meth,true);lh.setUint16(10,dt.time,true);lh.setUint16(12,dt.date,true);lh.setUint32(14,crc,true);lh.setUint32(18,body.length,true);lh.setUint32(22,d.length,true);lh.setUint16(26,nm.length,true);lh.setUint16(28,0,true);
+   ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(10,meth,true);ch.setUint16(12,dt.time,true);ch.setUint16(14,dt.date,true);ch.setUint32(16,crc,true);ch.setUint32(20,body.length,true);ch.setUint32(24,d.length,true);ch.setUint16(28,nm.length,true);ch.setUint16(30,0,true);ch.setUint16(32,0,true);ch.setUint16(34,0,true);ch.setUint16(36,0,true);ch.setUint32(38,0,true);ch.setUint32(42,off,true);
+   parts.push(new Uint8Array(lh.buffer),nm,body);cen.push(new Uint8Array(ch.buffer),nm);off+=30+nm.length+body.length;});
+  var cs=cen.reduce(function(a,b){return a+b.length;},0),e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+  return parts.concat(cen,[new Uint8Array(e.buffer)]);
+ });
 }
 function pmqMaster(){
  return fetch("quote-master.docx",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();}).then(function(buf){try{sset("eo:qmaster",pmB64(new Uint8Array(buf)));}catch(e){}return buf;})
@@ -2156,7 +2167,7 @@ function pmqBuildDocx(q){
     else if(f.name==="word/numbering.xml")f.data=enc.encode(pmqNumbering(B.n));
    });
    pmqdParts(q,B.xml,files);
-   return new Blob(pmqZip(files),{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+   return pmqZip(files).then(function(parts){return new Blob(parts,{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});});
   });
  });
 }

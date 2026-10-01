@@ -1,5 +1,9 @@
 # Elevate Office — changelog
 
+## Build 1.22.2 — 2026-10-01
+- **Word quotes are now packed the way Word packs them.** The app wrote its .docx files uncompressed with placeholder 1980 dates. They open fine in Word, but when one lands in a SharePoint library, Office's upload (which merges the library's properties into the file) failed on it — Word showed "UPLOAD BLOCKED", OneDrive sat on "Sync pending", and Acrobat's Create PDF couldn't open it. A copy re-saved by Word/SharePoint of the very same quote synced and converted at once. Every part is now compressed like Word's own files (about 40% smaller) and stamped with the real time. Reopening quotes made by earlier builds still works.
+- Verified: Word files pass validation, reopen with their draft, 26-590 still fits on one page; all earlier checks still pass.
+
 ## Build 1.22.1 — 2026-10-01
 - **Word quotes no longer carry another library's SharePoint settings.** The 2023 letterhead file the template was built from still held hidden SharePoint document-library information from the library it was originally saved in (its content type and managed-metadata fields). Every quote inherited it. When such a file lands in Quotes - Documents, Office has to reconcile those settings during OneDrive's upload, which is the likely reason today's Word quotes sat on "syncing". The template now has none of it — the quote looks and prints exactly the same, and the app's own draft inside the Word file (for reopening) is kept. **Upload the new quote-master.docx** with this build.
 - Verified: Word files pass validation, reopen with their draft, 26-590 still fits one page; all earlier checks still pass.
