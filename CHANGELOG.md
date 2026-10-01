@@ -1,5 +1,9 @@
 # Elevate Office — changelog
 
+## Build 1.22.1 — 2026-10-01
+- **Word quotes no longer carry another library's SharePoint settings.** The 2023 letterhead file the template was built from still held hidden SharePoint document-library information from the library it was originally saved in (its content type and managed-metadata fields). Every quote inherited it. When such a file lands in Quotes - Documents, Office has to reconcile those settings during OneDrive's upload, which is the likely reason today's Word quotes sat on "syncing". The template now has none of it — the quote looks and prints exactly the same, and the app's own draft inside the Word file (for reopening) is kept. **Upload the new quote-master.docx** with this build.
+- Verified: Word files pass validation, reopen with their draft, 26-590 still fits one page; all earlier checks still pass.
+
 ## Build 1.22 — 2026-10-01
 - **Quote folders follow your Quotes - Documents layout** — the current hundred loose at the top, finished hundreds in range folders ("Elev. Survey Quotes 26-400-26-499"), past years in "2025 Quotes" (its ranges plus that year's last hundred loose):
   - **Next quote number** now counts the quotes inside the range and year folders too, so it stays right after a hundred has been tidied away (before, it only looked at the top level). The 26-000 template folder and the range folders' own names are never mistaken for quotes. Numbers are three digits (27-001).
