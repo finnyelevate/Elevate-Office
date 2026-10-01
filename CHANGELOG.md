@@ -1,5 +1,9 @@
 # Elevate Office — changelog
 
+## Build 1.20 — 2026-10-01
+- **New quote from a To Do Quotes row.** In the tracker, select the whole row (click the row number), press Ctrl+C, then press Ctrl+V anywhere on the PM tab (Quotes side) — or use **New from tracker row** and paste into the box. A new quote opens with Quote #, Client, Contact, Email, Phone, Site Address, Services, Additional Task Details, Date requested, Assigned and PM comments filled in from columns A–K. Several rows make several quotes; the header row is skipped; cells with line breaks come through intact. If a draft with the same Quote # already exists it asks whether to fill that draft's empty fields or make a separate one. Pasting into a field still pastes normally.
+- Verified: single and multiple rows, header row, multi-line and quoted cells, same-Quote # fill, paste box, job details carry the row; all earlier checks still pass.
+
 ## Build 1.19.2 — 2026-10-01
 - **More room on page 1 of the Word quote.** Word was still moving the contract to page 2 on 26-590, so about 3/4 inch more space is freed on every quote: a little less space under the date and the Site Address bar and above each service, body line spacing 1.05 instead of 1.1, and an empty line at the bottom of the letterhead footer removed (the teal footer bar is lowered by the same amount, so the footer looks the same). Wording and font sizes are unchanged; the contract and signature lines still stay together. **Upload the new quote-master.docx** with this build.
 - Verified: 26-590 rebuilt from its Word file fits on one page with room to spare; Word files pass validation; all earlier checks still pass.

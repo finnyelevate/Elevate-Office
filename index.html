@@ -745,7 +745,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.19.2";
+const BUILD="1.20";
 const NEWS=["Match points: a General mode for stitching any two point sets \u2014 pick the numbering blocks for each side (the tool proposes the two that sit far apart), second files on either side, control-codes filter","Chained stages: after a match, Carry A + B forward makes the combined set side A for the next match \u2014 GPS \u2192 ground control, then ground + GPS \u2192 calc, each with its own pairs","Monument-ID hints: matching monument numbers on both sides seed the pairing and show \u2713ID; where an ID disagrees with the figure it\u2019s flagged \u2014 confusion about which control got tied, resolved by evidence","Descriptions on both sides in results, same-coordinate-system detection, and a faster engine for larger sets. The default Calc \u2192 tied-in mode is unchanged.","Points tab file shelf: every file or drawing package you drop is added, not replaced \u2014 tap a file to make it the one cleanup/extraction/scale act on, Reset clears the shelf, and Match points picks each side from any loaded file (no more Second file buttons); re-dropping the same file name replaces that entry","Training tab: 18 more videos added \u2014 the ones stored directly in SharePoint (Elevate Office app walkthroughs, Automap, area calc, Elevate system, and more) \u2014 each opening in the SharePoint player, plus a link to the whole library"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
@@ -2555,9 +2555,11 @@ function pmAutoUnlock(){
 function pmLock(){PM.key=null;PM.vault=null;sdel("eo:pmkey");PM.err="";pmRender();}
 function pmRenderMain(host){
  var V=PM.vault,q=pmCurQ();
- var h=pmModeBar()+"<div class='pm-bar'><button class='btn pri' onclick='pmNewQ()'>New quote</button>";
+ var h=pmModeBar()+"<div class='pm-bar'><button class='btn pri' onclick='pmNewQ()'>New quote</button><button class='btn' onclick='pmPasteBox()' title='select the row(s) in To Do Quotes, Ctrl+C, then Ctrl+V here'>New from tracker row</button>";
  h+=PM.quotes.map(function(x){return "<span class='cu-src"+(x.id===PM.cur?" on":"")+"' data-q='"+x.id+"'>"+pmEsc(x.f.qn||"(no quote #)")+(x.f.client?" · "+pmEsc(x.f.client.slice(0,24)):"")+" "+(pmUnsaved(x)?"<b class='pm-unsaved' title='not downloaded since the last change'>NOT SAVED</b> ":"")+"<button class='cu-srcx' data-q='"+x.id+"' title='delete this draft'>✕</button></span>";}).join("");
  h+="<button class='btn' onclick='pmjStartFromQuote()' title='quote accepted: create the job folder from this quote'>Convert to job…</button><button class='btn' onclick='pmqdSubQuote()' title='copy this quote as the next lettered sub-quote, e.g. 26-586B'>Duplicate as sub-quote</button><label class='btn'>Open a quote (.docx or .txt)<input type='file' id='pm-imp' accept='.docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' style='display:none'></label><span style='flex:1'></span><button class='btn' onclick='pmLock()'>Lock</button></div>";
+ h+="<div id='pm-rowbox' class='cu-sfhit' style='display:none'>In To Do Quotes, select the whole row (click the row number; several rows make several quotes), press <b>Ctrl+C</b>, then click in the box and press <b>Ctrl+V</b>. Tip: you can also just press Ctrl+V anywhere on this tab.<textarea id='pm-rowta' rows='2' class='pm-ta' placeholder='paste the row here'></textarea><div class='hint' id='pm-rowmsg' style='margin:0'></div></div>";
+ if(PM.rowMsg){h+="<div class='cu-sfhit' id='pm-rowdone'>"+pmEsc(PM.rowMsg)+"</div>";PM.rowMsg="";}
  h+="<div class='pm-savedrow'>"+pmUnsavedCount()+(PM.tidied?"<span class='hint' style='margin:0 0 0 12px'>"+PM.tidied+" quote"+(PM.tidied>1?"s":"")+" saved to "+(PM.tidied>1?"their folders":"its folder")+" and untouched for 30+ days "+(PM.tidied>1?"were":"was")+" tidied off this computer \u2014 the downloaded files remain the record.</span>":"")+"</div>";
  if(q&&q.importRep){var R=q.importRep,msg;
   if(R.sub)msg="Sub-quote of <b>"+pmEsc(R.sub)+"</b> \u2014 client, site and every service carried over. Remove any services not needed with \u2715, then build the quote.";
@@ -2626,6 +2628,31 @@ function pmPropsHtml(q){var P=pmProps(q),multi=P.length>1;
    "<div class='pm-propg'><label class='pm-f'><span>Site Address</span><input type='text' "+at("site")+" value='"+pmEsc(p.site)+"'></label><label class='pm-f'><span>PID</span><input type='text' "+at("pid")+" value='"+pmEsc(p.pid)+"' class='mono'></label>"+
    "<label class='pm-f wide'><span>Legal Desc.</span><textarea "+at("legal")+" rows='2'>"+pmEsc(p.legal)+"</textarea></label></div></div>";}).join("")+
   "<button class='btn' id='pm-addprop'>+ Add another property</button></div>";}
+/* ---- new quote(s) from To Do Quotes rows: select the row(s) in Excel, Ctrl+C, then Ctrl+V on the PM tab (or the paste box) ---- */
+var PM_ROWCOLS=["qn","client","contact","email","phone","site","services","task","date","assigned","pmc"];
+function pmTsv(text){var rows=[],row=[],cell="",i=0,q=false,t=String(text).replace(/\r\n?/g,"\n");
+ for(;i<t.length;i++){var ch=t[i];
+  if(q){if(ch==='"'){if(t[i+1]==='"'){cell+='"';i++;}else q=false;}else cell+=ch;continue;}
+  if(ch==='"'&&cell==="")q=true;else if(ch==="\t"){row.push(cell);cell="";}else if(ch==="\n"){row.push(cell);rows.push(row);row=[];cell="";}else cell+=ch;}
+ if(cell!==""||row.length){row.push(cell);rows.push(row);}return rows;}
+function pmRowsFromText(text){if(String(text).indexOf("\t")<0)return [];
+ return pmTsv(text).filter(function(r){return r.length>=6&&r.some(function(c){return c.trim();})&&!/^client\s*name$/i.test((r[1]||"").trim())&&!/^quote\s*#$/i.test((r[0]||"").trim());});}
+function pmNewFromRows(text){
+ var rows=pmRowsFromText(text);if(!rows.length)return 0;var made=0,upd=0,last=null;
+ rows.forEach(function(r){var v={};PM_ROWCOLS.forEach(function(k,i){v[k]=String(r[i]||"").replace(/\s*\n\s*/g,k==="task"||k==="pmc"?"\n":" ").trim();});
+  var qn=v.qn,ex=qn?PM.quotes.find(function(x){return (x.f.qn||"").trim().toUpperCase()===qn.toUpperCase();}):null,q;
+  if(ex&&confirm("A draft for "+qn+" already exists.\n\nOK = fill its empty fields from this row\nCancel = make a separate new draft")){q=ex;PM_ROWCOLS.forEach(function(k){if(v[k]&&!(q.f[k]||"").trim())q.f[k]=v[k];});upd++;}
+  else{q=pmNewQuote();PM_ROWCOLS.forEach(function(k){if(v[k])q.f[k]=v[k];});made++;}
+  q.updated=Date.now();last=q;});
+ if(last){PM.cur=last.id;pmQuotesSave();PM.rowMsg=(made?made+" new quote"+(made>1?"s":"")+" from the tracker":"")+(made&&upd?", ":"")+(upd?upd+" draft"+(upd>1?"s":"")+" filled in":"")+" — check the fields"+(last.f.qn?"":" and enter the Quote #")+".";pmRender();}
+ return made+upd;
+}
+function pmPasteBox(){var b=document.getElementById("pm-rowbox");if(b){b.style.display=b.style.display==="none"?"block":"none";var t=document.getElementById("pm-rowta");if(t&&b.style.display==="block")t.focus();}}
+document.addEventListener("paste",function(e){
+ if(!PM.key||PM.mode==="jobs"||!pmOnView||!pmOnView())return;var a=document.activeElement,box=a&&a.id==="pm-rowta";
+ if(!box&&a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable))return;
+ var t=(e.clipboardData||window.clipboardData).getData("text");if(!pmRowsFromText(t).length){if(box){e.preventDefault();var m=document.getElementById("pm-rowmsg");if(m)m.textContent="That doesn’t look like a row copied from To Do Quotes (Excel copies cells separated by tabs).";}return;}
+ e.preventDefault();pmNewFromRows(t);});
 function pmNewQ(){pmNewQuote();pmRender();var el=document.getElementById("pm-qn");if(el)el.focus();}
 function pmAddSec(){var q=pmCurQ();if(!q)return;q.secs.push(pmqNorm({name:"",hrs:{}}));q.updated=Date.now();pmQuotesSave();pmRender();}
 function pmDownloadVault(vf){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(vf,null,1)],{type:"application/json"}));a.download="pm-vault.json";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);}
@@ -2718,7 +2745,7 @@ function pmImportText(text,fname){
 }
 function pmImportFile(file){var r=new FileReader();if(/\.docx$/i.test(file.name)){r.onload=function(){pmqdImportDocx(r.result,file.name);};r.readAsArrayBuffer(file);return;}r.onload=function(){pmImportText(r.result,file.name);};r.readAsText(file);}
 function pmOnView(){var v=document.getElementById("v-pm");return v&&v.classList.contains("on");}
-window.pmImportText=pmImportText;window.pmImportFile=pmImportFile;window.pmParseJob=pmParseJob;window.pmOnView=pmOnView;
+window.pmImportText=pmImportText;window.pmNewFromRows=pmNewFromRows;window.pmPasteBox=pmPasteBox;window.pmTsv=pmTsv;window.pmImportFile=pmImportFile;window.pmParseJob=pmParseJob;window.pmOnView=pmOnView;
 window.pmFciAdd=pmFciAdd;window.pmLock=pmLock;window.pmNewQ=pmNewQ;window.pmAddSec=pmAddSec;window.pmDownload=pmDownload;window.pmCopyJob=pmCopyJob;window.pmCopyRow=pmCopyRow;window.pmSaveOptions=pmSaveOptions;window.pmUnlock=pmUnlock;window.pmJobText=pmJobText;window.pmCalc=pmCalc;window.PM=PM;window.pmTrackerRow=pmTrackerRow;window.pmRender=pmRender;
 (function(){var b=document.querySelector("nav button[data-v='pm']");if(b)b.addEventListener("click",function(){if(!PM.key)pmAutoUnlock().then(function(){pmRender();});});pmRender();})();
 
