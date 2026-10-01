@@ -1,5 +1,9 @@
 # Elevate Office — changelog
 
+## Build 1.19.2 — 2026-10-01
+- **More room on page 1 of the Word quote.** Word was still moving the contract to page 2 on 26-590, so about 3/4 inch more space is freed on every quote: a little less space under the date and the Site Address bar and above each service, body line spacing 1.05 instead of 1.1, and an empty line at the bottom of the letterhead footer removed (the teal footer bar is lowered by the same amount, so the footer looks the same). Wording and font sizes are unchanged; the contract and signature lines still stay together. **Upload the new quote-master.docx** with this build.
+- Verified: 26-590 rebuilt from its Word file fits on one page with room to spare; Word files pass validation; all earlier checks still pass.
+
 ## Build 1.19.1 — 2026-09-30
 - **Word quote addressed to the client only:** "To: Schedio Spaces" instead of "To: Schedio Spaces - Simon Boisvert". The contact is used only when there is no client name, and it stays in the job details file as before.
 - **Optional add-ons say so on the quote:** an Optional add-on's title now ends "(Optional)", e.g. "Posting plan for Permit Purposes (Optional)", beside its "Additional $1,330" price (not added twice if the title already says optional). Reopening the Word quote reads it back without doubling it.
