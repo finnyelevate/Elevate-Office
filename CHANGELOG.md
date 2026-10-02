@@ -1,5 +1,14 @@
 # Elevate Office — changelog
 
+## Build 1.23 — 2026-10-02
+- **Older quote folders are found too.** Find quote folder, Save to quote folder, Jobs and the next-number check now understand every naming used since 2020: "Elev. Survey Quote 21-015-…" (Quote without the s), "Elev.Survey Quotes 23-755-…" (no space), and range folders written "21-100-199", "21-01-099", "23-001-099" as well as "26-400-26-499". Checked against the real Quotes - Documents: quotes from every year 2020–2026 are found (e.g. 21-015 in 2021 Quotes › 21-01-099), and the next number is still 26-593.
+- **Sub-quotes however they're written.** 26-568C, 26-568-C and 26-568 C all belong to the 26-568 folder: Find quote folder and Jobs open it, the Quotes view shows "Quote folder: …26-568-…" instead of offering a new folder, and a sub-quote without a folder offers the main quote's number (the Quote # stays 26-568-C).
+- **Job details renamed reliably when converting to a job.** Any job details text file is recognised (quote-26-568-C-job_details.txt, Quote-26-233-job details.txt, …). If the quote folder holds several (26-568, 26-568B, 26-568-C), only the one for the quote being converted becomes "26-3646-job details.txt"; the others are copied with their names unchanged. The preview shows which one.
+- **Create quote folder** moved to the top of the quote, above the fields; its "needs the client or contact name" hint now disappears as soon as a name is typed.
+- **City map links updated:** West Vancouver (new maps page), City of Langley (maps.langleycity.ca — the old link had a typo), Mission (map.mission.ca), Pitt Meadows (MapView), Port Coquitlam (opens PoCoMap directly), Vancouver (new VanMap at geoportal.vancouver.ca), Delta (maps.delta.ca), North Vancouver City (secure https).
+- Field Crew Instructions Option 4 (Vancouver/Burnaby) now asks for the basic building outline of the existing house — in the pm-vault.json sent earlier today.
+- Verified: older names, sub-quote variants, job details choice, button position and hint, links; all earlier checks still pass.
+
 ## Build 1.22.2 — 2026-10-01
 - **Word quotes are now packed the way Word packs them.** The app wrote its .docx files uncompressed with placeholder 1980 dates. They open fine in Word, but when one lands in a SharePoint library, Office's upload (which merges the library's properties into the file) failed on it — Word showed "UPLOAD BLOCKED", OneDrive sat on "Sync pending", and Acrobat's Create PDF couldn't open it. A copy re-saved by Word/SharePoint of the very same quote synced and converted at once. Every part is now compressed like Word's own files (about 40% smaller) and stamped with the real time. Reopening quotes made by earlier builds still works.
 - Verified: Word files pass validation, reopen with their draft, 26-590 still fits on one page; all earlier checks still pass.

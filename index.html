@@ -745,7 +745,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.22.2";
+const BUILD="1.23";
 const NEWS=["Match points: a General mode for stitching any two point sets \u2014 pick the numbering blocks for each side (the tool proposes the two that sit far apart), second files on either side, control-codes filter","Chained stages: after a match, Carry A + B forward makes the combined set side A for the next match \u2014 GPS \u2192 ground control, then ground + GPS \u2192 calc, each with its own pairs","Monument-ID hints: matching monument numbers on both sides seed the pairing and show \u2713ID; where an ID disagrees with the figure it\u2019s flagged \u2014 confusion about which control got tied, resolved by evidence","Descriptions on both sides in results, same-coordinate-system detection, and a faster engine for larger sets. The default Calc \u2192 tied-in mode is unchanged.","Points tab file shelf: every file or drawing package you drop is added, not replaced \u2014 tap a file to make it the one cleanup/extraction/scale act on, Reset clears the shelf, and Match points picks each side from any loaded file (no more Second file buttons); re-dropping the same file name replaces that entry","Training tab: 18 more videos added \u2014 the ones stored directly in SharePoint (Elevate Office app walkthroughs, Automap, area calc, Elevate system, and more) \u2014 each opening in the SharePoint player, plus a link to the whole library"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
@@ -1367,7 +1367,7 @@ const CHECKLISTS=[
   "Control csv file made(see a previous sample)(only need one even if multiple legal plans)"]}
 ]}
 ];
-const GIS=[["Abbotsford","https://maps.abbotsford.ca/Html5Viewer/"],["Burnaby","https://gis.burnaby.ca/burnabymap/index.html"],["Chilliwack","https://maps.chilliwack.com/b/"],["City of Langley","https://map.langleycity.ca/html5viewer/?viewer=ext"],["Coquitlam","https://coquitlam.maps.arcgis.com/apps/webappviewer/index.html?id=2d58aee859754918ae54d30da4bbba49"],["Delta","https://maps.delta.ca/Html5Viewer/index.html?viewer=DeltaMapExternal.viewer/"],["Fraser Valley","https://maps.fvrd.ca/portal/apps/webappviewer/index.html?id=eae55e6da5f14e11a9a5e07a78f339c5"],["Maple Ridge","https://gis.mapleridge.ca/ridgeview/"],["Mission","https://www.mission.ca/city-hall/departments/engineering/webmap/"],["New Westminster","http://arcgis.newwestcity.ca/Html5Viewer4122/index.html?viewer=CNWPublicMap"],["North Vancouver City","http://gisext2.cnv.org/citymap/#splash-modal"],["North Vancouver District","https://www.geoweb.dnv.org/"],["Pitt Meadows","https://www.pittmeadows.ca/city-services/city-maps-open-data"],["Port Coquitlam","https://www.portcoquitlam.ca/business-development/pocomap/"],["Port Moody","https://view.portmoody.ca/portal/apps/webappviewer/index.html?id=bb8dde24dcef4b06b1e66c4465a3b80c"],["Richmond","https://maps.richmond.ca/rim/"],["Surrey","https://cosmos.surrey.ca/external/"],["Township of Langley","https://mapsvr.tol.ca/geosource3/"],["Vancouver","https://maps.vancouver.ca/property/"],["West Vancouver District","https://westmap.westvancouver.ca/html5Viewer/?viewer=WestMap_2019.Default_Viewer"],["White Rock","https://cosmos.surrey.ca/external/WROMS/"]];
+const GIS=[["Abbotsford","https://maps.abbotsford.ca/Html5Viewer/"],["Burnaby","https://gis.burnaby.ca/burnabymap/index.html"],["Chilliwack","https://maps.chilliwack.com/b/"],["City of Langley","https://maps.langleycity.ca/html5viewer/?viewer=ext"],["Coquitlam","https://coquitlam.maps.arcgis.com/apps/webappviewer/index.html?id=2d58aee859754918ae54d30da4bbba49"],["Delta","https://maps.delta.ca/"],["Fraser Valley","https://maps.fvrd.ca/portal/apps/webappviewer/index.html?id=eae55e6da5f14e11a9a5e07a78f339c5"],["Maple Ridge","https://gis.mapleridge.ca/ridgeview/"],["Mission","https://map.mission.ca/"],["New Westminster","http://arcgis.newwestcity.ca/Html5Viewer4122/index.html?viewer=CNWPublicMap"],["North Vancouver City","https://gisext2.cnv.org/citymap/"],["North Vancouver District","https://www.geoweb.dnv.org/"],["Pitt Meadows","https://www.pittmeadows.ca/homes-development/zoning-land-use/pitt-meadows-mapview"],["Port Coquitlam","https://maps.portcoquitlam.ca/Html5Viewer/index.html?viewer=Public.v1"],["Port Moody","https://view.portmoody.ca/portal/apps/webappviewer/index.html?id=bb8dde24dcef4b06b1e66c4465a3b80c"],["Richmond","https://maps.richmond.ca/rim/"],["Surrey","https://cosmos.surrey.ca/external/"],["Township of Langley","https://mapsvr.tol.ca/geosource3/"],["Vancouver","https://geoportal.vancouver.ca/"],["West Vancouver District","https://westvancouver.ca/business-development/building-development/maps"],["White Rock","https://cosmos.surrey.ca/external/WROMS/"]];
 
 /* ================= core app ================= */
 var st={cl:null,job:"",init:"",marks:{},notes:{},inst:{},opened:""};
@@ -2306,7 +2306,9 @@ async function pmjWrite(dir,name,data){var fh=await dir.getFileHandle(name,{crea
 function pmjReEsc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}
 /* Quotes - Documents layout (as kept since 2020): this year's current hundred loose at the top ("Elev. Survey Quotes 26-591-Sudha"),
    finished hundreds in range folders ("Elev. Survey Quotes 26-400-26-499"), past years in "2025 Quotes" (ranges + that year's last hundred loose) */
-var PMJ_RANGE=/^Elev\. Survey Quotes (\d{2})-(\d{2,3})-\1-(\d{2,3})\s*$/i,PMJ_QF=/^Elev\. Survey Quotes (\d{2})-(\d{1,4})(?!\d)/i,PMJ_YEAR=/^(20\d{2})\s+quotes\s*$/i;
+/* names used over the years: "Elev. Survey Quotes 26-591-Sudha", "Elev. Survey Quote 21-015-Saeed", "Elev.Survey Quotes 23-755-…";
+   ranges "26-400-26-499", "21-100-199", "21-01-099", "23-001-099" */
+var PMJ_RANGE=/^Elev\.\s*Survey\s+Quotes?\s*(\d{2})-(\d{2,3})-(?:\1-)?(\d{2,3})\s*$/i,PMJ_QF=/^Elev\.\s*Survey\s+Quotes?\s*(\d{2})-(\d{1,4})(?!\d)/i,PMJ_YEAR=/^(20\d{2})\s+quotes\s*$/i;
 function pmjKind(name){var m=name.match(PMJ_RANGE);if(m)return {range:true,yy:m[1],lo:+m[2],hi:+m[3]};m=name.match(PMJ_YEAR);if(m)return {year:true,yy:m[1].slice(2)};m=name.match(PMJ_QF);if(m)return {quote:true,yy:m[1],n:+m[2]};return null;}
 async function pmjDirs(dir){return (await pmjList(dir)).filter(function(h){return h.kind==="directory";}).map(function(h){return {h:h,k:pmjKind(h.name)};});}
 /* quote folders of year yy (only number n if given), wherever they sit: top, top range, year folder, year folder range */
@@ -2319,9 +2321,11 @@ async function pmjYearQuotes(root,yy,n,top){
  var yf=top.find(function(e){return e.k&&e.k.year&&e.k.yy===yy;});if(yf)await scan(await pmjDirs(yf.h),"year");
  return out;
 }
+function pmjQnParts(qn){var m=String(qn||"").trim().match(/^(\d{2})\s*-\s*(\d{1,4})(?:\s*[- ]?\s*([A-Za-z]))?$/);return m?{yy:m[1],n:+m[2],sub:(m[3]||"").toUpperCase(),base:m[1]+"-"+m[2]}:null;}
+function pmjQnKey(s){return String(s||"").toUpperCase().replace(/[^0-9A-Z]/g,"");}
 async function pmjFindQuoteFolders(qn,client,rw){
- var root=await pmjDir("quotes",!!rw),base=String(qn||"").trim().replace(/[A-Z]$/i,""),m=base.match(/^(\d{2})-(\d{1,4})$/);
- if(!m)return [];
+ var root=await pmjDir("quotes",!!rw),Q=pmjQnParts(qn);
+ if(!Q)return [];var base=Q.base,m=[null,Q.yy,String(Q.n)];
  var top=await pmjDirs(root),hits=(await pmjYearQuotes(root,m[1],+m[2],top)).map(function(x){return x.h;});
  hits.sort(function(a,b){return a.name.localeCompare(b.name);});
  /* older quote folders were numbered separately from the quote: trust a number match only if the files inside don't name a different quote */
@@ -2366,7 +2370,11 @@ function pmjNew(){return {qn:"",job:"",appr:pmjToday(),f:{client:"",contact:"",e
 function pmjToday(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
 function pmjApprName(iso){var m=String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[1].slice(2)+"-"+m[2]+"-"+m[3]+"-approval":"";}
 function pmjRanges(job){var m=String(job||"").trim().match(/^(\d{2})-(\d{3,5})$/);if(!m)return null;var n=parseInt(m[2],10),t=Math.floor(n/1000)*1000,u=Math.floor(n/100)*100;return {th:t+"-"+(t+999),hu:u+"-"+(u+99),job:m[1]+"-"+m[2]};}
-function pmjJobTxtRe(){return /^quote[-_ ]?\d{2}-\d+[A-Z]?[-_ ]job[-_ ]details\.txt$/i;}
+function pmjJobTxtRe(){return /job[\s_-]*details.*\.txt$/i;}
+/* which job details file in the quote folder becomes "{job#}-job details.txt": the only one, or the one for this quote (26-568, 26-568C, 26-568-C…) */
+function pmjPickJobTxt(names,qn){var c=names.filter(function(n){return pmjJobTxtRe().test(n);});if(c.length<=1)return c[0]||null;
+ var k=pmjQnKey(qn),hit=c.filter(function(n){return pmjQnKey(n.replace(/job[\s_-]*details.*$/i,"")).replace(/^QUOTES?/,"")===k;});
+ return hit.length===1?hit[0]:null;}
 function pmjFillFrom(J,q,src){var f=q.f||{};J.f.client=f.client||"";J.f.contact=f.contact||"";J.f.email=f.email||"";J.f.addr=pmPropJoin(q,"site");J.f.qn=f.qn||J.qn;J.src=src;}
 async function pmjDraftFromDocx(file){
  var buf=await file.arrayBuffer(),ents=cuZipEntries(buf),dec=new TextDecoder();
@@ -2396,12 +2404,12 @@ async function pmjFind(){
  pmRender();
 }
 function pmjReady(J){var R=pmjRanges(J.job),why=[];if(!J.folder)why.push("find the quote folder");if(!R)why.push("enter the job number as 26-3466");if(!PMJ.dirs.jobs)why.push("connect Job Files - Documents");if(!pmjApprName(J.appr))why.push("set the approval date");return why;}
-async function pmjCopyInto(src,dst,job,top,rep){
- var list=await pmjList(src);
+async function pmjCopyInto(src,dst,job,top,rep,qn){
+ var list=await pmjList(src),jt=top?pmjPickJobTxt(list.filter(function(h){return h.kind==="file";}).map(function(h){return h.name;}),qn):null;
  for(var i=0;i<list.length;i++){var h=list[i];
-  if(h.kind==="directory"){var sub=await dst.getDirectoryHandle(h.name,{create:true});await pmjCopyInto(h,sub,job,false,rep);continue;}
+  if(h.kind==="directory"){var sub=await dst.getDirectoryHandle(h.name,{create:true});await pmjCopyInto(h,sub,job,false,rep,qn);continue;}
   if(/^~\$|^desktop\.ini$|^thumbs\.db$/i.test(h.name))continue;
-  var name=top&&pmjJobTxtRe().test(h.name)?job+"-job details.txt":h.name;
+  var name=top&&h.name===jt?job+"-job details.txt":h.name;
   if(await pmjChild(dst,name,"file")){rep.skipped.push(name);continue;}
   try{await pmjWrite(dst,name,await h.getFile());rep.copied.push(name===h.name?name:h.name+" → "+name);}catch(e){rep.failed.push(h.name+" ("+(e&&e.message||e)+")");}}
 }
@@ -2418,7 +2426,7 @@ async function pmjCreate(){
   var jd=await hu.getDirectoryHandle(R.job,{create:true}),fd=await jd.getDirectoryHandle("Field",{create:true}),od=await jd.getDirectoryHandle("Office",{create:true});
   await fd.getDirectoryHandle("Data",{create:true});await fd.getDirectoryHandle("Uploads",{create:true});await od.getDirectoryHandle("Obsolete",{create:true});
   var rq=await od.getDirectoryHandle("Requests",{create:true}),ap=pmjApprName(J.appr);await rq.getDirectoryHandle(ap,{create:true});
-  var rep={copied:[],skipped:[],failed:[]};await pmjPerm(J.folder,false);await pmjCopyInto(J.folder,od,R.job,true,rep);
+  var rep={copied:[],skipped:[],failed:[]};await pmjPerm(J.folder,false);await pmjCopyInto(J.folder,od,R.job,true,rep,J.f.qn||J.qn);
   J.out={path:R.th+" › "+R.hu+" › "+R.job,newRange:newRange?R.hu:"",appr:ap,rep:rep};
   var d=PM.quotes.find(function(x){return (x.f.qn||"").trim().toUpperCase()===J.f.qn.trim().toUpperCase();});if(d){d.job=R.job;pmQuotesSave();}
  }catch(e){J.err=(e&&e.message)||String(e);}
@@ -2429,7 +2437,7 @@ function pmjRender(host){
  var h=pmModeBar()+"<div class='pm-h'>Convert an accepted quote to a job</div>";
  if(!pmjFsOk())h+="<div class='cu-err'>Creating job folders needs Edge or Chrome.</div>";
  h+="<div class='pm-step'><b>1</b> Accepted quote</div><div class='row'><label class='pm-f'><span>Quote #</span><input type='text' id='pm-jqn' class='mono' value='"+pmEsc(J.qn)+"' placeholder='26-561' style='width:140px'></label> <button class='btn pri' id='pm-jfind' style='align-self:flex-end'>Find quote folder</button></div><div id='pm-jchoose' style='display:none' class='cu-sfhit'></div>";
- if(J.folder)h+="<div class='pm-jfold'>Quote folder: <b>"+pmEsc(J.folder.name)+"</b> — "+J.files.length+" item"+(J.files.length===1?"":"s")+" to copy into Office"+(J.files.length?": <span class='hint' style='margin:0'>"+J.files.map(function(x){return pmEsc(x.name)+(pmjJobTxtRe().test(x.name)&&R?" → "+pmEsc(R.job)+"-job details.txt":"");}).join(" · ")+"</span>":"")+"</div>";
+ if(J.folder)h+="<div class='pm-jfold'>Quote folder: <b>"+pmEsc(J.folder.name)+"</b> — "+J.files.length+" item"+(J.files.length===1?"":"s")+" to copy into Office"+(J.files.length?": <span class='hint' style='margin:0'>"+J.files.map(function(x){return pmEsc(x.name)+(x.name===pmjPickJobTxt(J.files.map(function(y){return y.name;}),J.f.qn||J.qn)&&R?" → "+pmEsc(R.job)+"-job details.txt":"");}).join(" · ")+"</span>":"")+"</div>";
  if(J.folder||J.src){var sm=[J.f.client,J.f.addr].map(function(v){return String(v||"").trim();}).filter(Boolean);h+="<p class='hint' style='margin:4px 0'>"+(sm.length?"<b>"+sm.map(pmEsc).join(" · ")+"</b> — from "+pmEsc(J.src)+". Check it’s the right quote.":"No draft or job details found in the folder — check the folder is the right quote.")+"</p>";}
  h+="<div class='pm-step'><b>2</b> Job number</div><div class='row'><label class='pm-f'><span>Job # (from the online app)</span><input type='text' id='pm-jno' class='mono' value='"+pmEsc(J.job)+"' placeholder='26-3466' style='width:140px'></label></div><p class='hint' style='margin:4px 0'>Enter the job in the online app first — it issues the job number.</p>";
  h+="<div class='pm-step'><b>3</b> Job folder</div><div class='row'><label class='pm-f'><span>Approval date</span><input type='date' id='pm-jappr' value='"+pmEsc(J.appr)+"'></label></div>";
@@ -2476,7 +2484,7 @@ function pmjQfHtml(q){
  if(!pmjFsOk()||!PMJ.dirs.quotes)return "";var P=PMJ.qf&&PMJ.qf.id===q.id?PMJ.qf:null;
  var h="<div class='pm-qf'>";
  if(q.qfolder)h+="<span class='pm-dok'>Quote folder: "+pmEsc(q.qfolder)+"</span>";
- else if(!P)h+="<button class='btn' id='pm-qfnew' title='finds the next free quote number in Quotes - Documents and creates its folder — only after you confirm'>"+((q.f.qn||"").trim()?"Create quote folder for "+pmEsc(q.f.qn.trim()):"Create next quote folder")+"</button><span class='hint' style='margin:0'>needs the client or contact name</span>";
+ else if(!P)h+="<button class='btn' id='pm-qfnew' title='finds the next free quote number in Quotes - Documents and creates its folder — only after you confirm'>"+((q.f.qn||"").trim()?"Create quote folder for "+pmEsc(q.f.qn.trim()):"Create next quote folder")+"</button><span class='hint' id='pm-qfhint' style='margin:0"+(pmjShortName(q)?";display:none":"")+"'>needs the client or contact name</span>";
  else{h+="<div class='cu-sfhit'>Create <b>Quotes - Documents › "+pmEsc(pmjQfName(P.qn,""))+"</b><input type='text' id='pm-qfshort' value='"+pmEsc(P.short)+"' style='width:180px'> ? <button class='btn pri' id='pm-qfok'>Create folder</button> <button class='btn' id='pm-qfno'>Cancel</button>"+(P.note?"<div class='hint' style='margin:4px 0 0'>"+pmEsc(P.note)+"</div>":"");
   (P.tidy||[]).concat(P.year||[]).forEach(function(t,i){var first=t.items[0].name.replace(/^Elev\. Survey Quotes /,""),last=t.items[t.items.length-1].name.replace(/^Elev\. Survey Quotes /,"");
    h+="<label class='cu-cb' style='margin-top:6px'><input type='checkbox' class='pm-qftidy' data-i='"+i+"' checked> Also tidy up as usual: move "+t.items.length+" folder"+(t.items.length===1?"":"s")+" ("+pmEsc(first)+(t.items.length>1?" … "+pmEsc(last):"")+") into <b>"+pmEsc(t.dest)+"</b>"+(P.top.some(function(e){return e.h.name.toLowerCase()===t.dest.toLowerCase();})?"":" (new folder)")+"</label>";});
@@ -2489,7 +2497,7 @@ async function pmjQfStart(){
  if(!who){PMJ.qfMsg={bad:true,t:"Enter the client or contact name first — it goes in the folder name."};pmRender();return;}
  try{var root=await pmjDir("quotes",true),qn=(q.f.qn||"").trim(),note="",yy=pmjYY(),N;
   if(qn){var ex=await pmjFindQuoteFolders(qn,"",true);if(ex.length&&!ex.ask){q.qfolder=ex[0].name;pmQuotesSave();PMJ.qfMsg={t:"A folder for "+pmEsc(qn)+" already exists — using it."};pmRender();return;}
-   var mq=qn.match(/^(\d{2})-(\d{1,4})$/);if(!mq){PMJ.qfMsg={bad:true,t:"The Quote # should look like 26-591 to create its folder."};pmRender();return;}yy=mq[1];N=+mq[2];}
+   var mq=pmjQnParts(qn);if(!mq){PMJ.qfMsg={bad:true,t:"The Quote # should look like 26-591 (or 26-591B) to create its folder."};pmRender();return;}yy=mq.yy;N=mq.n;if(mq.sub)note="Sub-quote "+qn+": its folder is the main quote’s, "+yy+"-"+pmjPad(N)+".";qn=yy+"-"+pmjPad(N);}
   var L=await pmjQuotePlan(root,yy,null);
   if(!qn){N=L.max+1;qn=yy+"-"+pmjPad(N);note="Next free number after "+(L.max?yy+"-"+pmjPad(L.max):"none this year")+" (checked the range and year folders too). The Quote # on this quote will be set to "+qn+".";}
   var plan=await pmjQuotePlan(root,yy,N);
@@ -2516,7 +2524,7 @@ async function pmjQfCreate(){
   if(L.used[num]){if(!auto){PMJ.qf=null;PMJ.qfMsg={bad:true,t:"A folder numbered "+pmEsc(qn)+" now exists in Quotes - Documents. Nothing was created."};pmRender();return;}while(L.used[num])num++;moved=" ("+qn+" was just taken by someone else)";qn=yy+"-"+pmjPad(num);}
   var name=pmjQfName(qn,short),k=2;while(L.names[name.toLowerCase()]){name=pmjQfName(qn,short+"-"+k);k++;}
   await root.getDirectoryHandle(name,{create:true});
-  q.f.qn=qn;q.qfolder=name;q.updated=Date.now();pmQuotesSave();PMJ.qf=null;
+  if(auto)q.f.qn=qn;q.qfolder=name;q.updated=Date.now();pmQuotesSave();PMJ.qf=null;
   var msg="Created Quotes - Documents › "+pmEsc(name)+pmEsc(moved)+". Add "+pmEsc(qn)+" to To Do Quotes.",bad=false;
   for(var i=0;i<picks.length;i++){var r=await pmjMoveInto(root,picks[i]);
    msg+="<br>Tidied "+r.done+" folder"+(r.done===1?"":"s")+" into "+pmEsc(r.dest)+".";
@@ -2671,8 +2679,8 @@ function pmRenderMain(host){
   else msg="Imported"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 "+R.read+" hour line"+(R.read===1?"":"s")+" read."+(R.unread.length?"<div class='cu-idbad' style='font-weight:400'>Couldn't read \u2014 enter manually: "+R.unread.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.rateDiff.length?"<div>Rates in the file differ from current (current rates are used): "+R.rateDiff.map(pmEsc).join("; ")+"</div>":"");
   h+="<div class='cu-sfhit' id='pm-imprep'>"+msg+" <button class='btn' id='pm-impok'>OK</button></div>";}
  if(!q){h+="<p class='hint'>No quotes on this device yet — tap New quote.</p>"+pmRatesHtml()+pmqFavsHtml()+pmjFoldersHtml();host.innerHTML=h;pmWireMain(host,null);return;}
- h+="<div class='pm-grid'>"+PM_FIELDS.map(function(fd){if(fd[0]==="legal"||fd[0]==="pid")return "";if(fd[0]==="site")return pmPropsHtml(q);var v=q.f[fd[0]]||"";return "<label class='pm-f"+(fd[3]?" wide":"")+"'><span>"+fd[1]+(fd[0]==="qn"?" <b class='pm-req'>required to save</b>":"")+"</span>"+(fd[3]?"<textarea data-f='"+fd[0]+"' rows='3'>"+pmEsc(v)+"</textarea>":"<input type='text' data-f='"+fd[0]+"' value='"+pmEsc(v)+"' placeholder='"+pmEsc(fd[2])+"'"+(fd[0]==="qn"?" id='pm-qn' class='mono'":"")+">")+"</label>";}).join("")+"</div>";
  h+=pmjQfHtml(q);
+ h+="<div class='pm-grid'>"+PM_FIELDS.map(function(fd){if(fd[0]==="legal"||fd[0]==="pid")return "";if(fd[0]==="site")return pmPropsHtml(q);var v=q.f[fd[0]]||"";return "<label class='pm-f"+(fd[3]?" wide":"")+"'><span>"+fd[1]+(fd[0]==="qn"?" <b class='pm-req'>required to save</b>":"")+"</span>"+(fd[3]?"<textarea data-f='"+fd[0]+"' rows='3'>"+pmEsc(v)+"</textarea>":"<input type='text' data-f='"+fd[0]+"' value='"+pmEsc(v)+"' placeholder='"+pmEsc(fd[2])+"'"+(fd[0]==="qn"?" id='pm-qn' class='mono'":"")+">")+"</label>";}).join("")+"</div>";
  h+="<div class='pm-h'>Services &amp; rate calculation</div><p class='hint' style='margin:0 0 8px'>Each service is one numbered item on the Word quote and one section of the job details calculation. Pick a job type to load the approved wording; everything can then be edited for this quote.</p>";
  q.secs.forEach(function(s,ix){pmqNorm(s);h+=pmqCardHtml(q,s,ix);});
  h+="<button class='btn' onclick='pmAddSec()'>+ Add service</button>";
@@ -2702,7 +2710,7 @@ function pmWireMain(host,q){
  if(!q)return;
  var ok=document.getElementById("pm-impok");if(ok)ok.onclick=function(){delete q.importRep;pmQuotesSave();var b=document.getElementById("pm-imprep");if(b)b.remove();};
  var save=function(){q.updated=Date.now();pmQuotesSave();pmUpdate();pmFlagUnsaved(q);};
- host.querySelectorAll("[data-f]").forEach(function(el){el.oninput=function(){q.f[el.dataset.f]=el.value;if(el.dataset.f==="pm")sset("eo:pmname",el.value);if(el.dataset.f==="assigned")sset("eo:pminit",el.value);if(el.dataset.f==="qn"){el.classList.remove("needjob");var n=document.getElementById("pm-qnote");if(n)n.style.display="none";var chip=host.querySelector(".pm-bar .cu-src.on");if(chip&&chip.firstChild)chip.firstChild.nodeValue=(el.value||"(no quote #)")+(q.f.client?" · "+q.f.client.slice(0,24):"")+" ";}save();};});
+ host.querySelectorAll("[data-f]").forEach(function(el){el.oninput=function(){q.f[el.dataset.f]=el.value;if(el.dataset.f==="pm")sset("eo:pmname",el.value);if(el.dataset.f==="assigned")sset("eo:pminit",el.value);if(el.dataset.f==="client"||el.dataset.f==="contact"){var hn=document.getElementById("pm-qfhint");if(hn)hn.style.display=pmjShortName(q)?"none":"";}if(el.dataset.f==="qn"){el.classList.remove("needjob");var n=document.getElementById("pm-qnote");if(n)n.style.display="none";var chip=host.querySelector(".pm-bar .cu-src.on");if(chip&&chip.firstChild)chip.firstChild.nodeValue=(el.value||"(no quote #)")+(q.f.client?" · "+q.f.client.slice(0,24):"")+" ";}save();};});
  host.querySelectorAll("[data-xp]").forEach(function(el){el.oninput=function(){var p=(q.xp||[])[+el.dataset.xp];if(p){p[el.dataset.k]=el.value;save();}};});
  host.querySelectorAll("[data-xpx]").forEach(function(el){el.onclick=function(e){e.preventDefault();q.xp.splice(+el.dataset.xpx,1);q.updated=Date.now();pmQuotesSave();pmRender();};});
  var ap=document.getElementById("pm-addprop");if(ap)ap.onclick=function(){q.xp=q.xp||[];q.xp.push({site:"",legal:"",pid:""});q.updated=Date.now();pmQuotesSave();pmRender();var i=host.querySelectorAll("[data-xp][data-k='site']");if(i.length)i[i.length-1].focus();};
