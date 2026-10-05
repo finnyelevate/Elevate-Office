@@ -745,7 +745,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.23";
+const BUILD="1.23.1";
 const NEWS=["Match points: a General mode for stitching any two point sets \u2014 pick the numbering blocks for each side (the tool proposes the two that sit far apart), second files on either side, control-codes filter","Chained stages: after a match, Carry A + B forward makes the combined set side A for the next match \u2014 GPS \u2192 ground control, then ground + GPS \u2192 calc, each with its own pairs","Monument-ID hints: matching monument numbers on both sides seed the pairing and show \u2713ID; where an ID disagrees with the figure it\u2019s flagged \u2014 confusion about which control got tied, resolved by evidence","Descriptions on both sides in results, same-coordinate-system detection, and a faster engine for larger sets. The default Calc \u2192 tied-in mode is unchanged.","Points tab file shelf: every file or drawing package you drop is added, not replaced \u2014 tap a file to make it the one cleanup/extraction/scale act on, Reset clears the shelf, and Match points picks each side from any loaded file (no more Second file buttons); re-dropping the same file name replaces that entry","Training tab: 18 more videos added \u2014 the ones stored directly in SharePoint (Elevate Office app walkthroughs, Automap, area calc, Elevate system, and more) \u2014 each opening in the SharePoint player, plus a link to the whole library"];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
@@ -2750,14 +2750,25 @@ function pmTsv(text){var rows=[],row=[],cell="",i=0,q=false,t=String(text).repla
  if(cell!==""||row.length){row.push(cell);rows.push(row);}return rows;}
 function pmRowsFromText(text){if(String(text).indexOf("\t")<0)return [];
  return pmTsv(text).filter(function(r){return r.length>=6&&r.some(function(c){return c.trim();})&&!/^client\s*name$/i.test((r[1]||"").trim())&&!/^quote\s*#$/i.test((r[0]||"").trim());});}
+/* a selection that doesn't start at column A (e.g. Client to Service) is lined up by the email column (D) */
+function pmRowAlign(r){var k=-1;for(var i=0;i<r.length;i++){if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(r[i]).trim())){k=i;break;}}
+ if(k<0||k===3)return r;return k<3?new Array(3-k).fill("").concat(r):r.slice(k-3);}
+function pmRowVals(r){var v={};r=pmRowAlign(r);PM_ROWCOLS.forEach(function(k,i){v[k]=String(r[i]||"").replace(/\s*\n\s*/g,k==="task"||k==="pmc"?"\n":" ").trim();});return v;}
+/* rows for the same client (same name and email, same or no Quote #) but different sites can become one quote with several properties */
+function pmRowGroups(vals){var groups=[],key=function(v){return [(v.client||v.contact).toLowerCase().replace(/\s+/g," "),v.email.toLowerCase(),v.qn.toUpperCase()].join("|");};
+ vals.forEach(function(v){var k=key(v),g=(v.client||v.contact)&&v.site?groups.find(function(x){return x.k===k&&x.rows[0].site.toLowerCase()!==v.site.toLowerCase();}):null;if(g)g.rows.push(v);else groups.push({k:k,rows:[v]});});return groups;}
+function pmMergeRows(rows){var v=JSON.parse(JSON.stringify(rows[0])),uniq=function(k,sep){var seen=[];rows.forEach(function(r){var t=(r[k]||"").trim();if(t&&seen.map(function(x){return x.toLowerCase();}).indexOf(t.toLowerCase())<0)seen.push(t);});return seen.join(sep);};
+ ["services","date","assigned"].forEach(function(k){v[k]=uniq(k," / ");});["task","pmc"].forEach(function(k){v[k]=uniq(k,"\n");});v.xp=rows.slice(1).map(function(r){return {site:r.site,legal:"",pid:""};});return v;}
 function pmNewFromRows(text){
- var rows=pmRowsFromText(text);if(!rows.length)return 0;var made=0,upd=0,last=null;
- rows.forEach(function(r){var v={};PM_ROWCOLS.forEach(function(k,i){v[k]=String(r[i]||"").replace(/\s*\n\s*/g,k==="task"||k==="pmc"?"\n":" ").trim();});
+ var rows=pmRowsFromText(text);if(!rows.length)return 0;var made=0,upd=0,last=null,vals=rows.map(pmRowVals),merged=0;
+ pmRowGroups(vals).forEach(function(g){
+  if(g.rows.length>1&&confirm(g.rows.length+" rows are for the same client ("+(g.rows[0].client||g.rows[0].contact)+") with different sites:\n\n"+g.rows.map(function(r){return "• "+r.site;}).join("\n")+"\n\nOK = one quote with "+g.rows.length+" properties\nCancel = a separate quote for each site")){vals.splice.apply(vals,[vals.indexOf(g.rows[0]),1,pmMergeRows(g.rows)]);g.rows.slice(1).forEach(function(r){vals.splice(vals.indexOf(r),1);});merged++;}});
+ vals.forEach(function(v){
   var qn=v.qn,ex=qn?PM.quotes.find(function(x){return (x.f.qn||"").trim().toUpperCase()===qn.toUpperCase();}):null,q;
   if(ex&&confirm("A draft for "+qn+" already exists.\n\nOK = fill its empty fields from this row\nCancel = make a separate new draft")){q=ex;PM_ROWCOLS.forEach(function(k){if(v[k]&&!(q.f[k]||"").trim())q.f[k]=v[k];});upd++;}
-  else{q=pmNewQuote();PM_ROWCOLS.forEach(function(k){if(v[k])q.f[k]=v[k];});made++;}
+  else{q=pmNewQuote();PM_ROWCOLS.forEach(function(k){if(v[k])q.f[k]=v[k];});if(v.xp&&v.xp.length)q.xp=v.xp;made++;}
   q.updated=Date.now();last=q;});
- if(last){PM.cur=last.id;pmQuotesSave();PM.rowMsg=(made?made+" new quote"+(made>1?"s":"")+" from the tracker":"")+(made&&upd?", ":"")+(upd?upd+" draft"+(upd>1?"s":"")+" filled in":"")+" — check the fields"+(last.f.qn?"":" and enter the Quote #")+"."+(PMJ.dirs.quotes&&!last.qfolder?" If it needs a quote folder, use "+(last.f.qn?"Create quote folder for "+last.f.qn:"Create next quote folder (it also sets the Quote #)")+" below the fields — optional.":"");pmRender();}
+ if(last){PM.cur=last.id;pmQuotesSave();PM.rowMsg=(made?made+" new quote"+(made>1?"s":"")+" from the tracker"+(merged?" (rows for the same client joined into one quote with several properties)":""):"")+(made&&upd?", ":"")+(upd?upd+" draft"+(upd>1?"s":"")+" filled in":"")+" — check the fields"+(last.f.qn?"":" and enter the Quote #")+"."+(PMJ.dirs.quotes&&!last.qfolder?" If it needs a quote folder, use "+(last.f.qn?"Create quote folder for "+last.f.qn:"Create next quote folder (it also sets the Quote #)")+" below the fields — optional.":"");pmRender();}
  return made+upd;
 }
 function pmPasteBox(){var b=document.getElementById("pm-rowbox");if(b){b.style.display=b.style.display==="none"?"block":"none";var t=document.getElementById("pm-rowta");if(t&&b.style.display==="block")t.focus();}}

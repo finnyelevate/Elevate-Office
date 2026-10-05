@@ -1,5 +1,10 @@
 # Elevate Office — changelog
 
+## Build 1.23.1 — 2026-10-05
+- **Tracker rows for the same client become one quote with several properties.** When the rows you paste from To Do Quotes have the same client (or contact) and email but different site addresses, the app asks: OK = one quote with each address as its own property (Site Address, PID, Legal Desc. per property, "SITE ADDRESSES:" on the Word quote); Cancel = a separate quote for each site, as before. Services, notes and dates from the rows are combined without repeats.
+- Pasting a selection that doesn't start at column A (e.g. Client to Service) now lines the cells up by the email column, instead of putting the client name in Quote #.
+- Verified: the Inderjit Singh rows (10142 128A Street and 9088 126th Street) join into one quote with two properties or stay separate on Cancel; partial and wide selections; all earlier checks still pass.
+
 ## Build 1.23 — 2026-10-02
 - **Older quote folders are found too.** Find quote folder, Save to quote folder, Jobs and the next-number check now understand every naming used since 2020: "Elev. Survey Quote 21-015-…" (Quote without the s), "Elev.Survey Quotes 23-755-…" (no space), and range folders written "21-100-199", "21-01-099", "23-001-099" as well as "26-400-26-499". Checked against the real Quotes - Documents: quotes from every year 2020–2026 are found (e.g. 21-015 in 2021 Quotes › 21-01-099), and the next number is still 26-593.
 - **Sub-quotes however they're written.** 26-568C, 26-568-C and 26-568 C all belong to the 26-568 folder: Find quote folder and Jobs open it, the Quotes view shows "Quote folder: …26-568-…" instead of offering a new folder, and a sub-quote without a folder offers the main quote's number (the Quote # stays 26-568-C).
