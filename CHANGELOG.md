@@ -3,6 +3,7 @@
 ## Build 1.23.1 — 2026-10-05
 - **Tracker rows for the same client become one quote with several properties.** When the rows you paste from To Do Quotes have the same client (or contact) and email but different site addresses, the app asks: OK = one quote with each address as its own property (Site Address, PID, Legal Desc. per property, "SITE ADDRESSES:" on the Word quote); Cancel = a separate quote for each site, as before. Services, notes and dates from the rows are combined without repeats.
 - Pasting a selection that doesn't start at column A (e.g. Client to Service) now lines the cells up by the email column, instead of putting the client name in Quote #.
+- The What's new card now reads its notes from this build's CHANGELOG.md entry, so it always matches the build (it had been showing older Points notes).
 - Verified: the Inderjit Singh rows (10142 128A Street and 9088 126th Street) join into one quote with two properties or stay separate on Cancel; partial and wide selections; all earlier checks still pass.
 
 ## Build 1.23 — 2026-10-02

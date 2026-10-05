@@ -746,7 +746,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 <script>
 "use strict";
 const BUILD="1.23.1";
-const NEWS=["Match points: a General mode for stitching any two point sets \u2014 pick the numbering blocks for each side (the tool proposes the two that sit far apart), second files on either side, control-codes filter","Chained stages: after a match, Carry A + B forward makes the combined set side A for the next match \u2014 GPS \u2192 ground control, then ground + GPS \u2192 calc, each with its own pairs","Monument-ID hints: matching monument numbers on both sides seed the pairing and show \u2713ID; where an ID disagrees with the figure it\u2019s flagged \u2014 confusion about which control got tied, resolved by evidence","Descriptions on both sides in results, same-coordinate-system detection, and a faster engine for larger sets. The default Calc \u2192 tied-in mode is unchanged.","Points tab file shelf: every file or drawing package you drop is added, not replaced \u2014 tap a file to make it the one cleanup/extraction/scale act on, Reset clears the shelf, and Match points picks each side from any loaded file (no more Second file buttons); re-dropping the same file name replaces that entry","Training tab: 18 more videos added \u2014 the ones stored directly in SharePoint (Elevate Office app walkthroughs, Automap, area calc, Elevate system, and more) \u2014 each opening in the SharePoint player, plus a link to the whole library"];
+const NEWS=["Tracker rows for the same client become one quote with several properties: when pasted To Do Quotes rows share the client (or contact) and email but have different site addresses, OK = one quote with each address as its own property, Cancel = separate quotes.", "Pasting a selection that doesn't start at column A now lines the cells up by the email column, instead of putting the client name in Quote #."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1528,9 +1528,21 @@ function drawReminder(ip){
  var host=document.getElementById("newscard");
  if(sget("eo1:news")===BUILD)return;
  var d=document.createElement("div");d.className="news";
- d.innerHTML="<button class='x' aria-label='Dismiss'>✕</button><h4>Build "+BUILD+" — what's new</h4><ul>"+NEWS.map(function(n){return "<li>"+esc(n)+"</li>";}).join("")+"</ul>";
- d.querySelector(".x").onclick=function(){sset("eo1:news",BUILD);d.remove();};
- host.appendChild(d);
+ function show(items){
+  if(!items||!items.length)return;
+  d.innerHTML="<button class='x' aria-label='Dismiss'>✕</button><h4>Build "+BUILD+" — what's new</h4><ul>"+items.map(function(n){return "<li>"+esc(n)+"</li>";}).join("")+"</ul>";
+  d.querySelector(".x").onclick=function(){sset("eo1:news",BUILD);d.remove();};
+  if(!d.parentNode)host.appendChild(d);
+ }
+ /* notes come from this build's CHANGELOG.md entry, so the card always matches the build */
+ if(location.protocol==="file:"||typeof fetch==="undefined"){show(NEWS);return;}
+ fetch("CHANGELOG.md?n="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():"";}).then(function(t){
+  var esc2=BUILD.replace(/\./g,"\\.");
+  var m=t.match(new RegExp("##\\s*Build\\s+"+esc2+"(?=\\s)[^\\n]*\\n([\\s\\S]*?)(?=\\n##\\s|$)"));
+  if(!m){show(NEWS);return;}
+  var items=m[1].split(/\n(?=- )/).map(function(x){return x.replace(/^- /,"").replace(/\*\*/g,"").replace(/\s+/g," ").trim();}).filter(function(x){return x&&!/^Verified[:\s]/i.test(x);});
+  show(items.length?items:NEWS);
+ }).catch(function(){show(NEWS);});
 })();
 
 /* ---------- open / render checklist ---------- */
