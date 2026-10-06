@@ -1,5 +1,15 @@
 # Elevate Office — changelog
 
+## Build 1.24 — 2026-10-06
+- **Several prices for one service.** "+ Add price line" on a service card adds a second price for the same service (e.g. 1st trip to setup / Any future trips), each with its own label (pick-list or free text), its own field and office hours, and its own calculated or typed price. The Word quote shows one service with the prices stacked in the price column, each with its label underneath; nothing is marked Optional or Additional.
+- Job details keep each price line's hours separate under the same service ("Price line 1 — 1st trip to setup", "Price line 2 — Any future trips (per trip, not in total)"). Totals count price line 1 only; Estimated Field/Draft Time list each line under the service. The .txt and the Word quote both reopen with all price lines.
+- **Price note.** Each service has an optional Price note that prints as *note under the service and puts * in front of the price (e.g. *$3,380). "Rate-sheet wording" fills in the 3-trip wording that points to the attached rate sheet and ticks the rate sheet.
+- **Attach rate sheet (page 2).** A tick under Quote document adds a second page: the letterhead, a "RATES, FEES, & DELIVERABLES FOR 2026" bar, then Rates, Additional Fees/Disbursements and Deliverables with the footnotes. Rates and fees come from the current rates in the vault, so the sheet follows any rate change; the year updates itself. No boxes or ruled lines on the page (Acrobat's Prepare Form turns those into form fields). The quote can't be built if a price note mentions the rate sheet but the tick is off.
+- pm-vault.json: rate-sheet wording added (legal plan scan copy $70, drone minimums, deliverables, footnotes). Rates, library and crew instructions unchanged.
+- Tools: Feet-inches ↔ metres — type a metric value with an m (3.81 m) to see it as feet-inches (12' 6", to the nearest 1/8"; ≈ when rounded) and decimal feet. Anything without an m works as before.
+- Training tab: Elevate Office app — fixing tree sizes to imperial; new Elevate Office app — PM tab group: cert quote on the PM tab, convert a quote to a job, setting up the connection to the Quotes + Jobs folders, topo + posting option.
+- Verified: monitoring quote (26-595 layout) and new construction quote with rate sheet (26-596 layout) built, rendered and reopened from Word and from the job details file; page 2 has no lines or boxes apart from the teal heading bar (same as the site address bar); all earlier checks still pass.
+
 ## Build 1.23.1 — 2026-10-05
 - **Tracker rows for the same client become one quote with several properties.** When the rows you paste from To Do Quotes have the same client (or contact) and email but different site addresses, the app asks: OK = one quote with each address as its own property (Site Address, PID, Legal Desc. per property, "SITE ADDRESSES:" on the Word quote); Cancel = a separate quote for each site, as before. Services, notes and dates from the rows are combined without repeats.
 - Pasting a selection that doesn't start at column A (e.g. Client to Service) now lines the cells up by the email column, instead of putting the client name in Quote #.
