@@ -1,5 +1,9 @@
 # Elevate Office — changelog
 
+## Build 1.24.1 — 2026-10-06
+- Training tab: Elevate Office app — PM tab now also has "Sub-quote for an existing quote folder".
+- Everything from 1.24 is included, so this build can be uploaded on its own.
+
 ## Build 1.24 — 2026-10-06
 - **Several prices for one service.** "+ Add price line" on a service card adds a second price for the same service (e.g. 1st trip to setup / Any future trips), each with its own label (pick-list or free text), its own field and office hours, and its own calculated or typed price. The Word quote shows one service with the prices stacked in the price column, each with its label underneath; nothing is marked Optional or Additional.
 - Job details keep each price line's hours separate under the same service ("Price line 1 — 1st trip to setup", "Price line 2 — Any future trips (per trip, not in total)"). Totals count price line 1 only; Estimated Field/Draft Time list each line under the service. The .txt and the Word quote both reopen with all price lines.
