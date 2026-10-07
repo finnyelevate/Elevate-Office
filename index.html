@@ -691,7 +691,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 <div class="view" id="v-cleanup">
   <h1 class="pg">Points — cleanup &amp; extraction</h1>
   <div class="warnline" style="max-width:760px">Descriptions only — point numbers, coordinates, and elevations are never touched, and the raw RW5 is never the input. Output files preserve the original delimiter, spacing, and line endings byte for byte outside the accepted changes. Extraction splits the cleaned file into a control + calc file and a client file (check shots drop from both).</div>
-  <div id="cu-drop" class="cu-drop">Drop points files (.txt / .csv / .asc) or MicroSurvey drawing packages (.msz / .mbz) here — each one is added to the shelf; re-dropping the same file name replaces it<br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="cu-file" accept=".txt,.csv,.asc,.dat,.msz,.mbz,.dbf,text/plain" style="display:none"></label></div>
+  <div id="cu-drop" class="cu-drop">Drop points files (.txt / .csv / .asc), MicroSurvey drawing packages (.msz / .mbz) or raw data (.rw5) here — each one is added to the shelf; re-dropping the same file name replaces it<br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="cu-file" accept=".txt,.csv,.asc,.dat,.msz,.mbz,.dbf,.rw5,text/plain" style="display:none"></label></div>
   <div id="cu-body"></div>
 </div>
 
@@ -746,8 +746,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.24.1";
-const NEWS=["Training: new PM tab video \u2014 sub-quote for an existing quote folder.", "Includes everything in 1.24: several price lines per service, price note, rate sheet on page 2, metres \u2192 feet-inches."];
+const BUILD="1.25";
+const NEWS=["Points tab: drop a .rw5 raw data file to get a P,N,E,Z,D points file \u2014 everything, measured only, stored only, or two separate files.", "Duplicate as sub-quote picks the next letter from the files already in the quote folder.", "Paste a list (e.g. from a client\u2019s email) into a scope line or note to add one line per item.", "Quote folder tidy-up always creates the range folder, then lists what to drag in if the browser can\u2019t move folders."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -2008,9 +2008,10 @@ function pmqTypeOptions(sel){
  var groups={},order=[];pmqLib().forEach(function(e){if(!groups[e.group]){groups[e.group]=[];order.push(e.group);}groups[e.group].push(e);});
  return "<option value=''"+(sel?"":" selected")+">Custom service</option>"+order.map(function(g){return "<optgroup label='"+pmEsc(g)+"'>"+groups[g].map(function(e){return "<option value='"+e.id+"'"+(e.id===sel?" selected":"")+">"+pmEsc(e.name)+"</option>";}).join("")+"</optgroup>";}).join("");
 }
+function pmqPasteLines(t){return String(t||"").replace(/\r/g,"").split("\n").map(function(l){return l.replace(/\u00a0/g," ").replace(/^\s*(?:[-\u2013\u2014\u2022*\u00b7\u25aa\u25cf\u25cb\u25e6\u2010]+|\(?\d{1,2}[.)]|\(?[a-zA-Z][.)])\s+/,"").replace(/\s+/g," ").trim().replace(/([^.])\.$/,"$1");}).filter(Boolean);}
 function pmqItemRows(s,ix,k){
  return s[k].map(function(it,j){var p=k+":"+j;return "<div class='pmq-item"+(it.on?"":" off")+"'><input type='checkbox' class='pmq-on' data-s='"+ix+"' data-p='"+p+"'"+(it.on?" checked":"")+" title='include on the quote'><input type='text' class='pmq-f pmq-lt' data-s='"+ix+"' data-p='"+p+"' value='"+pmEsc(it.t)+"'>"+(it.why?"<span class='pmq-why' title='when to include this'>"+pmEsc(it.why)+"</span>":"")+"<button class='pmq-mini' data-act='iup' data-s='"+ix+"' data-p='"+p+"' title='move up'>↑</button><button class='pmq-mini' data-act='idn' data-s='"+ix+"' data-p='"+p+"' title='move down'>↓</button><button class='pmq-mini' data-act='irm' data-s='"+ix+"' data-p='"+p+"' title='remove'>✕</button></div>";}).join("")
-  +"<button class='btn pmq-add' data-act='iadd' data-s='"+ix+"' data-p='"+k+"'>+ "+(k==="lines"?"scope line":"note")+"</button>";
+  +"<button class='btn pmq-add' data-act='iadd' data-s='"+ix+"' data-p='"+k+"' title='tip: paste a list into any line (e.g. from a client’s email) to add one line per item'>+ "+(k==="lines"?"scope line":"note")+"</button>";
 }
 function pmqRateTable(s,ix,j,H,lab){var V=PM.vault,dl=j==null?"":" data-l='"+j+"'",h="<table class='pm-rt'>";
  ["field","office"].forEach(function(kind){V.rates.filter(function(r){return r.kind===kind;}).forEach(function(r){h+="<tr><td class='pm-k'>"+(kind==="field"?"Field":"Office")+"</td><td>"+pmEsc(r.label)+"</td><td class='pm-rate'>"+pmMoney(r.rate,false)+"/hr</td><td><input type='text' inputmode='decimal' class='pm-hr' data-s='"+ix+"'"+dl+" data-r='"+r.id+"' value='"+pmEsc(H[r.id]||"")+"' placeholder='hrs'></td><td class='pm-amt' data-s='"+ix+"'"+dl+" data-r='"+r.id+"'></td></tr>";});});
@@ -2051,6 +2052,13 @@ function pmqWire(host,q){
    save();};
   el.onchange=function(){var P=pmqPath(null,el.dataset.p);if(P.k==="fill"||/\[\[/.test(el.value)||P.k==="name")pmqRerender();};
  });
+ /* pasting several lines (e.g. a list from a client's email) into a scope line or note makes one line each */
+ host.querySelectorAll(".pmq-lt").forEach(function(el){el.addEventListener("paste",function(e){var t=(e.clipboardData||window.clipboardData);t=t?t.getData("text"):"";
+  var L=pmqPasteLines(t);if(L.length<2)return;e.preventDefault();
+  var s=q.secs[+el.dataset.s],P=pmqPath(s,el.dataset.p),arr=s[P.k],at=P.j;
+  if(!arr[at].t.trim()){arr[at].t=L.shift();}
+  arr.splice.apply(arr,[at+1,0].concat(L.map(function(x){return {t:x,on:true,why:""};})));
+  q.updated=Date.now();pmQuotesSave();pmRender();});});
  host.querySelectorAll(".pmq-on").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s],P=pmqPath(s,el.dataset.p);s[P.k][P.j].on=el.checked;save();pmqRerender();};});
  host.querySelectorAll(".pmq-type").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s],e=pmqLibById(el.value);
   if(e)pmqApplyLib(s,e);else{s.type="";s.ver="approved";}save();pmRender();};});
@@ -2327,18 +2335,30 @@ function pmqdImportDocx(buf,fname){
  });
 }
 /* sub-quote: 26-586 -> 26-586B (next free letter), same client and site, all services carried over for trimming */
-function pmqdNextSub(qn){
+function pmqdNextSub(qn,extra){
  qn=(qn||"").trim();if(!qn)return "";
- var m=qn.match(/^(.*\d)([A-Z])$/i),base=m?m[1]:qn,letter=m?m[2].toUpperCase():"A";
- var used={};PM.quotes.forEach(function(x){used[(x.f.qn||"").trim().toUpperCase()]=1;});
- var c=letter.charCodeAt(0)+1;while(c<=90&&used[(base+String.fromCharCode(c)).toUpperCase()])c++;
+ var m=qn.match(/^(\d{2}\s*-\s*\d{1,5})\s*[- ]?\s*([A-Z])$/i)||qn.match(/^(.*\d)([A-Z])$/i),base=m?m[1].replace(/\s+/g,""):qn,letter=m?m[2].toUpperCase():"A";
+ var key=function(s){return String(s||"").toUpperCase().replace(/[^0-9A-Z]/g,"");},used={};PM.quotes.forEach(function(x){used[key(x.f.qn)]=1;});
+ (extra||[]).forEach(function(L){used[key(base+L)]=1;});
+ var c=letter.charCodeAt(0)+1;while(c<=90&&used[key(base+String.fromCharCode(c))])c++;
  return c<=90?base+String.fromCharCode(c):base+"-2";
+}
+/* sub-quote: 26-586 -> 26-586B (next letter free in the quote folder and in the drafts), same client and site, all services carried over for trimming */
+function pmqdMakeSub(q,next,note){
+ var c=JSON.parse(JSON.stringify(q));c.id="q"+Date.now();c.f.qn=next;c.f.docname="";c.updated=Date.now();delete c.exported;c.subOf=(q.f.qn||"").trim();
+ c.importRep={file:"",sub:q.f.qn,subNote:note||"",read:0,unread:[],rateDiff:[],wordDiffs:[]};
+ PM.quotes.unshift(c);PM.cur=c.id;pmQuotesSave();pmRender();return c;
 }
 function pmqdSubQuote(){
  var q=pmCurQ();if(!q)return;if(!(q.f.qn||"").trim()){pmNeedQn();return;}
- var c=JSON.parse(JSON.stringify(q));c.id="q"+Date.now();c.f.qn=pmqdNextSub(q.f.qn);c.f.docname="";c.updated=Date.now();delete c.exported;
- c.importRep={file:"",sub:q.f.qn,read:0,unread:[],rateDiff:[],wordDiffs:[]};
- PM.quotes.unshift(c);PM.cur=c.id;pmQuotesSave();pmRender();
+ var canLook=typeof pmjFsOk==="function"&&pmjFsOk()&&PMJ.dirs&&PMJ.dirs.quotes;
+ if(!canLook){pmqdMakeSub(q,pmqdNextSub(q.f.qn),"Folders aren’t connected on this computer, so only the drafts here were checked for sub-quote letters already used.");return;}
+ return pmjSubLetters(q.f.qn).then(function(info){
+  var next=pmqdNextSub(q.f.qn,info.letters),note;
+  if(!info.folder)note="No quote folder found for "+info.base+" — only the drafts here were checked for letters already used.";
+  else note="Checked "+info.folder+": "+(info.letters.length?info.base+info.letters.join(", "+info.base)+" already there":"no sub-quotes there yet")+" — this is "+next+".";
+  return pmqdMakeSub(q,next,note);
+ },function(e){return pmqdMakeSub(q,pmqdNextSub(q.f.qn),"Couldn’t read the quote folder ("+(e&&e.message||e)+") — only the drafts here were checked.");});
 }
 window.pmqdImportDocx=pmqdImportDocx;window.pmqdSubQuote=pmqdSubQuote;window.pmqdNextSub=pmqdNextSub;window.pmqdReadServices=pmqdReadServices;
 /* ---------- PM: folders on this computer (OneDrive-synced), save to quote folder, convert an accepted quote to a job ---------- */
@@ -2407,6 +2427,12 @@ async function pmjFindQuoteFolders(qn,client,rw){
  if(cw.length>2)(await pmjYearQuotes(root,m[1],null,top)).forEach(function(x){if(hits.indexOf(x.h)<0&&x.h.name.toLowerCase().indexOf(cw)>=0)byClient.push(x.h);});
  var all=hits.concat(byClient);all.ask=true;return all;
 }
+/* sub-quote letters already used in a quote's folder: file names such as "26-586B", "26-586-C", "26-586 C" (not "26-586-Mark") */
+function pmjSubIn(names,Q){var re=new RegExp("(^|[^0-9])"+Q.yy+"\\s*-\\s*0*"+Q.n+"\\s*[- ]?\\s*([A-Z])(?![A-Za-z])","i"),L={};names.forEach(function(n){var m=n.replace(/\.[^.]+$/,"").match(re);if(m)L[m[2].toUpperCase()]=1;});delete L.A;return Object.keys(L).sort();}
+async function pmjSubLetters(qn){var Q=pmjQnParts(qn);if(!Q)return {base:qn,folder:null,letters:[]};
+ var list=await pmjFindQuoteFolders(Q.base,"",false);if(!list.length||list.ask)return {base:Q.base,folder:null,letters:[]};
+ var names=[];for(var i=0;i<list.length;i++)(await pmjList(list[i])).forEach(function(h){if(h.kind==="file")names.push(h.name);});
+ return {base:Q.base,folder:list.map(function(h){return h.name;}).join(", "),letters:pmjSubIn(names,Q)};}
 /* let the PM choose when more than one folder could be the one */
 function pmjChoose(boxId,list,lead){
  if(list.length===1&&!list.ask)return Promise.resolve(list[0]);
@@ -2426,6 +2452,9 @@ async function pmjSaveToQuoteFolder(){
   if(!list.length){list=[];list.ask=true;}
   var dir=await pmjChoose("pm-qsave",list,!list.length?"No quote folder for "+q.f.qn+" in Quotes - Documents. If it has a different name, choose it; otherwise create it the usual way (the app never creates quote folders) and save again.":(list.ask?"Not sure which folder is quote "+q.f.qn+" (the files inside name a different quote) — which one?":"More than one folder could be quote "+q.f.qn+" — which one?"));if(!dir)return;
   await pmjPerm(dir,true);
+  if(q.subOf&&!q.exported){var dn0=((q.f.docname||"").trim()||pmqDefaultName(q)).replace(/[\\\/:*?"<>|]+/g,"-").replace(/\.docx$/i,"")+".docx";
+   if(await pmjChild(dir,dn0,"file")||await pmjChild(dir,pmjTxtName(q),"file")){var Q=pmjQnParts(q.f.qn),names=(await pmjList(dir)).filter(function(h){return h.kind==="file";}).map(function(h){return h.name;}),nx=Q?pmqdNextSub(q.f.qn,pmjSubIn(names,Q)):"";
+    if(nx&&confirm("Sub-quote "+q.f.qn+" is already in "+dir.name+".\n\nOK = save this one as "+nx+" (next free letter)\nCancel = keep "+q.f.qn+" (you can then replace or keep the existing files)")){if(q.f.docname&&q.f.docname.indexOf(q.f.qn)>=0)q.f.docname=q.f.docname.split(q.f.qn).join(nx);q.f.qn=nx;q.updated=Date.now();pmQuotesSave();}}}
   var docName=((q.f.docname||"").trim()||pmqDefaultName(q)).replace(/[\\\/:*?"<>|]+/g,"-").replace(/\.docx$/i,"")+".docx",txtName=pmjTxtName(q),saved=[],kept=[];
   var blob=await pmqBuildDocx(q);
   var items=[[docName,blob,"If it was edited in Word since, those edits are lost."],[txtName,new Blob([pmJobText(q)],{type:"text/plain"}),""]];
@@ -2558,7 +2587,7 @@ function pmjQfHtml(q){
  else if(!P)h+="<button class='btn' id='pm-qfnew' title='finds the next free quote number in Quotes - Documents and creates its folder — only after you confirm'>"+((q.f.qn||"").trim()?"Create quote folder for "+pmEsc(q.f.qn.trim()):"Create next quote folder")+"</button><span class='hint' id='pm-qfhint' style='margin:0"+(pmjShortName(q)?";display:none":"")+"'>needs the client or contact name</span>";
  else{h+="<div class='cu-sfhit'>Create <b>Quotes - Documents › "+pmEsc(pmjQfName(P.qn,""))+"</b><input type='text' id='pm-qfshort' value='"+pmEsc(P.short)+"' style='width:180px'> ? <button class='btn pri' id='pm-qfok'>Create folder</button> <button class='btn' id='pm-qfno'>Cancel</button>"+(P.note?"<div class='hint' style='margin:4px 0 0'>"+pmEsc(P.note)+"</div>":"");
   (P.tidy||[]).concat(P.year||[]).forEach(function(t,i){var first=t.items[0].name.replace(/^Elev\. Survey Quotes /,""),last=t.items[t.items.length-1].name.replace(/^Elev\. Survey Quotes /,"");
-   h+="<label class='cu-cb' style='margin-top:6px'><input type='checkbox' class='pm-qftidy' data-i='"+i+"' checked> Also tidy up as usual: move "+t.items.length+" folder"+(t.items.length===1?"":"s")+" ("+pmEsc(first)+(t.items.length>1?" … "+pmEsc(last):"")+") into <b>"+pmEsc(t.dest)+"</b>"+(P.top.some(function(e){return e.h.name.toLowerCase()===t.dest.toLowerCase();})?"":" (new folder)")+"</label>";});
+   h+="<label class='cu-cb' style='margin-top:6px'><input type='checkbox' class='pm-qftidy' data-i='"+i+"' checked> Also tidy up as usual: move "+t.items.length+" folder"+(t.items.length===1?"":"s")+" ("+pmEsc(first)+(t.items.length>1?" … "+pmEsc(last):"")+") into <b>"+pmEsc(t.dest)+"</b>"+(P.top.some(function(e){return e.h.name.toLowerCase()===t.dest.toLowerCase();})?"":" (creates it)")+"</label>";});
   h+="</div>";}
  if(PMJ.qfMsg){h+="<div class='"+(PMJ.qfMsg.bad?"cu-err":"hint")+"' style='display:block;margin:4px 0 0'>"+PMJ.qfMsg.t+"</div>";PMJ.qfMsg=null;}
  return h+"</div>";
@@ -2576,14 +2605,15 @@ async function pmjQfStart(){
  pmRender();var el=document.getElementById("pm-qfshort");if(el)el.focus();
 }
 async function pmjMoveInto(root,t){
- if(!t.items.length||typeof t.items[0].move!=="function")return {dest:t.dest,done:0,left:t.items.map(function(h){return h.name;}),why:"this browser can’t move folders"};
- var dest=await root.getDirectoryHandle(t.dest,{create:true}),done=0,left=[],why="";
+ /* the range / year folder is always created (creating is allowed); the move is attempted only if the browser can do it */
+ var had=!!(await pmjChild(root,t.dest,"dir")),dest=await root.getDirectoryHandle(t.dest,{create:true}),done=0,left=[],why="";
+ if(!t.items.length||typeof t.items[0].move!=="function")return {dest:t.dest,made:!had,done:0,left:t.items.map(function(h){return h.name;}),why:"this browser can’t move folders"};
  for(var i=0;i<t.items.length;i++){var h=t.items[i];
   if(why){left.push(h.name);continue;}
   if(typeof h.move!=="function"){why="this browser can’t move folders";left.push(h.name);continue;}
   if(await pmjChild(dest,h.name,"dir")){left.push(h.name+" (already one with that name inside)");continue;}
   try{await h.move(dest);done++;}catch(e){why=e&&(e.name==="NotSupportedError"||e.name==="NotAllowedError"||e.name==="InvalidModificationError")?"this browser can’t move folders":((e&&e.message)||String(e));left.push(h.name);}}
- return {dest:t.dest,done:done,left:left,why:why};
+ return {dest:t.dest,made:!had,done:done,left:left,why:why};
 }
 async function pmjQfCreate(){
  var q=pmCurQ(),P=PMJ.qf;if(!q||!P)return;var short=(document.getElementById("pm-qfshort").value||"").replace(/[\\\/:*?"<>|]+/g,"").trim();
@@ -2598,8 +2628,8 @@ async function pmjQfCreate(){
   if(auto)q.f.qn=qn;q.qfolder=name;q.updated=Date.now();pmQuotesSave();PMJ.qf=null;
   var msg="Created Quotes - Documents › "+pmEsc(name)+pmEsc(moved)+". Add "+pmEsc(qn)+" to To Do Quotes.",bad=false;
   for(var i=0;i<picks.length;i++){var r=await pmjMoveInto(root,picks[i]);
-   msg+="<br>Tidied "+r.done+" folder"+(r.done===1?"":"s")+" into "+pmEsc(r.dest)+".";
-   if(r.left.length){bad=true;msg+=" Still to move by hand (drag them into "+pmEsc(r.dest)+" in File Explorer"+(r.why?"; "+pmEsc(r.why):"")+"): "+r.left.map(pmEsc).join(", ")+".";}}
+   msg+="<br>"+(r.made?"Created <b>"+pmEsc(r.dest)+"</b>.":"<b>"+pmEsc(r.dest)+"</b> is there.")+(r.done?" Moved "+r.done+" folder"+(r.done===1?"":"s")+" into it.":"");
+   if(r.left.length){msg+=" <b>To finish the tidy-up, drag these into it in File Explorer</b>"+(r.why?" ("+pmEsc(r.why)+")":"")+": "+r.left.map(pmEsc).join(", ")+".";}}
   PMJ.qfMsg={t:msg,bad:bad};
  }catch(e){PMJ.qfMsg={bad:true,t:pmEsc(e&&e.message||String(e))};}
  pmRender();
@@ -2759,7 +2789,7 @@ function pmRenderMain(host){
  if(PM.rowMsg){h+="<div class='cu-sfhit' id='pm-rowdone'>"+pmEsc(PM.rowMsg)+"</div>";PM.rowMsg="";}
  h+="<div class='pm-savedrow'>"+pmUnsavedCount()+(PM.tidied?"<span class='hint' style='margin:0 0 0 12px'>"+PM.tidied+" quote"+(PM.tidied>1?"s":"")+" saved to "+(PM.tidied>1?"their folders":"its folder")+" and untouched for 30+ days "+(PM.tidied>1?"were":"was")+" tidied off this computer \u2014 the downloaded files remain the record.</span>":"")+"</div>";
  if(q&&q.importRep){var R=q.importRep,msg;
-  if(R.sub)msg="Sub-quote of <b>"+pmEsc(R.sub)+"</b> \u2014 client, site and every service carried over. Remove any services not needed with \u2715, then build the quote.";
+  if(R.sub)msg="Sub-quote of <b>"+pmEsc(R.sub)+"</b> \u2014 client, site and every service carried over. Remove any services not needed with \u2715, then build the quote."+(R.subNote?"<div>"+pmEsc(R.subNote)+"</div>":"");
   else if(R.fromDocx)msg="Opened"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 the draft saved inside the Word quote."+(R.wordDiffs&&R.wordDiffs.length?"<div>Taken from the Word file: "+R.wordDiffs.map(pmEsc).join(" \u00b7 ")+"</div>":"");
   else msg="Imported"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 "+R.read+" hour line"+(R.read===1?"":"s")+" read."+(R.unread.length?"<div class='cu-idbad' style='font-weight:400'>Couldn't read \u2014 enter manually: "+R.unread.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.rateDiff.length?"<div>Rates in the file differ from current (current rates are used): "+R.rateDiff.map(pmEsc).join("; ")+"</div>":"");
   h+="<div class='cu-sfhit' id='pm-imprep'>"+msg+" <button class='btn' id='pm-impok'>OK</button></div>";}
@@ -3225,7 +3255,7 @@ function cuRender(){
  var blanks=cu.lines.filter(function(r){return r.point&&r.desc.trim()==="";}).length;
  var h=cuShelfHtml();
  if(cu.pkg){
-  h+="<div class='cu-pkg'>Points read from <b>"+esc(cu.pkg.file)+"</b>"+(cu.pkg.date?" \u2014 package saved "+esc(cu.pkg.date):"")+(cu.pkg.backup?" <span class='cu-pkgwarn'>this is the automatic backup (.mbz) \u2014 a different snapshot from the .msz; check its date before trusting it as current</span>":"")+(cu.pkg.conflicts?" <span class='cu-pkgwarn'>a share-conflict copy of the database also exists in the package \u2014 the primary was used</span>":"")+"<button class='btn' style='margin-left:10px' onclick='cuDownload(7)'>Points file \u2014 uncorrected</button><span class='hint' style='margin:0 0 0 8px'>exactly as in the database, no fixes applied</span></div>";
+  h+="<div class='cu-pkg'>Points read from <b>"+esc(cu.pkg.file)+"</b>"+(cu.pkg.note?" "+esc(cu.pkg.note):"")+(cu.pkg.date?" \u2014 package saved "+esc(cu.pkg.date):"")+(cu.pkg.backup?" <span class='cu-pkgwarn'>this is the automatic backup (.mbz) \u2014 a different snapshot from the .msz; check its date before trusting it as current</span>":"")+(cu.pkg.conflicts?" <span class='cu-pkgwarn'>a share-conflict copy of the database also exists in the package \u2014 the primary was used</span>":"")+"<button class='btn' style='margin-left:10px' onclick='cuDownload(7)'>Points file \u2014 uncorrected</button><span class='hint' style='margin:0 0 0 8px'>exactly as in the database, no fixes applied</span></div>";
  }
  h+="<div class='cu-sum'>"+esc(cu.name)+" \u2014 "+pts+" points, "+(cu.delim===","?"comma":"whitespace")+"-delimited"+(blanks?", "+blanks+" blank description"+(blanks>1?"s":"")+" (passed through)":"")+"</div>";
  h+="<div class='cu-chips'>"+cu.chips.map(function(c){
@@ -4074,7 +4104,7 @@ function cuLoadFile(file){
  }
  cuPendingPkg=null;
  if(/\.rw5$/i.test(file.name)){
-  document.getElementById("cu-body").innerHTML="<div class='cu-err'>That's the raw observation file (RW5) \u2014 it is never touched. Export the PNEZD points file and drop that in instead.</div>";
+  var frw=new FileReader();frw.onload=function(){cuRw5Show(frw.result,file.name);};frw.readAsText(file);
   return;
  }
  var fr=new FileReader();
@@ -4094,6 +4124,76 @@ function cuLoadFile(file){
  };
  fr.readAsText(file);
 }
+/* ---------- RW5 raw data (Carlson / MicroSurvey FieldGenius) -> PNEZD points. The .rw5 is only read, never changed. ---------- */
+function cuRw5Dms(v,gon){var x=parseFloat(v);if(isNaN(x))return NaN;if(gon)return x*0.9;var s=x<0?-1:1;x=Math.abs(x);var d=Math.floor(x+1e-12),r=(x-d)*100,m=Math.floor(r+1e-9),sec=(r-m)*100;return s*(d+m/60+sec/3600);}
+function cuRw5Fields(rest){var o={},desc="",k=rest.indexOf(",--");if(k>=0){desc=rest.slice(k+3);rest=rest.slice(0,k);}else if(rest.indexOf("--")===0){desc=rest.slice(2);rest="";}
+ rest.split(",").forEach(function(p){p=p.trim();var m=p.match(/^([A-Z]{2}|N|E)\s*(.*)$/);if(m&&!(m[1]in o))o[m[1]]=m[2].trim();});o._d=desc.replace(/\s+$/,"");return o;}
+function cuRw5(text){
+ var R={stored:{},meas:{},checks:[],setups:[],warn:[],skip:{},sf:1,ec:false,eo:0,gon:false,unit:""},stOrder=[],occ=null,bk=null,hi=0,hr=0,unk={};
+ var num=function(v){var x=parseFloat(String(v==null?"":v).trim());return isNaN(x)?null:x;};
+ var lookup=function(pn){return R.stored[pn]||R.meas[pn]||null;};
+ text.replace(/\r/g,"").split("\n").forEach(function(line){
+  var t=line.trim();if(!t)return;
+  if(/^--GS,/.test(t))t=t.slice(2);           /* GPS grid coordinates are written as a --GS comment */
+  else if(t.indexOf("--")===0)return;
+  var code=t.slice(0,2).toUpperCase(),f=cuRw5Fields(t.slice(3));
+  if(code==="MO"){R.sf=num(f.SF)||1;R.ec=f.EC==="1";R.eo=num(f.EO)||0;R.gon=f.AU==="1";R.unit=f.UN==="0"?"feet":(f.UN==="2"?"US feet":(f.UN==="1"?"metres":""));if(f.AD==="1")R.warn.push("The file uses south azimuths (AD1) — check the measured points.");return;}
+  if(code==="SP"||code==="GS"){var pn=(f.PN||"").trim(),N=num(f.N),E=num(f.E);if(!pn||N==null||E==null)return;if(!R.stored[pn])stOrder.push(pn);R.stored[pn]={p:pn,N:N,E:E,Z:num(f.EL)||0,d:f._d.trim()};return;}
+  if(code==="OC"){var op=(f.OP||"").trim(),N2=num(f.N),E2=num(f.E),P=lookup(op);occ=N2!=null&&E2!=null?{p:op,N:N2,E:E2,Z:num(f.EL)||0}:(P?{p:op,N:P.N,E:P.E,Z:P.Z}:null);bk=null;
+   if(!occ)R.warn.push("Setup at "+op+": no coordinates for the occupied point — its shots were skipped.");else R.setups.push({op:op,bp:"",n:0});return;}
+  if(code==="LS"){if(f.HI!=null)hi=num(f.HI)||0;if(f.HR!=null)hr=num(f.HR)||0;return;}
+  if(code==="BK"){var bs=f.BS!=null?cuRw5Dms(f.BS,R.gon):NaN,bc=f.BC!=null?cuRw5Dms(f.BC,R.gon):0,B=lookup((f.BP||"").trim());
+   if(isNaN(bs)&&B&&occ)bs=(Math.atan2(B.E-occ.E,B.N-occ.N)*180/Math.PI+360)%360;
+   if(isNaN(bs)){bk=null;R.warn.push("Backsight to "+(f.BP||"?")+" has no azimuth — shots from that setup were skipped.");return;}
+   bk={az:bs,bc:isNaN(bc)?0:bc};if(R.setups.length)R.setups[R.setups.length-1].bp=(f.BP||"").trim();return;}
+  if(code==="SS"||code==="TR"||code==="BD"){
+   var fp=(f.FP||"").trim();if(!fp)return;
+   if(!occ||!bk){R.skip[fp]=1;return;}
+   var az=f.AZ!=null?cuRw5Dms(f.AZ,R.gon):(f.AR!=null?bk.az+cuRw5Dms(f.AR,R.gon)-bk.bc:(f.AL!=null?bk.az-cuRw5Dms(f.AL,R.gon)+bk.bc:(f.DR!=null?bk.az+180+cuRw5Dms(f.DR,R.gon):(f.DL!=null?bk.az+180-cuRw5Dms(f.DL,R.gon):NaN))));
+   var ze=f.ZE!=null?cuRw5Dms(f.ZE,R.gon):(f.VA!=null?90-cuRw5Dms(f.VA,R.gon):(f.CE!=null?90-cuRw5Dms(f.CE,R.gon):90)),sd=num(f.SD),hd,vd;
+   if(isNaN(az)||isNaN(ze)){R.skip[fp]=1;return;}
+   if(sd!=null){sd+=R.eo;hd=sd*Math.sin(ze*Math.PI/180);vd=sd*Math.cos(ze*Math.PI/180);}
+   else if(num(f.HD)!=null){hd=num(f.HD);vd=num(f.VD)!=null?num(f.VD):(Math.abs(Math.sin(ze*Math.PI/180))>1e-9?hd/Math.tan(ze*Math.PI/180):0);}
+   else{R.skip[fp]=1;return;}
+   if(R.ec){var Rad=R.unit==="metres"?6371000:20902231;vd+=0.86*hd*hd/(2*Rad);}  /* curvature and refraction, k = 0.14 */
+   hd*=R.sf;az=((az%360)+360)%360;
+   var p={p:fp,N:occ.N+hd*Math.cos(az*Math.PI/180),E:occ.E+hd*Math.sin(az*Math.PI/180),Z:occ.Z+hi+vd-hr,d:f._d.trim()};
+   R.setups[R.setups.length-1].n++;
+   var prev=R.stored[fp]||R.meas[fp];
+   if(prev){R.checks.push({p:fp,d:p.d,on:R.stored[fp]?"stored":"measured",occ:occ.p,dN:p.N-prev.N,dE:p.E-prev.E,dZ:p.Z-prev.Z});return;}
+   R.meas[fp]=p;return;}
+  if(!/^(JB|MO|LS|BK|OC|SP|GS|SS|TR|BD|GPS|G0|G1|G2|G3|G4|CN|NE|PS|PE|FD|RE|DS|DE|SD)$/.test(code))unk[code]=(unk[code]||0)+1;
+ });
+ var sk=Object.keys(R.skip);if(sk.length)R.warn.push(sk.length+" shot"+(sk.length>1?"s":"")+" couldn’t be reduced (no setup, backsight or distance): "+sk.slice(0,12).join(", ")+(sk.length>12?" …":""));
+ Object.keys(unk).forEach(function(c){R.warn.push(unk[c]+" "+c+" record"+(unk[c]>1?"s":"")+" not read.");});
+ return R;
+}
+function cuRw5Text(list){
+ list=list.slice().sort(function(a,b){var an=/^\d+$/.test(a.p),bn=/^\d+$/.test(b.p);if(an&&bn)return parseInt(a.p,10)-parseInt(b.p,10);if(an)return -1;if(bn)return 1;return a.p<b.p?-1:1;});
+ return list.map(function(r){return r.p+","+r.N.toFixed(4)+","+r.E.toFixed(4)+","+r.Z.toFixed(4)+","+r.d;}).join("\n")+(list.length?"\n":"");
+}
+var cuRw5Cur=null;
+function cuRw5Show(text,name){
+ var R=cuRw5(text),st=Object.keys(R.stored).length,me=Object.keys(R.meas).length;cuRw5Cur={R:R,name:name};
+ var fmt=function(v){return (v>=0?"+":"")+v.toFixed(3);};
+ var h="<div class='cu-pkg'><b>"+esc(name)+"</b> — raw data file (RW5), read only"+(R.unit?" · units: "+esc(R.unit):"")+"<div style='margin-top:4px'>"+st+" stored point"+(st===1?"":"s")+" (with coordinates in the file) · "+me+" measured shot"+(me===1?"":"s")+" reduced from angles and distances</div>";
+ if(R.setups.length)h+="<div class='hint' style='margin:4px 0 0'>"+R.setups.map(function(s){return "Setup at "+esc(s.op)+(s.bp?", backsight "+esc(s.bp):"")+": "+s.n+" shot"+(s.n===1?"":"s");}).join(" · ")+"</div>";
+ if(R.checks.length)h+="<div style='margin-top:6px'><b>Check shots</b> (to points already in the file — not overwritten):<table class='pm-rt'><tr><td class='pm-k'>Pt</td><td class='pm-k'>From</td><td class='pm-k'>ΔN</td><td class='pm-k'>ΔE</td><td class='pm-k'>ΔH</td><td class='pm-k'>ΔZ</td><td class='pm-k'>Desc</td></tr>"+R.checks.map(function(c){return "<tr><td>"+esc(c.p)+"</td><td>"+esc(c.occ)+"</td><td class='pm-rate'>"+fmt(c.dN)+"</td><td class='pm-rate'>"+fmt(c.dE)+"</td><td class='pm-rate'>"+Math.sqrt(c.dN*c.dN+c.dE*c.dE).toFixed(3)+"</td><td class='pm-rate'>"+fmt(c.dZ)+"</td><td>"+esc(c.d)+(c.on==="measured"?" (measured twice)":"")+"</td></tr>";}).join("")+"</table></div>";
+ if(R.warn.length)h+=R.warn.map(function(w){return "<span class='cu-pkgwarn'>"+esc(w)+"</span>";}).join("");
+ h+="<div class='cu-dl' style='margin-top:8px'><button class='btn pri' onclick='cuRw5Out(\"all\")'>Everything — one file</button><button class='btn' onclick='cuRw5Out(\"meas\")'"+(me?"":" disabled")+">Measured shots only</button><button class='btn' onclick='cuRw5Out(\"stored\")'"+(st?"":" disabled")+">Stored points only</button><button class='btn' onclick='cuRw5Out(\"both\")'"+(st&&me?"":" disabled")+">Two separate files</button></div><div class='hint' style='margin:4px 0 0'>Each choice downloads comma-separated P,N,E,Z,D and puts it on the shelf for cleanup or Match points.</div></div>";
+ document.getElementById("cu-body").innerHTML=h;
+}
+function cuRw5Out(which){
+ var C=cuRw5Cur;if(!C)return;var R=C.R,base=C.name.replace(/\.rw5$/i,""),st=[],me=[];
+ Object.keys(R.stored).forEach(function(k){st.push(R.stored[k]);});Object.keys(R.meas).forEach(function(k){me.push(R.meas[k]);});
+ var sets=which==="all"?[["",st.concat(me)]]:which==="meas"?[["-measured",me]]:which==="stored"?[["-stored",st]]:[["-stored",st],["-measured",me]];
+ var note=R.checks.length?R.checks.length+" check shot"+(R.checks.length>1?"s":"")+" listed when the RW5 was read":"";
+ sets.forEach(function(S){var txt=cuRw5Text(S[1]),fn=base+S[0]+".txt";
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain"}));a.download=fn;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
+  cuPendingPkg={file:fn,project:base,date:"",count:S[1].length,conflicts:0,backup:false,kind:"rw5",note:"from "+C.name+(S[0]===""?" (stored + measured)":S[0]==="-measured"?" (measured shots)":" (stored points)")};
+  cuParse(txt,fn);});
+}
+window.cuRw5=cuRw5;window.cuRw5Out=cuRw5Out;window.cuRw5Show=cuRw5Show;window.cuRw5Text=cuRw5Text;
 window.cuParse=cuParse;window.cuLoadFile=cuLoadFile;window.cuManAdd=cuManAdd;window.cuDownload=cuDownload;window.cuCompute=cuCompute;window.cuRenderReview=cuRenderReview;
 document.getElementById("cu-file").addEventListener("change",function(e){if(e.target.files[0])cuLoadFile(e.target.files[0]);});
 var cuDrop=document.getElementById("cu-drop");
