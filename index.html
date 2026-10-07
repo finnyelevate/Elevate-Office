@@ -2675,7 +2675,7 @@ function pmQuotesSave(){sset("eo:pmq",JSON.stringify(PM.quotes));}
 function pmNewQuote(){
  var q={id:"q"+Date.now(),updated:Date.now(),f:{},secs:[pmqNorm({name:"",hrs:{}})],disb:{},other:{label:"",amt:""},fci:"",notes:""};
  q.f.pm=sget("eo:pmname")||"";q.f.assigned=sget("eo:pminit")||"";
- (PM.vault.disb||[]).forEach(function(d){q.disb[d.id]=d.def||0;});
+ (PM.vault.disb||[]).forEach(function(d){q.disb[d.id]=0;}); /* disbursements start at $0; the PM adds what the job needs */
  PM.quotes.unshift(q);PM.cur=q.id;pmQuotesSave();return q;
 }
 function pmCurQ(){return PM.quotes.find(function(q){return q.id===PM.cur;})||null;}
@@ -2963,15 +2963,18 @@ function pmParseJob(text){
  if(!q.secs.length){var one={name:"",hrs:{}};
   ["_eft","_edt"].forEach(function(k){var v=(raw[k]||"").trim();if(!v)return;
    v.split("+").forEach(function(p){p=p.trim().replace(/\.$/,"");if(!p)return;
-    var m=p.match(/^(\d+(?:\.\d+)?)\s*(?:hrs?\.?)?\s*\(?\s*([^()]+?)\s*\)?$/i),id=m&&!/[:;]/.test(p)?pmRole(m[2]):null;
-    if(id){one.hrs[id]=String(pmNum(one.hrs[id])+parseFloat(m[1]));rep.read++;}else rep.unread.push(p);});});
+    /* "1.5 days (2man)" = 12 hrs (8-hour days); "6.0 hrs CAD TECH" */
+    var dm=p.match(/^(\d+(?:\.\d+)?)\s*days?\s*\(?\s*([^()]+?)\s*\)?$/i),m=dm||p.match(/^(\d+(?:\.\d+)?)\s*(?:hrs?\.?)?\s*\(?\s*([^()]+?)\s*\)?$/i),id=m&&!/[:;]/.test(p)?pmRole(m[2].replace(/^(\d)\s*-?\s*man\b/i,"$1 man crew")):null;
+    if(id){one.hrs[id]=String(pmNum(one.hrs[id])+parseFloat(m[1])*(dm?8:1));rep.read++;}else rep.unread.push(p);});});
   if(Object.keys(one.hrs).length)q.secs.push(one);}
  if(!q.secs.length)q.secs.push({name:"",hrs:{}});
  /* disbursements */
  (PM.vault.disb||[]).forEach(function(d){q.disb[d.id]=0;});
- var dl=(raw._disb||"").replace(/=\s*\$?[\d,.]+\s*\.?\s*$/,"");
- if(dl.trim()){var others=[],oamt=0;
-  dl.split("+").forEach(function(p){p=p.trim();if(!p)return;var amt=(p.match(/\$\s*([\d,.]+)\s*\)?\s*$/)||p.match(/\$\s*([\d,.]+)/)||[])[1];var bare=p.replace(/\([^)]*\)/g,"").trim(),m=bare.match(/^(\d+)\s+(.+)$/);
+ var dl=(raw._disb||"").replace(/=\s*\$?[\d,.]+\s*\.?\s*$/,"").trim(),tot=null;
+ /* a total on its own ("$45", "$45 (1 title, 2 legal plans)"): use the items in brackets if any, never add the total as "Other" */
+ var tm=dl.match(/^\$\s*([\d,]+(?:\.\d+)?)\s*(?:\((.*)\))?\s*\.?$/);if(tm){tot=tm[1];dl=(tm[2]||"").trim();if(!dl)rep.unread.push("Disbursements: only a total ($"+tot+") in the file \u2014 enter the title / plan counts");}
+ if(dl){var others=[],oamt=0;
+  dl.split(/\+|,(?!\d{3})|\band\b/i).forEach(function(p){p=p.trim();if(!p)return;var amt=(p.match(/\$\s*([\d,.]+)\s*\)?\s*$/)||p.match(/\$\s*([\d,.]+)/)||[])[1];var bare=p.replace(/\([^)]*\)/g,"").replace(/\$\s*[\d,.]+/g,"").trim(),m=bare.match(/^(\d+)\s+(.+)$/)||(/^(titles?|(legal\s*)?plans?|checklists?(\s*fees?)?|filing(\s*fees?)?)$/i.test(bare)?[bare,"1",bare]:null);
    var nm=m?m[2].toLowerCase():"",n=m?parseInt(m[1]):0,id=null;
    if(/^titles?$/.test(nm))id="title";else if(/^(legal\s*)?plans?$/.test(nm))id="plan";else if(/^checklists?(\s*fees?)?$/.test(nm))id="chk";else if(/^filing(\s*fees?)?$/.test(nm))id="filing";
    if(id&&q.disb.hasOwnProperty(id))q.disb[id]=n;else if(amt){others.push(bare||p);oamt+=pmNum(amt);}else rep.unread.push("Disbursement: "+p);});
