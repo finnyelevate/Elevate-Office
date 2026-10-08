@@ -746,8 +746,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.25";
-const NEWS=["Points tab: drop a .rw5 raw data file to get a P,N,E,Z,D points file \u2014 everything, measured only, stored only, or two separate files.", "Duplicate as sub-quote picks the next letter from the files already in the quote folder.", "Paste a list (e.g. from a client\u2019s email) into a scope line or note to add one line per item.", "Quote folder tidy-up always creates the range folder, then lists what to drag in if the browser can\u2019t move folders."];
+const BUILD="1.26";
+const NEWS=["Stages within a service (e.g. excavation layout / building layout / forms certificate), each with its own hours, all in one price.", "Quote folder and Word file named by the client (or the contact, your choice); your name stays the Project Manager on imported quotes.", "Numbered sub-quotes (24-165-3) and sub-quotes from just the Quote #.", "Jobs: drop a file to fill it in, Add to existing job, and Tidy this job folder for older jobs."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1792,7 +1792,7 @@ function doImport(){
   var file=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
   if(!file)return;
   if(onPoints()){if(window.cuLoadFile)cuLoadFile(file);return;}
-  if(window.pmOnView&&pmOnView()){pmImportFile(file);return;}
+  if(window.pmOnView&&pmOnView()){if(window.PM&&PM.mode==="jobs"&&PM.key&&window.pmjDropFile)pmjDropFile(file);else pmImportFile(file);return;}
   var r=new FileReader();
   r.onload=function(){importFromText(r.result);};
   r.readAsText(file);
@@ -1967,10 +1967,15 @@ function pmqItems(arr){return (arr||[]).map(function(l){return {t:l[0],on:!l[1],
 function pmqNorm(s){
  if(!s.hrs)s.hrs={};if(s.name==null)s.name="";if(!Array.isArray(s.lines))s.lines=[];if(!Array.isArray(s.notes))s.notes=[];
  if(!s.fills)s.fills={};if(!s.status)s.status="inc";if(s.price==null)s.price="";if(s.lead==null)s.lead="";if(s.type==null)s.type="";if(!s.ver)s.ver="approved";
- if(!Array.isArray(s.pl))s.pl=[];s.pl.forEach(function(l){if(!l.hrs)l.hrs={};if(l.lab==null)l.lab="";if(l.price==null)l.price="";});if(s.plab==null)s.plab="";if(s.pnote==null)s.pnote="";
+ if(!Array.isArray(s.pl))s.pl=[];s.pl.forEach(function(l){if(!l.hrs)l.hrs={};if(l.lab==null)l.lab="";if(l.price==null)l.price="";});if(s.plab==null)s.plab="";if(s.pnote==null)s.pnote="";if(!Array.isArray(s.stg))s.stg=[];s.stg.forEach(function(g){if(!g.hrs)g.hrs={};if(g.lab==null)g.lab="";});
  return s;
 }
-function pmqApplyLib(s,e){s.type=e.id;s.ver="approved";s.name=e.title;s.lead=e.lead||"";s.lines=pmqItems(e.lines);s.notes=pmqItems(e.notes);s.fills={};s.status=e.status||s.status||"inc";return s;}
+/* construction job types open with their usual stages (the scope lines), hours blank */
+var PMQ_STAGED=["con_house","con_vanc","con_multi"];
+function pmqApplyLib(s,e){s.type=e.id;s.ver="approved";s.name=e.title;s.lead=e.lead||"";s.lines=pmqItems(e.lines);s.notes=pmqItems(e.notes);s.fills={};s.status=e.status||s.status||"inc";
+ if(PMQ_STAGED.indexOf(e.id)>=0||e.stages){var old=s.hrs||{};s.stg=(e.stages||(e.lines||[]).map(function(l){return l[0];})).map(function(t,j){return {lab:String(t),hrs:j===0?JSON.parse(JSON.stringify(old)):{}};});s.hrs={};}
+ else if((s.stg||[]).length){var agg={};s.stg.forEach(function(g){Object.keys(g.hrs||{}).forEach(function(k){agg[k]=String(pmNum(agg[k])+pmNum(g.hrs[k]));});});s.stg=[];s.hrs=agg;}
+ return s;}
 function pmqCardTokens(s){
  var seen={},out=[];
  [s.name,s.lead].concat(s.lines.filter(function(x){return x.on;}).map(function(x){return x.t;}),s.notes.filter(function(x){return x.on;}).map(function(x){return x.t;})).forEach(function(t){pmqTokens(t).forEach(function(k){if(seen[k.label]){if(k.opts.length&&!seen[k.label].opts.length)seen[k.label].opts=k.opts;if(k.def&&!seen[k.label].def)seen[k.label].def=k.def;return;}seen[k.label]=k;out.push(k);});});
@@ -2013,7 +2018,7 @@ function pmqItemRows(s,ix,k){
  return s[k].map(function(it,j){var p=k+":"+j;return "<div class='pmq-item"+(it.on?"":" off")+"'><input type='checkbox' class='pmq-on' data-s='"+ix+"' data-p='"+p+"'"+(it.on?" checked":"")+" title='include on the quote'><input type='text' class='pmq-f pmq-lt' data-s='"+ix+"' data-p='"+p+"' value='"+pmEsc(it.t)+"'>"+(it.why?"<span class='pmq-why' title='when to include this'>"+pmEsc(it.why)+"</span>":"")+"<button class='pmq-mini' data-act='iup' data-s='"+ix+"' data-p='"+p+"' title='move up'>↑</button><button class='pmq-mini' data-act='idn' data-s='"+ix+"' data-p='"+p+"' title='move down'>↓</button><button class='pmq-mini' data-act='irm' data-s='"+ix+"' data-p='"+p+"' title='remove'>✕</button></div>";}).join("")
   +"<button class='btn pmq-add' data-act='iadd' data-s='"+ix+"' data-p='"+k+"' title='tip: paste a list into any line (e.g. from a client’s email) to add one line per item'>+ "+(k==="lines"?"scope line":"note")+"</button>";
 }
-function pmqRateTable(s,ix,j,H,lab){var V=PM.vault,dl=j==null?"":" data-l='"+j+"'",h="<table class='pm-rt'>";
+function pmqRateTable(s,ix,j,H,lab,attr){var V=PM.vault,dl=j==null?"":" data-"+(attr||"l")+"='"+j+"'",h="<table class='pm-rt'>";
  ["field","office"].forEach(function(kind){V.rates.filter(function(r){return r.kind===kind;}).forEach(function(r){h+="<tr><td class='pm-k'>"+(kind==="field"?"Field":"Office")+"</td><td>"+pmEsc(r.label)+"</td><td class='pm-rate'>"+pmMoney(r.rate,false)+"/hr</td><td><input type='text' inputmode='decimal' class='pm-hr' data-s='"+ix+"'"+dl+" data-r='"+r.id+"' value='"+pmEsc(H[r.id]||"")+"' placeholder='hrs'></td><td class='pm-amt' data-s='"+ix+"'"+dl+" data-r='"+r.id+"'></td></tr>";});});
  return h+"<tr class='pm-sub'><td></td><td colspan='3'>"+lab+"</td><td class='pm-stot' data-s='"+ix+"'"+dl+"></td></tr></table>";}
 function pmqPlabList(){return "<datalist id='pmq-plabs'>"+PMQ_PLABS.map(function(o){return "<option value='"+pmEsc(o)+"'>";}).join("")+"</datalist>";}
@@ -2032,23 +2037,25 @@ function pmqCardHtml(q,s,ix){
  h+="<div class='pmq-lab'>Notes under this service</div>"+pmqItemRows(s,ix,"notes");
  var many=s.pl.length>0;
  if(many)h+="<div class='pmq-pl'><div class='pmq-plh'><b>Price line 1</b> <input type='text' class='pmq-f' data-s='"+ix+"' data-p='plab' value='"+pmEsc(s.plab)+"' placeholder='label, e.g. 1st trip to setup' list='pmq-plabs' style='width:220px'><span class='hint' style='margin:0'>counts in the job total</span></div>";
- h+=pmqRateTable(s,ix,null,s.hrs,many?"Labour — price line 1":"Labour — this service");
+ if(s.stg.length){s.stg.forEach(function(g,j){h+="<div class='pmq-pl pmq-stg'><div class='pmq-plh'><b>Stage "+(j+1)+"</b> <input type='text' class='pmq-f' data-s='"+ix+"' data-p='stg:"+j+":lab' value='"+pmEsc(g.lab)+"' placeholder='e.g. Excavation layout' style='width:260px'><span style='flex:1'></span><button class='pmq-mini' data-act='iup' data-s='"+ix+"' data-p='stg:"+j+"' title='move stage up'>↑</button><button class='pmq-mini' data-act='idn' data-s='"+ix+"' data-p='stg:"+j+"' title='move stage down'>↓</button><button class='pmq-mini' data-act='stgrm' data-s='"+ix+"' data-p='stg:"+j+"' title='remove this stage'>✕</button></div>"+pmqRateTable(s,ix,j,g.hrs,"Labour — stage "+(j+1),"g")+"</div>";});
+  h+="<table class='pm-rt'><tr class='pm-sub'><td></td><td colspan='3'>Labour — all stages"+(many?" (price line 1)":"")+"</td><td class='pm-stot-all' data-s='"+ix+"' style='font-family:IBM Plex Mono,monospace;text-align:right;min-width:90px'></td></tr></table>";}
+ else h+=pmqRateTable(s,ix,null,s.hrs,many?"Labour — price line 1":"Labour — this service");
  h+="<div class='pmq-price'><label>Price on the quote <input type='text' class='pmq-f' data-s='"+ix+"' data-p='price' value='"+pmEsc(s.price)+"' placeholder='calculated' style='width:170px'></label><span class='hint' style='margin:0'>leave blank to use the calculation, or type a price, “Hourly”, “$90 per unit”…</span></div>"+(many?"</div>":"");
  s.pl.forEach(function(l,j){
   h+="<div class='pmq-pl'><div class='pmq-plh'><b>Price line "+(j+2)+"</b> <input type='text' class='pmq-f' data-s='"+ix+"' data-p='pl:"+j+":lab' value='"+pmEsc(l.lab)+"' placeholder='label, e.g. Any future trips' list='pmq-plabs' style='width:220px'><span class='hint' style='margin:0'>per trip \u2014 shown on the quote, not in the job total</span><span style='flex:1'></span><button class='pmq-mini' data-act='plrm' data-s='"+ix+"' data-p='pl:"+j+"' title='remove this price line'>✕</button></div>";
   h+=pmqRateTable(s,ix,j,l.hrs,"Labour — price line "+(j+2));
   h+="<div class='pmq-price'><label>Price on the quote <input type='text' class='pmq-f' data-s='"+ix+"' data-p='pl:"+j+":price' value='"+pmEsc(l.price)+"' placeholder='calculated' style='width:170px'></label></div></div>";});
- h+="<div class='pmq-price'><button class='btn' data-act='pladd' data-s='"+ix+"' title='another price for this same service, e.g. future trips \u2014 its own hours, not in the job total'>+ Add price line</button><span style='flex:1'></span><button class='btn' data-act='fav' data-s='"+ix+"'>Save as my version</button></div>";
+ h+="<div class='pmq-price'><button class='btn' data-act='stgadd' data-s='"+ix+"' title='split this service into stages / trips (e.g. excavation layout, building layout, forms certificate) \u2014 each with its own hours, all in this price and the job total'>+ Add stage</button><button class='btn' data-act='pladd' data-s='"+ix+"' title='another price for this same service, e.g. future trips \u2014 its own hours, not in the job total'>+ Add price line</button><span style='flex:1'></span><button class='btn' data-act='fav' data-s='"+ix+"'>Save as my version</button></div>";
  h+="<div class='pmq-price'><label>Price note <input type='text' class='pmq-f' data-s='"+ix+"' data-p='pnote' value='"+pmEsc(s.pnote)+"' placeholder='optional \u2014 prints as *note under the service, price gets *' style='width:420px'></label><button class='btn' data-act='pnrs' data-s='"+ix+"' title='3-trip wording that points to the attached rate sheet (ticks Attach rate sheet)'>Rate-sheet wording</button></div>";
  if(ix===0)h+=pmqPlabList();
  return h+"</div>";
 }
-function pmqPath(s,p){var m=p.split(":");return {k:m[0],j:m.length>1?(m[0]==="fill"?m.slice(1).join(":"):+m[1]):null,sub:m[0]==="pl"?m[2]:null};}
+function pmqPath(s,p){var m=p.split(":");return {k:m[0],j:m.length>1?(m[0]==="fill"?m.slice(1).join(":"):+m[1]):null,sub:m[0]==="pl"||m[0]==="stg"?m[2]:null};}
 function pmqWire(host,q){
  var save=function(){q.updated=Date.now();pmQuotesSave();pmUpdate();pmFlagUnsaved(q);};
  host.querySelectorAll(".pmq-f").forEach(function(el){
   el.oninput=function(){var s=q.secs[+el.dataset.s],P=pmqPath(s,el.dataset.p);
-   if(P.k==="fill")s.fills[P.j]=el.value;else if(P.k==="lines"||P.k==="notes")s[P.k][P.j].t=el.value;else if(P.k==="pl"){if(s.pl[P.j])s.pl[P.j][P.sub]=el.value;}else s[P.k]=el.value;
+   if(P.k==="fill")s.fills[P.j]=el.value;else if(P.k==="lines"||P.k==="notes")s[P.k][P.j].t=el.value;else if(P.k==="pl"){if(s.pl[P.j])s.pl[P.j][P.sub]=el.value;}else if(P.k==="stg"){if(s.stg[P.j])s.stg[P.j][P.sub]=el.value;}else s[P.k]=el.value;
    save();};
   el.onchange=function(){var P=pmqPath(null,el.dataset.p);if(P.k==="fill"||/\[\[/.test(el.value)||P.k==="name")pmqRerender();};
  });
@@ -2077,6 +2084,8 @@ function pmqWire(host,q){
   else if(a==="fav"){pmqSaveFav(ix);return;}
   else if(a==="pladd"){s.pl.push({lab:s.pl.length?"":"Any future trips",hrs:{},price:""});if(!s.plab)s.plab="1st trip to setup";}
   else if(a==="plrm"){s.pl.splice(P.j,1);}
+  else if(a==="stgadd"){if(!s.stg.length){s.stg.push({lab:"",hrs:JSON.parse(JSON.stringify(s.hrs||{}))});s.hrs={};}s.stg.push({lab:"",hrs:{}});}
+  else if(a==="stgrm"){var gone=s.stg.splice(P.j,1)[0];if(!s.stg.length){s.hrs=gone?gone.hrs:{};}else if(Object.keys(gone.hrs||{}).length&&!confirm("Remove stage "+(P.j+1)+(gone.lab?" ("+gone.lab+")":"")+" and its hours?")){s.stg.splice(P.j,0,gone);return;}}
   else if(a==="pnrs"){if(s.pnote.trim()&&s.pnote.trim()!==PMQ_RSNOTE&&!confirm("Replace this service’s price note with the rate-sheet wording?"))return;s.pnote=PMQ_RSNOTE;q.rs=true;}
   else return;
   q.updated=Date.now();pmQuotesSave();pmRender();
@@ -2108,7 +2117,7 @@ function pmqPara(st,inner,extra){return "<w:p><w:pPr><w:pStyle w:val=\""+st+"\"/
 function pmqDate(d){return ["January","February","March","April","May","June","July","August","September","October","November","December"][d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();}
 /* quote is addressed to the client; the contact only when there is no client (the contact stays in the job details) */
 function pmqTo(q){var c=(q.f.client||"").trim(),n=(q.f.contact||"").trim();return c||n;}
-function pmqDefaultName(q){var who=((q.f.contact||"").trim().split(/\s+/)[0])||((q.f.client||"").trim().split(/\s+/)[0])||"";return "Elev. Survey Quote "+(q.f.qn||"").trim()+(who?"-"+who:"");}
+function pmqDefaultName(q){var who=typeof pmjNameFor==="function"?pmjNameFor(q):(((q.f.client||"").trim())||((q.f.contact||"").trim().split(/\s+/)[0])||"");return "Elev. Survey Quote "+(q.f.qn||"").trim()+(who?"-"+who:"");}
 function pmqDisbLine(q){
  var parts=[],tot=0,WL={chk:["checklist fee","checklist fees"],filing:["filing fee","filing fees"]};(PM.vault.disb||[]).forEach(function(d){var n=Math.round(pmNum(q.disb[d.id]));if(n>0){var lb=WL[d.id]||[d.label,d.plural];parts.push(n+" "+(n>1?lb[1]:lb[0]));tot+=n*d.price;}});
  var oa=pmNum(q.other&&q.other.amt);if(oa>0){parts.push((q.other.label||"other").trim());tot+=oa;}
@@ -2148,6 +2157,7 @@ function pmqCheck(q){
  q.secs.forEach(function(s,ix){var u=pmqUnfilled(s);if(u.length)issues.push("Service "+(ix+1)+": fill in "+u.map(function(k){return "“"+k.label+"”";}).join(", "));
   if(!pmqFill(s.name,s.fills).trim())issues.push("Service "+(ix+1)+" has no title");
   if(!P[ix].main)issues.push("Service "+(ix+1)+" has no price (enter hours or type a price)");
+  s.stg.forEach(function(g,j){if(!(g.lab||"").trim())issues.push("Service "+(ix+1)+": name stage "+(j+1));});
   if(s.pl.length&&!(s.plab||"").trim())issues.push("Service "+(ix+1)+": label price line 1 (e.g. 1st trip to setup)");
   s.pl.forEach(function(l,j){if(!(l.lab||"").trim())issues.push("Service "+(ix+1)+": label price line "+(j+2));if(!P[ix].xs[j])issues.push("Service "+(ix+1)+": price line "+(j+2)+" has no price");});
   if(/rate sheet/i.test(s.pnote||"")&&!q.rs)issues.push("Service "+(ix+1)+"’s price note mentions the attached rate sheet \u2014 tick “Attach rate sheet (page 2)”");});
@@ -2327,7 +2337,7 @@ function pmqdImportDocx(buf,fname){
      rep.wordDiffs=diffs;
     }
    }
-   q.updated=Date.now();q.exported=q.updated;q.importRep=rep;
+   pmqdKeepMine(q,rep);q.updated=Date.now();q.exported=q.updated;q.importRep=rep;
    var qn=(q.f.qn||"").trim(),ex=qn?PM.quotes.find(function(x){return (x.f.qn||"").trim()===qn;}):null;
    if(ex&&confirm("A draft for "+qn+" already exists on this device.\n\nOK = replace that draft with the Word file\nCancel = open the Word file as a separate draft")){q.id=ex.id;PM.quotes=PM.quotes.filter(function(x){return x!==ex;});}
    PM.quotes.unshift(q);PM.cur=q.id;pmQuotesSave();pmRender();return q;
@@ -2335,35 +2345,55 @@ function pmqdImportDocx(buf,fname){
  });
 }
 /* sub-quote: 26-586 -> 26-586B (next free letter), same client and site, all services carried over for trimming */
+/* next sub-quote number: letters (26-586B, C, D…) or numbers (24-165-1, -2, -3…) — whichever style the quote folder already uses */
 function pmqdNextSub(qn,extra){
  qn=(qn||"").trim();if(!qn)return "";
- var m=qn.match(/^(\d{2}\s*-\s*\d{1,5})\s*[- ]?\s*([A-Z])$/i)||qn.match(/^(.*\d)([A-Z])$/i),base=m?m[1].replace(/\s+/g,""):qn,letter=m?m[2].toUpperCase():"A";
- var key=function(s){return String(s||"").toUpperCase().replace(/[^0-9A-Z]/g,"");},used={};PM.quotes.forEach(function(x){used[key(x.f.qn)]=1;});
- (extra||[]).forEach(function(L){used[key(base+L)]=1;});
- var c=letter.charCodeAt(0)+1;while(c<=90&&used[key(base+String.fromCharCode(c))])c++;
- return c<=90?base+String.fromCharCode(c):base+"-2";
+ var Q=typeof pmjQnParts==="function"?pmjQnParts(qn):null;
+ if(!Q){var m0=qn.match(/^(.*\d)([A-Z])$/i);Q={base:m0?m0[1]:qn,sub:m0?m0[2].toUpperCase():"",num:false};}
+ var X=extra||[],L=(X.letters||X).filter(function(x){return /^[A-Z]$/i.test(x);}).map(function(x){return x.toUpperCase();}),N=(X.nums||[]).map(Number);
+ PM.quotes.forEach(function(x){var P=typeof pmjQnParts==="function"?pmjQnParts(x.f.qn):null;if(!P||P.base!==Q.base||!P.sub)return;if(P.num)N.push(+P.sub);else L.push(P.sub);});
+ var style=Q.sub?(Q.num?"num":"letter"):(X.style||"letter");
+ if(style==="num"){var n=Math.max.apply(null,[Q.num?+Q.sub:0].concat(N))+1;return Q.base+"-"+n;}
+ var c=(Q.sub&&!Q.num?Q.sub:"A").charCodeAt(0)+1;while(c<=90&&L.indexOf(String.fromCharCode(c))>=0)c++;
+ return c<=90?Q.base+String.fromCharCode(c):Q.base+"-2";
 }
-/* sub-quote: 26-586 -> 26-586B (next letter free in the quote folder and in the drafts), same client and site, all services carried over for trimming */
-function pmqdMakeSub(q,next,note){
- var c=JSON.parse(JSON.stringify(q));c.id="q"+Date.now();c.f.qn=next;c.f.docname="";c.updated=Date.now();delete c.exported;c.subOf=(q.f.qn||"").trim();
- c.importRep={file:"",sub:q.f.qn,subNote:note||"",read:0,unread:[],rateDiff:[],wordDiffs:[]};
+/* the PM on this computer stays the Project Manager (and initials) whatever file the quote came from */
+function pmqdKeepMine(q,rep){var me=(typeof sget==="function"&&sget("eo:pmname"))||"",mi=(typeof sget==="function"&&sget("eo:pminit"))||"",was=[];q.f=q.f||{};
+ if(me&&(q.f.pm||"").trim()&&q.f.pm.trim()!==me.trim())was.push("Project Manager "+q.f.pm.trim());if(mi&&(q.f.assigned||"").trim()&&q.f.assigned.trim().toUpperCase()!==mi.trim().toUpperCase())was.push("initials "+q.f.assigned.trim());
+ if(me)q.f.pm=me;if(mi)q.f.assigned=mi;if(rep&&was.length)rep.pmWas="In the file: "+was.join(", ")+" \u2014 kept yours.";return q;}
+/* sub-quote: 26-586 -> 26-586B (or 24-165-3), same client and site, all services carried over for trimming */
+function pmqdMakeSub(q,next,note,replaceId){
+ var c=JSON.parse(JSON.stringify(q));c.id="q"+Date.now();c.f.qn=next;c.f.docname="";c.updated=Date.now();delete c.exported;delete c.importRep;delete c.qfolder;c.subOf=(q.f.qn||"").trim();
+ c.importRep={file:"",sub:pmjQnParts&&pmjQnParts(q.f.qn)?q.f.qn:q.f.qn,subNote:note||"",read:0,unread:[],rateDiff:[],wordDiffs:[]};pmqdKeepMine(c,c.importRep);
+ if(replaceId)PM.quotes=PM.quotes.filter(function(x){return x.id!==replaceId;});
  PM.quotes.unshift(c);PM.cur=c.id;pmQuotesSave();pmRender();return c;
 }
+/* a draft with only a Quote # typed in: nothing to copy yet */
+function pmqdIsEmpty(q){var f=q.f||{};if(["client","contact","site","email","services"].some(function(k){return (f[k]||"").trim();}))return false;
+ return !(q.secs||[]).some(function(s){return (s.name||"").trim()||Object.keys(s.hrs||{}).length||(s.price||"").trim()||(s.lines||[]).length;});}
 function pmqdSubQuote(){
  var q=pmCurQ();if(!q)return;if(!(q.f.qn||"").trim()){pmNeedQn();return;}
- var canLook=typeof pmjFsOk==="function"&&pmjFsOk()&&PMJ.dirs&&PMJ.dirs.quotes;
- if(!canLook){pmqdMakeSub(q,pmqdNextSub(q.f.qn),"Folders aren’t connected on this computer, so only the drafts here were checked for sub-quote letters already used.");return;}
- return pmjSubLetters(q.f.qn).then(function(info){
-  var next=pmqdNextSub(q.f.qn,info.letters),note;
-  if(!info.folder)note="No quote folder found for "+info.base+" — only the drafts here were checked for letters already used.";
-  else note="Checked "+info.folder+": "+(info.letters.length?info.base+info.letters.join(", "+info.base)+" already there":"no sub-quotes there yet")+" — this is "+next+".";
-  return pmqdMakeSub(q,next,note);
- },function(e){return pmqdMakeSub(q,pmqdNextSub(q.f.qn),"Couldn’t read the quote folder ("+(e&&e.message||e)+") — only the drafts here were checked.");});
+ var canLook=typeof pmjFsOk==="function"&&pmjFsOk()&&PMJ.dirs&&PMJ.dirs.quotes,empty=pmqdIsEmpty(q),qn=q.f.qn.trim();
+ /* only the number typed: start from that quote's draft on this computer if there is one */
+ if(empty){var mine=PM.quotes.find(function(x){return x.id!==q.id&&(x.f.qn||"").trim().toUpperCase()===qn.toUpperCase()&&!pmqdIsEmpty(x);});if(mine){var rid=!q.exported?q.id:null;q=mine;empty=false;q._rid=rid;}}
+ if(!canLook){if(empty){alert("Only the Quote # is filled in, and the quote folders aren’t connected on this computer, so there’s nothing to copy.\n\nDrag the quote’s job details file or Word quote onto the PM tab first, then Duplicate as sub-quote.");return;}
+  var r0=q._rid;delete q._rid;pmqdMakeSub(q,pmqdNextSub(q.f.qn),"Folders aren’t connected on this computer, so only the drafts here were checked for sub-quote numbers already used.",r0);return;}
+ return pmjSubLetters(q.f.qn).then(async function(info){
+  var src=q,from="",rid=q._rid||null;delete q._rid;
+  if(empty){var D=info.dir?await pmjDetailsFrom(await pmjList(info.dir),info.base):null;
+   if(!D){alert("Only the Quote # is filled in, and no app-made Word quote or job details file for "+info.base+" was found"+(info.folder?" in "+info.folder:" (no quote folder found)")+".\n\nDrag the quote’s job details file onto the PM tab first, then Duplicate as sub-quote.");return null;}
+   src=D.q;src.f=src.f||{};src.f.qn=info.base;(src.secs||[]).forEach(pmqNorm);if(!src.disb)src.disb={};if(!src.other)src.other={label:"",amt:""};if(src.fci==null)src.fci="";if(src.notes==null)src.notes="";from="Details from "+D.src+". ";rid=!q.exported?q.id:null;}
+  var next=pmqdNextSub(src.f.qn,info.subs),S=info.subs||[],used=(S.letters||[]).map(function(L){return info.base+L;}).concat((S.nums||[]).map(function(n){return info.base+"-"+n;})),note;
+  if(!info.folder)note=from+"No quote folder found for "+info.base+" \u2014 only the drafts here were checked for numbers already used.";
+  else note=from+"Checked "+info.folder+": "+(used.length?used.join(", ")+" already there":"no sub-quotes there yet")+" \u2014 this is "+next+".";
+  return pmqdMakeSub(src,next,note,rid);
+ },function(e){return pmqdMakeSub(q,pmqdNextSub(q.f.qn),"Couldn’t read the quote folder ("+(e&&e.message||e)+") \u2014 only the drafts here were checked.");});
 }
-window.pmqdImportDocx=pmqdImportDocx;window.pmqdSubQuote=pmqdSubQuote;window.pmqdNextSub=pmqdNextSub;window.pmqdReadServices=pmqdReadServices;
+window.pmqdImportDocx=pmqdImportDocx;window.pmqdKeepMine=pmqdKeepMine;window.pmqdIsEmpty=pmqdIsEmpty;window.pmqdSubQuote=pmqdSubQuote;window.pmqdNextSub=pmqdNextSub;window.pmqdReadServices=pmqdReadServices;
 /* ---------- PM: folders on this computer (OneDrive-synced), save to quote folder, convert an accepted quote to a job ---------- */
-/* Rules: the app only ever creates folders and copies/writes files in. It never deletes or moves anything, never
-   creates a quote folder, and never touches an existing job folder. The job record itself is entered in the online app, which issues the job number. */
+/* Rules: the app only creates folders and copies/writes files in, and moves folders only after the PM confirms (tidy-ups).
+   It never deletes or overwrites. Quote folders are created only on the PM's click. An existing job folder only gets new
+   files and missing folders added (Add to existing job / Tidy). The job record itself is entered in the online app, which issues the job number. */
 var PMJ={dirs:{},loaded:false,j:null,msg:""};
 var PMJ_DIRS=[["jobs","Job Files - Documents","job folders are created here"],["quotes","Quotes - Documents","quote folders are read and saved into"]];
 function pmjFsOk(){return typeof window.showDirectoryPicker==="function";}
@@ -2412,7 +2442,11 @@ async function pmjYearQuotes(root,yy,n,top){
  var yf=top.find(function(e){return e.k&&e.k.year&&e.k.yy===yy;});if(yf)await scan(await pmjDirs(yf.h),"year");
  return out;
 }
-function pmjQnParts(qn){var m=String(qn||"").trim().match(/^(\d{2})\s*-\s*(\d{1,4})(?:\s*[- ]?\s*([A-Za-z]))?$/);return m?{yy:m[1],n:+m[2],sub:(m[3]||"").toUpperCase(),base:m[1]+"-"+m[2]}:null;}
+/* 26-591, 26-591B, 26-591-B, 26-591 B (letter sub-quotes) and 24-165-1, 24-165 2 (numbered sub-quotes) */
+function pmjQnParts(qn){var m=String(qn||"").trim().match(/^(\d{2})\s*-\s*(\d{1,4})(?:\s*[- ]?\s*([A-Za-z])|\s*[- ]\s*(\d{1,2}))?$/);return m?{yy:m[1],n:+m[2],sub:m[3]?m[3].toUpperCase():(m[4]?String(+m[4]):""),num:!!m[4],base:m[1]+"-"+m[2]}:null;}
+/* the quote number a file name refers to, normalised ("Elev. Survey Quote 24-165-1  Rajan.docx" -> "24-165-1", "quote-26-586C-job_details.txt" -> "26-586C") */
+function pmjFileQn(name){var m=String(name).replace(/\.[^.]+$/,"").match(/(^|[^0-9])(\d{2})\s*-\s*(\d{1,4})(?![0-9])(?:\s*[- ]?\s*([A-Za-z])(?![A-Za-z])|\s*[- ]\s*(\d{1,2})(?![0-9]))?/);if(!m)return null;return m[2]+"-"+(+m[3])+(m[4]?m[4].toUpperCase():(m[5]?"-"+(+m[5]):""));}
+function pmjQnNorm(qn){var Q=pmjQnParts(qn);return Q?Q.base+(Q.sub?(Q.num?"-"+Q.sub:Q.sub):""):String(qn||"").trim().toUpperCase();}
 function pmjQnKey(s){return String(s||"").toUpperCase().replace(/[^0-9A-Z]/g,"");}
 async function pmjFindQuoteFolders(qn,client,rw){
  var root=await pmjDir("quotes",!!rw),Q=pmjQnParts(qn);
@@ -2428,11 +2462,14 @@ async function pmjFindQuoteFolders(qn,client,rw){
  var all=hits.concat(byClient);all.ask=true;return all;
 }
 /* sub-quote letters already used in a quote's folder: file names such as "26-586B", "26-586-C", "26-586 C" (not "26-586-Mark") */
-function pmjSubIn(names,Q){var re=new RegExp("(^|[^0-9])"+Q.yy+"\\s*-\\s*0*"+Q.n+"\\s*[- ]?\\s*([A-Z])(?![A-Za-z])","i"),L={};names.forEach(function(n){var m=n.replace(/\.[^.]+$/,"").match(re);if(m)L[m[2].toUpperCase()]=1;});delete L.A;return Object.keys(L).sort();}
-async function pmjSubLetters(qn){var Q=pmjQnParts(qn);if(!Q)return {base:qn,folder:null,letters:[]};
- var list=await pmjFindQuoteFolders(Q.base,"",false);if(!list.length||list.ask)return {base:Q.base,folder:null,letters:[]};
- var names=[];for(var i=0;i<list.length;i++)(await pmjList(list[i])).forEach(function(h){if(h.kind==="file")names.push(h.name);});
- return {base:Q.base,folder:list.map(function(h){return h.name;}).join(", "),letters:pmjSubIn(names,Q)};}
+function pmjSubIn(names,Q){var L={},N={};names.forEach(function(n){var nm=typeof n==="string"?n:n.name,t=typeof n==="string"?0:(n.t||0),f=pmjFileQn(nm),P=f&&pmjQnParts(f);if(!P||P.base!==Q.base||!P.sub)return;if(P.num)N[P.sub]=Math.max(N[P.sub]||0,t);else if(P.sub!=="A")L[P.sub]=Math.max(L[P.sub]||0,t);});
+ var lt=Math.max.apply(null,[0].concat(Object.keys(L).map(function(k){return L[k];}))),nt=Math.max.apply(null,[0].concat(Object.keys(N).map(function(k){return N[k];})));
+ var r=Object.keys(L).sort();r.letters=r.slice();r.nums=Object.keys(N).map(Number).sort(function(a,b){return a-b;});
+ r.style=r.nums.length&&!r.letters.length?"num":(r.letters.length&&!r.nums.length?"letter":(r.nums.length?(nt>=lt?"num":"letter"):""));return r;}
+async function pmjSubLetters(qn){var Q=pmjQnParts(qn);if(!Q)return {base:qn,folder:null,letters:[],subs:pmjSubIn([],{base:""})};
+ var list=await pmjFindQuoteFolders(Q.base,"",false);if(!list.length||list.ask)return {base:Q.base,folder:null,dir:null,letters:[],subs:pmjSubIn([],Q)};
+ var names=[];for(var i=0;i<list.length;i++){var hs=await pmjList(list[i]);for(var j=0;j<hs.length;j++){var h=hs[j];if(h.kind!=="file")continue;var t=0;try{t=(await h.getFile()).lastModified||0;}catch(e){}names.push({name:h.name,t:t});}}
+ var subs=pmjSubIn(names,Q);return {base:Q.base,folder:list.map(function(h){return h.name;}).join(", "),dir:list[0],letters:subs.letters,subs:subs};}
 /* let the PM choose when more than one folder could be the one */
 function pmjChoose(boxId,list,lead){
  if(list.length===1&&!list.ask)return Promise.resolve(list[0]);
@@ -2450,7 +2487,7 @@ async function pmjSaveToQuoteFolder(){
  try{
   var list=await pmjFindQuoteFolders(q.f.qn,q.f.client,true);
   if(!list.length){list=[];list.ask=true;}
-  var dir=await pmjChoose("pm-qsave",list,!list.length?"No quote folder for "+q.f.qn+" in Quotes - Documents. If it has a different name, choose it; otherwise create it the usual way (the app never creates quote folders) and save again.":(list.ask?"Not sure which folder is quote "+q.f.qn+" (the files inside name a different quote) — which one?":"More than one folder could be quote "+q.f.qn+" — which one?"));if(!dir)return;
+  var dir=await pmjChoose("pm-qsave",list,!list.length?"Couldn’t find a quote folder for "+q.f.qn+" in Quotes - Documents. Choose it with “Choose another folder…”, or create it with “Create quote folder” at the top of the quote and save again.":(list.ask?"Not sure which folder is quote "+q.f.qn+" (the files inside name a different quote) — which one?":"More than one folder could be quote "+q.f.qn+" — which one?"));if(!dir)return;
   await pmjPerm(dir,true);
   if(q.subOf&&!q.exported){var dn0=((q.f.docname||"").trim()||pmqDefaultName(q)).replace(/[\\\/:*?"<>|]+/g,"-").replace(/\.docx$/i,"")+".docx";
    if(await pmjChild(dir,dn0,"file")||await pmjChild(dir,pmjTxtName(q),"file")){var Q=pmjQnParts(q.f.qn),names=(await pmjList(dir)).filter(function(h){return h.kind==="file";}).map(function(h){return h.name;}),nx=Q?pmqdNextSub(q.f.qn,pmjSubIn(names,Q)):"";
@@ -2476,32 +2513,48 @@ function pmjPickJobTxt(names,qn){var c=names.filter(function(n){return pmjJobTxt
  var k=pmjQnKey(qn),hit=c.filter(function(n){return pmjQnKey(n.replace(/job[\s_-]*details.*$/i,"")).replace(/^QUOTES?/,"")===k;});
  return hit.length===1?hit[0]:null;}
 function pmjFillFrom(J,q,src){var f=q.f||{};J.f.client=f.client||"";J.f.contact=f.contact||"";J.f.email=f.email||"";J.f.addr=pmPropJoin(q,"site");J.f.qn=f.qn||J.qn;J.src=src;}
+function pmjReadText(file){if(file.text)return file.text();return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result);};r.onerror=rej;r.readAsText(file);});}
+function pmjReadBuf(file){if(file.arrayBuffer)return file.arrayBuffer();return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result);};r.onerror=rej;r.readAsArrayBuffer(file);});}
 async function pmjDraftFromDocx(file){
- var buf=await file.arrayBuffer(),ents=cuZipEntries(buf),dec=new TextDecoder();
+ var buf=await pmjReadBuf(file),ents=cuZipEntries(buf),dec=new TextDecoder();
  for(var i=0;i<ents.length;i++){var e=ents[i];if(!/^customXml\/item\d+\.xml$/i.test(e.name))continue;var x=dec.decode(await cuZipRead(buf,e));
   if(x.indexOf(PMQD_NS)<0)continue;var m=x.match(/<eoDraft[^>]*>([^<]+)<\/eoDraft>/);if(!m)continue;
   try{return JSON.parse(dec.decode(pmUnB64(m[1].replace(/\s+/g,"")))).quote;}catch(er){return null;}}
  return null;
 }
-async function pmjFind(){
- var J=PMJ.j;J.err="";J.out=null;J.folder=null;J.files=[];J.src="";
+/* details for quote qn from its folder: the app's Word quote for that number, else the job details file for that number */
+async function pmjDetailsFrom(all,qn){
+ var want=pmjQnNorm(qn),files=all.filter(function(h){return h.kind==="file"&&!/^~\$/.test(h.name);}),mine=function(re){return files.filter(function(h){return re.test(h.name)&&pmjFileQn(h.name)===want;});};
+ var docx=mine(/\.docx$/i),q=null;
+ for(var i=0;i<docx.length&&!q;i++){try{q=await pmjDraftFromDocx(await docx[i].getFile());if(q)return {q:q,src:"the Word quote in the folder ("+docx[i].name+")"};}catch(e){}}
+ var txts=files.filter(function(h){return pmjJobTxtRe().test(h.name);}),pick=pmjPickJobTxt(txts.map(function(h){return h.name;}),qn),t=txts.find(function(h){return h.name===pick&&(txts.length===1||pmjFileQn(h.name)===want);})||mine(pmjJobTxtRe())[0];
+ if(t){try{q=pmParseJob(await (await t.getFile()).text());if(q)return {q:q,src:"the job details file in the folder ("+t.name+")"};}catch(e){}}
+ return null;
+}
+async function pmjFind(given){
+ var J=PMJ.j;J.err="";J.out=null;J.folder=null;J.files=[];J.src="";J.exist=null;
  var qn=J.qn.trim();if(!qn){J.err="Enter the Quote # first.";pmRender();return;}
- var draft=PM.quotes.find(function(x){return (x.f.qn||"").trim().toUpperCase()===qn.toUpperCase();});
+ var draft=given?given.q:PM.quotes.find(function(x){return (x.f.qn||"").trim().toUpperCase()===qn.toUpperCase();});
  try{
   var list=await pmjFindQuoteFolders(qn,draft&&draft.f.client);
   if(!list.length){list=[];list.ask=true;}
   var dir=await pmjChoose("pm-jchoose",list,!list.length?"No folder in Quotes - Documents is named for quote "+qn+". Choose it yourself, or Cancel.":(list.ask?"Not sure which folder is quote "+qn+" (the files inside name a different quote) — which one?":"More than one folder could be quote "+qn+" — which one?"));if(!dir){pmRender();return;}
   J.folder=dir;var all=await pmjList(dir);J.files=all.map(function(h){return {name:h.kind==="directory"?h.name+"/":h.name,h:h};});
-  if(draft)pmjFillFrom(J,draft,"the draft on this computer");
-  else{
-   var docx=all.filter(function(h){return h.kind==="file"&&/\.docx$/i.test(h.name)&&!/^~\$/.test(h.name);}),txt=all.filter(function(h){return h.kind==="file"&&/job[ _-]?details.*\.txt$/i.test(h.name);}),q=null,src="";
-   for(var i=0;i<docx.length&&!q;i++){try{q=await pmjDraftFromDocx(await docx[i].getFile());if(q)src="the Word quote in the folder ("+docx[i].name+")";}catch(e){}}
-   if(!q&&txt.length){try{q=pmParseJob(await (await txt[0].getFile()).text());if(q)src="the job details file in the folder ("+txt[0].name+")";}catch(e){}}
-   if(q)pmjFillFrom(J,q,src);else{J.f.qn=qn;J.src="";}
-  }
+  if(draft)pmjFillFrom(J,draft,given?given.src:"the draft on this computer");
+  else{var D=await pmjDetailsFrom(all,qn);if(D)pmjFillFrom(J,D.q,D.src);else{J.f.qn=qn;J.src="";}}
   if(!J.f.qn)J.f.qn=qn;
+  if(J.job)await pmjCheckJob(true);
  }catch(e){J.err=e&&e.message||String(e);}
  pmRender();
+}
+/* a Word quote or job details file dropped on the Jobs view fills in Jobs (it is not opened as a draft under Quotes) */
+async function pmjDropFile(file){
+ var q=null;try{q=/\.docx$/i.test(file.name)?await pmjDraftFromDocx(file):(/\.txt$/i.test(file.name)?pmParseJob(await pmjReadText(file)):null);}catch(e){q=null;}
+ var keepJob=PMJ.j&&PMJ.j.job;PMJ.j=pmjNew();if(keepJob)PMJ.j.job=keepJob;var J=PMJ.j;
+ if(!q){J.err=/\.docx$/i.test(file.name)?"That Word file wasn’t made by Elevate Office, so it has no quote details inside — drop the job details .txt instead, or type the Quote #.":"Drop a Word quote made by the app or a job details .txt.";pmRender();return;}
+ var qn=(q.f&&q.f.qn||"").trim();if(!qn){J.err="No Quote # in "+file.name+" — type it in and Find quote folder.";pmjFillFrom(J,q,"the dropped file ("+file.name+")");pmRender();return;}
+ J.qn=qn;pmjFillFrom(J,q,"the dropped file ("+file.name+")");
+ if(PMJ.dirs.quotes)await pmjFind({q:q,src:"the dropped file ("+file.name+")"});else pmRender();
 }
 function pmjReady(J){var R=pmjRanges(J.job),why=[];if(!J.folder)why.push("find the quote folder");if(!R)why.push("enter the job number as 26-3466");if(!PMJ.dirs.jobs)why.push("connect Job Files - Documents");if(!pmjApprName(J.appr))why.push("set the approval date");return why;}
 async function pmjCopyInto(src,dst,job,top,rep,qn){
@@ -2510,8 +2563,42 @@ async function pmjCopyInto(src,dst,job,top,rep,qn){
   if(h.kind==="directory"){var sub=await dst.getDirectoryHandle(h.name,{create:true});await pmjCopyInto(h,sub,job,false,rep,qn);continue;}
   if(/^~\$|^desktop\.ini$|^thumbs\.db$/i.test(h.name))continue;
   var name=top&&h.name===jt?job+"-job details.txt":h.name;
+  if(top&&h.name===jt&&await pmjChild(dst,name,"file")){var alt=job+"-job details ("+String(qn||"").trim()+").txt";if(!(await pmjChild(dst,alt,"file")))name=alt;}
   if(await pmjChild(dst,name,"file")){rep.skipped.push(name);continue;}
   try{await pmjWrite(dst,name,await h.getFile());rep.copied.push(name===h.name?name:h.name+" → "+name);}catch(e){rep.failed.push(h.name+" ("+(e&&e.message||e)+")");}}
+}
+/* ---- an existing job folder: Add to existing job, and Tidy (older jobs without the Field / Office layout) ---- */
+var PMJ_JOBSUB=[["Field",["Data","Uploads"]],["Office",["Obsolete","Requests"]]];
+function pmjTidyDest(name,kind){if(/^(field|office)$/i.test(name))return null;if(kind==="directory"&&/^field[\s_-]*data$/i.test(name))return {into:"Field/Data",contents:true};if(kind==="directory"&&/^requests?$/i.test(name))return {into:"Office/Requests",contents:true};if(/^(desktop\.ini|thumbs\.db)$/i.test(name))return null;return {into:"Office",contents:false};}
+async function pmjJobDir(job,make){var R=pmjRanges(job);if(!R||!PMJ.dirs.jobs)return null;var root=await pmjDir("jobs",!!make),th=await pmjChild(root,R.th,"dir"),hu=th&&await pmjChild(th,R.hu,"dir"),jd=hu&&await pmjChild(hu,R.job,"dir");return jd?{dir:jd,R:R}:null;}
+async function pmjCheckJob(quiet){
+ var J=PMJ.j;if(!J)return;J.exist=null;
+ try{var X=await pmjJobDir(J.job,false);if(!X){if(!quiet)pmRender();return;}
+  var top=await pmjList(X.dir),plan=[],missing=[];
+  PMJ_JOBSUB.forEach(function(p){var d=top.find(function(h){return h.kind==="directory"&&h.name.toLowerCase()===p[0].toLowerCase();});if(!d)missing.push(p[0]);});
+  for(var i=0;i<top.length;i++){var h=top[i],t=pmjTidyDest(h.name,h.kind);if(!t)continue;
+   if(t.contents){var kids=await pmjList(h);plan.push({h:h,into:t.into,contents:true,n:kids.length});}else plan.push({h:h,into:t.into});}
+  J.exist={path:X.R.th+" › "+X.R.hu+" › "+X.R.job,plan:plan,missing:missing};
+ }catch(e){J.exist={err:(e&&e.message)||String(e)};}
+ if(!quiet)pmRender();
+}
+async function pmjTidyJob(){
+ var J=PMJ.j,E=J&&J.exist;if(!E||!E.plan)return;
+ var lines=E.plan.map(function(p){return (p.contents?"contents of “"+p.h.name+"” ("+p.n+")":"“"+p.h.name+"”")+" → "+p.into.replace("/"," › ");});
+ if(!confirm("Tidy job folder "+E.path+"?\n\nCreate Field › Data, Uploads and Office › Obsolete, Requests where missing, then move:\n"+lines.slice(0,25).join("\n")+(lines.length>25?"\n… and "+(lines.length-25)+" more":"")+"\n\nNothing is deleted or overwritten; anything the browser can’t move is listed for you to drag."))return;
+ var out={moved:0,left:[],why:"",made:[]};
+ try{var X=await pmjJobDir(J.job,true),jd=X.dir,dirs={};
+  for(var i=0;i<PMJ_JOBSUB.length;i++){var p=PMJ_JOBSUB[i],had=await pmjChild(jd,p[0],"dir"),d=await jd.getDirectoryHandle(p[0],{create:true});if(!had)out.made.push(p[0]);dirs[p[0]]=d;
+   for(var k=0;k<p[1].length;k++){var hs=await pmjChild(d,p[1][k],"dir");dirs[p[0]+"/"+p[1][k]]=await d.getDirectoryHandle(p[1][k],{create:true});if(!hs)out.made.push(p[0]+" › "+p[1][k]);}}
+  var mv=async function(h,dest,label){
+   if(out.why||typeof h.move!=="function"){if(!out.why)out.why="this browser can’t move "+(h.kind==="directory"?"folders":"files");out.left.push(label);return;}
+   if(await pmjChild(dest,h.name,h.kind==="directory"?"dir":"file")){out.left.push(label+" (one with that name is already there)");return;}
+   try{await h.move(dest);out.moved++;}catch(e){out.why=e&&(e.name==="NotSupportedError"||e.name==="NotAllowedError"||e.name==="InvalidModificationError")?"this browser can’t move "+(h.kind==="directory"?"folders":"files"):((e&&e.message)||String(e));out.left.push(label);}};
+  for(var j=0;j<E.plan.length;j++){var P=E.plan[j],dest=dirs[P.into];
+   if(P.contents){var kids=await pmjList(P.h);for(var m=0;m<kids.length;m++){var why0=out.why;out.why="";await mv(kids[m],dest,P.h.name+"/"+kids[m].name+" → "+P.into.replace("/"," › "));if(!out.why)out.why=why0;}}
+   else{var w0=out.why;out.why="";await mv(P.h,dest,P.h.name+" → "+P.into.replace("/"," › "));if(!out.why)out.why=w0;}}
+ }catch(e){out.err=(e&&e.message)||String(e);}
+ J.tidyOut=out;await pmjCheckJob(true);pmRender();
 }
 async function pmjCreate(){
  var J=PMJ.j,why=pmjReady(J);if(why.length){J.err="Before creating: "+why.join("; ")+".";pmRender();return;}
@@ -2519,19 +2606,31 @@ async function pmjCreate(){
  try{
   var root=await pmjDir("jobs",true),th=await pmjChild(root,R.th,"dir");
   if(!th){J.err="There’s no “"+R.th+"” folder in "+root.name+" — check the right folder is connected. Nothing was created.";pmRender();return;}
-  var hu=await pmjChild(th,R.hu,"dir"),newRange=!hu;
-  if(hu&&await pmjChild(hu,R.job,"dir")){J.err="The job folder "+R.th+" › "+R.hu+" › "+R.job+" already exists. Nothing was changed.";pmRender();return;}
-  if(!confirm("Create job folder "+R.job+"?\n\nJob Files - Documents › "+R.th+" › "+R.hu+" › "+R.job+(newRange?"\n(the "+R.hu+" folder will be created too)":"")+"\n\nand copy "+J.files.length+" item"+(J.files.length===1?"":"s")+" from "+J.folder.name+" into Office."))return;
+  var hu=await pmjChild(th,R.hu,"dir"),newRange=!hu,existing=!!(hu&&await pmjChild(hu,R.job,"dir"));
+  if(existing){if(!confirm("Job folder "+R.job+" already exists.\n\nAdd this quote to it?\n• copy "+J.files.length+" item"+(J.files.length===1?"":"s")+" from "+J.folder.name+" into Office (files already there are kept, never replaced)\n• add Office › Requests › "+pmjApprName(J.appr)+"\n• create Field / Office folders that are missing"))return;}
+  else if(!confirm("Create job folder "+R.job+"?\n\nJob Files - Documents › "+R.th+" › "+R.hu+" › "+R.job+(newRange?"\n(the "+R.hu+" folder will be created too)":"")+"\n\nand copy "+J.files.length+" item"+(J.files.length===1?"":"s")+" from "+J.folder.name+" into Office."))return;
   if(!hu)hu=await th.getDirectoryHandle(R.hu,{create:true});
   var jd=await hu.getDirectoryHandle(R.job,{create:true}),fd=await jd.getDirectoryHandle("Field",{create:true}),od=await jd.getDirectoryHandle("Office",{create:true});
   await fd.getDirectoryHandle("Data",{create:true});await fd.getDirectoryHandle("Uploads",{create:true});await od.getDirectoryHandle("Obsolete",{create:true});
   var rq=await od.getDirectoryHandle("Requests",{create:true}),ap=pmjApprName(J.appr);await rq.getDirectoryHandle(ap,{create:true});
   var rep={copied:[],skipped:[],failed:[]};await pmjPerm(J.folder,false);await pmjCopyInto(J.folder,od,R.job,true,rep,J.f.qn||J.qn);
-  J.out={path:R.th+" › "+R.hu+" › "+R.job,newRange:newRange?R.hu:"",appr:ap,rep:rep};
+  J.out={path:R.th+" › "+R.hu+" › "+R.job,newRange:newRange?R.hu:"",appr:ap,rep:rep,existing:existing};
+  if(existing)await pmjCheckJob(true);
   var d=PM.quotes.find(function(x){return (x.f.qn||"").trim().toUpperCase()===J.f.qn.trim().toUpperCase();});if(d){d.job=R.job;pmQuotesSave();}
  }catch(e){J.err=(e&&e.message)||String(e);}
  pmRender();
 }
+function pmjExistHtml(J){var E=J.exist,h="";
+ if(E&&E.err)h+="<div class='cu-err' style='display:block'>"+pmEsc(E.err)+"</div>";
+ if(E&&E.path){h+="<div class='cu-sfhit'><b>Job folder "+pmEsc(E.path)+" already exists.</b> "+(J.folder?"The button below adds this quote to it (new files only, plus the approval folder).":"Find the quote folder above to add this quote to it.");
+  if(E.plan.length||E.missing.length){h+="<div style='margin-top:6px'><b>Not in the usual layout</b>"+(E.missing.length?" (no "+E.missing.map(pmEsc).join(" / ")+" folder)":"")+" \u2014 Tidy this job folder would:<ul style='margin:4px 0 4px 18px'>"+(E.missing.length?"<li>create "+E.missing.map(function(m){return pmEsc(m)+(m==="Field"?" › Data, Uploads":" › Obsolete, Requests");}).join(" and ")+"</li>":"");
+   var grp={};E.plan.forEach(function(p){(grp[p.into]=grp[p.into]||[]).push(p.contents?"contents of "+p.h.name:p.h.name);});
+   Object.keys(grp).forEach(function(k){h+="<li><b>"+pmEsc(k.replace("/"," › "))+"</b> \u2190 "+grp[k].slice(0,14).map(pmEsc).join(" · ")+(grp[k].length>14?" … (+"+(grp[k].length-14)+")":"")+"</li>";});
+   h+="</ul><button class='btn' id='pm-jtidy'>Tidy this job folder</button> <span class='hint' style='margin:0'>you confirm first; nothing is deleted or overwritten</span></div>";}
+  else h+="<div class='hint' style='margin:4px 0 0'>Its Field / Office layout is already in order.</div>";
+  h+="</div>";}
+ var T=J.tidyOut;if(T){h+="<div class='"+(T.err?"cu-err":"cu-sfhit")+"' style='display:block'>"+(T.err?pmEsc(T.err):"<b>Tidy-up:</b> "+(T.made.length?"created "+T.made.map(pmEsc).join(", ")+". ":"")+"Moved "+T.moved+" item"+(T.moved===1?"":"s")+"."+(T.left.length?" <b>Drag these in File Explorer</b>"+(T.why?" ("+pmEsc(T.why)+")":"")+":<ul style='margin:4px 0 0 18px'>"+T.left.map(function(x){return "<li>"+pmEsc(x)+"</li>";}).join("")+"</ul>":"")+(T.moved?"<div class='hint' style='margin:4px 0 0'>Emptied folders such as “Field data” or “requests” are left in place \u2014 delete them yourself if you like.</div>":""))+"</div>";}
+ return h;}
 function pmjRender(host){
  var J=PMJ.j||(PMJ.j=pmjNew()),R=pmjRanges(J.job),why=pmjReady(J);
  var h=pmModeBar()+"<div class='pm-h'>Convert an accepted quote to a job</div>";
@@ -2539,17 +2638,18 @@ function pmjRender(host){
  h+="<div class='pm-step'><b>1</b> Accepted quote</div><div class='row'><label class='pm-f'><span>Quote #</span><input type='text' id='pm-jqn' class='mono' value='"+pmEsc(J.qn)+"' placeholder='26-561' style='width:140px'></label> <button class='btn pri' id='pm-jfind' style='align-self:flex-end'>Find quote folder</button></div><div id='pm-jchoose' style='display:none' class='cu-sfhit'></div>";
  if(J.folder)h+="<div class='pm-jfold'>Quote folder: <b>"+pmEsc(J.folder.name)+"</b> — "+J.files.length+" item"+(J.files.length===1?"":"s")+" to copy into Office"+(J.files.length?": <span class='hint' style='margin:0'>"+J.files.map(function(x){return pmEsc(x.name)+(x.name===pmjPickJobTxt(J.files.map(function(y){return y.name;}),J.f.qn||J.qn)&&R?" → "+pmEsc(R.job)+"-job details.txt":"");}).join(" · ")+"</span>":"")+"</div>";
  if(J.folder||J.src){var sm=[J.f.client,J.f.addr].map(function(v){return String(v||"").trim();}).filter(Boolean);h+="<p class='hint' style='margin:4px 0'>"+(sm.length?"<b>"+sm.map(pmEsc).join(" · ")+"</b> — from "+pmEsc(J.src)+". Check it’s the right quote.":"No draft or job details found in the folder — check the folder is the right quote.")+"</p>";}
- h+="<div class='pm-step'><b>2</b> Job number</div><div class='row'><label class='pm-f'><span>Job # (from the online app)</span><input type='text' id='pm-jno' class='mono' value='"+pmEsc(J.job)+"' placeholder='26-3466' style='width:140px'></label></div><p class='hint' style='margin:4px 0'>Enter the job in the online app first — it issues the job number.</p>";
+ h+="<div class='pm-step'><b>2</b> Job number</div><div class='row'><label class='pm-f'><span>Job # (from the online app)</span><input type='text' id='pm-jno' class='mono' value='"+pmEsc(J.job)+"' placeholder='26-3466' style='width:140px'></label></div><p class='hint' style='margin:4px 0'>Enter the job in the online app first — it issues the job number.</p>"+pmjExistHtml(J);
  h+="<div class='pm-step'><b>3</b> Job folder</div><div class='row'><label class='pm-f'><span>Approval date</span><input type='date' id='pm-jappr' value='"+pmEsc(J.appr)+"'></label></div>";
  h+="<pre class='pm-pre pm-tree'>"+(R?"Job Files - Documents › "+R.th+" › "+R.hu+" › "+R.job+"\n":"Job Files - Documents › … › (job #)\n")+"  Field\n    Data\n    Uploads\n  Office\n    "+(J.folder?"("+J.files.length+" item"+(J.files.length===1?"":"s")+" from the quote folder)\n    ":"")+"Obsolete\n    Requests\n      "+pmEsc(pmjApprName(J.appr)||"yy-mm-dd-approval")+"</pre>";
- h+="<div class='cu-dl'><button class='btn pri' id='pm-jcreate'"+(why.length?" disabled title='"+pmEsc("To do: "+why.join("; "))+"'":"")+">Create job folder</button><span class='hint' style='margin:0'>"+(why.length?"To do: "+pmEsc(why.join("; ")):"only adds folders and copies files — never deletes or overwrites")+"</span></div>";
+ h+="<div class='cu-dl'><button class='btn pri' id='pm-jcreate'"+(why.length?" disabled title='"+pmEsc("To do: "+why.join("; "))+"'":"")+">"+(J.exist&&J.exist.path?"Add to existing job":"Create job folder")+"</button><span class='hint' style='margin:0'>"+(why.length?"To do: "+pmEsc(why.join("; ")):"only adds folders and copies files — never deletes or overwrites")+"</span></div>";
  if(J.err)h+="<div class='cu-err' style='display:block'>"+pmEsc(J.err)+"</div>";
- if(J.out){var o=J.out,rp=o.rep;h+="<div class='cu-sfhit pm-jdone'><b>Job folder created:</b> Job Files - Documents › "+pmEsc(o.path)+(o.newRange?" (new range folder "+pmEsc(o.newRange)+")":"")+"<ul><li>Field › Data, Uploads · Office › Obsolete, Requests</li><li>"+rp.copied.length+" file"+(rp.copied.length===1?"":"s")+" copied into Office"+(rp.copied.length?": "+rp.copied.map(pmEsc).join(" · "):"")+"</li>"+(rp.skipped.length?"<li>Already there, left as is: "+rp.skipped.map(pmEsc).join(" · ")+"</li>":"")+(rp.failed.length?"<li class='cu-idbad'>Couldn’t copy: "+rp.failed.map(pmEsc).join(" · ")+"</li>":"")+"<li>Save the acceptance into Office › Requests › <b>"+pmEsc(o.appr)+"</b></li></ul>OneDrive uploads it in the background. <button class='btn' id='pm-jnext'>Convert another quote</button></div>";}
+ if(J.out){var o=J.out,rp=o.rep;h+="<div class='cu-sfhit pm-jdone'><b>"+(o.existing?"Added to existing job folder:":"Job folder created:")+"</b> Job Files - Documents › "+pmEsc(o.path)+(o.newRange?" (new range folder "+pmEsc(o.newRange)+")":"")+"<ul><li>Field › Data, Uploads · Office › Obsolete, Requests</li><li>"+rp.copied.length+" file"+(rp.copied.length===1?"":"s")+" copied into Office"+(rp.copied.length?": "+rp.copied.map(pmEsc).join(" · "):"")+"</li>"+(rp.skipped.length?"<li>Already there, left as is: "+rp.skipped.map(pmEsc).join(" · ")+"</li>":"")+(rp.failed.length?"<li class='cu-idbad'>Couldn’t copy: "+rp.failed.map(pmEsc).join(" · ")+"</li>":"")+"<li>Save the acceptance into Office › Requests › <b>"+pmEsc(o.appr)+"</b></li></ul>OneDrive uploads it in the background. <button class='btn' id='pm-jnext'>Convert another quote</button></div>";}
  h+=pmjFoldersHtml();
  host.innerHTML=h;pmWireMode(host);pmjWireFolders(host);
  var qi=document.getElementById("pm-jqn");qi.oninput=function(){J.qn=qi.value;};qi.onkeydown=function(e){if(e.key==="Enter")pmjFind();};
  document.getElementById("pm-jfind").onclick=pmjFind;
- var jn=document.getElementById("pm-jno");jn.oninput=function(){J.job=jn.value.trim();};jn.onchange=function(){pmRender();};
+ var jn=document.getElementById("pm-jno");jn.oninput=function(){J.job=jn.value.trim();};jn.onchange=function(){J.tidyOut=null;pmjCheckJob();};
+ var tb=document.getElementById("pm-jtidy");if(tb)tb.onclick=pmjTidyJob;
  document.getElementById("pm-jappr").onchange=function(){J.appr=this.value;pmRender();};
  document.getElementById("pm-jcreate").onclick=pmjCreate;
  var nx=document.getElementById("pm-jnext");if(nx)nx.onclick=function(){PMJ.j=pmjNew();pmRender();};
@@ -2557,11 +2657,15 @@ function pmjRender(host){
 function pmModeBar(){return "<div class='pm-mode seg'><button data-mode='quotes' class='"+(PM.mode!=="jobs"?"on":"")+"'>Quotes</button><button data-mode='jobs' class='"+(PM.mode==="jobs"?"on":"")+"'>Jobs</button></div>";}
 function pmWireMode(host){host.querySelectorAll("[data-mode]").forEach(function(b){b.onclick=function(){PM.mode=b.dataset.mode;sset("eo:pmmode",PM.mode);pmRender();};});}
 function pmjStartFromQuote(){var q=pmCurQ();if(!q)return;PMJ.j=pmjNew();PMJ.j.qn=(q.f.qn||"").trim();pmjFillFrom(PMJ.j,q,"the draft on this computer");PM.mode="jobs";sset("eo:pmmode","jobs");pmRender();if(PMJ.j.qn&&PMJ.dirs.quotes)pmjFind();}
-window.pmjSaveToQuoteFolder=pmjSaveToQuoteFolder;window.pmjStartFromQuote=pmjStartFromQuote;window.PMJ=PMJ;window.pmjRanges=pmjRanges;window.pmjFind=pmjFind;window.pmjCreate=pmjCreate;window.pmjSaveDir=pmjSaveDir;
+window.pmjDropFile=pmjDropFile;window.pmjCheckJob=pmjCheckJob;window.pmjTidyJob=pmjTidyJob;window.pmjSaveToQuoteFolder=pmjSaveToQuoteFolder;window.pmjStartFromQuote=pmjStartFromQuote;window.PMJ=PMJ;window.pmjRanges=pmjRanges;window.pmjFind=pmjFind;window.pmjCreate=pmjCreate;window.pmjSaveDir=pmjSaveDir;
 /* ---- Quotes view: create the next quote folder (only on the PM's click + confirmation; never automatic) ---- */
 function pmjYY(){return String(new Date().getFullYear()).slice(2);}
 function pmjQfName(qn,short){return "Elev. Survey Quotes "+qn+"-"+short;}
-function pmjShortName(q){var c=(q.f.contact||"").trim(),cl=(q.f.client||"").trim(),s=c?c.split(/[\s\/,]+/)[0]:cl;return s.replace(/[\\\/:*?"<>|]+/g,"").replace(/\s+/g," ").trim();}
+/* folder / Word file name: the client (brackets and e-mail addresses dropped) or the contact's first name — the PM picks; client first */
+function pmjNameClean(s){return String(s||"").replace(/\([^)]*\)|<[^>]*>|\S+@\S+/g," ").replace(/[\\\/:*?"<>|]+/g,"").replace(/\s+/g," ").trim().replace(/[-,;.\s]+$/,"");}
+function pmjNameBy(q){var cl=pmjNameClean(q.f.client),c=pmjNameClean((q.f.contact||"").split(/[\/,;]/)[0]);if(q.nameBy==="contact"&&c)return "contact";if(cl)return "client";return c?"contact":"client";}
+function pmjNameFor(q,by){by=by||pmjNameBy(q);var cl=pmjNameClean(q.f.client),c=pmjNameClean((q.f.contact||"").split(/[\/,;]/)[0]);c=c?c.split(/\s+/)[0]:"";return by==="contact"?(c||cl):(cl||c);}
+function pmjShortName(q){return pmjNameFor(q);}
 function pmjPad(n){return ("00"+n).slice(-3);}
 function pmjRangeName(yy,h){var lo=h*100;return "Elev. Survey Quotes "+yy+"-"+pmjPad(lo||1)+"-"+yy+"-"+pmjPad(lo+99);}
 /* everything needed to pick the next number and offer the usual tidy-up */
@@ -2580,12 +2684,14 @@ async function pmjQuotePlan(root,yy,N){
  }
  return plan;
 }
+function pmjByHtml(q){var cl=pmjNameFor(q,"client"),c=pmjNameFor(q,"contact");var a=pmjNameClean(q.f.client).toLowerCase(),b=pmjNameClean((q.f.contact||"").split(/[\/,;]/)[0]).toLowerCase();if(!a||!b||a===b||cl===c)return "";var by=pmjNameBy(q);
+ return "<div class='hint' style='margin:4px 0 0'>Name by: <label class='cu-cb' style='display:inline'><input type='radio' name='pm-qfby' value='client'"+(by==="client"?" checked":"")+"> Client ("+pmEsc(cl)+")</label> <label class='cu-cb' style='display:inline'><input type='radio' name='pm-qfby' value='contact'"+(by==="contact"?" checked":"")+"> Contact ("+pmEsc(c)+")</label> \u2014 the Word file name follows</div>";}
 function pmjQfHtml(q){
  if(!pmjFsOk()||!PMJ.dirs.quotes)return "";var P=PMJ.qf&&PMJ.qf.id===q.id?PMJ.qf:null;
  var h="<div class='pm-qf'>";
  if(q.qfolder)h+="<span class='pm-dok'>Quote folder: "+pmEsc(q.qfolder)+"</span>";
  else if(!P)h+="<button class='btn' id='pm-qfnew' title='finds the next free quote number in Quotes - Documents and creates its folder — only after you confirm'>"+((q.f.qn||"").trim()?"Create quote folder for "+pmEsc(q.f.qn.trim()):"Create next quote folder")+"</button><span class='hint' id='pm-qfhint' style='margin:0"+(pmjShortName(q)?";display:none":"")+"'>needs the client or contact name</span>";
- else{h+="<div class='cu-sfhit'>Create <b>Quotes - Documents › "+pmEsc(pmjQfName(P.qn,""))+"</b><input type='text' id='pm-qfshort' value='"+pmEsc(P.short)+"' style='width:180px'> ? <button class='btn pri' id='pm-qfok'>Create folder</button> <button class='btn' id='pm-qfno'>Cancel</button>"+(P.note?"<div class='hint' style='margin:4px 0 0'>"+pmEsc(P.note)+"</div>":"");
+ else{h+="<div class='cu-sfhit'>Create <b>Quotes - Documents › "+pmEsc(pmjQfName(P.qn,""))+"</b><input type='text' id='pm-qfshort' value='"+pmEsc(P.short)+"' style='width:200px'> ? <button class='btn pri' id='pm-qfok'>Create folder</button> <button class='btn' id='pm-qfno'>Cancel</button>"+pmjByHtml(q)+(P.note?"<div class='hint' style='margin:4px 0 0'>"+pmEsc(P.note)+"</div>":"");
   (P.tidy||[]).concat(P.year||[]).forEach(function(t,i){var first=t.items[0].name.replace(/^Elev\. Survey Quotes /,""),last=t.items[t.items.length-1].name.replace(/^Elev\. Survey Quotes /,"");
    h+="<label class='cu-cb' style='margin-top:6px'><input type='checkbox' class='pm-qftidy' data-i='"+i+"' checked> Also tidy up as usual: move "+t.items.length+" folder"+(t.items.length===1?"":"s")+" ("+pmEsc(first)+(t.items.length>1?" … "+pmEsc(last):"")+") into <b>"+pmEsc(t.dest)+"</b>"+(P.top.some(function(e){return e.h.name.toLowerCase()===t.dest.toLowerCase();})?"":" (creates it)")+"</label>";});
   h+="</div>";}
@@ -2634,7 +2740,7 @@ async function pmjQfCreate(){
  }catch(e){PMJ.qfMsg={bad:true,t:pmEsc(e&&e.message||String(e))};}
  pmRender();
 }
-function pmjWireQf(host){var a=document.getElementById("pm-qfnew");if(a)a.onclick=pmjQfStart;var b=document.getElementById("pm-qfok");if(b)b.onclick=pmjQfCreate;var c=document.getElementById("pm-qfno");if(c)c.onclick=function(){PMJ.qf=null;pmRender();};var s=document.getElementById("pm-qfshort");if(s)s.onkeydown=function(e){if(e.key==="Enter")pmjQfCreate();};}
+function pmjWireQf(host){host.querySelectorAll("input[name='pm-qfby']").forEach(function(r){r.onchange=function(){var q=pmCurQ();if(!q)return;q.nameBy=r.value;pmQuotesSave();var el=document.getElementById("pm-qfshort");if(el)el.value=pmjNameFor(q,r.value);if(PMJ.qf)PMJ.qf.short=pmjNameFor(q,r.value);var dn=document.getElementById("pm-docname");if(dn&&!dn.value)dn.placeholder=pmqDefaultName(q);};});var a=document.getElementById("pm-qfnew");if(a)a.onclick=pmjQfStart;var b=document.getElementById("pm-qfok");if(b)b.onclick=pmjQfCreate;var c=document.getElementById("pm-qfno");if(c)c.onclick=function(){PMJ.qf=null;pmRender();};var s=document.getElementById("pm-qfshort");if(s)s.onkeydown=function(e){if(e.key==="Enter")pmjQfCreate();};}
 window.pmjQfStart=pmjQfStart;window.pmjQfCreate=pmjQfCreate;
 /* ---------- PM tab: encrypted vault + quote builder ---------- */
 function pmEsc(v){return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
@@ -2686,7 +2792,9 @@ function pmShort(r){return r.short||r.label;}
 function pmCalc(q){
  var V=PM.vault,out={secs:[],labour:0,quoted:0,anyQuote:false,roleHrs:{},disb:0,disbParts:[]};
  q.secs.forEach(function(s,ix){pmqNorm(s);var sec={name:pmqFill(s.name,s.fills).trim()||(q.secs.length>1?"Service "+(ix+1):""),status:s.status,rows:[],total:0,ov:pmqOverride(s)};
-  V.rates.forEach(function(r){var h=pmNum(s.hrs[r.id]);if(h<=0)return;var amt=h*r.rate;sec.rows.push({r:r,h:h,amt:amt});sec.total+=amt;if(s.status==="inc")out.roleHrs[r.id]=(out.roleHrs[r.id]||0)+h;});
+  /* stages (trips) of one service: each keeps its own hours; together they are the service's hours, price and total */
+  var STG=(s.stg||[]),H=STG.length?{}:s.hrs;sec.stages=STG.map(function(g,j){var e={lab:(g.lab||"").trim()||("Stage "+(j+1)),rows:[],total:0};V.rates.forEach(function(r){var h=pmNum(g.hrs&&g.hrs[r.id]);if(h<=0)return;H[r.id]=(H[r.id]||0)+h;e.rows.push({r:r,h:h,amt:h*r.rate});e.total+=h*r.rate;});return e;});
+  V.rates.forEach(function(r){var h=pmNum(H[r.id]);if(h<=0)return;var amt=h*r.rate;sec.rows.push({r:r,h:h,amt:amt});sec.total+=amt;if(s.status==="inc")out.roleHrs[r.id]=(out.roleHrs[r.id]||0)+h;});
   sec.quote=(sec.ov&&sec.ov.num!=null)?sec.ov.num:sec.total;
   /* extra price lines (e.g. "Any future trips"): own hours and price, never in the totals */
   sec.plab=(s.plab||"").trim();sec.extra=(s.pl||[]).map(function(l,j){var e={lab:(l.lab||"").trim()||("Price line "+(j+2)),rows:[],total:0,ov:pmqOvP(l.price)};
@@ -2699,7 +2807,16 @@ function pmCalc(q){
  var oa=pmNum(q.other.amt);if(oa>0){out.disb+=oa;out.disbParts.push((q.other.label||"other")+" ("+pmMoney(oa,false)+")");}
  out.total=out.quoted+out.disb;return out;
 }
-function pmTimeLine(C,kind){return PM.vault.rates.filter(function(r){return r.kind===kind&&C.roleHrs[r.id];}).map(function(r){var h=C.roleHrs[r.id];return pmH(h)+" hr"+(h===1?"":"s")+" "+pmShort(r);}).join(" + ");}
+function pmTimeLine(C,kind){
+ var hrs=function(h){return pmH(h)+" hr"+(h===1?"":"s");},stg=C.secs.filter(function(s){return s.status==="inc"&&(s.stages||[]).length;});
+ if(!stg.length)return PM.vault.rates.filter(function(r){return r.kind===kind&&C.roleHrs[r.id];}).map(function(r){var h=C.roleHrs[r.id];return hrs(h)+" "+pmShort(r);}).join(" + ");
+ /* with stages: field time listed per stage, office time per role with the stages in brackets ("3.0 hrs CAD TECH (1.5 legal + excavation layout + …)") */
+ var plain={},parts=[],off={};
+ C.secs.forEach(function(s){if(s.status!=="inc")return;if(!(s.stages||[]).length){s.rows.forEach(function(x){if(x.r.kind===kind)plain[x.r.id]=(plain[x.r.id]||0)+x.h;});return;}
+  s.stages.forEach(function(g){g.rows.forEach(function(x){if(x.r.kind!==kind)return;if(kind==="field")parts.push(hrs(x.h)+" "+pmShort(x.r)+" ("+g.lab.toLowerCase()+")");else{(off[x.r.id]=off[x.r.id]||{h:0,b:[]}).h+=x.h;off[x.r.id].b.push(pmH(x.h)+" "+g.lab.toLowerCase());}});});});
+ var out=PM.vault.rates.filter(function(r){return r.kind===kind&&plain[r.id];}).map(function(r){return hrs(plain[r.id])+" "+pmShort(r);}).concat(parts);
+ PM.vault.rates.forEach(function(r){var o=off[r.id];if(o)out.push(hrs(o.h)+" "+pmShort(r)+(o.b.length>1?" ("+o.b.join(" + ")+")":" ("+o.b[0].replace(/^[\d.]+ /,"")+")"));});
+ return out.join(" + ");}
 /* per-service breakdown under the Estimated Time lines (only when the quote has more than one service with hours) */
 function pmTimeSvc(C,kind,L){
  var hs=C.secs.filter(function(s){return s.rows.length||(s.extra||[]).some(function(e){return e.rows.length;});}),anyX=hs.some(function(s){return (s.extra||[]).length;});if(hs.length<2&&!anyX)return;
@@ -2727,11 +2844,13 @@ function pmJobText(q){
   var hrl=function(x){return (x.r.kind==="field"?"Field: ":"Office: ")+pmH(x.h)+" hr"+(x.h===1?"":"s")+" "+pmShort(x.r)+" x "+pmMoney(x.r.rate,false)+"/hr = "+pmMoney(x.amt);};
   shown.forEach(function(s){
    var suf=s.status==="opt"?" (optional \u2014 not in total)":(s.status==="option"?" (option \u2014 not in total)":""),X=s.extra||[];
-   if(multi||s.name||suf||X.length)L.push(s.name+suf+":");
+   if(multi||s.name||suf||X.length||(s.stages||[]).length)L.push(s.name+suf+":");
+   var G=s.stages||[],stageBlock=function(){G.forEach(function(g,j){L.push("Stage "+(j+1)+" \u2014 "+g.lab+":");g.rows.forEach(function(x){L.push(hrl(x));});});};
+   if(G.length&&!X.length){stageBlock();if(s.rows.length)L.push((s.name||"Service")+" Labour: "+pmMoney(s.total)+(s.quoted?" (quoted "+pmMoney(s.ov.num)+")":""));return;}
    if(X.length){
     /* several prices for one service: each price line keeps its own hours; only price line 1 counts in the totals */
     var p1=s.plab||"Price line 1";L.push("Price line 1 \u2014 "+p1+":");
-    s.rows.forEach(function(x){L.push(hrl(x));});
+    if(G.length)stageBlock();else s.rows.forEach(function(x){L.push(hrl(x));});
     if(!s.rows.length&&s.ov&&s.ov.num!=null)L.push("Quoted price: "+pmMoney(s.ov.num));else if(s.rows.length)L.push(p1+" Labour: "+pmMoney(s.total)+(s.quoted?" (quoted "+pmMoney(s.ov.num)+")":""));
     X.forEach(function(e,j){L.push("Price line "+(j+2)+" \u2014 "+e.lab+" (per trip, not in total):");e.rows.forEach(function(x){L.push(hrl(x));});
      if(!e.rows.length&&e.ov&&e.ov.num!=null)L.push("Quoted price: "+pmMoney(e.ov.num));else if(e.rows.length)L.push(e.lab+" Labour: "+pmMoney(e.total)+(e.quoted?" (quoted "+pmMoney(e.ov.num)+")":""));});
@@ -2789,9 +2908,9 @@ function pmRenderMain(host){
  if(PM.rowMsg){h+="<div class='cu-sfhit' id='pm-rowdone'>"+pmEsc(PM.rowMsg)+"</div>";PM.rowMsg="";}
  h+="<div class='pm-savedrow'>"+pmUnsavedCount()+(PM.tidied?"<span class='hint' style='margin:0 0 0 12px'>"+PM.tidied+" quote"+(PM.tidied>1?"s":"")+" saved to "+(PM.tidied>1?"their folders":"its folder")+" and untouched for 30+ days "+(PM.tidied>1?"were":"was")+" tidied off this computer \u2014 the downloaded files remain the record.</span>":"")+"</div>";
  if(q&&q.importRep){var R=q.importRep,msg;
-  if(R.sub)msg="Sub-quote of <b>"+pmEsc(R.sub)+"</b> \u2014 client, site and every service carried over. Remove any services not needed with \u2715, then build the quote."+(R.subNote?"<div>"+pmEsc(R.subNote)+"</div>":"");
-  else if(R.fromDocx)msg="Opened"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 the draft saved inside the Word quote."+(R.wordDiffs&&R.wordDiffs.length?"<div>Taken from the Word file: "+R.wordDiffs.map(pmEsc).join(" \u00b7 ")+"</div>":"");
-  else msg="Imported"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 "+R.read+" hour line"+(R.read===1?"":"s")+" read."+(R.unread.length?"<div class='cu-idbad' style='font-weight:400'>Couldn't read \u2014 enter manually: "+R.unread.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.rateDiff.length?"<div>Rates in the file differ from current (current rates are used): "+R.rateDiff.map(pmEsc).join("; ")+"</div>":"");
+  if(R.sub)msg="Sub-quote of <b>"+pmEsc(R.sub)+"</b> \u2014 client, site and every service carried over. Remove any services not needed with \u2715, then build the quote."+(R.subNote?"<div>"+pmEsc(R.subNote)+"</div>":"")+(R.pmWas?"<div>"+pmEsc(R.pmWas)+"</div>":"");
+  else if(R.fromDocx)msg="Opened"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 the draft saved inside the Word quote."+(R.wordDiffs&&R.wordDiffs.length?"<div>Taken from the Word file: "+R.wordDiffs.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.pmWas?"<div>"+pmEsc(R.pmWas)+"</div>":"");
+  else msg="Imported"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 "+R.read+" hour line"+(R.read===1?"":"s")+" read."+(R.unread.length?"<div class='cu-idbad' style='font-weight:400'>Couldn't read \u2014 enter manually: "+R.unread.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.rateDiff.length?"<div>Rates in the file differ from current (current rates are used): "+R.rateDiff.map(pmEsc).join("; ")+"</div>":"")+(R.pmWas?"<div>"+pmEsc(R.pmWas)+"</div>":"");
   h+="<div class='cu-sfhit' id='pm-imprep'>"+msg+" <button class='btn' id='pm-impok'>OK</button></div>";}
  if(!q){h+="<p class='hint'>No quotes on this device yet — tap New quote.</p>"+pmRatesHtml()+pmqFavsHtml()+pmjFoldersHtml();host.innerHTML=h;pmWireMain(host,null);return;}
  h+=pmjQfHtml(q);
@@ -2829,7 +2948,7 @@ function pmWireMain(host,q){
  host.querySelectorAll("[data-xp]").forEach(function(el){el.oninput=function(){var p=(q.xp||[])[+el.dataset.xp];if(p){p[el.dataset.k]=el.value;save();}};});
  host.querySelectorAll("[data-xpx]").forEach(function(el){el.onclick=function(e){e.preventDefault();q.xp.splice(+el.dataset.xpx,1);q.updated=Date.now();pmQuotesSave();pmRender();};});
  var ap=document.getElementById("pm-addprop");if(ap)ap.onclick=function(){q.xp=q.xp||[];q.xp.push({site:"",legal:"",pid:""});q.updated=Date.now();pmQuotesSave();pmRender();var i=host.querySelectorAll("[data-xp][data-k='site']");if(i.length)i[i.length-1].focus();};
- host.querySelectorAll(".pm-hr").forEach(function(el){el.oninput=function(){var s=q.secs[+el.dataset.s],H=el.dataset.l!=null?((s.pl[+el.dataset.l]||{}).hrs||{}):s.hrs;if(el.value.trim())H[el.dataset.r]=el.value.trim();else delete H[el.dataset.r];save();};});
+ host.querySelectorAll(".pm-hr").forEach(function(el){el.oninput=function(){var s=q.secs[+el.dataset.s],H=el.dataset.l!=null?((s.pl[+el.dataset.l]||{}).hrs||{}):(el.dataset.g!=null?((s.stg[+el.dataset.g]||{}).hrs||{}):s.hrs);if(el.value.trim())H[el.dataset.r]=el.value.trim();else delete H[el.dataset.r];save();};});
  host.querySelectorAll(".pm-dn").forEach(function(el){el.oninput=function(){q.disb[el.dataset.d]=el.value;save();};});
  document.getElementById("pm-olab").oninput=function(){q.other.label=this.value;save();};
  document.getElementById("pm-oamt").oninput=function(){q.other.amt=this.value;save();};
@@ -2841,8 +2960,9 @@ function pmWireMain(host,q){
 }
 function pmUpdate(){
  var q=pmCurQ();if(!q)return;var C=pmCalc(q);
- q.secs.forEach(function(s,ix){var sets=[["",s.hrs]].concat((s.pl||[]).map(function(l,j){return ["[data-l='"+j+"']",l.hrs||{}];}));
-  sets.forEach(function(S){var tot=0,nl=S[0]?"":":not([data-l])";PM.vault.rates.forEach(function(r){var el=document.querySelector(".pm-amt[data-s='"+ix+"'][data-r='"+r.id+"']"+(S[0]||nl));var h=pmNum(S[1][r.id]);if(el)el.textContent=h>0?pmMoney(h*r.rate):"";if(h>0)tot+=h*r.rate;});var st=document.querySelector(".pm-stot[data-s='"+ix+"']"+(S[0]||nl));if(st)st.textContent=pmMoney(tot);});});
+ q.secs.forEach(function(s,ix){var sets=[["",s.hrs]].concat((s.pl||[]).map(function(l,j){return ["[data-l='"+j+"']",l.hrs||{}];}),(s.stg||[]).map(function(g,j){return ["[data-g='"+j+"']",g.hrs||{}];}));
+  var at=document.querySelector(".pm-stot-all[data-s='"+ix+"']");if(at)at.textContent=pmMoney(C.secs[ix]?C.secs[ix].total:0);
+  sets.forEach(function(S){var tot=0,nl=S[0]?"":":not([data-l]):not([data-g])";PM.vault.rates.forEach(function(r){var el=document.querySelector(".pm-amt[data-s='"+ix+"'][data-r='"+r.id+"']"+(S[0]||nl));var h=pmNum(S[1][r.id]);if(el)el.textContent=h>0?pmMoney(h*r.rate):"";if(h>0)tot+=h*r.rate;});var st=document.querySelector(".pm-stot[data-s='"+ix+"']"+(S[0]||nl));if(st)st.textContent=pmMoney(tot);});});
  var t=document.getElementById("pm-tot");
  if(t)t.innerHTML="<div><span>Field time (included services)</span><b>"+pmEsc(pmTimeLine(C,"field")||"—")+"</b></div><div><span>Draft time (included services)</span><b>"+pmEsc(pmTimeLine(C,"office")||"—")+"</b></div><div><span>Total labour</span><b>"+pmMoney(C.labour)+"</b></div>"+(C.anyQuote?"<div><span>Total quoted</span><b>"+pmMoney(C.quoted)+"</b></div>":"")+"<div><span>Disbursements</span><b>"+pmMoney(C.disb)+"</b></div><div class='pm-grand'><span>Total before GST</span><b>"+pmMoney(C.total)+"</b></div>";
  document.querySelectorAll(".pmq-price input.pmq-f").forEach(function(el){var sc=C.secs[+el.dataset.s],m=/^pl:(\d+):price$/.exec(el.dataset.p||"");if(sc&&m)sc=sc.extra[+m[1]];else if(el.dataset.p!=="price")return;if(sc)el.placeholder=sc.total>0?"calculated "+pmMoney(sc.total):"calculated";});
@@ -2943,7 +3063,7 @@ function pmParseJob(text){
  sub.forEach(function(st){
   if(!st||/^(field|office)\s*:?$/i.test(st))return;
   var qm=st.match(/\(quoted\s+\$([\d,.]+)\)/i)||st.match(/^quoted price:\s*\$([\d,.]+)/i);
-  if(qm){if(!cur){cur={name:"",hrs:{}};q.secs.push(cur);tgt=cur;}(tgt||cur).price=pmNum(qm[1]).toFixed(2);return;}
+  if(qm){if(!cur){cur={name:"",hrs:{}};q.secs.push(cur);tgt=cur;}(tgt&&!tgt._stage?tgt:cur).price=pmNum(qm[1]).toFixed(2);return;}
   if(/^total|^disbursements|labour\s*(\([^)]*\))?\s*:/i.test(st)&&/\$/.test(st))return;
   var body=st.replace(/^(field|office)\s*:\s*/i,""),m=body.match(HR);
   if(m){var id=pmRole(m[2]);if(!id){rep.unread.push(st);return;}
@@ -2951,13 +3071,16 @@ function pmParseJob(text){
    var T=tgt||cur;T.hrs[id]=String(pmNum(T.hrs[id])+parseFloat(m[1]));rep.read++;
    var r=PM.vault.rates.find(function(x){return x.id===id;}),fr=pmNum(m[3]);if(r&&Math.abs(fr-r.rate)>0.001)rep.rateDiff.push((r.short||r.label)+": file $"+fr+", current $"+r.rate);
    return;}
+  var sgm=st.match(/^stage\s*(\d+)\s*[\u2014-]+\s*(.*?):$/i);
+  if(sgm){if(!cur){cur={name:"",hrs:{}};q.secs.push(cur);}cur.stg=cur.stg||[];var sg={lab:sgm[2].trim(),hrs:{}};cur.stg.push(sg);tgt=sg;tgt._stage=1;return;}
   var plm=st.match(/^price line (\d+)\s*[\u2014-]+\s*(.*?)(?:\s*\(per trip, not in total\))?:$/i);
   if(plm){if(!cur){cur={name:"",hrs:{}};q.secs.push(cur);}var pn=+plm[1];
    if(pn<=1){cur.plab=plm[2].trim();tgt=cur;}else{cur.pl=cur.pl||[];var nl={lab:plm[2].trim(),hrs:{},price:""};cur.pl.push(nl);tgt=nl;}return;}
   if(/:$/.test(st)&&!/\$/.test(st)){var nm=st.replace(/:$/,"").trim(),stt="inc",sm=nm.match(/\s*\((optional|option)\s*[\u2014-]+\s*not in total\)$/i);if(sm){stt=sm[1].toLowerCase()==="optional"?"opt":"option";nm=nm.slice(0,sm.index).trim();}cur={name:nm,hrs:{},status:stt};q.secs.push(cur);tgt=cur;return;}
   if(/\d\s*hrs?\b/i.test(st))rep.unread.push(st);
  });
- q.secs=q.secs.filter(function(s){return Object.keys(s.hrs).length||s.price||(s.pl||[]).length;});
+ q.secs.forEach(function(s){(s.stg||[]).forEach(function(g){delete g._stage;});});
+ q.secs=q.secs.filter(function(s){return Object.keys(s.hrs).length||s.price||(s.pl||[]).length||(s.stg||[]).length;});
  if(q.secs.length===1&&!sub.some(function(x){return /:$/.test(x)&&!/\$/.test(x)&&!/^(field|office)\s*:$/i.test(x);}))q.secs[0].name="";
  /* fallback: Estimated Field/Draft Time lines */
  if(!q.secs.length){var one={name:"",hrs:{}};
@@ -2985,7 +3108,7 @@ function pmImportText(text,fname){
  if(!PM.key){alert("Unlock the PM tab first.");return null;}
  var q=pmParseJob(text);
  if(!q){alert("That doesn't look like a job details file — no Client / Quote# fields found.");return null;}
- q.importRep.file=fname||"";
+ q.importRep.file=fname||"";pmqdKeepMine(q,q.importRep);
  var qn=(q.f.qn||"").trim(),ex=qn?PM.quotes.find(function(x){return (x.f.qn||"").trim()===qn;}):null;
  if(ex&&confirm("A draft for "+qn+" already exists on this device.\n\nOK = replace that draft with the file\nCancel = open the file as a separate draft")){q.id=ex.id;PM.quotes=PM.quotes.filter(function(x){return x!==ex;});}
  PM.quotes.unshift(q);PM.cur=q.id;pmQuotesSave();pmRender();return q;
