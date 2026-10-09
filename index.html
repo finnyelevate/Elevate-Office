@@ -264,6 +264,13 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .jobnote{width:100%;color:#a32020;font-size:13px;padding:6px 2px 0}
 #tb-job.needjob{outline:2px solid #a32020;outline-offset:2px}
 .cu-mtsum{font-size:13.5px;margin:10px 0 6px}
+.au-lockbar{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+/* Auto tab layout fixes (kept in index.html so the encrypted module needn't be rebuilt): the Layout / Plans PDF pane stays in view while you scroll the form; drop-zone button no longer overlaps its text */
+#autohost .au-right{position:sticky;top:64px;align-self:start}
+#autohost .au-pane{position:static;max-height:calc(100vh - 120px);overflow:auto}
+#autohost .au-pdfwrap{max-height:calc(100vh - 190px)}
+#autohost .au-svg{max-height:calc(100vh - 170px)}
+#autohost #au-drop label.btn{display:inline-block}
 .pm-lock{max-width:420px;background:var(--panel);border:1px solid var(--hair);border-top:4px solid var(--blue);padding:16px}
 .pm-lock h3{font:600 14px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
 .pm-err{color:#a32020;font-size:13px;min-height:18px;margin-top:6px}
@@ -411,6 +418,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
     <button data-v="training">Training</button>
     <button data-v="cleanup">Points</button>
     <button data-v="pm">PM</button>
+    <button data-v="auto">Auto</button>
     <button data-v="resources">Resources</button>
   </nav>
   <div class="bno" id="bno"></div>
@@ -701,6 +709,12 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
   <div id="pmhost"></div>
 </div>
 
+<div class="view" id="v-auto">
+  <h1 class="pg">Auto — building layout</h1>
+  <p class="sub">Foundation, post lines and 4 ft excavation from the designer's plans, placed on our lot lines. Locked with its own passphrase.</p>
+  <div id="autohost"></div>
+</div>
+
 <div class="view" id="v-resources">
   <h1 class="pg">Resources</h1>
   <p class="sub">Reference links used across jobs.</p>
@@ -746,8 +760,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.26";
-const NEWS=["Stages within a service (e.g. excavation layout / building layout / forms certificate), each with its own hours, all in one price.", "Quote folder and Word file named by the client (or the contact, your choice); your name stays the Project Manager on imported quotes.", "Numbered sub-quotes (24-165-3) and sub-quotes from just the Quote #.", "Jobs: drop a file to fill it in, Add to existing job, and Tidy this job folder for older jobs."];
+const BUILD="1.28";
+const NEWS=["Auto: lot from the legal plan — type the courses, see the closure and area, place the house before the site visit.", "Quotes: Legal Plan to close Road job type (checklist fee added).", "Quotes: strata package for townhouse / condo projects — four one-line services, project line under the site address, prices per unit or per building."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
 const CHECKLISTS=[
@@ -1967,7 +1981,7 @@ function pmqItems(arr){return (arr||[]).map(function(l){return {t:l[0],on:!l[1],
 function pmqNorm(s){
  if(!s.hrs)s.hrs={};if(s.name==null)s.name="";if(!Array.isArray(s.lines))s.lines=[];if(!Array.isArray(s.notes))s.notes=[];
  if(!s.fills)s.fills={};if(!s.status)s.status="inc";if(s.price==null)s.price="";if(s.lead==null)s.lead="";if(s.type==null)s.type="";if(!s.ver)s.ver="approved";
- if(!Array.isArray(s.pl))s.pl=[];s.pl.forEach(function(l){if(!l.hrs)l.hrs={};if(l.lab==null)l.lab="";if(l.price==null)l.price="";});if(s.plab==null)s.plab="";if(s.pnote==null)s.pnote="";if(!Array.isArray(s.stg))s.stg=[];s.stg.forEach(function(g){if(!g.hrs)g.hrs={};if(g.lab==null)g.lab="";});
+ if(!Array.isArray(s.pl))s.pl=[];s.pl.forEach(function(l){if(!l.hrs)l.hrs={};if(l.lab==null)l.lab="";if(l.price==null)l.price="";});if(s.plab==null)s.plab="";if(s.pnote==null)s.pnote="";if(s.per==null)s.per="";if(s.cnt==null)s.cnt="";if(s.up==null)s.up="";if(!Array.isArray(s.stg))s.stg=[];s.stg.forEach(function(g){if(!g.hrs)g.hrs={};if(g.lab==null)g.lab="";});
  return s;
 }
 /* construction job types open with their usual stages (the scope lines), hours blank */
@@ -1984,7 +1998,24 @@ function pmqCardTokens(s){
 function pmqUnfilled(s){return pmqCardTokens(s).filter(function(k){var v=s.fills[k.label];return !(v&&String(v).trim())&&!k.def;});}
 /* price text typed by the PM: a number is a price; anything else ("Hourly", "$90 per unit") prints as written */
 function pmqOvP(v){var p=String(v||"").trim();if(!p)return null;if(/^\$?\s*[\d,]+(\.\d+)?$/.test(p))return {num:pmNum(p)};return {text:p};}
-function pmqOverride(s){return pmqOvP(s.price);}
+/* per-unit / per-building pricing: count x unit price; prints "$90 per unit (total $1,800)", the total counts in the job */
+var PMQ_PER={unit:["unit","units"],building:["building","buildings"]};
+function pmqPerCalc(s){var w=PMQ_PER[s&&s.per];if(!w)return null;var n=pmNum(s.cnt),u=pmNum(s.up);if(!(n>0&&u>0))return {w:w,n:n,u:u,tot:null};return {w:w,n:n,u:u,tot:Math.round(n*u*100)/100};}
+function pmqOverride(s){var c=pmqPerCalc(s);if(c){if(c.tot==null)return null;return {num:c.tot,text:pmMoney(c.u,false)+" per "+c.w[0]+" (total "+pmMoney(c.tot,false)+")",how:c.n+" "+(c.n===1?c.w[0]:c.w[1])+" \u00d7 "+pmMoney(c.u,false)};}return pmqOvP(s.price);}
+function pmqHow(ov){return ov&&ov.how?" ("+ov.how+")":"";}
+/* packages: several one-line services loaded together (townhouse / condo strata) */
+var PMQ_PKGS=[{id:"strata",label:"Strata package (townhouse / condo / mixed)",ids:["strata_pk_prelim","strata_pk_layout","strata_pk_post","strata_pk_final"],close:1}];
+function pmqHourlyNote(q){var R=(PM.vault&&PM.vault.rates)||[],g=function(id){var r=R.find(function(x){return x.id===id;});return r?pmMoney(r.rate,false)+"/hr":null;};
+ if(q&&q.rs)return "Any additional work or significant revisions to be billed at hourly rates (see the attached hourly rate sheet)";
+ var p=[["Field","f2"],["Office","cad"],["BCLS","bcls"]].map(function(x){var v=g(x[1]);return v?x[0]+" \u2013 "+v:null;}).filter(Boolean);
+ return "Any additional work or significant revisions to be billed at hourly rates"+(p.length?" ("+p.join("; ")+")":"");}
+function pmqLoadPkg(id){var q=pmCurQ(),K=PMQ_PKGS.find(function(k){return k.id===id;});if(!q||!K)return;
+ var E=K.ids.map(pmqLibById);if(E.some(function(e){return !e;})){alert("This package needs the 1.28 library \u2014 upload the new pm-vault.json to the site, then reload.");return;}
+ var blank=function(s){return !pmqFill(s.name,s.fills).trim()&&!s.type&&!Object.keys(s.hrs||{}).some(function(k){return pmNum(s.hrs[k])>0;})&&!String(s.price||"").trim();};
+ if(q.secs.length===1&&blank(q.secs[0]))q.secs=[];
+ E.forEach(function(e,j){var s=pmqApplyLib(pmqNorm({name:"",hrs:{}}),e);s.price="";if(K.close&&j===E.length-1)s.notes.push({t:pmqHourlyNote(q),on:true,why:""});q.secs.push(s);});
+ q.updated=Date.now();pmQuotesSave();pmRender();}
+function pmqPkgHtml(){return PMQ_PKGS.map(function(k){return "<button class='btn' data-pkg='"+k.id+"' title='adds its services as separate one-line items \u2014 remove any not needed with \u2715'>+ "+pmEsc(k.label)+"</button>";}).join("");}
 /* price-line labels offered in the pick-list (free text allowed) */
 var PMQ_PLABS=["1st trip / setup","1st trip to setup","Each additional trip","Any future trips","Per visit"];
 var PMQ_RSNOTE="The price above covers 3 trips to site (additional trips billed hourly based on time \u2014 see the attached hourly rate sheet)";
@@ -2040,7 +2071,9 @@ function pmqCardHtml(q,s,ix){
  if(s.stg.length){s.stg.forEach(function(g,j){h+="<div class='pmq-pl pmq-stg'><div class='pmq-plh'><b>Stage "+(j+1)+"</b> <input type='text' class='pmq-f' data-s='"+ix+"' data-p='stg:"+j+":lab' value='"+pmEsc(g.lab)+"' placeholder='e.g. Excavation layout' style='width:260px'><span style='flex:1'></span><button class='pmq-mini' data-act='iup' data-s='"+ix+"' data-p='stg:"+j+"' title='move stage up'>↑</button><button class='pmq-mini' data-act='idn' data-s='"+ix+"' data-p='stg:"+j+"' title='move stage down'>↓</button><button class='pmq-mini' data-act='stgrm' data-s='"+ix+"' data-p='stg:"+j+"' title='remove this stage'>✕</button></div>"+pmqRateTable(s,ix,j,g.hrs,"Labour — stage "+(j+1),"g")+"</div>";});
   h+="<table class='pm-rt'><tr class='pm-sub'><td></td><td colspan='3'>Labour — all stages"+(many?" (price line 1)":"")+"</td><td class='pm-stot-all' data-s='"+ix+"' style='font-family:IBM Plex Mono,monospace;text-align:right;min-width:90px'></td></tr></table>";}
  else h+=pmqRateTable(s,ix,null,s.hrs,many?"Labour — price line 1":"Labour — this service");
- h+="<div class='pmq-price'><label>Price on the quote <input type='text' class='pmq-f' data-s='"+ix+"' data-p='price' value='"+pmEsc(s.price)+"' placeholder='calculated' style='width:170px'></label><span class='hint' style='margin:0'>leave blank to use the calculation, or type a price, “Hourly”, “$90 per unit”…</span></div>"+(many?"</div>":"");
+ var pc=pmqPerCalc(s),perSel="<select class='pmq-per' data-s='"+ix+"' title='flat price, or a price per unit / per building'><option value=''"+(s.per?"":" selected")+">Flat price</option><option value='unit'"+(s.per==="unit"?" selected":"")+">Per unit</option><option value='building'"+(s.per==="building"?" selected":"")+">Per building</option></select>";
+ if(pc)h+="<div class='pmq-price'>"+perSel+"<label>Number of "+pc.w[1]+" <input type='text' inputmode='decimal' class='pmq-f' data-s='"+ix+"' data-p='cnt' value='"+pmEsc(s.cnt)+"' style='width:70px'></label><label>Price per "+pc.w[0]+" <input type='text' inputmode='decimal' class='pmq-f' data-s='"+ix+"' data-p='up' value='"+pmEsc(s.up)+"' placeholder='$' style='width:100px'></label><span class='hint pmq-pertot' style='margin:0'>"+(pc.tot!=null?"On the quote: "+pmEsc(pmqOverride(s).text):"enter the number and the price")+"</span></div>"+(many?"</div>":"");
+ else h+="<div class='pmq-price'>"+perSel+"<label>Price on the quote <input type='text' class='pmq-f' data-s='"+ix+"' data-p='price' value='"+pmEsc(s.price)+"' placeholder='calculated' style='width:170px'></label><span class='hint' style='margin:0'>leave blank to use the calculation, or type a price or “Hourly”</span></div>"+(many?"</div>":"");
  s.pl.forEach(function(l,j){
   h+="<div class='pmq-pl'><div class='pmq-plh'><b>Price line "+(j+2)+"</b> <input type='text' class='pmq-f' data-s='"+ix+"' data-p='pl:"+j+":lab' value='"+pmEsc(l.lab)+"' placeholder='label, e.g. Any future trips' list='pmq-plabs' style='width:220px'><span class='hint' style='margin:0'>per trip \u2014 shown on the quote, not in the job total</span><span style='flex:1'></span><button class='pmq-mini' data-act='plrm' data-s='"+ix+"' data-p='pl:"+j+"' title='remove this price line'>✕</button></div>";
   h+=pmqRateTable(s,ix,j,l.hrs,"Labour — price line "+(j+2));
@@ -2057,7 +2090,7 @@ function pmqWire(host,q){
   el.oninput=function(){var s=q.secs[+el.dataset.s],P=pmqPath(s,el.dataset.p);
    if(P.k==="fill")s.fills[P.j]=el.value;else if(P.k==="lines"||P.k==="notes")s[P.k][P.j].t=el.value;else if(P.k==="pl"){if(s.pl[P.j])s.pl[P.j][P.sub]=el.value;}else if(P.k==="stg"){if(s.stg[P.j])s.stg[P.j][P.sub]=el.value;}else s[P.k]=el.value;
    save();};
-  el.onchange=function(){var P=pmqPath(null,el.dataset.p);if(P.k==="fill"||/\[\[/.test(el.value)||P.k==="name")pmqRerender();};
+  el.onchange=function(){var P=pmqPath(null,el.dataset.p);if(P.k==="fill"||/\[\[/.test(el.value)||P.k==="name"||P.k==="cnt"||P.k==="up")pmqRerender();};
  });
  /* pasting several lines (e.g. a list from a client's email) into a scope line or note makes one line each */
  host.querySelectorAll(".pmq-lt").forEach(function(el){el.addEventListener("paste",function(e){var t=(e.clipboardData||window.clipboardData);t=t?t.getData("text"):"";
@@ -2068,11 +2101,13 @@ function pmqWire(host,q){
   q.updated=Date.now();pmQuotesSave();pmRender();});});
  host.querySelectorAll(".pmq-on").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s],P=pmqPath(s,el.dataset.p);s[P.k][P.j].on=el.checked;save();pmqRerender();};});
  host.querySelectorAll(".pmq-type").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s],e=pmqLibById(el.value);
-  if(e)pmqApplyLib(s,e);else{s.type="";s.ver="approved";}save();pmRender();};});
+  if(e){pmqApplyLib(s,e);if(e.disb){q.disb=q.disb||{};Object.keys(e.disb).forEach(function(k){if(pmNum(q.disb[k])<pmNum(e.disb[k]))q.disb[k]=e.disb[k];});}}else{s.type="";s.ver="approved";}save();pmRender();};});
  host.querySelectorAll(".pmq-ver").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s];
   if(el.value==="approved"){var e=pmqLibById(s.type);if(e)pmqApplyLib(s,e);else{s.ver="approved";}}
   else{var f=pmqFavs().find(function(x){return x.id===el.value;});if(f)pmqApplyFav(s,f);}save();pmRender();};});
  host.querySelectorAll(".pmq-status").forEach(function(el){el.onchange=function(){q.secs[+el.dataset.s].status=el.value;save();pmRender();};});
+ host.querySelectorAll(".pmq-per").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s];s.per=el.value;if(s.per&&!String(s.up||"").trim()&&pmqOvP(s.price)&&pmqOvP(s.price).num!=null)s.up=String(pmqOvP(s.price).num);save();pmRender();};});
+ host.querySelectorAll("[data-pkg]").forEach(function(b){b.onclick=function(){pmqLoadPkg(b.dataset.pkg);};});
  host.querySelectorAll("[data-act]").forEach(function(b){b.onclick=function(){var ix=+b.dataset.s,s=q.secs[ix],a=b.dataset.act,P=b.dataset.p?pmqPath(s,b.dataset.p):null;
   if(a==="up"&&ix>0){q.secs.splice(ix-1,0,q.secs.splice(ix,1)[0]);}
   else if(a==="dn"&&ix<q.secs.length-1){q.secs.splice(ix+1,0,q.secs.splice(ix,1)[0]);}
@@ -2110,8 +2145,9 @@ function pmqSiteLines(q){var A=pmProps(q).map(function(p){return String(p.site||
   if(!m){groups.push({nums:null,rest:a});return;}var key=m[2].toLowerCase().replace(/\s+/g," ");
   if(by[key])by[key].nums.push(m[1]);else{by[key]={nums:[m[1]],rest:m[2]};groups.push(by[key]);}});
  return groups.map(function(g){if(!g.nums)return g.rest;var n=g.nums;return (n.length===1?n[0]:n.slice(0,-1).join(", ")+" & "+n[n.length-1])+" "+g.rest;});}
-function pmqSiteBar(q){var L=pmqSiteLines(q),many=pmProps(q).filter(function(p){return (p.site||"").trim();}).length>1;
- if(L.length<=1)return pmqPara("EQSite",pmqRun((many?"Site addresses: ":"Site address: ")+(L[0]||"")));
+function pmqSiteBar(q){var L=pmqSiteLines(q),many=pmProps(q).filter(function(p){return (p.site||"").trim();}).length>1,pj=String(q.f.proj||"").replace(/\s*\n\s*/g," ").trim();
+ if(L.length<=1)return pmqPara("EQSite",pmqRun((many?"Site addresses: ":"Site address: ")+(L[0]||""))+(pj?"<w:r><w:br/></w:r>"+pmqRun(pj):""));
+ if(pj)L=L.concat([pj]);
  return pmqPara("EQSite",pmqRun("Site addresses:")+"<w:r><w:tab/></w:r>"+L.map(function(l,i){return (i?"<w:r><w:br/><w:tab/></w:r>":"")+pmqRun(l);}).join(""),"<w:tabs><w:tab w:val=\"left\" w:pos=\"2100\"/></w:tabs>");}
 function pmqPara(st,inner,extra){return "<w:p><w:pPr><w:pStyle w:val=\""+st+"\"/>"+(extra||"")+"</w:pPr>"+inner+"</w:p>";}
 function pmqDate(d){return ["January","February","March","April","May","June","July","August","September","October","November","December"][d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();}
@@ -2787,7 +2823,7 @@ function pmNewQuote(){
 function pmCurQ(){return PM.quotes.find(function(q){return q.id===PM.cur;})||null;}
 function pmNum(v){var n=parseFloat(String(v==null?"":v).replace(/[$,\s]/g,""));return isNaN(n)?0:n;}
 function pmMoney(v,cents){var s=(cents===false&&Math.abs(v-Math.round(v))<0.005)?String(Math.round(v)):v.toFixed(2);return "$"+s.replace(/^(\d+)/,function(m){return m.replace(/\B(?=(\d{3})+$)/g,",");});}
-function pmH(h){return (+h).toFixed(1);}
+function pmH(h){var r=Math.round((+h)*100)/100;return Math.abs(r*10-Math.round(r*10))<1e-9?r.toFixed(1):String(r);}
 function pmShort(r){return r.short||r.label;}
 function pmCalc(q){
  var V=PM.vault,out={secs:[],labour:0,quoted:0,anyQuote:false,roleHrs:{},disb:0,disbParts:[]};
@@ -2809,7 +2845,8 @@ function pmCalc(q){
 }
 function pmTimeLine(C,kind){
  var hrs=function(h){return pmH(h)+" hr"+(h===1?"":"s");},stg=C.secs.filter(function(s){return s.status==="inc"&&(s.stages||[]).length;});
- if(!stg.length)return PM.vault.rates.filter(function(r){return r.kind===kind&&C.roleHrs[r.id];}).map(function(r){var h=C.roleHrs[r.id];return hrs(h)+" "+pmShort(r);}).join(" + ");
+ var withK=C.secs.filter(function(s){return s.status==="inc"&&s.rows.some(function(x){return x.r.kind===kind;});});
+ if(!stg.length||withK.length>1)return PM.vault.rates.filter(function(r){return r.kind===kind&&C.roleHrs[r.id];}).map(function(r){var h=C.roleHrs[r.id];return hrs(h)+" "+pmShort(r);}).join(" + ");
  /* with stages: field time listed per stage, office time per role with the stages in brackets ("3.0 hrs CAD TECH (1.5 legal + excavation layout + …)") */
  var plain={},parts=[],off={};
  C.secs.forEach(function(s){if(s.status!=="inc")return;if(!(s.stages||[]).length){s.rows.forEach(function(x){if(x.r.kind===kind)plain[x.r.id]=(plain[x.r.id]||0)+x.h;});return;}
@@ -2820,9 +2857,12 @@ function pmTimeLine(C,kind){
 /* per-service breakdown under the Estimated Time lines (only when the quote has more than one service with hours) */
 function pmTimeSvc(C,kind,L){
  var hs=C.secs.filter(function(s){return s.rows.length||(s.extra||[]).some(function(e){return e.rows.length;});}),anyX=hs.some(function(s){return (s.extra||[]).length;});if(hs.length<2&&!anyX)return;
- var pt=function(rows){return rows.filter(function(x){return x.r.kind===kind;}).map(function(x){return pmH(x.h)+" hr"+(x.h===1?"":"s")+" "+pmShort(x.r);});};
+ var pt=function(rows,stg){return rows.filter(function(x){return x.r.kind===kind;}).map(function(x){
+  /* a staged service shows which stage the hours are for: 8.0 hrs 2 MAN CREW (4.0 excavation layout + 2.0 foundation layout + 2.0 forms certificate) */
+  var b=(stg||[]).map(function(g){var y=g.rows.find(function(z){return z.r.id===x.r.id;});return y?pmH(y.h)+" "+g.lab.toLowerCase():null;}).filter(Boolean);
+  return pmH(x.h)+" hr"+(x.h===1?"":"s")+" "+pmShort(x.r)+(b.length>1?" ("+b.join(" + ")+")":(b.length===1&&(stg||[]).length>1?" ("+b[0].replace(/^[\d.]+ /,"")+")":""));});};
  hs.forEach(function(s){var nm=s.name||("Service "+(C.secs.indexOf(s)+1)),suf=s.status==="opt"?" (optional \u2014 not in total)":(s.status==="option"?" (option \u2014 not in total)":""),X=s.extra||[];
-  var parts=pt(s.rows);if(parts.length)L.push("   "+nm+(X.length&&s.plab?" \u2014 "+s.plab:"")+suf+": "+parts.join(" + "));
+  var parts=pt(s.rows,s.stages);if(parts.length)L.push("   "+nm+(X.length&&s.plab?" \u2014 "+s.plab:"")+suf+": "+parts.join(" + "));
   X.forEach(function(e){var p=pt(e.rows);if(p.length)L.push("   "+nm+" \u2014 "+e.lab+" (per trip, not in total): "+p.join(" + "));});});
 }
 function pmJobText(q){
@@ -2851,12 +2891,12 @@ function pmJobText(q){
     /* several prices for one service: each price line keeps its own hours; only price line 1 counts in the totals */
     var p1=s.plab||"Price line 1";L.push("Price line 1 \u2014 "+p1+":");
     if(G.length)stageBlock();else s.rows.forEach(function(x){L.push(hrl(x));});
-    if(!s.rows.length&&s.ov&&s.ov.num!=null)L.push("Quoted price: "+pmMoney(s.ov.num));else if(s.rows.length)L.push(p1+" Labour: "+pmMoney(s.total)+(s.quoted?" (quoted "+pmMoney(s.ov.num)+")":""));
+    if(!s.rows.length&&s.ov&&s.ov.num!=null)L.push("Quoted price: "+pmMoney(s.ov.num)+pmqHow(s.ov));else if(s.rows.length)L.push(p1+" Labour: "+pmMoney(s.total)+(s.quoted?" (quoted "+pmMoney(s.ov.num)+")":""));
     X.forEach(function(e,j){L.push("Price line "+(j+2)+" \u2014 "+e.lab+" (per trip, not in total):");e.rows.forEach(function(x){L.push(hrl(x));});
-     if(!e.rows.length&&e.ov&&e.ov.num!=null)L.push("Quoted price: "+pmMoney(e.ov.num));else if(e.rows.length)L.push(e.lab+" Labour: "+pmMoney(e.total)+(e.quoted?" (quoted "+pmMoney(e.ov.num)+")":""));});
+     if(!e.rows.length&&e.ov&&e.ov.num!=null)L.push("Quoted price: "+pmMoney(e.ov.num)+pmqHow(e.ov));else if(e.rows.length)L.push(e.lab+" Labour: "+pmMoney(e.total)+(e.quoted?" (quoted "+pmMoney(e.ov.num)+")":""));});
     return;}
    s.rows.forEach(function(x){L.push(hrl(x));});
-   if(!s.rows.length)L.push("Quoted price: "+pmMoney(s.ov.num));
+   if(!s.rows.length)L.push("Quoted price: "+pmMoney(s.ov.num)+pmqHow(s.ov));
    else if(multi||s.quoted)L.push(s.name+" Labour: "+pmMoney(s.total)+(s.quoted?" (quoted "+pmMoney(s.ov.num)+")":""));
   });
   L.push("Total Labour"+(multi?" (Sublabour)":"")+": "+pmMoney(C.labour));
@@ -2917,7 +2957,7 @@ function pmRenderMain(host){
  h+="<div class='pm-grid'>"+PM_FIELDS.map(function(fd){if(fd[0]==="legal"||fd[0]==="pid")return "";if(fd[0]==="site")return pmPropsHtml(q);var v=q.f[fd[0]]||"";return "<label class='pm-f"+(fd[3]?" wide":"")+"'><span>"+fd[1]+(fd[0]==="qn"?" <b class='pm-req'>required to save</b>":"")+"</span>"+(fd[3]?"<textarea data-f='"+fd[0]+"' rows='3'>"+pmEsc(v)+"</textarea>":"<input type='text' data-f='"+fd[0]+"' value='"+pmEsc(v)+"' placeholder='"+pmEsc(fd[2])+"'"+(fd[0]==="qn"?" id='pm-qn' class='mono'":"")+">")+"</label>";}).join("")+"</div>";
  h+="<div class='pm-h'>Services &amp; rate calculation</div><p class='hint' style='margin:0 0 8px'>Each service is one numbered item on the Word quote and one section of the job details calculation. Pick a job type to load the approved wording; everything can then be edited for this quote.</p>";
  q.secs.forEach(function(s,ix){pmqNorm(s);h+=pmqCardHtml(q,s,ix);});
- h+="<button class='btn' onclick='pmAddSec()'>+ Add service</button>";
+ h+="<div class='row' style='gap:8px;flex-wrap:wrap'><button class='btn' onclick='pmAddSec()'>+ Add service</button>"+pmqPkgHtml()+"</div>";
  h+="<div class='pm-h'>Disbursements</div><div class='pm-disb'>"+(V.disb||[]).map(function(d){return "<label><span>"+pmEsc(d.label.replace(/^./,function(c){return c.toUpperCase();}))+" "+pmMoney(d.price,false)+"</span><input type='number' min='0' step='1' class='pm-dn' data-d='"+d.id+"' value='"+pmEsc(q.disb[d.id]||0)+"'></label>";}).join("")+"<label><span>Other</span><input type='text' id='pm-olab' value='"+pmEsc(q.other.label)+"' placeholder='description' style='width:150px'> <input type='text' inputmode='decimal' id='pm-oamt' value='"+pmEsc(q.other.amt)+"' placeholder='$' style='width:80px'></label></div>";
  h+="<div class='pm-tot' id='pm-tot'></div>";
  h+="<div class='pm-h'>Field Crew Instructions</div><div class='row'>"+((V.fci||[]).length?"<select id='pm-fcisel'>"+V.fci.map(function(o,i){return "<option value='"+i+"'>"+pmEsc(o.label)+"</option>";}).join("")+"</select> <button class='btn' id='pm-fciins'>Insert</button>":"")+"<span class='hint' style='margin:0 0 0 8px'>options are edited under Rates &amp; crew instructions</span></div><textarea id='pm-fci' rows='6' class='pm-ta'>"+pmEsc(q.fci)+"</textarea>";
@@ -2977,7 +3017,8 @@ function pmPropsHtml(q){var P=pmProps(q),multi=P.length>1;
   return "<div class='pm-prop'>"+(multi?"<div class='pm-proph'>Property "+(i+1)+(i?" <button class='cu-srcx' data-xpx='"+(i-1)+"' title='remove this property'>\u2715</button>":"")+"</div>":"")+
    "<div class='pm-propg'><label class='pm-f'><span>Site Address</span><input type='text' "+at("site")+" value='"+pmEsc(p.site)+"'></label><label class='pm-f'><span>PID</span><input type='text' "+at("pid")+" value='"+pmEsc(p.pid)+"' class='mono'></label>"+
    "<label class='pm-f wide'><span>Legal Desc.</span><textarea "+at("legal")+" rows='2'>"+pmEsc(p.legal)+"</textarea></label></div></div>";}).join("")+
-  "<button class='btn' id='pm-addprop'>+ Add another property</button></div>";}
+  "<button class='btn' id='pm-addprop'>+ Add another property</button>"+
+  "<label class='pm-f wide' style='margin-top:8px'><span>Project line (optional) \u2014 prints under the site address on the quote</span><input type='text' data-f='proj' value='"+pmEsc(q.f.proj||"")+"' placeholder='e.g. 5 BUILDING (TWENTY UNITS) TOWNHOUSE COMPLEX'></label></div>";}
 /* ---- new quote(s) from To Do Quotes rows: select the row(s) in Excel, Ctrl+C, then Ctrl+V on the PM tab (or the paste box) ---- */
 var PM_ROWCOLS=["qn","client","contact","email","phone","site","services","task","date","assigned","pmc"];
 function pmTsv(text){var rows=[],row=[],cell="",i=0,q=false,t=String(text).replace(/\r\n?/g,"\n");
@@ -3117,6 +3158,43 @@ function pmImportFile(file){var r=new FileReader();if(/\.docx$/i.test(file.name)
 function pmOnView(){var v=document.getElementById("v-pm");return v&&v.classList.contains("on");}
 window.pmImportText=pmImportText;window.pmNewFromRows=pmNewFromRows;window.pmPasteBox=pmPasteBox;window.pmTsv=pmTsv;window.pmImportFile=pmImportFile;window.pmParseJob=pmParseJob;window.pmOnView=pmOnView;
 window.pmFciAdd=pmFciAdd;window.pmLock=pmLock;window.pmNewQ=pmNewQ;window.pmAddSec=pmAddSec;window.pmDownload=pmDownload;window.pmCopyJob=pmCopyJob;window.pmCopyRow=pmCopyRow;window.pmSaveOptions=pmSaveOptions;window.pmUnlock=pmUnlock;window.pmJobText=pmJobText;window.pmCalc=pmCalc;window.PM=PM;window.pmTrackerRow=pmTrackerRow;window.pmRender=pmRender;
+/* ---------- Auto tab: separate passphrase; the tab's code lives encrypted in auto-vault.json ---------- */
+var AUTO={key:null,busy:false,err:"",loaded:false};
+function autoLoadVaultFile(){
+ var local=null;try{local=JSON.parse(sget("eo:autovault")||"null");}catch(e){}
+ return fetch("auto-vault.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(remote){sset("eo:autovault",JSON.stringify(remote));return remote;}).catch(function(){return local;});
+}
+function autoStart(payload){
+ if(!AUTO.loaded){(new Function(payload.src))();AUTO.loaded=true;}
+ var host=document.getElementById("autohost");host.innerHTML="";
+ var bar=document.createElement("div");bar.className="au-lockbar";bar.innerHTML="<span class='hint'>Auto unlocked on this computer"+(sget("eo:autokey")?" (remembered)":"")+".</span> <button class='btn ghost au-sm' id='au-lock'>Lock</button>";
+ host.appendChild(bar);var m=document.createElement("div");host.appendChild(m);
+ document.getElementById("au-lock").onclick=function(){sdel("eo:autokey");location.reload();};
+ window.EOAuto.mount(m);
+}
+function autoRenderLock(){
+ var host=document.getElementById("autohost");
+ host.innerHTML="<div class='pm-lock'><h3>Locked</h3><p class='hint' style='margin:0 0 10px'>Auto is encrypted. Enter the Auto passphrase (it's separate from the PM passphrase).</p><div class='row'><input type='password' id='au-pass' autocomplete='off' style='width:300px' placeholder='passphrase'> <button class='btn pri' id='au-unlock'>Unlock</button></div><label class='cu-cb'><input type='checkbox' id='au-remember'> Remember on this computer</label><div class='hint' id='au-err' style='color:#a32020;margin-top:6px'>"+esc(AUTO.err||"")+"</div></div>";
+ var go=function(){autoUnlock(document.getElementById("au-pass").value,document.getElementById("au-remember").checked);};
+ document.getElementById("au-unlock").onclick=go;document.getElementById("au-pass").onkeydown=function(e){if(e.key==="Enter")go();};
+}
+function autoUnlock(pass,remember){
+ if(AUTO.busy)return Promise.resolve();AUTO.busy=true;var e0=document.getElementById("au-err");if(e0)e0.textContent="Unlocking…";
+ var vfile;
+ return autoLoadVaultFile().then(function(vf){if(!vf)throw new Error("novault");vfile=vf;return pmDerive(pass,pmUnB64(vf.salt),vf.iter);})
+ .then(function(key){return pmDecrypt(vfile,key).catch(function(){throw new Error("badpass");}).then(function(p){AUTO.key=key;
+   var st=remember?crypto.subtle.exportKey("raw",key).then(function(raw){sset("eo:autokey",JSON.stringify({salt:vfile.salt,k:pmB64(raw)}));}):Promise.resolve();
+   return st.then(function(){AUTO.busy=false;AUTO.err="";try{autoStart(p);}catch(e){throw new Error("start:"+(e&&e.message||e));}});});})
+ .catch(function(err){var m=err&&err.message||"";AUTO.busy=false;AUTO.key=null;sdel("eo:autokey");AUTO.err=m==="novault"?"Couldn't load auto-vault.json — check it's uploaded next to index.html and you're online once.":(m.indexOf("start:")===0?"Unlocked, but the Auto tab couldn't start ("+m.slice(6)+"). Reload the page; if it keeps happening, tell Finny.":"Wrong passphrase.");autoRenderLock();});
+}
+function autoAuto(){
+ var st=null;try{st=JSON.parse(sget("eo:autokey")||"null");}catch(e){}
+ if(!st||!window.crypto||!crypto.subtle)return Promise.resolve(false);
+ return autoLoadVaultFile().then(function(vf){if(!vf||vf.salt!==st.salt)throw 0;
+  return crypto.subtle.importKey("raw",pmUnB64(st.k),{name:"AES-GCM"},true,["encrypt","decrypt"]).then(function(key){return pmDecrypt(vf,key).then(function(p){AUTO.key=key;autoStart(p);return true;});});
+ }).catch(function(){sdel("eo:autokey");return false;});
+}
+(function(){var b=document.querySelector("nav button[data-v='auto']");if(b)b.addEventListener("click",function(){if(!AUTO.key)autoAuto().then(function(ok){if(!ok)autoRenderLock();});});autoRenderLock();})();
 (function(){var b=document.querySelector("nav button[data-v='pm']");if(b)b.addEventListener("click",function(){if(!PM.key)pmAutoUnlock().then(function(){pmRender();});});pmRender();})();
 
 
@@ -3298,6 +3376,15 @@ function cuSteps(rec,codedPts){
  if(m)push("tconn","TCONN \u2192 TCON",1,"TCON"+(m[1]||""));
  if(/(^|\s)SPK(\s|$)/i.test(d)&&!/(^|\s)OSPK(\s|$)/i.test(d.replace(/(^|\s)SPK(\s|$)/i,"$1$2")))
   push("spk","SPK \u2192 OSPK",1,d.replace(/(^|\s)SPK(?=\s|$)/i,"$1OSPK"));
+ /* tree sizes typed with units ("TDEC 5CM 50", "TFIR 30 CM 2M"): diameter to plain cm, drip line to plain m */
+ var tu=d.split(/\s+/),tcode=(tu[0]||"").toUpperCase();
+ if((CU_TREES.indexOf(tcode)>=0||tcode==="TSTUMP")&&tu.length>=2){
+  var tj=[tu[0]];for(var ti=1;ti<tu.length;ti++){if(/^(CM|M)$/i.test(tu[ti])&&/^\d+(\.\d+)?$/.test(tj[tj.length-1])&&tj.length<=3)tj[tj.length-1]+=tu[ti];else tj.push(tu[ti]);}
+  var tch=false,um=function(x){return x.match(/^(\d+(?:\.\d+)?)(CM|M)$/i);};
+  var m1=tj[1]&&um(tj[1]);if(m1){tj[1]=m1[2].toUpperCase()==="CM"?m1[1]:cuTrimZeros(parseFloat(m1[1])*100);tch=true;}
+  var m2=tcode!=="TSTUMP"&&tj[2]&&um(tj[2]);if(m2){tj[2]=m2[2].toUpperCase()==="M"?m2[1]:cuTrimZeros(parseFloat(m2[1])/100);tch=true;}
+  if(tch)push("tunit","Tree sizes: units dropped (diameter in cm, drip line in m)",1,tj.join(" "));
+ }
  var tt=d.split(/\s+/);
  if(CU_TREES.indexOf((tt[0]||"").toUpperCase())>=0&&tt.length>=3&&/^\d+(\.\d+)?$/.test(tt[1])&&/^\d+(\.\d+)?$/.test(tt[2])&&parseFloat(tt[2])>25){
   var conv=tt.slice();conv[2]=cuTrimZeros(parseFloat(tt[2])/100);
