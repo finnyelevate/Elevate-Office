@@ -265,7 +265,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 #tb-job.needjob{outline:2px solid #a32020;outline-offset:2px}
 .cu-mtsum{font-size:13.5px;margin:10px 0 6px}
 .au-lockbar{display:flex;gap:10px;align-items:center;margin-bottom:10px}
-/* Auto tab layout fixes (kept in index.html so the encrypted module needn't be rebuilt): the Layout / Plans PDF pane stays in view while you scroll the form; drop-zone button no longer overlaps its text */
+/* locked tab layout */
 #autohost .au-right{position:sticky;top:64px;align-self:start}
 #autohost .au-pane{position:static;max-height:calc(100vh - 120px);overflow:auto}
 #autohost .au-pdfwrap{max-height:calc(100vh - 190px)}
@@ -710,8 +710,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </div>
 
 <div class="view" id="v-auto">
-  <h1 class="pg">Auto — building layout</h1>
-  <p class="sub">Foundation, post lines and 4 ft excavation from the designer's plans, placed on our lot lines. Locked with its own passphrase.</p>
+  <h1 class="pg">Auto</h1>
+  <p class="sub">Locked with its own passphrase.</p>
   <div id="autohost"></div>
 </div>
 
@@ -761,9 +761,9 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 <script>
 "use strict";
 const BUILD="1.28";
-const NEWS=["Auto: lot from the legal plan — type the courses, see the closure and area, place the house before the site visit.", "Quotes: Legal Plan to close Road job type (checklist fee added).", "Quotes: strata package for townhouse / condo projects — four one-line services, project line under the site address, prices per unit or per building."];
+const NEWS=["Quotes: Legal Plan to close Road job type (checklist fee added).", "Quotes: strata package for townhouse / condo projects — four one-line services, project line under the site address, prices per unit or per building."];
 
-/* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs ================= */
+/* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
 {id:"topo-2026",name:"Topographic Checklist 2026",short:"topo",sections:[
  {id:"t1",title:"Needs to be checked/done first",pm:false,items:[
@@ -815,7 +815,8 @@ const CHECKLISTS=[
   "Layout viewport scale should be set to 1 and locked",
   "Provide comments in To Do Draft for anything missed/critical(needs to picked up).",
   "All Field Data(rw5, field notes, pics) uploaded + files for drawing(PDF, dwg, msz, mbz, topo checklist, title etc.)",
-  "Provide comments to PM if any difficulties with drafting due to field notes and or poor/no sketches"]},
+  "Provide comments to PM if any difficulties with drafting due to field notes and or poor/no sketches",
+  "Tree sizes and drip lines in the drawing's units - if the topo is in feet, tree diameters and drip lines converted to feet (Points tab tree fix); metric stays cm + m"]},
  {id:"t3",title:"Project Manager Checks",pm:true,note:"To be completed by BCLS or Project Manager",items:[
   "Check if Legal and orientation done - check calc notes/ helmerts/check with existing fences/GPS ties",
   "Lot area makes sense - check with city GIS or existing legal plan",
@@ -892,7 +893,8 @@ const CHECKLISTS=[
   "Disclaimers reviewed and appropriate",
   "Viewport checked(locked + to scale)",
   "Job # correct",
-  "Date reviewed-signed by BCLS"]}
+  "Date reviewed-signed by BCLS",
+  "Imperial topo: tree diameters and drip lines converted to feet (not left in cm/m)"]}
 ]},
 {id:"newcon-2026",name:"New Construction Checklist 2026",short:"new construction",sections:[
  {id:"n1",title:"Needs to be checked/while calculating house",pm:false,items:[
@@ -959,7 +961,8 @@ const CHECKLISTS=[
   "Elevation statement shown and checked",
   "PDF should be in either ledger or letter(consider using detail or exagerration for bigger sites)",
   "Ensure field data uploaded + updated files uploaded(dwg, mbz, msz, updated checklist, exv. sketch pdf)",
-  "Highlight in To do draft if something missing from cert(posts not ready, basement different, level strips missing etc.)"]}
+  "Highlight in To do draft if something missing from cert(posts not ready, basement different, level strips missing etc.)",
+  "Check if certificate needs to be feet or meters(check to existing topo drawing)(typically feet if in Burnaby, Vancouver, North Van, New Westminster)"]}
 ]},
 {id:"pl-2026",name:"Property Line Sketch Checklist 2026",short:"PL sketch",sections:[
  {id:"p1",title:"Needs to be checked while drafting the plan(model space)",pm:false,items:[
