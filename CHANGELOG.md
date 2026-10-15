@@ -1,5 +1,24 @@
 # Elevate Office — changelog
 
+## Build 1.29 — 2026-10-15
+- **Points tab: Design vs Field** (new panel under Match points). Load the design and field points: one .msz with both, or a field .rw5 / points file next to a design .msz on the shelf. Each design point is paired with the nearest field point.
+  - **Choosing the points.** Tap point-number blocks to choose the Design and Field sets. With one file, points numbered under 100 start as Design and everything else as Field. Pick the stake-out shots for Field, so pins or ground shots at the same spot aren't used.
+  - **Search limit (default 0.30 m).** This only decides which field point belongs to a design point. Design points with nothing inside it are listed as "no field point within 0.30 m".
+  - **Residuals only, no pass / fail.** There is no MEET, no ON and no tolerance check. You judge what's acceptable for the site.
+    - ΔN / ΔE / horizontal are field minus design, to the mm, shown as where the stake sits ("0.121S 0.004W").
+    - Cut / fill is design elevation minus field elevation, both rounded to the cm (the office method). It is FILL when the ground is below design and CUT when it's above; exactly on grade reads CUT0.00.
+  - **Design elevation 0 = horizontal only.** Those points get no elevation and no cut / fill.
+  - **Table** on screen (with the field description, and a note when one field point is nearest to two design points): Design pt, Field pt, Design elev, Field elev, Cut/Fill, ΔN, ΔE, Horiz. Copy table pastes into Excel as columns.
+  - **Table for the drawing (.dxf).** The same table as lines and text on layer ELV-DESIGN-FIELD, with a text height you set, to insert as a block beside the plan.
+  - **Points file with amended descriptions.** The field file with only the paired stakes' descriptions changed. Switches choose what's added: Horizontal ("0.121S 0.004W"), Cut / fill ("FILL0.34"), or both. An existing description is kept ("G FILL0.90 0.005N 0.015W"). Import it into MicroSurvey over the existing points so the results show on the drawing. "Changed points only" gives just the amended stakes.
+- **Jobs: Tidy this job folder**, fixed for older job folders like 21-1323:
+  - Capitals don't matter ("request", "REQUESTS", "office", "FIELD").
+  - Any folder named with "request", "field data" / "field notes" or "data" is recognised, including ones already inside Office or Field. Approval folders go into Office › Requests.
+  - When there's no Requests or Data folder yet, the old folder becomes it, instead of a new empty one being made beside it. When there is one, the old folder's contents go into it, and files already there are kept, never replaced.
+  - If the browser can't move a folder (Edge / Chrome often can't move folders with subfolders), it is copied instead, subfolders and all, and checked. The original is then listed for you to delete; the app still never deletes anything.
+  - Old folders whose contents are all already in place are listed as safe to delete the next time you open the job.
+- Verified: Design vs Field on 24-2817 against the office's hand-calculated cut / fill plan. 35 of 36 agree. The one difference, point 76, is a sign slip on the plan (ground 41.55, design 41.47 = CUT0.08, plan shows FILL0.08). Also checked: horizontal-only calc corners, the amended points file (only descriptions change), and the .dxf table. Tidy was tested on a 21-1323-style folder with folder moves blocked, and on a folder with lower-case Office / Field and a request folder inside Office; all earlier checks still pass.
+
 ## Build 1.28 — 2026-10-13
 - **Quotes: Legal Plan to close Road** (Posting & reference plans), from 20-155-D: "To cover area for Road closure By-law", plus all legal property pins set on site, digital UTM file, legal plan prepared + certified, and the plan to be filed by the client's lawyer. Choosing it adds 1 checklist fee to the disbursements.
 - **Quotes: strata package for townhouse / condo / mixed projects**, from 20-155-E and kept separate from the Duplex–Townhouse final strata plan. "+ Strata package" under the services adds four one-line services (preliminary strata plan for the disclosure statement; excavation, building layout and forms certificate; posting plan before the final strata plan; final strata plan from field measurements). Remove any you don't need with ✕. Prices start blank. The last service carries the closing note "Any additional work or significant revisions to be billed at hourly rates (Field – $220/hr; Office – $125/hr; BCLS – $190/hr)", filled in from the current rates, or pointing to the attached rate sheet when that's ticked.
