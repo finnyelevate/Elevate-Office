@@ -760,8 +760,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.29";
-const NEWS=["Points: Design vs Field \u2014 pairs design points with the nearest field points and gives the residuals (\u0394N / \u0394E / horizontal to the mm, cut / fill to the cm). Adds the results to the stakes' descriptions for import, and makes a table for the drawing (.dxf).", "Jobs: Tidy this job folder now handles old request / field data folders with any capitals or names, including ones already inside Office or Field, and copies folders the browser can\u2019t move."];
+const BUILD="1.30";
+const NEWS=["Points: Design vs Field — compares design points with the stake-out / as-built shots and gives ΔN / ΔE to the mm and cut / fill to the cm (residuals only, you judge the tolerance). Adds the results to the stakes’ descriptions (.txt to import) and makes a table for the drawing (.dxf).", "Points: Tree table — every tree by point number with the AutoMap description (metric or imperial), as a .dxf table that wraps to fit the sheet.", "Jobs: Tidy this job folder now finds old request / field data folders whatever their capitals or name, including ones already inside Office or Field, and copies folders the browser can’t move."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -3539,7 +3539,7 @@ function cuRender(){
   h+="<div class='cu-units'><span>This file has trees \u2014 drawing units:</span> <span class='seg'><button data-u='m' class='"+(cu.unitAns==="m"?"on":"")+"'>Metric</button><button data-u='ft' class='"+(cu.unitAns==="ft"?"on":"")+"'>Imperial (ft)</button></span></div>";
  }
  h+="<div class='cu-manual'><h3>Add your own fix</h3><div class='row'><input type='text' id='cu-mf' placeholder='find' style='width:130px'> <span>\u2192</span> <input type='text' id='cu-mr' placeholder='replace' style='width:130px'> <label class='cu-cb'><input type='checkbox' id='cu-mw' checked> whole token</label> <input type='text' id='cu-mrange' placeholder='point range (optional)' style='width:150px'> <button class='btn' onclick='cuManAdd()'>Add rule</button></div><div id='cu-mprev' class='hint'></div></div>";
- h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div><div id='cu-scale'></div><div id='cu-match'></div><div id='cu-dvf'></div><div id='cu-tf'></div>";
+ h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div><div id='cu-scale'></div><div id='cu-match'></div><div id='cu-dvf'></div><div id='cu-tree'></div><div id='cu-tf'></div>";
  host.innerHTML=h;
  host.querySelectorAll(".cu-src").forEach(function(el){el.onclick=function(e){if(e.target.classList.contains("cu-srcx"))return;cuActivate(el.dataset.id);};});
  host.querySelectorAll(".cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();cuShelfRemove(b.dataset.id);};});
@@ -3560,7 +3560,7 @@ function cuRender(){
  }
  mf.oninput=mprev;mr.oninput=mprev;
  document.getElementById("cu-mw").onchange=mprev;document.getElementById("cu-mrange").oninput=mprev;
- cuRenderReview();cuRenderScale();cuRenderMatch();cuRenderDvf();cuRenderTf();
+ cuRenderReview();cuRenderScale();cuRenderMatch();cuRenderDvf();cuRenderTree();cuRenderTf();
 }
 function cuTickAll(on){
  /* on=true restores defaults (fixes + manual rules ticked, suggestions unticked); on=false clears every tick */
@@ -3918,9 +3918,9 @@ function cuMatchCopy(which,stageIx){
 }
 window.cuMatchRun=cuMatchRun;window.cuMatchCopy=cuMatchCopy;window.cuMatchClear=cuMatchClear;window.cuGenClear=cuGenClear;window.cuRenderMatch=cuRenderMatch;window.cuMatchSolve=cuMatchSolve;window.cuParsePtsText=cuParsePtsText;window.cuMatchRows=cuMatchRows;window.cuMatchCarry=cuMatchCarry;window.cuMatchReset=cuMatchReset;window.cuBlocks=cuBlocks;window.cuTagCodes=cuTagCodes;
 
-/* ---------- design vs field (1.29): residuals only — no pass / fail words; the CAD tech or surveyor judges tolerance ---------- */
+/* ---------- design vs field (1.30): residuals only — no pass / fail words; the CAD tech or surveyor judges tolerance ---------- */
 var cuDvf=null;
-function cuDvfNew(){return {open:false,dSrc:null,fSrc:null,dBlocks:{},fBlocks:{},auto:false,radius:"0.30",hz:true,cf:true,th:"1.0",res:null};}
+function cuDvfNew(){return {open:false,dSrc:null,fSrc:null,dBlocks:{},fBlocks:{},auto:false,radius:"0.30",hz:true,cf:true,hd:false,th:"1.0",res:null};}
 function cuDvfPts(state){
  var out=[];if(!state||!state.lines)return out;
  state.lines.forEach(function(r){if(!r.point)return;var co=cuCoordOf(r);if(!co||isNaN(co.n)||isNaN(co.e))return;
@@ -3957,29 +3957,38 @@ function cuDvfRun(){
  var D=cuDvfSide(V.dSrc,V.dBlocks).pts,F=cuDvfSide(V.fSrc,V.fBlocks).pts;
  if(V.dSrc===V.fSrc){var dk={};D.forEach(function(p){dk[p.pt]=1;});F=F.filter(function(p){return !dk[p.pt];});}
  var cell=Math.max(rad,0.5),grid={};F.forEach(function(f,i){var k=Math.floor(f.N/cell)+","+Math.floor(f.E/cell);(grid[k]=grid[k]||[]).push(i);});
- var rows=[];
+ var rows=[],nOut=0;
  D.forEach(function(d){var gx=Math.floor(d.N/cell),gy=Math.floor(d.E/cell),bi=-1,bd=Infinity;
   for(var a=-1;a<=1;a++)for(var b=-1;b<=1;b++){var l=grid[(gx+a)+","+(gy+b)];if(!l)continue;l.forEach(function(i){var h=Math.hypot(F[i].N-d.N,F[i].E-d.E);if(h<bd){bd=h;bi=i;}});}
-  var hasZ=Math.abs(d.Z)>1e-9,row={d:d,f:null,hasZ:hasZ};
-  if(bi>=0&&bd<=rad){var f=F[bi];row.f=f;row.dN=f.N-d.N;row.dE=f.E-d.E;row.h=bd;
-   if(hasZ){row.dz=cuDvfR(cuDvfR(d.Z,2)-cuDvfR(f.Z,2),2);}}
+  /* no field point within the search limit: left out entirely (counted in the summary only) */
+  if(!(bi>=0&&bd<=rad)){nOut++;return;}
+  var hasZ=Math.abs(d.Z)>1e-9,f=F[bi],row={d:d,f:f,hasZ:hasZ,dN:f.N-d.N,dE:f.E-d.E,h:bd};
+  if(hasZ)row.dz=cuDvfR(cuDvfR(d.Z,2)-cuDvfR(f.Z,2),2);
   rows.push(row);});
  rows.sort(function(a,b){var x=cuDvfNum(a.d),y=cuDvfNum(b.d);if(x!==null&&y!==null)return x-y;if(x!==null)return -1;if(y!==null)return 1;return a.d.pt<b.d.pt?-1:1;});
  /* one field point nearest to several design points: its description uses the one with an elevation, then the nearest */
- var by={};rows.forEach(function(r){if(!r.f)return;(by[r.f.pt]=by[r.f.pt]||[]).push(r);});
+ var by={};rows.forEach(function(r){(by[r.f.pt]=by[r.f.pt]||[]).push(r);});
  var pick={};Object.keys(by).forEach(function(k){var l=by[k].slice().sort(function(a,b){return (b.hasZ-a.hasZ)||(a.h-b.h);});pick[k]=l[0];
   if(l.length>1)l.forEach(function(r){r.note="field pt also nearest to design "+l.filter(function(o){return o!==r;}).map(function(o){return o.d.pt;}).join(", ")+(r===l[0]?" (this one goes in its description)":"");});});
- V.res={rows:rows,pick:pick,rad:rad,nD:D.length,nF:F.length,dName:(cuSources.find(function(s){return s.id===V.dSrc;})||{}).name,fName:(cuSources.find(function(s){return s.id===V.fSrc;})||{}).name,date:new Date().toISOString().slice(0,10)};
+ V.res={rows:rows,pick:pick,rad:rad,nD:D.length,nOut:nOut,nF:F.length,dName:(cuSources.find(function(s){return s.id===V.dSrc;})||{}).name,fName:(cuSources.find(function(s){return s.id===V.fSrc;})||{}).name,date:new Date().toISOString().slice(0,10)};
  cuRenderDvf();
 }
 function cuDvfAdd(r){var V=cuDvf,p=[];
  if(V.cf&&r.hasZ)p.push(cuDvfCF(r.dz));
  if(V.hz)p.push(cuDvfComp(r.dN,"N","S")+" "+cuDvfComp(r.dE,"E","W"));
  return p.join(" ");}
-function cuDvfCells(r){var rad=cuDvf.res.rad;
- if(!r.f)return [r.d.pt,"",r.hasZ?r.d.Z.toFixed(3):"","","","","","","no field point within "+rad.toFixed(2)+" m"];
- return [r.d.pt,r.f.pt,r.hasZ?r.d.Z.toFixed(3):"",r.hasZ?r.f.Z.toFixed(3):"",r.hasZ?cuDvfCF(r.dz):"",cuDvfComp(r.dN,"N","S"),cuDvfComp(r.dE,"E","W"),cuDvfR(r.h,3).toFixed(3),r.note||""];}
-var CU_DVF_HEAD=["Design pt","Field pt","Design elev","Field elev","Cut/Fill","ΔN","ΔE","Horiz",""];
+/* columns: g = the switch that controls them in the .dxf and Copy table (the on-screen table always shows all) */
+var CU_DVF_COLS=[
+ {h:"Design pt",x:"DESIGN PT",v:function(r){return r.d.pt;}},
+ {h:"Field pt",x:"FIELD PT",v:function(r){return r.f.pt;}},
+ {h:"Design elev",x:"DESIGN ELEV",g:"cf",v:function(r){return r.hasZ?r.d.Z.toFixed(3):"";}},
+ {h:"Field elev",x:"FIELD ELEV",g:"cf",v:function(r){return r.hasZ?r.f.Z.toFixed(3):"";}},
+ {h:"Cut/Fill",x:"CUT/FILL",g:"cf",v:function(r){return r.hasZ?cuDvfCF(r.dz):"";}},
+ {h:"ΔN",x:"dN",g:"hz",v:function(r){return cuDvfComp(r.dN,"N","S");}},
+ {h:"ΔE",x:"dE",g:"hz",v:function(r){return cuDvfComp(r.dE,"E","W");}},
+ {h:"Horiz",x:"HORIZ",g:"hd",v:function(r){return cuDvfR(r.h,3).toFixed(3);}}];
+function cuDvfOutCols(){var V=cuDvf,R=V.res,anyZ=R&&R.rows.some(function(r){return r.hasZ;});
+ return CU_DVF_COLS.filter(function(c){return !c.g||(c.g==="cf"&&V.cf&&anyZ)||(c.g==="hz"&&V.hz)||(c.g==="hd"&&V.hd);});}
 /* the field file with only the paired stakes' descriptions amended; everything else byte-identical */
 function cuDvfLine(rec,add){
  var s=rec.raw,st=s.slice(0,rec.descStart),desc=rec.desc;
@@ -3994,38 +4003,46 @@ function cuDvfFile(onlyChanged){
   if(r&&add)out.push(cuDvfLine(rec,add)+(rec.eol||"\r\n"));else if(!onlyChanged)out.push(rec.raw+rec.eol);});
  return out.join("");
 }
+/* shared .dxf table writer (R12): sets = [{head:[...], rows:[[...]]}] placed side by side */
+function cuDxfTable(title,sets,th,layer,foot){
+ var L=layer,o=[],rh=1.9*th,gap=3*th;
+ function T(x,y,h,s){o.push("0","TEXT","8",L,"10",x.toFixed(4),"20",y.toFixed(4),"30","0.0","40",h.toFixed(4),"1",String(s).replace(/Ø/g,"%%c"));}
+ function Ln(x1,y1,x2,y2){o.push("0","LINE","8",L,"10",x1.toFixed(4),"20",y1.toFixed(4),"30","0.0","11",x2.toFixed(4),"21",y2.toFixed(4),"31","0.0");}
+ T(0,0.6*th,th*1.2,title);
+ var x0=0,maxR=0;
+ sets.forEach(function(S){
+  var all=[S.head].concat(S.rows),nC=S.head.length,nR=all.length;maxR=Math.max(maxR,nR);
+  var w=S.head.map(function(hh,i){var m=0;all.forEach(function(b){m=Math.max(m,String(b[i]||"").length);});return (m*0.85+1.2)*th;});
+  var W=w.reduce(function(a,b){return a+b;},0);
+  for(var i=0;i<=nR;i++)Ln(x0,-i*rh,x0+W,-i*rh);
+  var x=x0;for(var c=0;c<=nC;c++){Ln(x,0,x,-nR*rh);if(c<nC)x+=w[c];}
+  all.forEach(function(rw,ri){var xx=x0;for(var c2=0;c2<nC;c2++){if(rw[c2]!==""&&rw[c2]!==undefined)T(xx+0.5*th,-ri*rh-1.35*th,th,rw[c2]);xx+=w[c2];}});
+  x0+=W+gap;});
+ if(foot)T(0,-maxR*rh-1.6*th,th*0.8,foot);
+ return ["0","SECTION","2","HEADER","9","$ACADVER","1","AC1009","9","$DWGCODEPAGE","3","ANSI_1252","9","$INSUNITS","70","6","0","ENDSEC","0","SECTION","2","TABLES","0","TABLE","2","LAYER","70","1","0","LAYER","2",L,"70","0","62","7","6","CONTINUOUS","0","ENDTAB","0","ENDSEC","0","SECTION","2","ENTITIES"].concat(o).concat(["0","ENDSEC","0","EOF"]).join("\r\n")+"\r\n";
+}
 function cuDvfDxf(){
  var V=cuDvf,R=V.res;if(!R)return "";var th=parseFloat(V.th);if(!(th>0))th=1;
- var head=["DESIGN PT","FIELD PT","DESIGN ELEV","FIELD ELEV","CUT/FILL","dN","dE","HORIZ"];
- var body=R.rows.map(function(r){var c=cuDvfCells(r);return c.slice(0,8).map(function(x,i){return i===7&&!r.f?"":x;}).concat([r.f?"":c[8]]);});
- var w=head.map(function(hh,i){var m=hh.length;body.forEach(function(b){m=Math.max(m,(b[i]||"").length);});return (m*0.85+1.2)*th;});
- var noteW=0;body.forEach(function(b){if(b[8])noteW=Math.max(noteW,(b[8].length*0.85+1.2)*th);});
- var W=w.reduce(function(a,b){return a+b;},0),rh=1.9*th,L="ELV-DESIGN-FIELD",o=[];
- function T(x,y,h,s){o.push("0","TEXT","8",L,"10",x.toFixed(4),"20",y.toFixed(4),"30","0.0","40",h.toFixed(4),"1",s);}
- function Ln(x1,y1,x2,y2){o.push("0","LINE","8",L,"10",x1.toFixed(4),"20",y1.toFixed(4),"30","0.0","11",x2.toFixed(4),"21",y2.toFixed(4),"31","0.0");}
- var y=0;T(0,y+0.6*th,th*1.2,"DESIGN vs FIELD  -  design: "+(R.dName||"")+"  field: "+(R.fName||"")+"  -  "+R.date);
- var rowsAll=[head].concat(body),nR=rowsAll.length;
- for(var i=0;i<=nR;i++)Ln(0,y-i*rh,W,y-i*rh);
- var x=0;for(var c=0;c<=8;c++){Ln(x,y,x,y-nR*rh);if(c<8)x+=w[c];}
- rowsAll.forEach(function(rw,ri){var xx=0;for(var c2=0;c2<8;c2++){if(rw[c2])T(xx+0.5*th,y-ri*rh-1.35*th,th,rw[c2]);xx+=w[c2];}
-  if(rw[8])T(W+0.5*th,y-ri*rh-1.35*th,th,rw[8]);});
- T(0,y-nR*rh-1.6*th,th*0.8,"Residuals only: field minus design. dN/dE/HORIZ to the mm; cut/fill to the cm (design elev - field elev, both to the cm). Elevation blank = design point has no elevation (horizontal only).");
- return ["0","SECTION","2","HEADER","9","$ACADVER","1","AC1009","9","$INSUNITS","70","6","0","ENDSEC","0","SECTION","2","TABLES","0","TABLE","2","LAYER","70","1","0","LAYER","2",L,"70","0","62","7","6","CONTINUOUS","0","ENDTAB","0","ENDSEC","0","SECTION","2","ENTITIES"].concat(o).concat(["0","ENDSEC","0","EOF"]).join("\r\n")+"\r\n";
+ var cols=cuDvfOutCols(),g={};cols.forEach(function(c){if(c.g)g[c.g]=1;});
+ var foot="Residuals only: field minus design."+(g.hz||g.hd?" dN/dE"+(g.hd?"/HORIZ":"")+" to the mm.":"")+(g.cf?" Cut/fill to the cm (design elev - field elev, both to the cm); elevation blank = design point has no elevation.":"");
+ return cuDxfTable("DESIGN vs FIELD  -  design: "+(R.dName||"")+"  field: "+(R.fName||"")+"  -  "+R.date,[{head:cols.map(function(c){return c.x;}),rows:R.rows.map(function(r){return cols.map(function(c){return c.v(r);});})}],th,"ELV-DESIGN-FIELD",foot);
 }
-function cuDvfBase(){var n=(cuSources.find(function(s){return s.id===cuDvf.fSrc;})||{}).name||"points.txt";return {base:n.replace(/\.[^.]+$/,""),ext:(n.match(/\.[^.]+$/)||[".txt"])[0]};}
+function cuDvfBase(){var n=(cuSources.find(function(s){return s.id===cuDvf.fSrc;})||{}).name||"points.txt";return n.replace(/\.[^.]+$/,"");}
+function cuSaveText(txt,fn,type){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:type||"text/plain"}));a.download=fn;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);}
 function cuDvfSave(which){
  var V=cuDvf;if(!V.res)return;var B=cuDvfBase(),txt,fn,type="text/plain";
- if(which==="dxf"){txt=cuDvfDxf();fn=B.base+"-DESIGN-FIELD-TABLE.dxf";type="application/dxf";}
- else if(which==="pts"){txt=cuDvfFile(false);fn=B.base+"-DESIGN-FIELD"+B.ext;}
- else{txt=cuDvfFile(true);fn=B.base+"-DESIGN-FIELD-CHANGED"+B.ext;}
- if(!txt)return;
- var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:type}));a.download=fn;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
+ if(which==="dxf"){txt=cuDvfDxf();fn=B+"-DESIGN-FIELD-TABLE.dxf";type="application/dxf";}
+ else if(which==="pts"){txt=cuDvfFile(false);fn=B+"-DESIGN-FIELD.txt";}
+ else{txt=cuDvfFile(true);fn=B+"-DESIGN-FIELD-CHANGED.txt";}
+ if(!txt)return;cuSaveText(txt,fn,type);
  V.lastSaved=fn;var e=document.getElementById("cu-dvfmsg");if(e)e.textContent="Saved "+fn+".";
 }
+function cuDvfCopyText(){
+ var R=cuDvf.res;if(!R)return "";var cols=cuDvfOutCols();
+ return [cols.map(function(c){return c.x==="dN"?"dN":c.x==="dE"?"dE":c.h;}).concat(["Field desc","Note"]).join("\t")].concat(R.rows.map(function(r){return cols.map(function(c){return c.v(r);}).concat([r.f.desc,r.note||""]).join("\t");})).join("\r\n");
+}
 function cuDvfCopy(){
- var R=cuDvf.res;if(!R)return;
- var lines=[["Design pt","Field pt","Design elev","Field elev","Cut/Fill","dN","dE","Horiz","Field desc","Note"].join("\t")].concat(R.rows.map(function(r){var c=cuDvfCells(r);return c.slice(0,8).concat([r.f?r.f.desc:"",c[8]]).join("\t");}));
- var txt=lines.join("\r\n");
+ var txt=cuDvfCopyText();if(!txt)return;
  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){var e=document.getElementById("cu-dvfmsg");if(e){e.textContent="Copied — pastes into Excel as columns.";}}).catch(function(){});
 }
 function cuRenderDvf(){
@@ -4036,26 +4053,26 @@ function cuRenderDvf(){
   return "<div class='cu-chips cu-dvfblocks' data-side='"+side+"'>"+bl.map(function(b){var cs={};b.pts.forEach(function(p){var c=(p.desc.split(/\s+/)[0]||"").toUpperCase();if(c)cs[c]=1;});var ck=Object.keys(cs);
    return "<button class='cu-chip"+(sel[b.id]?" on":"")+"' data-b='"+b.id+"' title='"+esc(ck.slice(0,12).join(", ")||"no descriptions")+"'>"+esc(b.label)+(ck.length?" <span class='cu-srcn'>"+esc(ck.slice(0,3).join(" "))+(ck.length>3?" …":"")+"</span>":"")+"</button>";}).join("")+"</div>";}
  var h="<details class='cu-fold' id='cu-dvffold'"+(V.open?" open":"")+"><summary>Design vs Field</summary><div class='cu-manual cu-mt'>";
- h+="<div class='hint' style='margin:0 0 6px'>Pairs each design point with the nearest field point and gives the residuals: ΔN / ΔE / horizontal to the mm and, where the design point has an elevation, cut / fill to the cm. A design elevation of 0 means horizontal only. No tolerances are applied — you judge what's acceptable for the site.</div>";
+ h+="<div class='hint' style='margin:0 0 6px'>Pairs each design point with the nearest field point and gives the residuals: ΔN / ΔE to the mm and, where the design point has an elevation, cut / fill to the cm. A design elevation of 0 means horizontal only. No tolerances are applied — you judge what's acceptable for the site.</div>";
  h+="<div class='cu-side'><div class='row'><label>Design</label>"+srcSel("d",V.dSrc)+"</div>"+chips("d",V.dSrc,V.dBlocks)+"</div>";
  h+="<div class='cu-side'><div class='row'><label>Field</label>"+srcSel("f",V.fSrc)+"</div>"+chips("f",V.fSrc,V.fBlocks)+"<div class='hint'>Tap blocks to choose each set (no block selected = all points). Pick the stake-out shots for Field — pins or ground shots at the same spot would otherwise be used.</div></div>";
- h+="<div class='row'><label>Search limit</label><input type='text' id='cu-dvfrad' style='width:70px;margin-left:8px' value='"+esc(String(V.radius))+"'> m <span class='hint' style='margin:0 0 0 8px'>only decides which field point belongs to a design point</span></div>";
+ h+="<div class='row'><label>Search limit</label><input type='text' id='cu-dvfrad' style='width:70px;margin-left:8px' value='"+esc(String(V.radius))+"'> m <span class='hint' style='margin:0 0 0 8px'>design points with no field point this close are left out</span></div>";
  h+="<div class='cu-dl'><button class='btn pri' onclick='cuDvfRun()'>Compare</button></div>";
  var R=V.res;
  if(R){
-  var paired=R.rows.filter(function(r){return r.f;}),nz=paired.filter(function(r){return r.hasZ;}).length;
-  h+="<div class='cu-mtsum'>"+R.nD+" design point"+(R.nD===1?"":"s")+" · "+paired.length+" paired · "+(R.nD-paired.length)+" with no field point within "+R.rad.toFixed(2)+" m · cut / fill on "+nz+" \u00b7 horizontal only on "+(paired.length-nz)+" (no design elevation)</div>";
-  h+="<div style='overflow-x:auto'><table class='cu-mtt'><tr>"+CU_DVF_HEAD.slice(0,8).map(function(x){return "<th>"+x+"</th>";}).join("")+"<th>Field desc</th><th></th></tr>";
-  R.rows.forEach(function(r){var c=cuDvfCells(r);
-   if(!r.f)h+="<tr><td>"+esc(c[0])+"</td><td></td><td>"+esc(c[2])+"</td><td colspan='7' class='cu-mtcode'>"+esc(c[8])+"</td></tr>";
-   else h+="<tr>"+c.slice(0,8).map(function(x){return "<td>"+esc(x)+"</td>";}).join("")+"<td class='cu-mtcode'>"+esc(r.f.desc)+"</td><td class='cu-mtcode'>"+esc(c[8])+"</td></tr>";});
-  h+="</table></div>";
-  h+="<div class='row' style='margin-top:6px'><label style='margin-right:10px'>Add to the stake's description</label><label class='cu-cb' style='margin-right:10px'><input type='checkbox' id='cu-dvfhz' "+(V.hz?"checked":"")+"> Horizontal (e.g. 0.003N 0.012W)</label> <label class='cu-cb'><input type='checkbox' id='cu-dvfcf' "+(V.cf?"checked":"")+"> Cut / fill (e.g. FILL0.34)</label></div>";
-  var ex=paired.find(function(r){return R.pick[r.f.pt]===r;});
-  h+="<div class='hint'>"+(ex&&cuDvfAdd(ex)?"Example: field point "+esc(ex.f.pt)+" “"+esc(ex.f.desc)+"” becomes “"+esc(((ex.f.desc?ex.f.desc+" ":"")+cuDvfAdd(ex)))+"”. ":"Tick at least one to amend descriptions. ")+"Point numbers, coordinates and every other line stay exactly as they are; cut / fill is only added where the design point has an elevation.</div>";
-  h+="<div class='row'><label>Table text height</label><input type='text' id='cu-dvfth' style='width:60px;margin-left:8px' value='"+esc(String(V.th))+"'> <span class='hint' style='margin:0 0 0 8px'>drawing units, for the .dxf table</span></div>";
-  h+="<div class='cu-dl'><button class='btn pri' onclick='cuDvfSave(\"pts\")'"+(V.hz||V.cf?"":" disabled")+">Points file with amended descriptions</button><button class='btn' onclick='cuDvfSave(\"chg\")'"+(V.hz||V.cf?"":" disabled")+">Changed points only</button><button class='btn' onclick='cuDvfSave(\"dxf\")'>Table for the drawing (.dxf)</button><button class='btn' onclick='cuDvfCopy()'>Copy table</button><span class='hint' id='cu-dvfmsg' style='margin:0'></span></div>";
-  h+="<div class='hint'>Import the points file into MicroSurvey over the existing points so the descriptions show the results; insert the .dxf as a block beside the plan.</div>";
+  var nz=R.rows.filter(function(r){return r.hasZ;}).length;
+  h+="<div class='cu-mtsum'>"+R.rows.length+" design point"+(R.rows.length===1?"":"s")+" paired · cut / fill on "+nz+" · horizontal only on "+(R.rows.length-nz)+" (no design elevation)"+(R.nOut?" · "+R.nOut+" design point"+(R.nOut===1?"":"s")+" had no field point within "+R.rad.toFixed(2)+" m — left out":"")+"</div>";
+  if(R.rows.length){
+   h+="<div style='overflow-x:auto'><table class='cu-mtt'><tr>"+CU_DVF_COLS.map(function(c){return "<th>"+c.h+"</th>";}).join("")+"<th>Field desc</th><th></th></tr>";
+   R.rows.forEach(function(r){h+="<tr>"+CU_DVF_COLS.map(function(c){return "<td>"+esc(c.v(r))+"</td>";}).join("")+"<td class='cu-mtcode'>"+esc(r.f.desc)+"</td><td class='cu-mtcode'>"+esc(r.note||"")+"</td></tr>";});
+   h+="</table></div>";
+   h+="<div class='row' style='margin-top:6px'><label style='margin-right:10px'>Include</label><label class='cu-cb' style='margin-right:10px'><input type='checkbox' id='cu-dvfhz' "+(V.hz?"checked":"")+"> Horizontal ΔN / ΔE (e.g. 0.003N 0.012W)</label> <label class='cu-cb' style='margin-right:10px'><input type='checkbox' id='cu-dvfcf' "+(V.cf?"checked":"")+"> Cut / fill (e.g. FILL0.34)</label> <label class='cu-cb'><input type='checkbox' id='cu-dvfhd' "+(V.hd?"checked":"")+"> Horizontal distance (table only)</label></div>";
+   var ex=R.rows.find(function(r){return R.pick[r.f.pt]===r;});
+   h+="<div class='hint'>These choose what goes into the stakes' descriptions and the columns of the .dxf / copied table (the table above always shows everything). "+(ex&&cuDvfAdd(ex)?"Example: field point "+esc(ex.f.pt)+" “"+esc(ex.f.desc)+"” becomes “"+esc(((ex.f.desc?ex.f.desc+" ":"")+cuDvfAdd(ex)))+"”. ":"Tick Horizontal or Cut / fill to amend descriptions. ")+"Point numbers, coordinates and every other line stay exactly as they are.</div>";
+   h+="<div class='row'><label>Table text height</label><input type='text' id='cu-dvfth' style='width:60px;margin-left:8px' value='"+esc(String(V.th))+"'> <span class='hint' style='margin:0 0 0 8px'>drawing units, for the .dxf table</span></div>";
+   h+="<div class='cu-dl'><button class='btn pri' onclick='cuDvfSave(\"pts\")'"+(V.hz||V.cf?"":" disabled")+">Points file with amended descriptions (.txt)</button><button class='btn' onclick='cuDvfSave(\"chg\")'"+(V.hz||V.cf?"":" disabled")+">Changed points only (.txt)</button><button class='btn' onclick='cuDvfSave(\"dxf\")'>Table for the drawing (.dxf)</button><button class='btn' onclick='cuDvfCopy()'>Copy table</button><span class='hint' id='cu-dvfmsg' style='margin:0'></span></div>";
+   h+="<div class='hint'>Import the points file into MicroSurvey over the existing points so the descriptions show the results; insert the .dxf as a block beside the plan.</div>";
+  }
  }
  h+="</div></details>";
  host.innerHTML=h;
@@ -4063,12 +4080,54 @@ function cuRenderDvf(){
  host.querySelectorAll(".cu-dvfsrc").forEach(function(sel){sel.onchange=function(){if(sel.dataset.side==="d")V.dSrc=sel.value;else V.fSrc=sel.value;V.auto=false;V.res=null;cuRenderDvf();};});
  host.querySelectorAll(".cu-dvfblocks .cu-chip").forEach(function(b){b.onclick=function(){var S=b.parentNode.dataset.side==="d"?V.dBlocks:V.fBlocks;S[b.dataset.b]=!S[b.dataset.b];V.res=null;cuRenderDvf();};});
  var ri=document.getElementById("cu-dvfrad");ri.onchange=function(){V.radius=ri.value.trim();if(V.res)cuDvfRun();};
- var hz=document.getElementById("cu-dvfhz");if(hz)hz.onchange=function(){V.hz=hz.checked;cuRenderDvf();};
- var cf=document.getElementById("cu-dvfcf");if(cf)cf.onchange=function(){V.cf=cf.checked;cuRenderDvf();};
+ [["cu-dvfhz","hz"],["cu-dvfcf","cf"],["cu-dvfhd","hd"]].forEach(function(p){var el=document.getElementById(p[0]);if(el)el.onchange=function(){V[p[1]]=el.checked;cuRenderDvf();};});
  var ti=document.getElementById("cu-dvfth");if(ti)ti.onchange=function(){V.th=ti.value.trim();};
 }
-window.cuDvfRun=cuDvfRun;window.cuDvfSave=cuDvfSave;window.cuDvfCopy=cuDvfCopy;window.cuRenderDvf=cuRenderDvf;window.cuDvfFile=cuDvfFile;window.cuDvfDxf=cuDvfDxf;window.cuDvfLine=cuDvfLine;
+window.cuDvfRun=cuDvfRun;window.cuDvfSave=cuDvfSave;window.cuDvfCopy=cuDvfCopy;window.cuRenderDvf=cuRenderDvf;window.cuDvfFile=cuDvfFile;window.cuDvfDxf=cuDvfDxf;window.cuDvfLine=cuDvfLine;window.cuDvfCopyText=cuDvfCopyText;window.cuDvfOutCols=cuDvfOutCols;
 window.cuDvfState=function(){if(!cuDvf)cuDvf=cuDvfNew();return cuDvf;};
+
+/* ---------- tree table (1.30): point # + the AutoMap's tree description, for sites with too many trees to label ---------- */
+var CU_TREE_NAMES={TCED:"cedar",TCLU:"cluster",TCLUS:"cluster",TCON:"coniferous",TDEC:"deciduous",TFIR:"fir",TSTUMP:"stump"};
+var cuTreeOpt={open:false,rows:"40",th:"1.0"};
+/* metric AutoMap: "$1cmØ deciduous Dr=$2 $3 $4"; imperial: "$1Ø deciduous Dr=$2 $3 $4" (never "cm" on an imperial drawing); stump: "$1cmØ stump" / "$1Ø stump" */
+function cuTreeText(desc,imperial){
+ var t=String(desc||"").trim().split(/\s+/),code=(t[0]||"").toUpperCase(),name=CU_TREE_NAMES[code];if(!name)return null;
+ var a=t.slice(1),dia=a[0]||"",u=imperial?"Ø":"cmØ";
+ if(code==="TSTUMP")return dia?dia+u+" stump":"stump";
+ var s=(dia?dia+u+" ":"")+name+(a[1]?" Dr="+a[1]:"")+(a[2]?" "+a[2]:"")+(a[3]?" "+a[3]:"");
+ return s.replace(/\s+/g," ").trim();
+}
+function cuTreeRows(){
+ if(!cu.lines)return [];var imp=cu.unitAns==="ft",out=[];
+ cuCompute().forEach(function(c){var r=c.rec;if(!r.point)return;var d=(c.final!==null?c.final:r.desc),tx=cuTreeText(d,imp);if(tx!==null)out.push({pt:r.pt,desc:tx});});
+ out.sort(function(a,b){var x=/^\d+$/.test(a.pt),y=/^\d+$/.test(b.pt);if(x&&y)return parseInt(a.pt,10)-parseInt(b.pt,10);if(x)return -1;if(y)return 1;return a.pt<b.pt?-1:1;});
+ return out;
+}
+function cuTreeDxf(){
+ var rows=cuTreeRows();if(!rows.length)return "";var n=parseInt(cuTreeOpt.rows,10);if(!(n>0))n=40;var th=parseFloat(cuTreeOpt.th);if(!(th>0))th=1;
+ var sets=[];for(var i=0;i<rows.length;i+=n)sets.push({head:["PT","DESCRIPTION"],rows:rows.slice(i,i+n).map(function(r){return [r.pt,r.desc];})});
+ return cuDxfTable("TREE TABLE  -  "+cu.name.replace(/\.[^.]+$/,"")+"  -  "+new Date().toISOString().slice(0,10)+(cu.unitAns==="ft"?"  (imperial)":""),sets,th,"ELV-TREE-TABLE","");
+}
+function cuTreeSave(){var t=cuTreeDxf();if(!t)return;var fn=cu.name.replace(/\.[^.]+$/,"")+"-TREE-TABLE.dxf";cuSaveText(t,fn,"application/dxf");var e=document.getElementById("cu-trmsg");if(e)e.textContent="Saved "+fn+".";}
+function cuTreeCopy(){var rows=cuTreeRows();var txt=["Pt\tDescription"].concat(rows.map(function(r){return r.pt+"\t"+r.desc;})).join("\r\n");
+ (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){var e=document.getElementById("cu-trmsg");if(e)e.textContent="Copied.";}).catch(function(){});}
+function cuRenderTree(){
+ var host=document.getElementById("cu-tree");if(!host)return;if(!cu.lines){host.innerHTML="";return;}
+ var rows=cuTreeRows();if(!rows.length){host.innerHTML="";return;}
+ var O=cuTreeOpt,n=parseInt(O.rows,10);if(!(n>0))n=40;var sets=Math.ceil(rows.length/n);
+ var h="<details class='cu-fold' id='cu-trfold'"+(O.open?" open":"")+"><summary>Tree table</summary><div class='cu-manual cu-mt'>";
+ h+="<div class='hint' style='margin:0 0 6px'>Every tree point by point number, worded as the AutoMap writes it ("+(cu.unitAns==="ft"?"imperial":"metric")+" — follows the drawing units above), from the cleaned descriptions. For the drawing, show the point numbers beside the tree symbols (e.g. a tree point-number layer) so the table can be cross-referenced.</div>";
+ h+="<div class='cu-mtsum'>"+rows.length+" tree"+(rows.length===1?"":"s")+" · "+sets+" column set"+(sets===1?"":"s")+" of up to "+n+" rows</div>";
+ h+="<div style='max-height:260px;overflow:auto'><table class='cu-mtt'><tr><th>Pt</th><th>Description</th></tr>"+rows.map(function(r){return "<tr><td>"+esc(r.pt)+"</td><td>"+esc(r.desc)+"</td></tr>";}).join("")+"</table></div>";
+ h+="<div class='row' style='margin-top:6px'><label>Rows per column set</label><input type='text' id='cu-trrows' style='width:60px;margin-left:8px' value='"+esc(String(O.rows))+"'><label style='margin-left:16px'>Text height</label><input type='text' id='cu-trth' style='width:60px;margin-left:8px' value='"+esc(String(O.th))+"'></div>";
+ h+="<div class='cu-dl'><button class='btn pri' onclick='cuTreeSave()'>Tree table for the drawing (.dxf)</button><button class='btn' onclick='cuTreeCopy()'>Copy list</button><span class='hint' id='cu-trmsg' style='margin:0'></span></div>";
+ h+="</div></details>";
+ host.innerHTML=h;
+ document.getElementById("cu-trfold").addEventListener("toggle",function(){O.open=this.open;});
+ var a=document.getElementById("cu-trrows");a.onchange=function(){O.rows=a.value.trim();cuRenderTree();};
+ var b=document.getElementById("cu-trth");b.onchange=function(){O.th=b.value.trim();};
+}
+window.cuTreeText=cuTreeText;window.cuTreeRows=cuTreeRows;window.cuTreeDxf=cuTreeDxf;window.cuTreeSave=cuTreeSave;window.cuTreeCopy=cuTreeCopy;window.cuRenderTree=cuRenderTree;window.cuTreeOpt=cuTreeOpt;
 
 /* ---------- scale ---------- */
 function cuCoordOf(rec){

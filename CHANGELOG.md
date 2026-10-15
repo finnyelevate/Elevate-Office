@@ -1,23 +1,32 @@
 # Elevate Office — changelog
 
-## Build 1.29 — 2026-10-15
-- **Points tab: Design vs Field** (new panel under Match points). Load the design and field points: one .msz with both, or a field .rw5 / points file next to a design .msz on the shelf. Each design point is paired with the nearest field point.
-  - **Choosing the points.** Tap point-number blocks to choose the Design and Field sets. With one file, points numbered under 100 start as Design and everything else as Field. Pick the stake-out shots for Field, so pins or ground shots at the same spot aren't used.
-  - **Search limit (default 0.30 m).** This only decides which field point belongs to a design point. Design points with nothing inside it are listed as "no field point within 0.30 m".
-  - **Residuals only, no pass / fail.** There is no MEET, no ON and no tolerance check. You judge what's acceptable for the site.
-    - ΔN / ΔE / horizontal are field minus design, to the mm, shown as where the stake sits ("0.121S 0.004W").
-    - Cut / fill is design elevation minus field elevation, both rounded to the cm (the office method). It is FILL when the ground is below design and CUT when it's above; exactly on grade reads CUT0.00.
-  - **Design elevation 0 = horizontal only.** Those points get no elevation and no cut / fill.
-  - **Table** on screen (with the field description, and a note when one field point is nearest to two design points): Design pt, Field pt, Design elev, Field elev, Cut/Fill, ΔN, ΔE, Horiz. Copy table pastes into Excel as columns.
-  - **Table for the drawing (.dxf).** The same table as lines and text on layer ELV-DESIGN-FIELD, with a text height you set, to insert as a block beside the plan.
-  - **Points file with amended descriptions.** The field file with only the paired stakes' descriptions changed. Switches choose what's added: Horizontal ("0.121S 0.004W"), Cut / fill ("FILL0.34"), or both. An existing description is kept ("G FILL0.90 0.005N 0.015W"). Import it into MicroSurvey over the existing points so the results show on the drawing. "Changed points only" gives just the amended stakes.
+## Build 1.30 — 2026-10-15
+Includes everything from 1.29, which was only live for a few hours, plus the first round of feedback on it.
+
+- **Points tab: Design vs Field** (panel under Match points). Compares design points with the field shots for stake-outs, cut / fill and as-builts. Load one .msz holding both, or a field .rw5 / points file next to a design .msz on the shelf.
+  - **Pairing.** Each design point is paired with the nearest field point. Tap point-number blocks to choose the Design and Field sets; with one file, points numbered under 100 start as Design and everything else as Field. Pick the stake-out shots for Field, so pins or ground shots at the same spot aren't used.
+  - **Search limit (default 0.30 m).** Design points with no field point that close are left out of the results. The summary line just counts them.
+  - **Residuals only, no pass / fail.** There is no MEET, no ON and no tolerance check; you judge what's acceptable for the site.
+    - ΔN / ΔE are field minus design, to the mm, shown as where the stake sits ("0.121S 0.004W").
+    - Cut / fill is design elevation minus field elevation, both rounded to the cm (the office method): FILL when the ground is below design, CUT when it's above, CUT0.00 when exactly on grade.
+    - A design elevation of 0 means horizontal only.
+  - **On-screen table.** Every column, plus the field description and a note when one field point is nearest to two design points: Design pt, Field pt, Design elev, Field elev, Cut/Fill, ΔN, ΔE, Horiz.
+  - **Include switches.** Horizontal ΔN / ΔE, Cut / fill, and Horizontal distance (off by default). They decide what goes into the stakes' descriptions and which columns go into the .dxf and Copy table. Point numbers are always in. The elevation columns drop on their own when none of the design points has an elevation.
+  - **Table for the drawing (.dxf).** Lines and text on layer ELV-DESIGN-FIELD, with a text height you set, to insert as a block beside the plan. Copy table pastes into Excel as columns.
+  - **Points file with amended descriptions (.txt).** The field file with only the paired stakes' descriptions changed, e.g. "FILL0.34 0.121S 0.004W". An existing description is kept ("G FILL0.90 …"), and numbers and coordinates are untouched. Import it into MicroSurvey over the existing points so the results show on the drawing. "Changed points only" gives just the amended stakes. Both always save as .txt, whatever the source file was.
+- **Points tab: Tree table** (panel under Design vs Field; shows when the file has trees). Every tree point (TCED, TCLU, TCLUS, TCON, TDEC, TFIR, TSTUMP) by point number, in numeric order.
+  - The description is worded as the AutoMap writes it, built from the cleaned descriptions: metric "30cmØ deciduous Dr=4", or imperial (following the drawing units) "0.98Ø deciduous Dr=13.12". There is never "cm" on an imperial drawing, including TCLU.
+  - Tree table for the drawing (.dxf) has PT and DESCRIPTION columns on layer ELV-TREE-TABLE. Long lists wrap into side-by-side column sets; rows per set default 40, adjustable. Copy list is also available.
+  - On the drawing, show the point numbers beside the tree symbols (e.g. a tree point-number layer) so the table can be cross-referenced.
 - **Jobs: Tidy this job folder**, fixed for older job folders like 21-1323:
   - Capitals don't matter ("request", "REQUESTS", "office", "FIELD").
   - Any folder named with "request", "field data" / "field notes" or "data" is recognised, including ones already inside Office or Field. Approval folders go into Office › Requests.
   - When there's no Requests or Data folder yet, the old folder becomes it, instead of a new empty one being made beside it. When there is one, the old folder's contents go into it, and files already there are kept, never replaced.
-  - If the browser can't move a folder (Edge / Chrome often can't move folders with subfolders), it is copied instead, subfolders and all, and checked. The original is then listed for you to delete; the app still never deletes anything.
-  - Old folders whose contents are all already in place are listed as safe to delete the next time you open the job.
-- Verified: Design vs Field on 24-2817 against the office's hand-calculated cut / fill plan. 35 of 36 agree. The one difference, point 76, is a sign slip on the plan (ground 41.55, design 41.47 = CUT0.08, plan shows FILL0.08). Also checked: horizontal-only calc corners, the amended points file (only descriptions change), and the .dxf table. Tidy was tested on a 21-1323-style folder with folder moves blocked, and on a folder with lower-case Office / Field and a request folder inside Office; all earlier checks still pass.
+  - If the browser can't move a folder (Edge / Chrome often can't move folders with subfolders), it is copied instead, subfolders and all, and checked. The original is listed for you to delete; the app still never deletes anything.
+- Verified: Design vs Field on 24-2817 against the office's hand-calculated cut / fill plan. 35 of 36 agree; the one difference, point 76, is a sign slip on the plan (ground 41.55, design 41.47 = CUT0.08, plan shows FILL0.08). Also checked: horizontal-only calc corners, design points with no stake left out, the column switches, the .txt names, the amended points file (only descriptions change), and both .dxf tables (opened in a CAD reader). The tree table was checked metric and imperial, with units typed into descriptions and cm drip lines. Tidy was tested with folder moves blocked and with lower-case Office / Field folders. All earlier checks still pass.
+
+## Build 1.29 — 2026-10-15
+- First release of Design vs Field and the Tidy fix; live for a few hours and superseded by 1.30, which describes everything.
 
 ## Build 1.28 — 2026-10-13
 - **Quotes: Legal Plan to close Road** (Posting & reference plans), from 20-155-D: "To cover area for Road closure By-law", plus all legal property pins set on site, digital UTM file, legal plan prepared + certified, and the plan to be filed by the client's lawyer. Choosing it adds 1 checklist fee to the disbursements.
