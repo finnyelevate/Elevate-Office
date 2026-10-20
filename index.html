@@ -768,8 +768,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.31";
-const NEWS=["Points: the tools are now buttons along the top — Clean-up, Scale, Match points, Design vs Field, Monitoring, Tree table, Transform — one at a time, each with its own training videos.", "Points: Monitoring — paste the base from the monitoring spreadsheet (or pick its range), type the trip’s range, and copy observed − base residuals back, with repeat shots averaged.", "Points: Design vs Field — type exact point ranges for each side; a note shows when more than one field shot sits near a design point."];
+const BUILD="1.32";
+const NEWS=["PM: Duplicate as sub-quote now copies only the job details — services, hours, held prices and disbursements start blank.", "PM: Renumber… — when another quote already has this number, give this one the next free number (also offered in the “more than one folder” box).", "PM: a reminder when no disbursements are selected (not required).","Points: Match points fixed \u2014 monument IDs work again (broken in 1.31), and crew notes like \u201c105 occ\u201d now help find the right pairs."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -2410,7 +2410,11 @@ function pmqdKeepMine(q,rep){var me=(typeof sget==="function"&&sget("eo:pmname")
  if(me)q.f.pm=me;if(mi)q.f.assigned=mi;if(rep&&was.length)rep.pmWas="In the file: "+was.join(", ")+" \u2014 kept yours.";return q;}
 /* sub-quote: 26-586 -> 26-586B (or 24-165-3), same client and site, all services carried over for trimming */
 function pmqdMakeSub(q,next,note,replaceId){
+ /* 1.32: a sub-quote is new services and new hours (amendments are made on the quote itself) — only the job details on top carry over;
+    services, hours, stages, price lines, held / typed prices, disbursements, crew instructions, notes and the rate-sheet option start blank */
  var c=JSON.parse(JSON.stringify(q));c.id="q"+Date.now();c.f.qn=next;c.f.docname="";c.updated=Date.now();delete c.exported;delete c.importRep;delete c.qfolder;c.subOf=(q.f.qn||"").trim();
+ c.secs=[pmqNorm({name:"",hrs:{}})];c.disb={};(PM.vault&&PM.vault.disb||[]).forEach(function(d){c.disb[d.id]=0;});c.other={label:"",amt:""};c.fci="";c.notes="";delete c.rs;
+ note=(note?note+" ":"")+"Sub-quote of "+c.subOf+": job details copied; services, hours, prices and disbursements start blank.";
  c.importRep={file:"",sub:pmjQnParts&&pmjQnParts(q.f.qn)?q.f.qn:q.f.qn,subNote:note||"",read:0,unread:[],rateDiff:[],wordDiffs:[]};pmqdKeepMine(c,c.importRep);
  if(replaceId)PM.quotes=PM.quotes.filter(function(x){return x.id!==replaceId;});
  PM.quotes.unshift(c);PM.cur=c.id;pmQuotesSave();pmRender();return c;
@@ -2518,11 +2522,12 @@ async function pmjSubLetters(qn){var Q=pmjQnParts(qn);if(!Q)return {base:qn,fold
  var names=[];for(var i=0;i<list.length;i++){var hs=await pmjList(list[i]);for(var j=0;j<hs.length;j++){var h=hs[j];if(h.kind!=="file")continue;var t=0;try{t=(await h.getFile()).lastModified||0;}catch(e){}names.push({name:h.name,t:t});}}
  var subs=pmjSubIn(names,Q);return {base:Q.base,folder:list.map(function(h){return h.name;}).join(", "),dir:list[0],letters:subs.letters,subs:subs};}
 /* let the PM choose when more than one folder could be the one */
-function pmjChoose(boxId,list,lead){
+function pmjChoose(boxId,list,lead,renum){
  if(list.length===1&&!list.ask)return Promise.resolve(list[0]);
  return new Promise(function(res){var box=document.getElementById(boxId);if(!box){res(null);return;}
-  box.style.display="block";box.innerHTML=pmEsc(lead)+"<div class='pm-choose'>"+list.map(function(h,i){return "<button class='btn' data-ch='"+i+"'>"+pmEsc(h.name)+"</button>";}).join("")+(pmjFsOk()?"<button class='btn' data-ch='-2'>Choose another folder…</button>":"")+"<button class='btn' data-ch='-1'>Cancel</button></div>";
+  box.style.display="block";box.innerHTML=pmEsc(lead)+"<div class='pm-choose'>"+list.map(function(h,i){return "<button class='btn' data-ch='"+i+"'>"+pmEsc(h.name)+"</button>";}).join("")+(pmjFsOk()?"<button class='btn' data-ch='-2'>Choose another folder…</button>":"")+(renum?"<button class='btn' data-ch='-3' title='another quote already has this number — give this one the next free number'>Renumber this quote…</button>":"")+"<button class='btn' data-ch='-1'>Cancel</button></div>";
   box.querySelectorAll("[data-ch]").forEach(function(b){b.onclick=function(){var i=+b.dataset.ch;box.innerHTML="";box.style.display="none";
+   if(i===-3){res(null);pmjRenumber();return;}
    if(i===-2){window.showDirectoryPicker({id:"eo-quotepick",mode:"readwrite",startIn:PMJ.dirs.quotes||"documents"}).then(res,function(){res(null);});return;}
    res(i<0?null:list[i]);};});});
 }
@@ -2534,7 +2539,7 @@ async function pmjSaveToQuoteFolder(){
  try{
   var list=await pmjFindQuoteFolders(q.f.qn,q.f.client,true);
   if(!list.length){list=[];list.ask=true;}
-  var dir=await pmjChoose("pm-qsave",list,!list.length?"Couldn’t find a quote folder for "+q.f.qn+" in Quotes - Documents. Choose it with “Choose another folder…”, or create it with “Create quote folder” at the top of the quote and save again.":(list.ask?"Not sure which folder is quote "+q.f.qn+" (the files inside name a different quote) — which one?":"More than one folder could be quote "+q.f.qn+" — which one?"));if(!dir)return;
+  var dir=await pmjChoose("pm-qsave",list,!list.length?"Couldn’t find a quote folder for "+q.f.qn+" in Quotes - Documents. Choose it with “Choose another folder…”, or create it with “Create quote folder” at the top of the quote and save again.":(list.ask?"Not sure which folder is quote "+q.f.qn+" (the files inside name a different quote) — which one?":"More than one folder could be quote "+q.f.qn+" — which one?"),list.length>1||!!list.ask);if(!dir)return;
   await pmjPerm(dir,true);
   if(q.subOf&&!q.exported){var dn0=((q.f.docname||"").trim()||pmqDefaultName(q)).replace(/[\\\/:*?"<>|]+/g,"-").replace(/\.docx$/i,"")+".docx";
    if(await pmjChild(dir,dn0,"file")||await pmjChild(dir,pmjTxtName(q),"file")){var Q=pmjQnParts(q.f.qn),names=(await pmjList(dir)).filter(function(h){return h.kind==="file";}).map(function(h){return h.name;}),nx=Q?pmqdNextSub(q.f.qn,pmjSubIn(names,Q)):"";
@@ -2791,9 +2796,31 @@ async function pmjQuotePlan(root,yy,N){
 }
 function pmjByHtml(q){var cl=pmjNameFor(q,"client"),c=pmjNameFor(q,"contact");var a=pmjNameClean(q.f.client).toLowerCase(),b=pmjNameClean((q.f.contact||"").split(/[\/,;]/)[0]).toLowerCase();if(!a||!b||a===b||cl===c)return "";var by=pmjNameBy(q);
  return "<div class='hint' style='margin:4px 0 0'>Name by: <label class='cu-cb' style='display:inline'><input type='radio' name='pm-qfby' value='client'"+(by==="client"?" checked":"")+"> Client ("+pmEsc(cl)+")</label> <label class='cu-cb' style='display:inline'><input type='radio' name='pm-qfby' value='contact'"+(by==="contact"?" checked":"")+"> Contact ("+pmEsc(c)+")</label> \u2014 the Word file name follows</div>";}
+/* 1.32: renumber a quote whose number another quote already has — suggests the next free number, checks it, never touches the other quote */
+async function pmjRenumber(){
+ var q=pmCurQ();if(!q)return;var old=(q.f.qn||"").trim(),mq=pmjQnParts(old),yy=mq?mq.yy:pmjYY(),used={},max=0,src="your drafts";
+ if(pmjFsOk()&&PMJ.dirs.quotes){try{var L=await pmjQuotePlan(await pmjDir("quotes",false),yy,null);used=L.used||{};max=L.max||0;src="Quotes - Documents and your drafts";}catch(e){}}
+ var dq={};PM.quotes.forEach(function(x){if(x.id===q.id)return;var m=pmjQnParts((x.f.qn||"").trim());if(m&&m.yy===yy){dq[m.n]=1;if(m.n>max)max=m.n;}});
+ var sug=yy+"-"+pmjPad(max+1),ans=sug;
+ for(var tries=0;tries<4;tries++){
+  ans=prompt("Renumber quote "+(old||"(no number)")+" to:\n\nSuggested: the next free number after "+(max?yy+"-"+pmjPad(max):"none")+" (checked "+src+"). The other quote and its folder are left as they are.",sug);
+  if(ans==null)return;ans=String(ans).trim();var m2=pmjQnParts(ans);
+  if(!m2){alert("The Quote # should look like 26-591.");continue;}
+  if(ans.toUpperCase()===old.toUpperCase())return;
+  if(used[m2.n]&&!m2.sub){alert("A folder numbered "+m2.yy+"-"+pmjPad(m2.n)+" is already in Quotes - Documents. Pick another number.");continue;}
+  if(PM.quotes.some(function(x){return x.id!==q.id&&(x.f.qn||"").trim().toUpperCase()===ans.toUpperCase();})){alert("Another draft here already uses "+ans+". Pick another number.");continue;}
+  break;}
+ if(!ans||!pmjQnParts(ans))return;
+ if(q.f.docname&&old&&q.f.docname.indexOf(old)>=0)q.f.docname=q.f.docname.split(old).join(ans);
+ q.f.qn=ans;q.qfolder=null;if(PMJ.qf&&PMJ.qf.id===q.id)PMJ.qf=null;q.updated=Date.now();pmQuotesSave();
+ PMJ.qfMsg={t:"Renumbered "+pmEsc(old||"(blank)")+" \u2192 <b>"+pmEsc(ans)+"</b>. The other "+pmEsc(old)+" and its folder were left as they are. Create this quote’s folder with “Create quote folder for "+pmEsc(ans)+"”, and update the To Do Quotes tracker to "+pmEsc(ans)+"."};
+ pmRender();
+}
 function pmjQfHtml(q){
- if(!pmjFsOk()||!PMJ.dirs.quotes)return "";var P=PMJ.qf&&PMJ.qf.id===q.id?PMJ.qf:null;
- var h="<div class='pm-qf'>";
+ var rn=(q.f.qn||"").trim()?"<button class='btn' id='pm-renum' title='another quote already has this number — give this one the next free number (you confirm first)'>Renumber…</button>":"";
+ if(!pmjFsOk()||!PMJ.dirs.quotes){var mm=PMJ.qfMsg;PMJ.qfMsg=null;return rn||mm?"<div class='pm-qf'>"+rn+(mm?"<div class='"+(mm.bad?"cu-err":"hint")+"' style='display:block;margin:4px 0 0'>"+mm.t+"</div>":"")+"</div>":"";}
+ var P=PMJ.qf&&PMJ.qf.id===q.id?PMJ.qf:null;
+ var h="<div class='pm-qf'>";if(!P)h+=rn;
  if(q.qfolder)h+="<span class='pm-dok'>Quote folder: "+pmEsc(q.qfolder)+"</span>";
  else if(!P)h+="<button class='btn' id='pm-qfnew' title='finds the next free quote number in Quotes - Documents and creates its folder — only after you confirm'>"+((q.f.qn||"").trim()?"Create quote folder for "+pmEsc(q.f.qn.trim()):"Create next quote folder")+"</button><span class='hint' id='pm-qfhint' style='margin:0"+(pmjShortName(q)?";display:none":"")+"'>needs the client or contact name</span>";
  else{h+="<div class='cu-sfhit'>Create <b>Quotes - Documents › "+pmEsc(pmjQfName(P.qn,""))+"</b><input type='text' id='pm-qfshort' value='"+pmEsc(P.short)+"' style='width:200px'> ? <button class='btn pri' id='pm-qfok'>Create folder</button> <button class='btn' id='pm-qfno'>Cancel</button>"+pmjByHtml(q)+(P.note?"<div class='hint' style='margin:4px 0 0'>"+pmEsc(P.note)+"</div>":"");
@@ -2845,8 +2872,8 @@ async function pmjQfCreate(){
  }catch(e){PMJ.qfMsg={bad:true,t:pmEsc(e&&e.message||String(e))};}
  pmRender();
 }
-function pmjWireQf(host){host.querySelectorAll("input[name='pm-qfby']").forEach(function(r){r.onchange=function(){var q=pmCurQ();if(!q)return;q.nameBy=r.value;pmQuotesSave();var el=document.getElementById("pm-qfshort");if(el)el.value=pmjNameFor(q,r.value);if(PMJ.qf)PMJ.qf.short=pmjNameFor(q,r.value);var dn=document.getElementById("pm-docname");if(dn&&!dn.value)dn.placeholder=pmqDefaultName(q);};});var a=document.getElementById("pm-qfnew");if(a)a.onclick=pmjQfStart;var b=document.getElementById("pm-qfok");if(b)b.onclick=pmjQfCreate;var c=document.getElementById("pm-qfno");if(c)c.onclick=function(){PMJ.qf=null;pmRender();};var s=document.getElementById("pm-qfshort");if(s)s.onkeydown=function(e){if(e.key==="Enter")pmjQfCreate();};}
-window.pmjQfStart=pmjQfStart;window.pmjQfCreate=pmjQfCreate;
+function pmjWireQf(host){host.querySelectorAll("input[name='pm-qfby']").forEach(function(r){r.onchange=function(){var q=pmCurQ();if(!q)return;q.nameBy=r.value;pmQuotesSave();var el=document.getElementById("pm-qfshort");if(el)el.value=pmjNameFor(q,r.value);if(PMJ.qf)PMJ.qf.short=pmjNameFor(q,r.value);var dn=document.getElementById("pm-docname");if(dn&&!dn.value)dn.placeholder=pmqDefaultName(q);};});var a=document.getElementById("pm-qfnew");if(a)a.onclick=pmjQfStart;var rb=document.getElementById("pm-renum");if(rb)rb.onclick=pmjRenumber;var b=document.getElementById("pm-qfok");if(b)b.onclick=pmjQfCreate;var c=document.getElementById("pm-qfno");if(c)c.onclick=function(){PMJ.qf=null;pmRender();};var s=document.getElementById("pm-qfshort");if(s)s.onkeydown=function(e){if(e.key==="Enter")pmjQfCreate();};}
+window.pmjQfStart=pmjQfStart;window.pmjQfCreate=pmjQfCreate;window.pmjRenumber=pmjRenumber;
 /* ---------- PM tab: encrypted vault + quote builder ---------- */
 function pmEsc(v){return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 var PM={key:null,vault:null,vfile:null,quotes:[],cur:null,err:"",busy:false,mode:(typeof sget==="function"&&sget("eo:pmmode"))||"quotes"};
@@ -3031,7 +3058,7 @@ function pmRenderMain(host){
  h+="<div class='pm-tot' id='pm-tot'></div>";
  h+="<div class='pm-h'>Field Crew Instructions</div><div class='row'>"+((V.fci||[]).length?"<select id='pm-fcisel'>"+V.fci.map(function(o,i){return "<option value='"+i+"'>"+pmEsc(o.label)+"</option>";}).join("")+"</select> <button class='btn' id='pm-fciins'>Insert</button>":"")+"<span class='hint' style='margin:0 0 0 8px'>options are edited under Rates &amp; crew instructions</span></div><textarea id='pm-fci' rows='6' class='pm-ta'>"+pmEsc(q.fci)+"</textarea>";
  h+="<div class='pm-h'>Notes appended after the fields</div><textarea id='pm-notes' rows='4' class='pm-ta' placeholder='Date received, source, transcription of the request…'>"+pmEsc(q.notes)+"</textarea>";
- h+="<div class='pm-h'>Quote document</div><div class='row'><label class='pm-f' style='flex:1;max-width:560px'><span>Word file name</span><input type='text' id='pm-docname' value='"+pmEsc(q.f.docname||"")+"' placeholder='"+pmEsc(pmqDefaultName(q))+"'></label></div><div class='cu-dl'><button class='btn pri' onclick='pmjSaveToQuoteFolder()' title='saves the Word quote and the job details file into this quote’s folder in Quotes - Documents'>Save to quote folder</button><button class='btn' onclick='pmqDownloadDocx()'>Download quote (.docx)</button><span class='hint' style='margin:0'>date, GST, disbursements, signatory and contract fill in automatically</span></div><div class='row'><label class='cu-sfhit' style='margin:0'><input type='checkbox' id='pm-rs'"+(q.rs?" checked":"")+"> Attach rate sheet (page 2) \u2014 hourly rates, fees &amp; deliverables for "+new Date().getFullYear()+", from the current rates</label></div><div class='cu-err' id='pm-qwarn' style='display:none'></div><div id='pm-qsave' style='display:none'></div>";
+ h+="<div class='pm-h'>Quote document</div><div class='row'><label class='pm-f' style='flex:1;max-width:560px'><span>Word file name</span><input type='text' id='pm-docname' value='"+pmEsc(q.f.docname||"")+"' placeholder='"+pmEsc(pmqDefaultName(q))+"'></label></div><div class='cu-dl'><button class='btn pri' onclick='pmjSaveToQuoteFolder()' title='saves the Word quote and the job details file into this quote’s folder in Quotes - Documents'>Save to quote folder</button><button class='btn' onclick='pmqDownloadDocx()'>Download quote (.docx)</button><span class='hint' style='margin:0'>date, GST, disbursements, signatory and contract fill in automatically</span></div><div class='cu-idwarn' id='pm-disbrem' style='display:"+(pmqDisbLine(q)?"none":"block")+"'>No disbursements selected \u2014 title, plans, checklist or filing fee? (Not required \u2014 just a reminder.)</div><div class='row'><label class='cu-sfhit' style='margin:0'><input type='checkbox' id='pm-rs'"+(q.rs?" checked":"")+"> Attach rate sheet (page 2) \u2014 hourly rates, fees &amp; deliverables for "+new Date().getFullYear()+", from the current rates</label></div><div class='cu-err' id='pm-qwarn' style='display:none'></div><div id='pm-qsave' style='display:none'></div>";
  h+="<div class='pm-h'>Job details file</div><div class='cu-dl'><button class='btn pri' onclick='pmDownload()'>Download job details (.txt)</button><button class='btn' onclick='pmCopyJob()'>Copy job details</button><button class='btn' onclick='pmCopyRow()' title='tab-separated row for To Do Quotes, columns A–K'>Copy tracker row</button><span class='hint' id='pm-copied' style='margin:0'></span></div><div class='jobnote' id='pm-qnote' style='display:none'>Enter the Quote # before saving the job details file.</div>";
  h+="<details class='cu-scman'><summary>Preview</summary><pre class='pm-pre' id='pm-pre'></pre></details>";
  h+=pmRatesHtml()+pmqFavsHtml();
@@ -3058,9 +3085,10 @@ function pmWireMain(host,q){
  host.querySelectorAll("[data-xpx]").forEach(function(el){el.onclick=function(e){e.preventDefault();q.xp.splice(+el.dataset.xpx,1);q.updated=Date.now();pmQuotesSave();pmRender();};});
  var ap=document.getElementById("pm-addprop");if(ap)ap.onclick=function(){q.xp=q.xp||[];q.xp.push({site:"",legal:"",pid:""});q.updated=Date.now();pmQuotesSave();pmRender();var i=host.querySelectorAll("[data-xp][data-k='site']");if(i.length)i[i.length-1].focus();};
  host.querySelectorAll(".pm-hr").forEach(function(el){el.oninput=function(){var s=q.secs[+el.dataset.s],H=el.dataset.l!=null?((s.pl[+el.dataset.l]||{}).hrs||{}):(el.dataset.g!=null?((s.stg[+el.dataset.g]||{}).hrs||{}):s.hrs);if(el.value.trim())H[el.dataset.r]=el.value.trim();else delete H[el.dataset.r];save();};});
- host.querySelectorAll(".pm-dn").forEach(function(el){el.oninput=function(){q.disb[el.dataset.d]=el.value;save();};});
+ var disbRem=function(){var r=document.getElementById("pm-disbrem");if(r)r.style.display=pmqDisbLine(q)?"none":"block";};
+ host.querySelectorAll(".pm-dn").forEach(function(el){el.oninput=function(){q.disb[el.dataset.d]=el.value;save();disbRem();};});
  document.getElementById("pm-olab").oninput=function(){q.other.label=this.value;save();};
- document.getElementById("pm-oamt").oninput=function(){q.other.amt=this.value;save();};
+ document.getElementById("pm-oamt").oninput=function(){q.other.amt=this.value;save();disbRem();};
  document.getElementById("pm-fci").oninput=function(){q.fci=this.value;save();};
  document.getElementById("pm-notes").oninput=function(){q.notes=this.value;save();};
  var rsb=document.getElementById("pm-rs");if(rsb)rsb.onchange=function(){q.rs=rsb.checked;save();};
@@ -3806,8 +3834,15 @@ function cuMatchSolve(plan,local,tol,seed){
 }
 function cuIdSeeds(plan,local){
  var ids={};plan.forEach(function(p){var id=cuMonId(p);if(id)(ids[id]=ids[id]||[]).push(p);});
- var seeds=[];
- local.forEach(function(f){var id=cuMonId(f);if(id&&ids[id]&&ids[id].length===1)seeds.push({p:ids[id][0],f:f,id:id});});
+ /* the same monument booked twice (e.g. 146 and 1000 both OCNT 6292 at the same spot) still counts as one */
+ var one=function(L){return L.length===1||L.every(function(p){return Math.hypot(p.N-L[0].N,p.E-L[0].E)<0.05;});};
+ var seeds=[],have={};
+ local.forEach(function(f){var id=cuMonId(f);if(id&&ids[id]&&one(ids[id])){seeds.push({p:ids[id][0],f:f,id:id});have[f.pt]=1;}});
+ /* 1.32: a crew note naming the other side's point number with its code, e.g. "105 occ" -> 105 OCC, "opcon 111" -> 111 OPCON */
+ var byPt={};plan.forEach(function(p){byPt[String(p.pt)]=p;});
+ local.forEach(function(f){if(have[f.pt])return;var toks=String(f.desc||"").toUpperCase().split(/[\s,;:-]+/).filter(Boolean);
+  for(var i=0;i<toks.length;i++){var p=byPt[toks[i]];if(!p||String(p.pt)===String(f.pt))continue;var pc=(p.code||(p.desc||"").split(/\s+/)[0]||"").toUpperCase();
+   if(pc&&toks.some(function(t,j){return j!==i&&t===pc;})){seeds.push({p:p,f:f,id:"pt "+p.pt});have[f.pt]=1;break;}}});
  return seeds;
 }
 function cuMatchRun(){
@@ -3817,6 +3852,11 @@ function cuMatchRun(){
  var steps=[0.05,0.10,0.15,0.20],sol=null,at=null;
  if(plan.length>400||local.length>400){m.result={tooMany:true,plan:plan,local:local};cuRenderMatch();return;}
  for(var i=0;i<steps.length&&!sol;i++){sol=cuMatchSolve(plan,local,steps[i],seeds);if(sol)at=steps[i];}
+ /* 1.32: with at least two ID / point-number hints, a solution that pairs none of them is suspect (e.g. a chance triangle of ground shots) —
+    keep loosening for one that agrees with the hints, and use it if found */
+ var seedOk=function(S){return S&&S.pairs.some(function(q){return seeds.some(function(sd){return sd.f.pt===q.f.pt&&Math.hypot(sd.p.N-q.p.N,sd.p.E-q.p.E)<0.05;});});};
+ if(sol&&seeds.length>=2&&!seedOk(sol)){var T0=cuRigidFit(seeds);
+  for(var k=0;k<steps.length;k++){var s2=cuScore(T0,plan,local,steps[k],cuGrid(plan,steps[k]),null);if(!seedOk(s2))s2=cuMatchSolve(plan,local,steps[k],seeds);if(seedOk(s2)){sol=s2;at=steps[k];break;}}}
  var res={plan:plan,local:local,sol:sol,at:at,steps:steps,stable:null,unmatchedPlan:[],unmatchedLocal:[],scaleHint:null,seeds:seeds,idConf:[],idUnconfirmed:[],sameSystem:false};
  if(sol){
   var wide=cuMatchSolve(plan,local,0.30,seeds);
@@ -3825,9 +3865,16 @@ function cuMatchRun(){
   var mp={},mf={};sol.pairs.forEach(function(q){mp[q.p.pt]=q;mf[q.f.pt]=q;});
   res.unmatchedPlan=plan.filter(function(p){return !mp[p.pt];});
   res.unmatchedLocal=local.filter(function(p){return !mf[p.pt];});
-  sol.pairs.forEach(function(q){var a=cuMonId(q.p),b=cuMonId(q.f);q.idFlag=(a&&b)?(a===b?"ok":"conflict"):"";if(q.idFlag==="conflict")res.idConf.push(q);});
+  /* 1.32: when the hinted point and another plan point sit on the same spot (e.g. 146 OCNT 6292 and its BSCHK 157), name the hinted one */
+  sol.pairs.forEach(function(q){var sd=seeds.find(function(x){return x.f.pt===q.f.pt;});if(sd&&sd.p!==q.p&&Math.hypot(sd.p.N-q.p.N,sd.p.E-q.p.E)<0.05){delete mp[q.p.pt];q.p=sd.p;mp[q.p.pt]=q;}q.seed=sd&&sd.p===q.p?sd:null;});
+  res.unmatchedPlan=plan.filter(function(p){return !mp[p.pt];});
+  sol.pairs.forEach(function(q){var a=cuMonId(q.p),b=cuMonId(q.f);q.idFlag=(q.seed&&/^pt /.test(q.seed.id))?"ok":((a&&b)?(a===b?"ok":"conflict"):"");if(q.idFlag==="conflict")res.idConf.push(q);});
   seeds.forEach(function(sd){var q=mf[sd.f.pt];if(!q||q.p.pt!==sd.p.pt)res.idUnconfirmed.push(sd);});
   res.sameSystem=Math.abs(sol.T.th)<1.75e-4&&Math.hypot(sol.T.tx,sol.T.ty)<1;
+  /* 1.32: report (never apply) a scale difference between the sides, e.g. UTM grid vs local ground */
+  if(sol.pairs.length>=2){var cp={N:0,E:0},cf={N:0,E:0},n=sol.pairs.length;sol.pairs.forEach(function(q){cp.N+=q.p.N/n;cp.E+=q.p.E/n;cf.N+=q.f.N/n;cf.E+=q.f.E/n;});
+   var sp=0,sf=0;sol.pairs.forEach(function(q){sp+=Math.hypot(q.p.N-cp.N,q.p.E-cp.E);sf+=Math.hypot(q.f.N-cf.N,q.f.E-cf.E);});
+   if(sf>0){res.scale=sp/sf;}}
  }else{
   var sc=[0.3048,1/0.3048].map(function(k){var L=local.map(function(p){return {pt:p.pt,N:p.N*k,E:p.E*k,desc:p.desc,code:p.code};});return {k:k,s:cuMatchSolve(plan,L,0.20*(k>1?k:1))};}).filter(function(x){return x.s;})[0];
   if(sc)res.scaleHint="Nothing matches at scale 1, but "+sc.s.pairs.length+" points would match if both sides shared units \u2014 it looks like the "+(sc.k>1?"A/plan side is in feet and the B/local side in metres":"B/local side is in feet and the A/plan side in metres")+". No scaling has been applied; convert one file first (Scale panel).";
@@ -3931,6 +3978,7 @@ function cuMatchTableHtml(rows,r,label,isStage){
  if(r.idConf&&r.idConf.length)h+="<div class='cu-idwarn'>Monument IDs disagree with the geometry on "+r.idConf.length+" pair"+(r.idConf.length>1?"s":"")+": "+r.idConf.map(function(q){return esc(q.f.pt+" ("+q.f.desc+") sits on "+q.p.pt+" ("+q.p.desc+")");}).join("; ")+" \u2014 check the coding.</div>";
  if(r.idUnconfirmed&&r.idUnconfirmed.length)h+="<div class='cu-idwarn'>Same monument ID on both sides but not paired by the figure: "+r.idUnconfirmed.map(function(s){return esc(s.f.pt+" / "+s.p.pt+" ("+s.id+")");}).join(", ")+"</div>";
  h+="<div class='cu-mtun'>Unmatched \u2014 local: "+(r.unmatchedLocal.length?r.unmatchedLocal.map(function(p){return esc(p.pt)+(p.code?" ("+esc(p.code)+")":"");}).join(", "):"none")+" \u00b7 plan: "+(r.unmatchedPlan.length?r.unmatchedPlan.map(function(p){return esc(p.pt);}).join(", "):"none")+"</div>";
+ if(r.scale&&Math.abs(r.scale-1)>0.0001)h+="<div class='cu-idwarn'>The two sides differ in scale by about "+r.scale.toFixed(6)+" (e.g. UTM grid vs local ground). No scale is applied here, so the residuals above include it; the Helmert in MS CAD solves the scale.</div>";
  h+="<div class='hint'>Reference only: rotation "+cuDms(r.sol.T.th*180/Math.PI)+", translation dN "+r.sol.T.tx.toFixed(3)+" dE "+r.sol.T.ty.toFixed(3)+". Run the Helmert in MS CAD with the pairs you're confident in.</div>";
  return h;
 }
@@ -4130,7 +4178,7 @@ window.cuDvfState=function(){if(!cuDvf)cuDvf=cuDvfNew();return cuDvf;};
 /* ---------- monitoring (1.31): base (true) vs this trip (observed); residual = observed − base; copy-paste output ---------- */
 var cuMon=null;
 function cuMonNew(){return {open:false,baseMode:"paste",paste:"",bSrc:null,bRange:"",tSrc:null,tRange:"",radius:"0.10",show:null,total:false,obs:true,head:true,res:null};}
-function cuMonId(s){return String(s||"").replace(/^\s*(gauge|guage|gage)\s*#?\s*/i,"").replace(/\s+/g," ").trim().toUpperCase();}
+function cuMonKey(s){return String(s||"").replace(/^\s*(gauge|guage|gage)\s*#?\s*/i,"").replace(/\s+/g," ").trim().toUpperCase();}
 /* a block copied from the monitoring spreadsheet: the header decides Elevation only vs N / E / Elevation */
 function cuMonParse(txt){
  var pts=[],kind=null,skipped=0,num=/^-?\d+(\.\d+)?$/;
@@ -4147,7 +4195,7 @@ function cuMonParse(txt){
   var id=cells[0],v=[];
   for(var j=1;j<cells.length;j++){var c=cells[j].replace(/,/g,"");if(num.test(c))v.push(parseFloat(c));else break;}
   if(!v.length){skipped++;return;}
-  var k=kind||(v.length>=3?"NEZ":"Z"),p={label:id,id:cuMonId(id)};
+  var k=kind||(v.length>=3?"NEZ":"Z"),p={label:id,id:cuMonKey(id)};
   if(k==="NEZ"&&v.length>=3){p.N=v[0];p.E=v[1];p.Z=v[2];}else{p.Z=v[0];}
   pts.push(p);});
  if(!kind)kind=pts.length&&pts.every(function(p){return p.N!==undefined;})?"NEZ":"Z";
@@ -4162,7 +4210,7 @@ function cuMonBaseFromRange(src,range,rad){
  P.forEach(function(p,i){if(used[i])return;var grp=[p];used[i]=1;
   P.forEach(function(q,j){if(!used[j]&&Math.hypot(q.N-p.N,q.E-p.E)<=rad){grp.push(q);used[j]=1;}});
   var a=cuMonAvg(grp),lab=(p.desc&&p.desc.length<=12?p.desc:"")||p.pt;
-  out.push({label:lab+(lab===p.pt?"":" ("+grp.map(function(g){return g.pt;}).join("+")+")"),id:cuMonId(p.desc||p.pt),N:a.N,E:a.E,Z:a.Z,basePts:a.pts});});
+  out.push({label:lab+(lab===p.pt?"":" ("+grp.map(function(g){return g.pt;}).join("+")+")"),id:cuMonKey(p.desc||p.pt),N:a.N,E:a.E,Z:a.Z,basePts:a.pts});});
  return out;
 }
 function cuMonBase(){var M=cuMon,rad=parseFloat(M.radius);if(!(rad>0))rad=0.10;
@@ -4175,13 +4223,13 @@ function cuMonSuggest(){
  var hasPos=B.pts.every(function(b){return b.N!==undefined;}),ids={};B.pts.forEach(function(b){ids[b.id]=1;});
  var P=cuDvfPts(cuSrcState(M.tSrc)).filter(function(p){return /^\d+$/.test(p.pt);});
  if(M.baseMode==="range"&&M.tSrc===M.bSrc)P=P.filter(function(p){return !cuPtInRange(p.pt,M.bRange);});
- var hit=P.filter(function(p){return hasPos?B.pts.some(function(b){return Math.hypot(p.N-b.N,p.E-b.E)<=rad;}):ids[cuMonId(p.desc)];});
+ var hit=P.filter(function(p){return hasPos?B.pts.some(function(b){return Math.hypot(p.N-b.N,p.E-b.E)<=rad;}):ids[cuMonKey(p.desc)];});
  if(!hit.length)return "";
  hit.sort(function(a,b){return parseInt(b.pt)-parseInt(a.pt);});
  /* walk down from the newest shot until every base point is covered */
  var cov={},lo=hit[0].pt,hi=hit[0].pt;
  for(var i=0;i<hit.length;i++){var p=hit[i];lo=p.pt;
-  B.pts.forEach(function(b,k){if(hasPos?Math.hypot(p.N-b.N,p.E-b.E)<=rad:cuMonId(p.desc)===b.id)cov[k]=1;});
+  B.pts.forEach(function(b,k){if(hasPos?Math.hypot(p.N-b.N,p.E-b.E)<=rad:cuMonKey(p.desc)===b.id)cov[k]=1;});
   if(Object.keys(cov).length>=B.pts.length)break;}
  return lo===hi?lo:lo+"-"+hi;
 }
@@ -4194,7 +4242,7 @@ function cuMonRun(){
  B.pts.forEach(function(b){var row={b:b};
   var shots;
   if(hasPos)shots=T.filter(function(t){return Math.hypot(t.N-b.N,t.E-b.E)<=rad;});
-  else{shots=T.filter(function(t){return cuMonId(t.desc)===b.id;});
+  else{shots=T.filter(function(t){return cuMonKey(t.desc)===b.id;});
    if(shots.length>1){var far=0;shots.forEach(function(a){shots.forEach(function(c){far=Math.max(far,Math.hypot(a.N-c.N,a.E-c.E));});});
     if(far>rad){row.flag=b.id+" shot "+shots.length+"× ("+shots.map(function(s){return s.pt;}).join(", ")+") "+far.toFixed(2)+" m apart — check the coding; not averaged";row.shots=shots;rows.push(row);shots.forEach(function(s){usedT[s.pt]=1;});return;}}}
   if(!shots.length){row.missing=true;rows.push(row);return;}

@@ -1,5 +1,31 @@
 # Elevate Office — changelog
 
+## Build 1.32 — 2026-10-20
+- **PM › Duplicate as sub-quote copies only the job details.** A sub-quote is new services and new hours; changes to the original go on the original quote.
+  - Kept: the top section (client, contact, email, phone, site address(es) incl. extra properties, project line, legal, PID, plans, PM name / initials) under the new sub-quote number.
+  - Blank, as on a new quote:
+    - services (one empty service), hours, stages and price lines;
+    - every typed or held price, including "Hourly" and per-unit prices;
+    - disbursements, Field Crew Instructions, notes and the rate-sheet option.
+  - A note on the sub-quote says so. The original quote is untouched.
+- **PM › Renumber… a quote.** For when another quote already has the same number.
+  - The **Renumber…** button sits above the Quote #. It's also offered in the "More than one folder could be quote … — which one?" box.
+  - It suggests the next free number this year (checks the Quotes - Documents folders and your drafts) and refuses a number already used by a folder or a draft.
+  - On confirm it updates the Quote # and Word file name. Then create this quote's folder with "Create quote folder", and update the To Do Quotes tracker.
+  - The other quote and its folder are never touched, and nothing is created automatically.
+- **PM › reminder when no disbursements are selected.** "No disbursements selected — title, plans, checklist or filing fee?" shows under the Save / Download buttons.
+  - It's only a reminder: saving and downloading still work.
+  - It disappears as soon as a disbursement or an "other" amount is entered.
+- **Fix — Match points (General and Calc → tied-in) since 1.31.**
+  - The 1.31 Monitoring code reused a name the matcher relies on. This broke the monument-ID check: every pair showed ✓ID, even G or CHK shots, and the ID hints that steer the match were scrambled.
+  - Fixed. IDs are read correctly again (2022 "ocnt 6292" = 146 OCNT 6292).
+  - New: a crew note naming the other side's point number with its code ("105 occ" → 105 OCC, "opcon 111" → 111 OPCON) also counts as a hint.
+  - With two or more hints, a match that pairs none of them (e.g. a chance triangle of ground shots) is no longer accepted. The tool loosens the tolerance for one that agrees with the hints.
+  - Where a hinted point and a backsight check sit on the same spot, the hinted point is named.
+  - A scale difference between the sides (e.g. UTM grid vs local ground) is now reported. It is never applied; the Helmert in MS CAD solves it.
+  - Checked on 23-2362 lease: 2022 → 146, 2023 → 111 and 2024 → 105, the same pairs as the MS CAD Helmert (scale ≈ 1.0004). Before the fix it gave 2006 → 147, 2002 → 109, 2005 → 143.
+- Verified with a test vault: the sub-quote keeps the job details (incl. a 2nd property) and clears services, held prices, price lines, disbursements, crew instructions, notes and rate sheet, with the original unchanged. Renumber was checked with drafts only (suggests the next after the drafts) and with folders (two 26-618 folders and a 26-652: suggests 26-653, refuses 26-652 and a draft's number, creates and touches no folder), and from the "more than one folder" box. The reminder shows, hides and doesn't block. All earlier checks still pass.
+
 ## Build 1.31 — 2026-10-19
 - **Points tab: tool buttons.** The tools are buttons along the top: Clean-up · Scale · Match points · Design vs Field · Monitoring · Tree table · Transform.
   - One tool shows at a time, so there's no scrolling past the others. The file shelf stays at the top for every tool.
