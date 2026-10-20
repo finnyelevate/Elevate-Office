@@ -1,5 +1,35 @@
 # Elevate Office — changelog
 
+## Build 1.31 — 2026-10-19
+- **Points tab: tool buttons.** The tools are buttons along the top: Clean-up · Scale · Match points · Design vs Field · Monitoring · Tree table · Transform.
+  - One tool shows at a time, so there's no scrolling past the others. The file shelf stays at the top for every tool.
+  - Clean-up opens first, and the app remembers the last tool you used. Tree table is greyed out when the file has no trees.
+- **Training videos in the Points tab.** Each tool shows its own ▶ Training links, which open the video in a new tab:
+  - Clean-up: tree sizes to imperial, points upload for crew, RW5 to points in feet;
+  - Match points: points matching, plus the PL sample;
+  - Design vs Field: cut / fills, and residuals;
+  - Tree table: tree table.
+- **Points tab: Monitoring** (new). Compares the base (true) values with this trip (observed). The residual is **observed − base**, to the mm. Residuals only, no tolerances applied, and nothing is saved between sessions.
+  - **Base:** paste it from the monitoring spreadsheet (copy the header + values), or pick its point range from a file.
+    - The pasted header decides the layout: "Elevation" only, or N / E / Ele. "Gauge" / "Guage" labels are fine.
+  - **This trip:** type the trip's point range; only those shots are used. A suggested range (the newest shots on the base points) can be accepted with one click.
+  - **Pairing:**
+    - Shots are paired to the base points by position (default within 0.10 m).
+    - Repeat shots of a point within the trip are averaged, with the shot count and spread shown.
+    - With an elevation-only paste, shots are matched by their description (A, B, …) inside the trip range. A point coded twice far apart is flagged and not averaged. Picking the base by range instead pairs by position.
+  - **Copy for the spreadsheet:** rows in the base's order with its labels: observed values (optional), then ΔN ΔE ΔEle (+ ΔTotal), or Elevation only.
+  - Averages and base values are rounded to the mm before differencing, as in the spreadsheets.
+- **Design vs Field:**
+  - **Point ranges** box for each side (e.g. "625-663, 700-750, 812"). It's used instead of the blocks when filled in, for jobs with several days of shots.
+  - The **Note** column lists other field shots also inside the search limit ("also within 0.30 m: 898"). It never chooses between them.
+  - With only **Cut / fill** ticked, points without a design elevation are left out of the .dxf table and Copy table. The on-screen table still shows every row.
+- **Tree table:** has its own Metric / Imperial switch (the same setting as Clean-up).
+- **Training tab:** added RW5 file to points for a topo in feet; Design vs Field cut / fills and residuals; Tree table; a new LISP commands section (cert in metres to feet, feet to metric topo example); Creating blocks; Dimensioning in feet and inches.
+- Verified:
+  - Monitoring on 22-1740 (Oct 7 trip against the Oct 6 baseline, pasted from the spreadsheet): all 9 points paired, F and I averaged, ΔN / ΔE / ΔEle / ΔTotal matching the report (as observed − base).
+  - Monitoring on 24-2709 (May-1 base pasted as Elevation only): matches the PDF's 2nd, 3rd and 4th readings exactly. The 2nd needed the base picked by range, because shot 746 is coded "C" but sits on D; with an elevation-only paste it is flagged, not averaged.
+  - Design vs Field ranges, notes and Cut / fill-only rows, plus the tool buttons and training links, checked on 24-2817. All earlier checks still pass.
+
 ## Build 1.30 — 2026-10-15
 Includes everything from 1.29, which was only live for a few hours, plus the first round of feedback on it.
 

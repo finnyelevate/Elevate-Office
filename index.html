@@ -211,6 +211,14 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .tline .tcopy:hover{color:var(--blue)}
 .wnote{font-size:13.5px;line-height:1.55;color:var(--ink);max-width:660px;padding:4px 0}
 .wnote b{font-family:"Barlow Semi Condensed";letter-spacing:.03em}
+.cu-tools{display:flex;flex-wrap:wrap;gap:0;border-bottom:2px solid var(--blue);margin:12px 0 10px;max-width:980px}
+.cu-tools button{border:1px solid var(--hair);border-bottom:none;background:var(--panel);font-family:"Barlow Semi Condensed";font-weight:600;font-size:13px;letter-spacing:.04em;padding:8px 14px;cursor:pointer;color:var(--faint);margin:0 4px -0px 0}
+.cu-tools button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.cu-tools button:disabled{opacity:.45;cursor:default}
+.cu-tv details.cu-fold>summary{display:none}
+.cu-tv details.cu-fold{border:none}
+.cu-vids{font-size:13px;margin:2px 0 8px;color:var(--faint)}
+.cu-vids a{margin-right:12px}
 .cu-drop{border:2px dashed var(--hair);padding:26px 18px;text-align:center;color:var(--faint);font-size:14px;max-width:760px;background:var(--panel);margin-bottom:14px}
 .cu-drop.over{border-color:var(--blue);color:var(--blue)}
 .cu-drop.has{padding:12px 18px;font-size:13px}
@@ -760,8 +768,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.30";
-const NEWS=["Points: Design vs Field — compares design points with the stake-out / as-built shots and gives ΔN / ΔE to the mm and cut / fill to the cm (residuals only, you judge the tolerance). Adds the results to the stakes’ descriptions (.txt to import) and makes a table for the drawing (.dxf).", "Points: Tree table — every tree by point number with the AutoMap description (metric or imperial), as a .dxf table that wraps to fit the sheet.", "Jobs: Tidy this job folder now finds old request / field data folders whatever their capitals or name, including ones already inside Office or Field, and copies folders the browser can’t move."];
+const BUILD="1.31";
+const NEWS=["Points: the tools are now buttons along the top — Clean-up, Scale, Match points, Design vs Field, Monitoring, Tree table, Transform — one at a time, each with its own training videos.", "Points: Monitoring — paste the base from the monitoring spreadsheet (or pick its range), type the trip’s range, and copy observed − base residuals back, with repeat shots averaged.", "Points: Design vs Field — type exact point ranges for each side; a note shows when more than one field shot sits near a design point."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -3304,7 +3312,7 @@ function cuShelfRemove(id){
  if(wasActive){var last=cuSources[cuSources.length-1];last.active=true;cu=last.state;}
  cuRender();
 }
-function cuShelfReset(){cuSources=[];cuMatch=null;cuTf=null;cuDvf=null;cu=cuNewState();var dz=document.getElementById("cu-drop");if(dz)dz.classList.remove("has");cuRender();}
+function cuShelfReset(){cuSources=[];cuMatch=null;cuTf=null;cuDvf=null;cuMon=null;cu=cuNewState();var dz=document.getElementById("cu-drop");if(dz)dz.classList.remove("has");cuRender();}
 function cuPtsOf(state){var keep=cu;cu=state;var pts;try{pts=cuTagCodes(cuFilePts());}finally{cu=keep;}return pts;}
 function cuShelfHtml(){
  if(!cuSources.length)return "";
@@ -3532,6 +3540,8 @@ function cuRender(){
   h+="<div class='cu-pkg'>Points read from <b>"+esc(cu.pkg.file)+"</b>"+(cu.pkg.note?" "+esc(cu.pkg.note):"")+(cu.pkg.date?" \u2014 package saved "+esc(cu.pkg.date):"")+(cu.pkg.backup?" <span class='cu-pkgwarn'>this is the automatic backup (.mbz) \u2014 a different snapshot from the .msz; check its date before trusting it as current</span>":"")+(cu.pkg.conflicts?" <span class='cu-pkgwarn'>a share-conflict copy of the database also exists in the package \u2014 the primary was used</span>":"")+"<button class='btn' style='margin-left:10px' onclick='cuDownload(7)'>Points file \u2014 uncorrected</button><span class='hint' style='margin:0 0 0 8px'>exactly as in the database, no fixes applied</span></div>";
  }
  h+="<div class='cu-sum'>"+esc(cu.name)+" \u2014 "+pts+" points, "+(cu.delim===","?"comma":"whitespace")+"-delimited"+(blanks?", "+blanks+" blank description"+(blanks>1?"s":"")+" (passed through)":"")+"</div>";
+ h+=cuToolsBar();
+ h+="<div class='cu-tv' data-t='clean'><div class='cu-vids' data-v='clean'></div>";
  h+="<div class='cu-chips'>"+cu.chips.map(function(c){
   return "<button class='cu-chip"+(cu.focus[c.id]?" on":"")+"' data-c='"+c.id+"'>"+esc(c.label)+"</button>";
  }).join("")+"</div><div class='hint'>All ranges included by default \u2014 tap to exclude a block from cleanup (excluded points pass through untouched).</div>";
@@ -3539,7 +3549,8 @@ function cuRender(){
   h+="<div class='cu-units'><span>This file has trees \u2014 drawing units:</span> <span class='seg'><button data-u='m' class='"+(cu.unitAns==="m"?"on":"")+"'>Metric</button><button data-u='ft' class='"+(cu.unitAns==="ft"?"on":"")+"'>Imperial (ft)</button></span></div>";
  }
  h+="<div class='cu-manual'><h3>Add your own fix</h3><div class='row'><input type='text' id='cu-mf' placeholder='find' style='width:130px'> <span>\u2192</span> <input type='text' id='cu-mr' placeholder='replace' style='width:130px'> <label class='cu-cb'><input type='checkbox' id='cu-mw' checked> whole token</label> <input type='text' id='cu-mrange' placeholder='point range (optional)' style='width:150px'> <button class='btn' onclick='cuManAdd()'>Add rule</button></div><div id='cu-mprev' class='hint'></div></div>";
- h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div><div id='cu-scale'></div><div id='cu-match'></div><div id='cu-dvf'></div><div id='cu-tree'></div><div id='cu-tf'></div>";
+ h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div></div>";
+ [["scale","cu-scale"],["match","cu-match"],["dvf","cu-dvf"],["mon","cu-mon"],["tree","cu-tree"],["tf","cu-tf"]].forEach(function(p){h+="<div class='cu-tv' data-t='"+p[0]+"'><div class='cu-vids' data-v='"+p[0]+"'></div><div id='"+p[1]+"'></div></div>";});
  host.innerHTML=h;
  host.querySelectorAll(".cu-src").forEach(function(el){el.onclick=function(e){if(e.target.classList.contains("cu-srcx"))return;cuActivate(el.dataset.id);};});
  host.querySelectorAll(".cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();cuShelfRemove(b.dataset.id);};});
@@ -3560,8 +3571,28 @@ function cuRender(){
  }
  mf.oninput=mprev;mr.oninput=mprev;
  document.getElementById("cu-mw").onchange=mprev;document.getElementById("cu-mrange").oninput=mprev;
- cuRenderReview();cuRenderScale();cuRenderMatch();cuRenderDvf();cuRenderTree();cuRenderTf();
+ cuRenderReview();cuRenderScale();cuRenderMatch();cuRenderDvf();cuRenderMon();cuRenderTree();cuRenderTf();
+ host.querySelectorAll(".cu-tools button").forEach(function(b){b.onclick=function(){cuToolSet(b.dataset.t);};});
+ cuToolsApply();
 }
+/* ---------- Points tab tool buttons (1.31): one tool shown at a time; the file shelf stays on top ---------- */
+var CU_TOOLS=[["clean","Clean-up"],["scale","Scale"],["match","Match points"],["dvf","Design vs Field"],["mon","Monitoring"],["tree","Tree table"],["tf","Transform"]];
+var CU_TOOL_VIDS={clean:["Fixing tree sizes to imperial (Points tab)","Points upload for crew \u2014 example","RW5 file to points for a topo in feet (Points tab)"],match:["Points matching (Match points tab)","Points matching \u2014 PL sample"],dvf:["Design vs Field \u2014 comparing cut / fills (Points tab)","Design vs Field \u2014 comparing residuals (Points tab)"],tree:["Tree table (Points tab)"]};
+var cuTool=(function(){try{var t=localStorage.getItem("eo:cutool");return CU_TOOLS.some(function(x){return x[0]===t;})?t:"clean";}catch(e){return "clean";}})();
+function cuHasTrees(){try{return cuTreeRows().length>0;}catch(e){return false;}}
+function cuToolsBar(){var tr=cuHasTrees();
+ return "<div class='cu-tools'>"+CU_TOOLS.map(function(t){var dis=t[0]==="tree"&&!tr;return "<button data-t='"+t[0]+"' class='"+(cuTool===t[0]&&!dis?"on":"")+"'"+(dis?" disabled title='no tree points in this file'":"")+">"+t[1]+"</button>";}).join("")+"</div>";}
+function cuVidsHtml(t){var names=CU_TOOL_VIDS[t]||[];if(!names.length||typeof TRAINING==="undefined")return "";var all=[];TRAINING.forEach(function(g){all=all.concat(g.videos);});
+ var v=names.map(function(n){return all.find(function(x){return x.t===n;});}).filter(Boolean);if(!v.length)return "";
+ return "\u25b6 Training: "+v.map(function(x){return "<a href='"+x.u+"' target='_blank' rel='noopener'>"+esc(x.t.replace(/\s*\(Points tab\)|\s*\(Match points tab\)/,""))+"</a>";}).join("");}
+function cuToolsApply(){
+ var t=cuTool;if(t==="tree"&&!cuHasTrees())t="clean";
+ document.querySelectorAll("#cu-body .cu-tools button").forEach(function(b){b.classList.toggle("on",b.dataset.t===t);});
+ document.querySelectorAll("#cu-body .cu-tv").forEach(function(d){var on=d.dataset.t===t;d.style.display=on?"":"none";
+  if(on){d.querySelectorAll("details.cu-fold").forEach(function(f){if(!f.open)f.open=true;});var vv=d.querySelector(".cu-vids");if(vv&&!vv.innerHTML)vv.innerHTML=cuVidsHtml(t);}});
+}
+function cuToolSet(t){cuTool=t;try{localStorage.setItem("eo:cutool",t);}catch(e){}cuToolsApply();}
+window.cuToolSet=cuToolSet;window.cuToolsApply=cuToolsApply;
 function cuTickAll(on){
  /* on=true restores defaults (fixes + manual rules ticked, suggestions unticked); on=false clears every tick */
  for(var pass=0;pass<3;pass++)cuCompute().forEach(function(c){c.steps.forEach(function(s){cu.ticks[s.key]=on?(s.tier!==2):false;});});
@@ -3920,7 +3951,9 @@ window.cuMatchRun=cuMatchRun;window.cuMatchCopy=cuMatchCopy;window.cuMatchClear=
 
 /* ---------- design vs field (1.30): residuals only — no pass / fail words; the CAD tech or surveyor judges tolerance ---------- */
 var cuDvf=null;
-function cuDvfNew(){return {open:false,dSrc:null,fSrc:null,dBlocks:{},fBlocks:{},auto:false,radius:"0.30",hz:true,cf:true,hd:false,th:"1.0",res:null};}
+function cuDvfNew(){return {open:false,dSrc:null,fSrc:null,dBlocks:{},fBlocks:{},dRange:"",fRange:"",auto:false,radius:"0.30",hz:true,cf:true,hd:false,th:"1.0",res:null};}
+/* typed point ranges, e.g. "625-663, 700-750, 812" (non-numeric IDs listed by name) */
+function cuPtInRange(pt,range){if(/^\d+$/.test(pt))return cuInRange(pt,range);return range.split(",").some(function(x){return x.trim()!==""&&x.trim().toUpperCase()===String(pt).toUpperCase();});}
 function cuDvfPts(state){
  var out=[];if(!state||!state.lines)return out;
  state.lines.forEach(function(r){if(!r.point)return;var co=cuCoordOf(r);if(!co||isNaN(co.n)||isNaN(co.e))return;
@@ -3942,8 +3975,9 @@ function cuDvfDefaults(){
    cuBlocks(cuDvfPts(cuSrcState(V.dSrc))).forEach(function(b){if(!b.nn&&b.hi<100)V.dBlocks[b.id]=true;else V.fBlocks[b.id]=true;});}
   V.auto=true;}
 }
-function cuDvfSide(src,blocks){
+function cuDvfSide(src,blocks,range){
  var pts=cuDvfPts(cuSrcState(src)),bl=cuBlocks(pts),sel=Object.keys(blocks).filter(function(k){return blocks[k];});
+ if(range&&range.trim())return {pts:pts.filter(function(p){return cuPtInRange(p.pt,range);}),blocks:bl,typed:true};
  if(!sel.length)return {pts:pts,blocks:bl};
  var keep={};bl.forEach(function(b){if(blocks[b.id])b.pts.forEach(function(p){keep[p.pt]=1;});});
  return {pts:pts.filter(function(p){return keep[p.pt];}),blocks:bl};
@@ -3954,22 +3988,25 @@ function cuDvfCF(dz){return (dz>0?"FILL":"CUT")+Math.abs(dz).toFixed(2);}
 function cuDvfRun(){
  var V=cuDvf;cuDvfDefaults();
  var rad=parseFloat(V.radius);if(!(rad>0))rad=0.30;
- var D=cuDvfSide(V.dSrc,V.dBlocks).pts,F=cuDvfSide(V.fSrc,V.fBlocks).pts;
+ var D=cuDvfSide(V.dSrc,V.dBlocks,V.dRange).pts,F=cuDvfSide(V.fSrc,V.fBlocks,V.fRange).pts;
  if(V.dSrc===V.fSrc){var dk={};D.forEach(function(p){dk[p.pt]=1;});F=F.filter(function(p){return !dk[p.pt];});}
  var cell=Math.max(rad,0.5),grid={};F.forEach(function(f,i){var k=Math.floor(f.N/cell)+","+Math.floor(f.E/cell);(grid[k]=grid[k]||[]).push(i);});
  var rows=[],nOut=0;
- D.forEach(function(d){var gx=Math.floor(d.N/cell),gy=Math.floor(d.E/cell),bi=-1,bd=Infinity;
-  for(var a=-1;a<=1;a++)for(var b=-1;b<=1;b++){var l=grid[(gx+a)+","+(gy+b)];if(!l)continue;l.forEach(function(i){var h=Math.hypot(F[i].N-d.N,F[i].E-d.E);if(h<bd){bd=h;bi=i;}});}
+ D.forEach(function(d){var gx=Math.floor(d.N/cell),gy=Math.floor(d.E/cell),bi=-1,bd=Infinity,near=[];
+  for(var a=-1;a<=1;a++)for(var b=-1;b<=1;b++){var l=grid[(gx+a)+","+(gy+b)];if(!l)continue;l.forEach(function(i){var h=Math.hypot(F[i].N-d.N,F[i].E-d.E);if(h<=rad)near.push(i);if(h<bd){bd=h;bi=i;}});}
   /* no field point within the search limit: left out entirely (counted in the summary only) */
   if(!(bi>=0&&bd<=rad)){nOut++;return;}
   var hasZ=Math.abs(d.Z)>1e-9,f=F[bi],row={d:d,f:f,hasZ:hasZ,dN:f.N-d.N,dE:f.E-d.E,h:bd};
   if(hasZ)row.dz=cuDvfR(cuDvfR(d.Z,2)-cuDvfR(f.Z,2),2);
+  /* other field shots also inside the search limit: listed, never chosen between */
+  var others=near.filter(function(i){return i!==bi;}).map(function(i){return F[i].pt;});if(others.length)row.also=others;
   rows.push(row);});
  rows.sort(function(a,b){var x=cuDvfNum(a.d),y=cuDvfNum(b.d);if(x!==null&&y!==null)return x-y;if(x!==null)return -1;if(y!==null)return 1;return a.d.pt<b.d.pt?-1:1;});
  /* one field point nearest to several design points: its description uses the one with an elevation, then the nearest */
  var by={};rows.forEach(function(r){(by[r.f.pt]=by[r.f.pt]||[]).push(r);});
  var pick={};Object.keys(by).forEach(function(k){var l=by[k].slice().sort(function(a,b){return (b.hasZ-a.hasZ)||(a.h-b.h);});pick[k]=l[0];
   if(l.length>1)l.forEach(function(r){r.note="field pt also nearest to design "+l.filter(function(o){return o!==r;}).map(function(o){return o.d.pt;}).join(", ")+(r===l[0]?" (this one goes in its description)":"");});});
+ rows.forEach(function(r){if(r.also)r.note=(r.note?r.note+"; ":"")+"also within "+rad.toFixed(2)+" m: "+r.also.join(", ");});
  V.res={rows:rows,pick:pick,rad:rad,nD:D.length,nOut:nOut,nF:F.length,dName:(cuSources.find(function(s){return s.id===V.dSrc;})||{}).name,fName:(cuSources.find(function(s){return s.id===V.fSrc;})||{}).name,date:new Date().toISOString().slice(0,10)};
  cuRenderDvf();
 }
@@ -3987,6 +4024,8 @@ var CU_DVF_COLS=[
  {h:"ΔN",x:"dN",g:"hz",v:function(r){return cuDvfComp(r.dN,"N","S");}},
  {h:"ΔE",x:"dE",g:"hz",v:function(r){return cuDvfComp(r.dE,"E","W");}},
  {h:"Horiz",x:"HORIZ",g:"hd",v:function(r){return cuDvfR(r.h,3).toFixed(3);}}];
+/* rows for the .dxf / copied table: only those with something selected to show (Cut/fill only = design points with an elevation) */
+function cuDvfOutRows(){var V=cuDvf,R=V.res;if(!R)return [];if(V.hz||V.hd)return R.rows;if(V.cf)return R.rows.filter(function(r){return r.hasZ;});return R.rows;}
 function cuDvfOutCols(){var V=cuDvf,R=V.res,anyZ=R&&R.rows.some(function(r){return r.hasZ;});
  return CU_DVF_COLS.filter(function(c){return !c.g||(c.g==="cf"&&V.cf&&anyZ)||(c.g==="hz"&&V.hz)||(c.g==="hd"&&V.hd);});}
 /* the field file with only the paired stakes' descriptions amended; everything else byte-identical */
@@ -4025,7 +4064,7 @@ function cuDvfDxf(){
  var V=cuDvf,R=V.res;if(!R)return "";var th=parseFloat(V.th);if(!(th>0))th=1;
  var cols=cuDvfOutCols(),g={};cols.forEach(function(c){if(c.g)g[c.g]=1;});
  var foot="Residuals only: field minus design."+(g.hz||g.hd?" dN/dE"+(g.hd?"/HORIZ":"")+" to the mm.":"")+(g.cf?" Cut/fill to the cm (design elev - field elev, both to the cm); elevation blank = design point has no elevation.":"");
- return cuDxfTable("DESIGN vs FIELD  -  design: "+(R.dName||"")+"  field: "+(R.fName||"")+"  -  "+R.date,[{head:cols.map(function(c){return c.x;}),rows:R.rows.map(function(r){return cols.map(function(c){return c.v(r);});})}],th,"ELV-DESIGN-FIELD",foot);
+ return cuDxfTable("DESIGN vs FIELD  -  design: "+(R.dName||"")+"  field: "+(R.fName||"")+"  -  "+R.date,[{head:cols.map(function(c){return c.x;}),rows:cuDvfOutRows().map(function(r){return cols.map(function(c){return c.v(r);});})}],th,"ELV-DESIGN-FIELD",foot);
 }
 function cuDvfBase(){var n=(cuSources.find(function(s){return s.id===cuDvf.fSrc;})||{}).name||"points.txt";return n.replace(/\.[^.]+$/,"");}
 function cuSaveText(txt,fn,type){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:type||"text/plain"}));a.download=fn;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);}
@@ -4039,7 +4078,7 @@ function cuDvfSave(which){
 }
 function cuDvfCopyText(){
  var R=cuDvf.res;if(!R)return "";var cols=cuDvfOutCols();
- return [cols.map(function(c){return c.x==="dN"?"dN":c.x==="dE"?"dE":c.h;}).concat(["Field desc","Note"]).join("\t")].concat(R.rows.map(function(r){return cols.map(function(c){return c.v(r);}).concat([r.f.desc,r.note||""]).join("\t");})).join("\r\n");
+ return [cols.map(function(c){return c.x==="dN"?"dN":c.x==="dE"?"dE":c.h;}).concat(["Field desc","Note"]).join("\t")].concat(cuDvfOutRows().map(function(r){return cols.map(function(c){return c.v(r);}).concat([r.f.desc,r.note||""]).join("\t");})).join("\r\n");
 }
 function cuDvfCopy(){
  var txt=cuDvfCopyText();if(!txt)return;
@@ -4054,8 +4093,9 @@ function cuRenderDvf(){
    return "<button class='cu-chip"+(sel[b.id]?" on":"")+"' data-b='"+b.id+"' title='"+esc(ck.slice(0,12).join(", ")||"no descriptions")+"'>"+esc(b.label)+(ck.length?" <span class='cu-srcn'>"+esc(ck.slice(0,3).join(" "))+(ck.length>3?" …":"")+"</span>":"")+"</button>";}).join("")+"</div>";}
  var h="<details class='cu-fold' id='cu-dvffold'"+(V.open?" open":"")+"><summary>Design vs Field</summary><div class='cu-manual cu-mt'>";
  h+="<div class='hint' style='margin:0 0 6px'>Pairs each design point with the nearest field point and gives the residuals: ΔN / ΔE to the mm and, where the design point has an elevation, cut / fill to the cm. A design elevation of 0 means horizontal only. No tolerances are applied — you judge what's acceptable for the site.</div>";
- h+="<div class='cu-side'><div class='row'><label>Design</label>"+srcSel("d",V.dSrc)+"</div>"+chips("d",V.dSrc,V.dBlocks)+"</div>";
- h+="<div class='cu-side'><div class='row'><label>Field</label>"+srcSel("f",V.fSrc)+"</div>"+chips("f",V.fSrc,V.fBlocks)+"<div class='hint'>Tap blocks to choose each set (no block selected = all points). Pick the stake-out shots for Field — pins or ground shots at the same spot would otherwise be used.</div></div>";
+ function rbox(side,val){return "<div class='row'><label>Point ranges</label><input type='text' class='cu-dvfrng' data-side='"+side+"' style='width:240px;margin-left:8px' placeholder='e.g. 625-663, 700-750, 812' value='"+esc(String(val||""))+"'> <span class='hint' style='margin:0 0 0 8px'>"+(val&&val.trim()?"used instead of the blocks":"optional \u2014 overrides the blocks")+"</span></div>";}
+ h+="<div class='cu-side'><div class='row'><label>Design</label>"+srcSel("d",V.dSrc)+"</div>"+chips("d",V.dSrc,V.dBlocks)+rbox("d",V.dRange)+"</div>";
+ h+="<div class='cu-side'><div class='row'><label>Field</label>"+srcSel("f",V.fSrc)+"</div>"+chips("f",V.fSrc,V.fBlocks)+rbox("f",V.fRange)+"<div class='hint'>Tap blocks to choose each set (no block selected = all points). Pick the stake-out shots for Field — pins or ground shots at the same spot would otherwise be used.</div></div>";
  h+="<div class='row'><label>Search limit</label><input type='text' id='cu-dvfrad' style='width:70px;margin-left:8px' value='"+esc(String(V.radius))+"'> m <span class='hint' style='margin:0 0 0 8px'>design points with no field point this close are left out</span></div>";
  h+="<div class='cu-dl'><button class='btn pri' onclick='cuDvfRun()'>Compare</button></div>";
  var R=V.res;
@@ -4068,7 +4108,7 @@ function cuRenderDvf(){
    h+="</table></div>";
    h+="<div class='row' style='margin-top:6px'><label style='margin-right:10px'>Include</label><label class='cu-cb' style='margin-right:10px'><input type='checkbox' id='cu-dvfhz' "+(V.hz?"checked":"")+"> Horizontal ΔN / ΔE (e.g. 0.003N 0.012W)</label> <label class='cu-cb' style='margin-right:10px'><input type='checkbox' id='cu-dvfcf' "+(V.cf?"checked":"")+"> Cut / fill (e.g. FILL0.34)</label> <label class='cu-cb'><input type='checkbox' id='cu-dvfhd' "+(V.hd?"checked":"")+"> Horizontal distance (table only)</label></div>";
    var ex=R.rows.find(function(r){return R.pick[r.f.pt]===r;});
-   h+="<div class='hint'>These choose what goes into the stakes' descriptions and the columns of the .dxf / copied table (the table above always shows everything). "+(ex&&cuDvfAdd(ex)?"Example: field point "+esc(ex.f.pt)+" “"+esc(ex.f.desc)+"” becomes “"+esc(((ex.f.desc?ex.f.desc+" ":"")+cuDvfAdd(ex)))+"”. ":"Tick Horizontal or Cut / fill to amend descriptions. ")+"Point numbers, coordinates and every other line stay exactly as they are.</div>";
+   h+="<div class='hint'>These choose what goes into the stakes' descriptions and the columns of the .dxf / copied table; with only Cut / fill ticked, points without a design elevation are left out of them (the table above always shows everything). "+(ex&&cuDvfAdd(ex)?"Example: field point "+esc(ex.f.pt)+" “"+esc(ex.f.desc)+"” becomes “"+esc(((ex.f.desc?ex.f.desc+" ":"")+cuDvfAdd(ex)))+"”. ":"Tick Horizontal or Cut / fill to amend descriptions. ")+"Point numbers, coordinates and every other line stay exactly as they are.</div>";
    h+="<div class='row'><label>Table text height</label><input type='text' id='cu-dvfth' style='width:60px;margin-left:8px' value='"+esc(String(V.th))+"'> <span class='hint' style='margin:0 0 0 8px'>drawing units, for the .dxf table</span></div>";
    h+="<div class='cu-dl'><button class='btn pri' onclick='cuDvfSave(\"pts\")'"+(V.hz||V.cf?"":" disabled")+">Points file with amended descriptions (.txt)</button><button class='btn' onclick='cuDvfSave(\"chg\")'"+(V.hz||V.cf?"":" disabled")+">Changed points only (.txt)</button><button class='btn' onclick='cuDvfSave(\"dxf\")'>Table for the drawing (.dxf)</button><button class='btn' onclick='cuDvfCopy()'>Copy table</button><span class='hint' id='cu-dvfmsg' style='margin:0'></span></div>";
    h+="<div class='hint'>Import the points file into MicroSurvey over the existing points so the descriptions show the results; insert the .dxf as a block beside the plan.</div>";
@@ -4080,11 +4120,161 @@ function cuRenderDvf(){
  host.querySelectorAll(".cu-dvfsrc").forEach(function(sel){sel.onchange=function(){if(sel.dataset.side==="d")V.dSrc=sel.value;else V.fSrc=sel.value;V.auto=false;V.res=null;cuRenderDvf();};});
  host.querySelectorAll(".cu-dvfblocks .cu-chip").forEach(function(b){b.onclick=function(){var S=b.parentNode.dataset.side==="d"?V.dBlocks:V.fBlocks;S[b.dataset.b]=!S[b.dataset.b];V.res=null;cuRenderDvf();};});
  var ri=document.getElementById("cu-dvfrad");ri.onchange=function(){V.radius=ri.value.trim();if(V.res)cuDvfRun();};
+ host.querySelectorAll(".cu-dvfrng").forEach(function(el){el.onchange=function(){if(el.dataset.side==="d")V.dRange=el.value;else V.fRange=el.value;V.res=null;cuRenderDvf();};});
  [["cu-dvfhz","hz"],["cu-dvfcf","cf"],["cu-dvfhd","hd"]].forEach(function(p){var el=document.getElementById(p[0]);if(el)el.onchange=function(){V[p[1]]=el.checked;cuRenderDvf();};});
  var ti=document.getElementById("cu-dvfth");if(ti)ti.onchange=function(){V.th=ti.value.trim();};
 }
 window.cuDvfRun=cuDvfRun;window.cuDvfSave=cuDvfSave;window.cuDvfCopy=cuDvfCopy;window.cuRenderDvf=cuRenderDvf;window.cuDvfFile=cuDvfFile;window.cuDvfDxf=cuDvfDxf;window.cuDvfLine=cuDvfLine;window.cuDvfCopyText=cuDvfCopyText;window.cuDvfOutCols=cuDvfOutCols;
 window.cuDvfState=function(){if(!cuDvf)cuDvf=cuDvfNew();return cuDvf;};
+
+/* ---------- monitoring (1.31): base (true) vs this trip (observed); residual = observed − base; copy-paste output ---------- */
+var cuMon=null;
+function cuMonNew(){return {open:false,baseMode:"paste",paste:"",bSrc:null,bRange:"",tSrc:null,tRange:"",radius:"0.10",show:null,total:false,obs:true,head:true,res:null};}
+function cuMonId(s){return String(s||"").replace(/^\s*(gauge|guage|gage)\s*#?\s*/i,"").replace(/\s+/g," ").trim().toUpperCase();}
+/* a block copied from the monitoring spreadsheet: the header decides Elevation only vs N / E / Elevation */
+function cuMonParse(txt){
+ var pts=[],kind=null,skipped=0,num=/^-?\d+(\.\d+)?$/;
+ String(txt||"").split(/\r?\n/).forEach(function(line){
+  if(!line.trim())return;
+  var cells=line.split(/\t|\s{2,}|,(?=\S)/).map(function(c){return c.trim();}).filter(function(c){return c!=="";});
+  var nums=cells.filter(function(c){return num.test(c.replace(/,/g,""));});
+  if(!nums.length){/* title / header / note */
+   var low=cells.map(function(c){return c.toLowerCase();});
+   if(low.some(function(c){return /^(n|northing|north)$/.test(c);})&&low.some(function(c){return /^(e|easting|east)$/.test(c);}))kind=kind||"NEZ";
+   else if(low.some(function(c){return /^(ele|elev|elevation|el|z)\.?$/.test(c);}))kind=kind||"Z";
+   skipped++;return;}
+  var i=0;while(i<cells.length&&num.test(cells[i].replace(/,/g,""))&&i<cells.length-1&&!num.test((cells[i+1]||"").replace(/,/g,"")))i++;
+  var id=cells[0],v=[];
+  for(var j=1;j<cells.length;j++){var c=cells[j].replace(/,/g,"");if(num.test(c))v.push(parseFloat(c));else break;}
+  if(!v.length){skipped++;return;}
+  var k=kind||(v.length>=3?"NEZ":"Z"),p={label:id,id:cuMonId(id)};
+  if(k==="NEZ"&&v.length>=3){p.N=v[0];p.E=v[1];p.Z=v[2];}else{p.Z=v[0];}
+  pts.push(p);});
+ if(!kind)kind=pts.length&&pts.every(function(p){return p.N!==undefined;})?"NEZ":"Z";
+ return {pts:pts,kind:kind,skipped:skipped};
+}
+function cuMonAvg(list){var n=0,e=0,z=0;list.forEach(function(p){n+=p.N;e+=p.E;z+=p.Z;});var c=list.length;
+ var sp=0;if(c>1){var mx=function(k){return Math.max.apply(null,list.map(function(p){return p[k];}))-Math.min.apply(null,list.map(function(p){return p[k];}));};sp=Math.max(mx("N"),mx("E"),mx("Z"));}
+ return {N:n/c,E:e/c,Z:z/c,count:c,spread:sp,pts:list.map(function(p){return p.pt;})};}
+/* base picked from a file by range: shots at the same spot (within the limit) are averaged; label = description, else point # */
+function cuMonBaseFromRange(src,range,rad){
+ var P=cuDvfPts(cuSrcState(src)).filter(function(p){return cuPtInRange(p.pt,range);}),out=[],used={};
+ P.forEach(function(p,i){if(used[i])return;var grp=[p];used[i]=1;
+  P.forEach(function(q,j){if(!used[j]&&Math.hypot(q.N-p.N,q.E-p.E)<=rad){grp.push(q);used[j]=1;}});
+  var a=cuMonAvg(grp),lab=(p.desc&&p.desc.length<=12?p.desc:"")||p.pt;
+  out.push({label:lab+(lab===p.pt?"":" ("+grp.map(function(g){return g.pt;}).join("+")+")"),id:cuMonId(p.desc||p.pt),N:a.N,E:a.E,Z:a.Z,basePts:a.pts});});
+ return out;
+}
+function cuMonBase(){var M=cuMon,rad=parseFloat(M.radius);if(!(rad>0))rad=0.10;
+ if(M.baseMode==="paste"){var r=cuMonParse(M.paste);return {pts:r.pts,kind:r.kind,from:"pasted"};}
+ if(!M.bSrc||!M.bRange.trim())return {pts:[],kind:"NEZ",from:"range"};
+ return {pts:cuMonBaseFromRange(M.bSrc,M.bRange,rad),kind:"NEZ",from:"range"};}
+/* newest block of shots that sit on the base points (suggestion only; the user confirms the trip range) */
+function cuMonSuggest(){
+ var M=cuMon,B=cuMonBase(),rad=parseFloat(M.radius)||0.10;if(!B.pts.length||!M.tSrc)return "";
+ var hasPos=B.pts.every(function(b){return b.N!==undefined;}),ids={};B.pts.forEach(function(b){ids[b.id]=1;});
+ var P=cuDvfPts(cuSrcState(M.tSrc)).filter(function(p){return /^\d+$/.test(p.pt);});
+ if(M.baseMode==="range"&&M.tSrc===M.bSrc)P=P.filter(function(p){return !cuPtInRange(p.pt,M.bRange);});
+ var hit=P.filter(function(p){return hasPos?B.pts.some(function(b){return Math.hypot(p.N-b.N,p.E-b.E)<=rad;}):ids[cuMonId(p.desc)];});
+ if(!hit.length)return "";
+ hit.sort(function(a,b){return parseInt(b.pt)-parseInt(a.pt);});
+ /* walk down from the newest shot until every base point is covered */
+ var cov={},lo=hit[0].pt,hi=hit[0].pt;
+ for(var i=0;i<hit.length;i++){var p=hit[i];lo=p.pt;
+  B.pts.forEach(function(b,k){if(hasPos?Math.hypot(p.N-b.N,p.E-b.E)<=rad:cuMonId(p.desc)===b.id)cov[k]=1;});
+  if(Object.keys(cov).length>=B.pts.length)break;}
+ return lo===hi?lo:lo+"-"+hi;
+}
+function cuMonRun(){
+ var M=cuMon,B=cuMonBase(),rad=parseFloat(M.radius);if(!(rad>0))rad=0.10;
+ if(!B.pts.length){M.res={err:"Set the base first — paste it from the monitoring spreadsheet, or pick its point range."};cuRenderMon();return;}
+ if(!M.tSrc||!M.tRange.trim()){M.res={err:"Type this trip’s point range (the observed shots) — only those shots are used."};cuRenderMon();return;}
+ var T=cuDvfPts(cuSrcState(M.tSrc)).filter(function(p){return cuPtInRange(p.pt,M.tRange);});
+ var hasPos=B.pts.every(function(b){return b.N!==undefined;}),rows=[],usedT={};
+ B.pts.forEach(function(b){var row={b:b};
+  var shots;
+  if(hasPos)shots=T.filter(function(t){return Math.hypot(t.N-b.N,t.E-b.E)<=rad;});
+  else{shots=T.filter(function(t){return cuMonId(t.desc)===b.id;});
+   if(shots.length>1){var far=0;shots.forEach(function(a){shots.forEach(function(c){far=Math.max(far,Math.hypot(a.N-c.N,a.E-c.E));});});
+    if(far>rad){row.flag=b.id+" shot "+shots.length+"× ("+shots.map(function(s){return s.pt;}).join(", ")+") "+far.toFixed(2)+" m apart — check the coding; not averaged";row.shots=shots;rows.push(row);shots.forEach(function(s){usedT[s.pt]=1;});return;}}}
+  if(!shots.length){row.missing=true;rows.push(row);return;}
+  shots.forEach(function(s){usedT[s.pt]=1;});
+  /* office method: averages and base rounded to the mm first, then differenced (matches the spreadsheets) */
+  var a=cuMonAvg(shots),m3=function(v){return Math.round(v*1000)/1000;};a.N=m3(a.N);a.E=m3(a.E);a.Z=m3(a.Z);
+  var bN=b.N!==undefined?m3(b.N):undefined,bE=b.E!==undefined?m3(b.E):undefined,bZ=m3(b.Z);
+  row.o=a;row.dZ=a.Z-bZ;
+  if(hasPos){row.dN=a.N-bN;row.dE=a.E-bE;row.dT=Math.sqrt(row.dN*row.dN+row.dE*row.dE+row.dZ*row.dZ);}
+  rows.push(row);});
+ var unused=T.filter(function(t){return !usedT[t.pt];});
+ M.res={rows:rows,kind:B.kind,hasPos:hasPos,unused:unused,nT:T.length,rad:rad,from:B.from,tName:(cuSources.find(function(s){return s.id===M.tSrc;})||{}).name};
+ if(!M.show)M.show=B.kind;
+ cuRenderMon();
+}
+function cuMonF(v){var r=Math.round(v*1000)/1000;return (r===0?0:r).toFixed(3);}
+function cuMonCols(){var M=cuMon,R=M.res,nez=(M.show||R.kind)==="NEZ"&&R.hasPos,c=[];
+ if(M.obs){if(nez)c.push(["Northing",function(r){return r.o?r.o.N.toFixed(3):"";}],["Easting",function(r){return r.o?r.o.E.toFixed(3):"";}]);c.push(["Elevation",function(r){return r.o?r.o.Z.toFixed(3):"";}]);}
+ if(nez)c.push(["∆N",function(r){return r.o?cuMonF(r.dN):"";}],["∆E",function(r){return r.o?cuMonF(r.dE):"";}]);
+ c.push(["∆Ele",function(r){return r.o?cuMonF(r.dZ):"";}]);
+ if(nez&&M.total)c.push(["∆Total",function(r){return r.o?cuMonF(r.dT):"";}]);
+ return c;}
+function cuMonCopyText(){var M=cuMon,R=M.res;if(!R||!R.rows)return "";var c=cuMonCols();
+ var L=M.head?[["Desc."].concat(c.map(function(x){return x[0];})).join("\t")]:[];
+ R.rows.forEach(function(r){L.push([r.b.label].concat(c.map(function(x){return x[1](r);})).join("\t"));});
+ return L.join("\r\n");}
+function cuMonCopy(){var t=cuMonCopyText();if(!t)return;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){var e=document.getElementById("cu-monmsg");if(e)e.textContent="Copied — paste into the monitoring spreadsheet.";}).catch(function(){});}
+function cuRenderMon(){
+ var host=document.getElementById("cu-mon");if(!host||!cu.lines)return;
+ if(!cuMon)cuMon=cuMonNew();var M=cuMon,ids=cuSources.map(function(s){return s.id;});
+ /* until a file is chosen by hand, both sides follow the file in use */
+ if(!M.tPick||ids.indexOf(M.tSrc)<0)M.tSrc=(cuActive()||cuSources[0]||{}).id||null;
+ if(!M.bPick||ids.indexOf(M.bSrc)<0)M.bSrc=M.tSrc;
+ function srcSel(side,cur){return "<select class='cu-monsrc' data-side='"+side+"' style='margin-left:8px'>"+cuSources.map(function(s){return "<option value='"+s.id+"'"+(s.id===cur?" selected":"")+">"+esc(s.name)+"</option>";}).join("")+"</select>";}
+ var B=cuMonBase();
+ var h="<details class='cu-fold' id='cu-monfold'"+(M.open?" open":"")+"><summary>Monitoring</summary><div class='cu-manual cu-mt'>";
+ h+="<div class='hint' style='margin:0 0 6px'>Base (true) values against this trip (observed). Residual = observed − base, to the mm. Repeat shots of a point within the trip are averaged. Residuals only — no tolerances applied. Nothing is saved: set the base each time.</div>";
+ h+="<div class='cu-side'><div class='row'><label>Base</label><span class='seg' style='margin-left:8px'><button data-m='paste' class='cu-monbm"+(M.baseMode==="paste"?" on":"")+"'>Paste from spreadsheet</button><button data-m='range' class='cu-monbm"+(M.baseMode==="range"?" on":"")+"'>Pick a point range</button></span></div>";
+ if(M.baseMode==="paste"){
+  h+="<textarea id='cu-monpaste' rows='6' style='width:100%;max-width:520px;font:12px \"IBM Plex Mono\",monospace' placeholder='Copy the base block from the monitoring spreadsheet — header + values, e.g.\nGuage #\tElevation\nGauge A\t6.284\n…  or  Desc.\tN\tE\tEle'>"+esc(M.paste)+"</textarea>";
+  if(M.paste.trim())h+="<div class='hint'>"+(B.pts.length?"Read "+B.pts.length+" point"+(B.pts.length===1?"":"s")+" ("+esc(B.pts.map(function(p){return p.label;}).slice(0,12).join(", "))+(B.pts.length>12?" …":"")+") — <b>"+(B.kind==="NEZ"?"Northing, Easting, Elevation":"Elevation only")+"</b> from the header."+(B.kind==="Z"?" Elevation only: trip shots are matched by description (A, B, …) within the trip range; picking the base by range instead pairs by position.":""):"<span class='cu-idbad'>No base points found — copy the ID column and its values.</span>")+"</div>";
+ }else{
+  h+="<div class='row'><label>From</label>"+srcSel("b",M.bSrc)+"<label style='margin-left:12px'>Base point range</label><input type='text' id='cu-monbr' style='width:180px;margin-left:8px' placeholder='e.g. 704-713' value='"+esc(M.bRange)+"'></div>";
+  if(M.bRange.trim())h+="<div class='hint'>"+B.pts.length+" base point"+(B.pts.length===1?"":"s")+": "+esc(B.pts.map(function(p){return p.label;}).slice(0,12).join(", "))+(B.pts.length>12?" …":"")+" — paired to the trip by position.</div>";
+ }
+ h+="</div>";
+ var sug=B.pts.length?cuMonSuggest():"";
+ h+="<div class='cu-side'><div class='row'><label>This trip</label>"+srcSel("t",M.tSrc)+"<label style='margin-left:12px'>Point range</label><input type='text' id='cu-montr' style='width:180px;margin-left:8px' placeholder='e.g. 3488-3503' value='"+esc(M.tRange)+"'>"+(sug&&sug!==M.tRange.trim()?" <button class='btn' id='cu-monsug' data-r='"+esc(sug)+"'>Use "+esc(sug)+"</button>":"")+"</div><div class='hint'>Type the latest trip’s range — only those shots are looked at."+(sug?" Suggested: the newest shots on the base points ("+esc(sug)+") — confirm or change it.":"")+"</div></div>";
+ h+="<div class='row'><label>Pairing distance</label><input type='text' id='cu-monrad' style='width:60px;margin-left:8px' value='"+esc(M.radius)+"'> m <span class='hint' style='margin:0 0 0 8px'>shots this close to a base point count as that point</span></div>";
+ h+="<div class='cu-dl'><button class='btn pri' onclick='cuMonRun()'>Compare</button></div>";
+ var R=M.res;
+ if(R&&R.err)h+="<div class='cu-err' style='display:block'>"+esc(R.err)+"</div>";
+ else if(R){
+  var ok=R.rows.filter(function(r){return r.o;}).length,miss=R.rows.filter(function(r){return r.missing;}),fl=R.rows.filter(function(r){return r.flag;});
+  h+="<div class='cu-mtsum'>"+ok+" of "+R.rows.length+" base points found in "+esc(R.tName||"")+" "+esc(M.tRange)+(R.rows.some(function(r){return r.o&&r.o.count>1;})?" · repeat shots averaged":"")+(miss.length?" · not found: "+esc(miss.map(function(r){return r.b.label;}).join(", ")):"")+(R.unused.length?" · "+R.unused.length+" other shot"+(R.unused.length===1?"":"s")+" in the range not on a base point":"")+"</div>";
+  fl.forEach(function(r){h+="<div class='cu-idwarn'>"+esc(r.flag)+"</div>";});
+  var nez=R.hasPos;
+  h+="<div style='overflow-x:auto'><table class='cu-mtt'><tr><th>Point</th><th>Shots</th>"+(nez?"<th>Northing</th><th>Easting</th>":"")+"<th>Elevation</th>"+(nez?"<th>∆N</th><th>∆E</th>":"")+"<th>∆Ele</th>"+(nez?"<th>∆Total</th>":"")+"<th></th></tr>";
+  R.rows.forEach(function(r){
+   if(!r.o){h+="<tr><td>"+esc(r.b.label)+"</td><td colspan='"+(nez?8:3)+"' class='cu-mtcode'>"+(r.flag?"see note above":"not found in the trip range")+"</td></tr>";return;}
+   h+="<tr><td>"+esc(r.b.label)+"</td><td>"+r.o.count+" <span class='cu-mtcode'>("+esc(r.o.pts.join("+"))+")</span></td>"+(nez?"<td>"+r.o.N.toFixed(3)+"</td><td>"+r.o.E.toFixed(3)+"</td>":"")+"<td>"+r.o.Z.toFixed(3)+"</td>"+(nez?"<td>"+cuMonF(r.dN)+"</td><td>"+cuMonF(r.dE)+"</td>":"")+"<td>"+cuMonF(r.dZ)+"</td>"+(nez?"<td>"+cuMonF(r.dT)+"</td>":"")+"<td class='cu-mtcode'>"+(r.o.count>1?"spread "+r.o.spread.toFixed(3):"")+"</td></tr>";});
+  h+="</table></div>";
+  h+="<div class='row' style='margin-top:6px'><label style='margin-right:10px'>Copy</label>"+(nez?"<span class='seg'><button data-s='Z' class='cu-monshow"+(M.show==="Z"?" on":"")+"'>Elevation only</button><button data-s='NEZ' class='cu-monshow"+(M.show!=="Z"?" on":"")+"'>N, E, Elevation</button></span> <label class='cu-cb' style='margin-left:10px'><input type='checkbox' id='cu-montot' "+(M.total?"checked":"")+"> ∆Total</label>":"<span class='hint' style='margin:0'>Elevation only</span>")+" <label class='cu-cb' style='margin-left:10px'><input type='checkbox' id='cu-monobs' "+(M.obs?"checked":"")+"> observed values</label> <label class='cu-cb' style='margin-left:10px'><input type='checkbox' id='cu-monhead' "+(M.head?"checked":"")+"> header row</label></div>";
+  h+="<div class='cu-dl'><button class='btn pri' onclick='cuMonCopy()'>Copy for the spreadsheet</button><span class='hint' id='cu-monmsg' style='margin:0'>rows in the same order as the base</span></div>";
+ }
+ h+="</div></details>";
+ host.innerHTML=h;
+ document.getElementById("cu-monfold").addEventListener("toggle",function(){M.open=this.open;});
+ host.querySelectorAll(".cu-monbm").forEach(function(b){b.onclick=function(){M.baseMode=b.dataset.m;M.res=null;M.show=null;cuRenderMon();};});
+ host.querySelectorAll(".cu-monsrc").forEach(function(sel){sel.onchange=function(){if(sel.dataset.side==="b"){M.bSrc=sel.value;M.bPick=true;}else{M.tSrc=sel.value;M.tPick=true;}M.res=null;cuRenderMon();};});
+ var pa=document.getElementById("cu-monpaste");if(pa)pa.onchange=function(){M.paste=pa.value;M.res=null;M.show=null;cuRenderMon();};
+ var br=document.getElementById("cu-monbr");if(br)br.onchange=function(){M.bRange=br.value;M.res=null;cuRenderMon();};
+ var tr=document.getElementById("cu-montr");tr.onchange=function(){M.tRange=tr.value;M.res=null;cuRenderMon();};
+ var sg=document.getElementById("cu-monsug");if(sg)sg.onclick=function(){M.tRange=sg.dataset.r;M.res=null;cuRenderMon();};
+ var rd=document.getElementById("cu-monrad");rd.onchange=function(){M.radius=rd.value.trim();if(M.res&&!M.res.err)cuMonRun();else cuRenderMon();};
+ host.querySelectorAll(".cu-monshow").forEach(function(b){b.onclick=function(){M.show=b.dataset.s;cuRenderMon();};});
+ [["cu-montot","total"],["cu-monobs","obs"],["cu-monhead","head"]].forEach(function(p){var el=document.getElementById(p[0]);if(el)el.onchange=function(){M[p[1]]=el.checked;cuRenderMon();};});
+}
+window.cuMonRun=cuMonRun;window.cuMonCopy=cuMonCopy;window.cuMonCopyText=cuMonCopyText;window.cuMonParse=cuMonParse;window.cuRenderMon=cuRenderMon;window.cuMonSuggest=cuMonSuggest;
+window.cuMonState=function(){if(!cuMon)cuMon=cuMonNew();return cuMon;};
 
 /* ---------- tree table (1.30): point # + the AutoMap's tree description, for sites with too many trees to label ---------- */
 var CU_TREE_NAMES={TCED:"cedar",TCLU:"cluster",TCLUS:"cluster",TCON:"coniferous",TDEC:"deciduous",TFIR:"fir",TSTUMP:"stump"};
@@ -4116,7 +4306,8 @@ function cuRenderTree(){
  var rows=cuTreeRows();if(!rows.length){host.innerHTML="";return;}
  var O=cuTreeOpt,n=parseInt(O.rows,10);if(!(n>0))n=40;var sets=Math.ceil(rows.length/n);
  var h="<details class='cu-fold' id='cu-trfold'"+(O.open?" open":"")+"><summary>Tree table</summary><div class='cu-manual cu-mt'>";
- h+="<div class='hint' style='margin:0 0 6px'>Every tree point by point number, worded as the AutoMap writes it ("+(cu.unitAns==="ft"?"imperial":"metric")+" — follows the drawing units above), from the cleaned descriptions. For the drawing, show the point numbers beside the tree symbols (e.g. a tree point-number layer) so the table can be cross-referenced.</div>";
+ h+="<div class='cu-units'><span>Drawing units:</span> <span class='seg cu-trunits'><button data-u='m' class='"+(cu.unitAns==="m"?"on":"")+"'>Metric</button><button data-u='ft' class='"+(cu.unitAns==="ft"?"on":"")+"'>Imperial (ft)</button></span></div>";
+ h+="<div class='hint' style='margin:0 0 6px'>Every tree point by point number, worded as the AutoMap writes it ("+(cu.unitAns==="ft"?"imperial":"metric")+", same setting as Clean-up), from the cleaned descriptions. For the drawing, show the point numbers beside the tree symbols (e.g. a tree point-number layer) so the table can be cross-referenced.</div>";
  h+="<div class='cu-mtsum'>"+rows.length+" tree"+(rows.length===1?"":"s")+" · "+sets+" column set"+(sets===1?"":"s")+" of up to "+n+" rows</div>";
  h+="<div style='max-height:260px;overflow:auto'><table class='cu-mtt'><tr><th>Pt</th><th>Description</th></tr>"+rows.map(function(r){return "<tr><td>"+esc(r.pt)+"</td><td>"+esc(r.desc)+"</td></tr>";}).join("")+"</table></div>";
  h+="<div class='row' style='margin-top:6px'><label>Rows per column set</label><input type='text' id='cu-trrows' style='width:60px;margin-left:8px' value='"+esc(String(O.rows))+"'><label style='margin-left:16px'>Text height</label><input type='text' id='cu-trth' style='width:60px;margin-left:8px' value='"+esc(String(O.th))+"'></div>";
@@ -4125,6 +4316,7 @@ function cuRenderTree(){
  host.innerHTML=h;
  document.getElementById("cu-trfold").addEventListener("toggle",function(){O.open=this.open;});
  var a=document.getElementById("cu-trrows");a.onchange=function(){O.rows=a.value.trim();cuRenderTree();};
+ host.querySelectorAll(".cu-trunits button").forEach(function(x){x.onclick=function(){cu.unitAns=x.dataset.u;cuRender();};});
  var b=document.getElementById("cu-trth");b.onchange=function(){O.th=b.value.trim();};
 }
 window.cuTreeText=cuTreeText;window.cuTreeRows=cuTreeRows;window.cuTreeDxf=cuTreeDxf;window.cuTreeSave=cuTreeSave;window.cuTreeCopy=cuTreeCopy;window.cuRenderTree=cuRenderTree;window.cuTreeOpt=cuTreeOpt;
@@ -4819,6 +5011,10 @@ const TRAINING=[
   {t:"Points matching \u2014 PL sample",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20matching-PL%20SAMPLE.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Points upload for crew \u2014 example",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20upload%20for%20crew%20example.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Fixing tree sizes to imperial (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/fixing%20trees%20sizes%20to%20imperial.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"RW5 file to points for a topo in feet (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/rw5%20file%20to%20points%20for%20topo%20in%20feet.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Design vs Field \u2014 comparing cut / fills (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/POINTS%20TAB-COMPARING%20DESIGN%2BFIELD%20CUT-FILLS.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Design vs Field \u2014 comparing residuals (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/POINTS%20TAB-COMPARING%20DESIGN%2BFIELD%20RESIDUALS.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Tree table (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/POINTS%20TAB-TREE%20TABLE.mp4",h:"SharePoint",x:null,xh:null},
 ]},
 {group:"Elevate Office app \u2014 PM tab",videos:[
   {t:"Cert quote on the PM tab",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/cert%20quote%20on%20PM%20tab.mp4",h:"SharePoint",x:null,xh:null},
@@ -4826,6 +5022,10 @@ const TRAINING=[
   {t:"Sub-quote for an existing quote folder",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/SUB-QUOTE%20FOR%20EXISTING%20QUOTE%20FOLDER.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Setting up the connection to the Quotes + Jobs folders",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/setting%20up%20connection%20to%20quotes%2Bjobs%20folder.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Topo + posting option",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/topo%2Bposting%20option.mp4",h:"SharePoint",x:null,xh:null}]},
+{group:"LISP commands",videos:[
+  {t:"Cert in metres to feet (ELVFEET-CERT)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/LISP%20COMMANDS/CERT%20IN%20METERS%20TO%20FEET.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Feet to metric \u2014 topo example (ELVSCALE)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/LISP%20COMMANDS/feet%20to%20metric%28topo%20example%29.mp4",h:"SharePoint",x:null,xh:null},
+]},
 {group:"Automap",videos:[
   {t:"Edit Automap",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Automap/Edit%20Automap-.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Process range \u2014 linework",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Automap/Process%20range-linework.mp4",h:"SharePoint",x:null,xh:null},
@@ -4870,6 +5070,8 @@ const TRAINING=[
 ]},
 {group:"General / other",videos:[
   {t:"XREF insert / drawing",u:"https://share.vidyard.com/watch/AYw1WvagQi59yGhaygy9Rg",h:"Vidyard",x:null,xh:null},
+  {t:"Creating blocks",u:"https://share.vidyard.com/watch/KsJorgf5PMhqbXHRSnYRBT",h:"Vidyard",x:null,xh:null},
+  {t:"Dimensioning in feet and inches",u:"https://app.screencast.com/NwqZiKXA7i7n2",h:"Screencast",x:null,xh:null},
   {t:"Rotating viewport",u:"https://share.vidyard.com/watch/aFSEKbwNuhfDnNoMtfZihf",h:"Vidyard",x:null,xh:null},
   {t:"Construction sketch + client CAD file",u:"https://secure.vidyard.com/organizations/1318150/players/yRwF5mJMaWfwiHaxR2PyX7",h:"Vidyard",x:null,xh:null},
   {t:"Proration & double proration",u:"https://share.vidyard.com/watch/vsh8RxBPXoCXgw6y73koHJ",h:"Vidyard",x:null,xh:null},
