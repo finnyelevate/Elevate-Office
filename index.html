@@ -768,8 +768,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.32";
-const NEWS=["PM: Duplicate as sub-quote now copies only the job details — services, hours, held prices and disbursements start blank.", "PM: Renumber… — when another quote already has this number, give this one the next free number (also offered in the “more than one folder” box).", "PM: a reminder when no disbursements are selected (not required).","Points: Match points fixed \u2014 monument IDs work again (broken in 1.31), and crew notes like \u201c105 occ\u201d now help find the right pairs."];
+const BUILD="1.33";
+const NEWS=["PM: Save to quote folder no longer mistakes a date in a file name (e.g. \u201c2026-10-20 Survey Extents.pdf\u201d) for another quote number.","PM: a sub-quote also starts with Services Provided, Additional Task Details, PM comments and Date requested blank.","PM: saved versions are easy to use \u2014 a \u201cUse\u201d button in My saved versions, and a \u201cMy saved versions\u201d group in every service card\u2019s job-type dropdown."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -2047,13 +2047,15 @@ function pmqFavImportText(t){var d;try{d=JSON.parse(t);}catch(e){alert("That fil
  var a=pmqFavs(),n=0;d.favs.forEach(function(f){if(!f||!f.id)return;var i=a.findIndex(function(x){return x.id===f.id;});if(i>=0)a[i]=f;else a.push(f);n++;});pmqFavsSave(a);pmRender();return n;}
 function pmqFavsHtml(){
  var a=pmqFavs();
- return "<details class='cu-fold' id='pm-favfold'><summary>My saved versions ("+a.length+")</summary><div class='cu-manual'>"+(a.length?"<table class='pm-rt'>"+a.map(function(f){var e=pmqLibById(f.type);return "<tr><td>"+pmEsc(f.vname)+"</td><td class='pm-rate'>"+pmEsc(e?e.name:"Custom service")+"</td><td><button class='btn' data-favren='"+f.id+"'>Rename</button> <button class='btn' data-favdel='"+f.id+"'>Delete</button></td></tr>";}).join("")+"</table>":"<p class='hint' style='margin:0'>None yet — edit a service on a quote, then “Save as my version”.</p>")+"<div class='cu-dl'><button class='btn' onclick='pmqFavExport()'>Export</button><label class='btn'>Import<input type='file' id='pm-favimp' accept='.json,application/json' style='display:none'></label><span class='hint' style='margin:0'>moves your versions to another computer; they stay on this device only</span></div></div></details>";
+ return "<details class='cu-fold' id='pm-favfold'><summary>My saved versions ("+a.length+")</summary><div class='cu-manual'>"+(a.length?"<table class='pm-rt'>"+a.map(function(f){var e=pmqLibById(f.type);return "<tr><td>"+pmEsc(f.vname)+"</td><td class='pm-rate'>"+pmEsc(e?e.name:"Custom service")+"</td><td><button class='btn pri' data-favuse='"+f.id+"' title='add this version to the open quote as a service'>Use</button> <button class='btn' data-favren='"+f.id+"'>Rename</button> <button class='btn' data-favdel='"+f.id+"'>Delete</button></td></tr>";}).join("")+"</table>":"<p class='hint' style='margin:0'>None yet — edit a service on a quote, then “Save as my version”.</p>")+"<div class='cu-dl'><button class='btn' onclick='pmqFavExport()'>Export</button><label class='btn'>Import<input type='file' id='pm-favimp' accept='.json,application/json' style='display:none'></label><span class='hint' style='margin:0'>moves your versions to another computer; they stay on this device only</span></div><div class='hint' style='margin:4px 0 0'><b>Use</b> adds a version to the open quote as a service. You can also pick one on any service card: first dropdown \u2192 \u201cMy saved versions\u201d.</div></div></details>";
 }
 
 /* ---------- service card UI ---------- */
 function pmqTypeOptions(sel){
  var groups={},order=[];pmqLib().forEach(function(e){if(!groups[e.group]){groups[e.group]=[];order.push(e.group);}groups[e.group].push(e);});
- return "<option value=''"+(sel?"":" selected")+">Custom service</option>"+order.map(function(g){return "<optgroup label='"+pmEsc(g)+"'>"+groups[g].map(function(e){return "<option value='"+e.id+"'"+(e.id===sel?" selected":"")+">"+pmEsc(e.name)+"</option>";}).join("")+"</optgroup>";}).join("");
+ return "<option value=''"+(sel?"":" selected")+">Custom service</option>"+order.map(function(g){return "<optgroup label='"+pmEsc(g)+"'>"+groups[g].map(function(e){return "<option value='"+e.id+"'"+(e.id===sel?" selected":"")+">"+pmEsc(e.name)+"</option>";}).join("")+"</optgroup>";}).join("")
+  /* 1.33: your saved versions, from any service card whatever their type */
+  +(function(){var a=pmqFavs();return a.length?"<optgroup label='My saved versions'>"+a.map(function(f){return "<option value='fav:"+pmEsc(f.id)+"'>\u2605 "+pmEsc(f.vname)+"</option>";}).join("")+"</optgroup>":"";})();
 }
 function pmqPasteLines(t){return String(t||"").replace(/\r/g,"").split("\n").map(function(l){return l.replace(/\u00a0/g," ").replace(/^\s*(?:[-\u2013\u2014\u2022*\u00b7\u25aa\u25cf\u25cb\u25e6\u2010]+|\(?\d{1,2}[.)]|\(?[a-zA-Z][.)])\s+/,"").replace(/\s+/g," ").trim().replace(/([^.])\.$/,"$1");}).filter(Boolean);}
 function pmqItemRows(s,ix,k){
@@ -2111,7 +2113,9 @@ function pmqWire(host,q){
   arr.splice.apply(arr,[at+1,0].concat(L.map(function(x){return {t:x,on:true,why:""};})));
   q.updated=Date.now();pmQuotesSave();pmRender();});});
  host.querySelectorAll(".pmq-on").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s],P=pmqPath(s,el.dataset.p);s[P.k][P.j].on=el.checked;save();pmqRerender();};});
- host.querySelectorAll(".pmq-type").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s],e=pmqLibById(el.value);
+ host.querySelectorAll(".pmq-type").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s];
+  if(el.value.indexOf("fav:")===0){var fv=pmqFavs().find(function(x){return x.id===el.value.slice(4);});if(fv)pmqApplyFav(s,fv);save();pmRender();return;}
+  var e=pmqLibById(el.value);
   if(e){pmqApplyLib(s,e);if(e.disb){q.disb=q.disb||{};Object.keys(e.disb).forEach(function(k){if(pmNum(q.disb[k])<pmNum(e.disb[k]))q.disb[k]=e.disb[k];});}}else{s.type="";s.ver="approved";}save();pmRender();};});
  host.querySelectorAll(".pmq-ver").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s];
   if(el.value==="approved"){var e=pmqLibById(s.type);if(e)pmqApplyLib(s,e);else{s.ver="approved";}}
@@ -2140,6 +2144,11 @@ function pmqWire(host,q){
  var dn=document.getElementById("pm-docname");if(dn)dn.oninput=function(){q.f.docname=dn.value;pmQuotesSave();};
 }
 function pmqWireFavs(host){
+ host.querySelectorAll("[data-favuse]").forEach(function(b){b.onclick=function(){var q=pmCurQ(),f=pmqFavs().find(function(x){return x.id===b.dataset.favuse;});if(!f)return;if(!q){alert("Open or start a quote first, then Use the version.");return;}
+  /* fill the last service if it's still empty, otherwise add one */
+  var last=q.secs[q.secs.length-1],empty=last&&!pmqFill(last.name||"",last.fills||{}).trim()&&!Object.keys(last.hrs||{}).some(function(k){return pmNum(last.hrs[k])>0;})&&!(last.stg||[]).length&&!(last.price||"").trim();
+  var s=empty?last:pmqNorm({name:"",hrs:{}});if(!empty)q.secs.push(s);pmqApplyFav(s,f);q.updated=Date.now();pmQuotesSave();PM.favUsed=q.secs.indexOf(s);pmRender();
+  var c=document.querySelector(".pmq-card[data-s='"+PM.favUsed+"']");if(c&&c.scrollIntoView)c.scrollIntoView({block:"center"});};});
  host.querySelectorAll("[data-favren]").forEach(function(b){b.onclick=function(){var a=pmqFavs(),f=a.find(function(x){return x.id===b.dataset.favren;});if(!f)return;var nm=prompt("Rename this version:",f.vname);if(!nm||!nm.trim())return;f.vname=nm.trim();pmqFavsSave(a);pmRender();var d=document.getElementById("pm-favfold");if(d)d.open=true;};});
  host.querySelectorAll("[data-favdel]").forEach(function(b){b.onclick=function(){var a=pmqFavs(),f=a.find(function(x){return x.id===b.dataset.favdel;});if(!f||!confirm("Delete your version “"+f.vname+"” from this device?"))return;pmqFavsSave(a.filter(function(x){return x!==f;}));pmRender();var d=document.getElementById("pm-favfold");if(d)d.open=true;};});
  var fi=document.getElementById("pm-favimp");if(fi)fi.onchange=function(){var file=fi.files[0];if(!file)return;var r=new FileReader();r.onload=function(){pmqFavImportText(r.result);var d=document.getElementById("pm-favfold");if(d)d.open=true;};r.readAsText(file);fi.value="";};
@@ -2413,8 +2422,9 @@ function pmqdMakeSub(q,next,note,replaceId){
  /* 1.32: a sub-quote is new services and new hours (amendments are made on the quote itself) — only the job details on top carry over;
     services, hours, stages, price lines, held / typed prices, disbursements, crew instructions, notes and the rate-sheet option start blank */
  var c=JSON.parse(JSON.stringify(q));c.id="q"+Date.now();c.f.qn=next;c.f.docname="";c.updated=Date.now();delete c.exported;delete c.importRep;delete c.qfolder;c.subOf=(q.f.qn||"").trim();
+ c.f.services="";c.f.task="";c.f.pmc="";c.f.date="";/* 1.33: these describe the original request */
  c.secs=[pmqNorm({name:"",hrs:{}})];c.disb={};(PM.vault&&PM.vault.disb||[]).forEach(function(d){c.disb[d.id]=0;});c.other={label:"",amt:""};c.fci="";c.notes="";delete c.rs;
- note=(note?note+" ":"")+"Sub-quote of "+c.subOf+": job details copied; services, hours, prices and disbursements start blank.";
+ note=(note?note+" ":"")+"Sub-quote of "+c.subOf+": job details copied; services, hours, prices, disbursements, Services Provided, task details, PM comments and date requested start blank.";
  c.importRep={file:"",sub:pmjQnParts&&pmjQnParts(q.f.qn)?q.f.qn:q.f.qn,subNote:note||"",read:0,unread:[],rateDiff:[],wordDiffs:[]};pmqdKeepMine(c,c.importRep);
  if(replaceId)PM.quotes=PM.quotes.filter(function(x){return x.id!==replaceId;});
  PM.quotes.unshift(c);PM.cur=c.id;pmQuotesSave();pmRender();return c;
@@ -2505,7 +2515,7 @@ async function pmjFindQuoteFolders(qn,client,rw){
  var top=await pmjDirs(root),hits=(await pmjYearQuotes(root,m[1],+m[2],top)).map(function(x){return x.h;});
  hits.sort(function(a,b){return a.name.localeCompare(b.name);});
  /* older quote folders were numbered separately from the quote: trust a number match only if the files inside don't name a different quote */
- var sure=[];for(var i=0;i<hits.length;i++){var nums=[];(await pmjList(hits[i])).forEach(function(h){var mm=h.name.match(/\b(\d{2}-\d{2,5})[A-Z]?\b/g);if(mm)nums=nums.concat(mm.map(function(x){return x.replace(/[A-Z]$/i,"");}));});
+ var sure=[];for(var i=0;i<hits.length;i++){var nums=[];(await pmjList(hits[i])).forEach(function(h){/* 1.33: only quote files count (Elev. Survey Quote 26-174…, quote-26-174-job_details.txt) — dates such as "2026-10-20 Survey Extents.pdf", plan and job numbers are ignored */if(!/quote/i.test(h.name))return;var mm=h.name.match(/\b(\d{2}-\d{2,5})[A-Z]?\b/g);if(mm)nums=nums.concat(mm.map(function(x){return x.replace(/[A-Z]$/i,"");}));});
   if(!nums.length||nums.indexOf(base)>=0)sure.push(hits[i]);}
  if(sure.length)return sure;
  var cw=String(client||"").trim().split(/\s+/)[0].toLowerCase(),byClient=[];

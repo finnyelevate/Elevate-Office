@@ -1,5 +1,14 @@
 # Elevate Office — changelog
 
+## Build 1.33 — 2026-10-21
+- **PM › Save to quote folder: dates in file names are no longer read as quote numbers.**
+  - Only files with "quote" in the name are checked for a quote number. Example: in 26-623-Astria Properties, "2026-10-20 Survey Extents.pdf" was read as quote "10-20" and you were asked which folder to use.
+  - A quote file naming another quote (e.g. a copied 26-174 quote) still asks.
+- **PM › Duplicate as sub-quote also clears four more fields:** Services Provided, Additional Task Details, Additional PM comments and Date requested.
+- **PM › saved versions are easier to use.**
+  - **My saved versions** has a **Use** button beside each version. It fills the empty service on the open quote, or adds a new service if they're all in use.
+  - Every service card's first (job-type) dropdown has a **My saved versions** group (★). Pick one to apply that version to that service.
+
 ## Build 1.32 — 2026-10-20
 - **PM › Duplicate as sub-quote copies only the job details.** A sub-quote is new services and new hours; changes to the original go on the original quote.
   - Kept: the top section (client, contact, email, phone, site address(es) incl. extra properties, project line, legal, PID, plans, PM name / initials) under the new sub-quote number.
