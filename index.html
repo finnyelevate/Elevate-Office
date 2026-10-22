@@ -316,6 +316,33 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .pmq-card{border-left:4px solid var(--blue)}
 .pmq-card.st-opt{border-left-color:#c96a1b}
 .pmq-card.st-option{border-left-color:#7a5215}
+.pmq-trow{display:flex;align-items:center;gap:8px;margin-bottom:6px}.pmq-trow .pmq-title{margin-bottom:0;flex:1;min-width:0}
+.pmq-optlab{font:700 15px "Barlow Semi Condensed";text-decoration:underline;white-space:nowrap;color:#7a5215}
+.pmq-card.st-opt .pmq-optlab{color:#c96a1b}
+.pmq-onewarn{margin:0 0 6px}
+.pmq-vtag{font-size:12.5px;background:#fdf6e7;border-left:3px solid #c9a227;padding:3px 8px;margin:0 0 6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pmq-item.hi .pmq-lt{color:#c00000;font-weight:600}
+.pmq-hib{font-weight:700;color:#c00000}.pmq-hib.on{background:#c00000;color:#fff;border-color:#c00000}
+.pmq-hprow select{max-width:380px;padding:5px 6px;border:1px solid var(--hair);background:var(--panel);font-size:13px}
+.pmq-pvtog{float:right;font:500 12.5px "IBM Plex Sans",sans-serif;letter-spacing:0;text-transform:none;display:inline-flex;gap:5px;align-items:center;cursor:pointer}
+.pmq-wrap.pv{display:grid;grid-template-columns:minmax(0,900px) minmax(400px,1fr);gap:18px;align-items:start;width:min(1480px,calc(100vw - 36px));margin-left:calc((100% - min(1480px,calc(100vw - 36px)))/2)}
+.pmq-wrap.pv .pm-sec{max-width:none}
+.pmq-prev{position:sticky;top:64px;max-height:calc(100vh - 72px);overflow:auto;min-width:0}
+@media (max-width:1340px){.pmq-wrap.pv{grid-template-columns:1fr;width:auto;margin-left:0}.pmq-prev{position:static;max-height:none}}
+.qp-cap{font-size:11.5px;color:var(--faint);margin:2px 0 6px}
+.qp-paper{background:#fff;color:#111;border:1px solid var(--hair);box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px 24px;font:13px/1.35 Calibri,Carlito,"Segoe UI",Arial,sans-serif}
+.qp-date{text-align:right;margin-bottom:6px}
+.qp-to{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:14px;margin-bottom:8px}
+.qp-site{background:#65C7D0;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:5px 8px;margin-bottom:12px}
+.qp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;margin:10px 0 4px}
+.qp-t{font-weight:700;font-size:14px;display:flex;gap:8px}.qp-n{min-width:16px;text-decoration:none}
+.qp-lead{margin:2px 0 1px 24px}
+.qp-ol{margin:0 0 2px 24px;padding-left:20px}.qp-ol li{margin:0}.qp-ol li.qp-hi span{color:#c00000}
+.qp-note{margin:3px 0 1px 24px;font-weight:700;font-size:12px}.qp-note.qp-hi{color:#c00000}
+.qp-p{text-align:right;font-weight:700;font-size:14px;white-space:nowrap}.qp-p small{display:block;font-weight:400;font-size:11px}.qp-p div+div{margin-top:5px}
+.qp-miss{color:#a32020;font-weight:400;font-size:12px}
+.qp-terms{font-weight:700;margin-top:10px}.qp-terms+.qp-terms{margin-top:2px}
+.qp-sign{margin-top:12px}.qp-fine{font-size:11.5px;color:#777;margin-top:6px}
 .pmq-head{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
 .pmq-head select{max-width:320px;padding:5px 6px;border:1px solid var(--hair);background:var(--panel);font-size:13px}
 .pmq-num{font:700 16px "Barlow Semi Condensed";min-width:22px}
@@ -768,8 +795,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.33";
-const NEWS=["PM: Save to quote folder no longer mistakes a date in a file name (e.g. \u201c2026-10-20 Survey Extents.pdf\u201d) for another quote number.","PM: a sub-quote also starts with Services Provided, Additional Task Details, PM comments and Date requested blank.","PM: saved versions are easy to use \u2014 a \u201cUse\u201d button in My saved versions, and a \u201cMy saved versions\u201d group in every service card\u2019s job-type dropdown."];
+const BUILD="1.34";
+const NEWS=["PM: live quote preview beside the services \u2014 the quote as it will print, updating as you type (Show preview to switch it off).", "PM: Option 1 / Option 2 and (Optional) show on the service cards as they print; a reminder when only one service is an Option.", "PM: highlight any scope line or note in red with the A button \u2014 it prints red on the Word quote.", "PM: hours presets \u2014 save a service\u2019s hours (with stages) under a name and load them on any service; prices come from the current rates.", "PM: quote sets \u2014 save several services together and load them all on a future quote (first dropdown \u2192 My quote sets).", "PM: one wording picker \u2014 your saved versions are in the first dropdown, with a \u2605 My version tag on the card.", "PM: job details name options \u201cOption 1 \u2014 \u2026\u201d and give a total for each option; Strata package is now in the dropdown; Form V ticked by default on Final strata plan.", "PM: \u201cSave both to quote folder (Word quote + job details)\u201d; rate sheet amounts in bold and the $400 minimum line in red.","PM: fix \u2014 a Word quote edited and saved in Word now reopens with its services and your Word edits (it could open with none)."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -1997,7 +2024,7 @@ function pmqNorm(s){
 }
 /* construction job types open with their usual stages (the scope lines), hours blank */
 var PMQ_STAGED=["con_house","con_vanc","con_multi"];
-function pmqApplyLib(s,e){s.type=e.id;s.ver="approved";s.name=e.title;s.lead=e.lead||"";s.lines=pmqItems(e.lines);s.notes=pmqItems(e.notes);s.fills={};s.status=e.status||s.status||"inc";
+function pmqApplyLib(s,e){s.type=e.id;s.ver="approved";delete s.vname;s.name=e.title;s.lead=e.lead||"";s.lines=pmqItems(e.lines);s.notes=pmqItems(e.notes);s.fills={};s.status=e.status||s.status||"inc";
  if(PMQ_STAGED.indexOf(e.id)>=0||e.stages){var old=s.hrs||{};s.stg=(e.stages||(e.lines||[]).map(function(l){return l[0];})).map(function(t,j){return {lab:String(t),hrs:j===0?JSON.parse(JSON.stringify(old)):{}};});s.hrs={};}
  else if((s.stg||[]).length){var agg={};s.stg.forEach(function(g){Object.keys(g.hrs||{}).forEach(function(k){agg[k]=String(pmNum(agg[k])+pmNum(g.hrs[k]));});});s.stg=[];s.hrs=agg;}
  return s;}
@@ -2020,13 +2047,18 @@ function pmqHourlyNote(q){var R=(PM.vault&&PM.vault.rates)||[],g=function(id){va
  if(q&&q.rs)return "Any additional work or significant revisions to be billed at hourly rates (see the attached hourly rate sheet)";
  var p=[["Field","f2"],["Office","cad"],["BCLS","bcls"]].map(function(x){var v=g(x[1]);return v?x[0]+" \u2013 "+v:null;}).filter(Boolean);
  return "Any additional work or significant revisions to be billed at hourly rates"+(p.length?" ("+p.join("; ")+")":"");}
-function pmqLoadPkg(id){var q=pmCurQ(),K=PMQ_PKGS.find(function(k){return k.id===id;});if(!q||!K)return;
- var E=K.ids.map(pmqLibById);if(E.some(function(e){return !e;})){alert("This package needs the 1.28 library \u2014 upload the new pm-vault.json to the site, then reload.");return;}
- var blank=function(s){return !pmqFill(s.name,s.fills).trim()&&!s.type&&!Object.keys(s.hrs||{}).some(function(k){return pmNum(s.hrs[k])>0;})&&!String(s.price||"").trim();};
- if(q.secs.length===1&&blank(q.secs[0]))q.secs=[];
- E.forEach(function(e,j){var s=pmqApplyLib(pmqNorm({name:"",hrs:{}}),e);s.price="";if(K.close&&j===E.length-1)s.notes.push({t:pmqHourlyNote(q),on:true,why:""});q.secs.push(s);});
- q.updated=Date.now();pmQuotesSave();pmRender();}
-function pmqPkgHtml(){return PMQ_PKGS.map(function(k){return "<button class='btn' data-pkg='"+k.id+"' title='adds its services as separate one-line items \u2014 remove any not needed with \u2715'>+ "+pmEsc(k.label)+"</button>";}).join("");}
+/* 1.34: a card is "blank" when nothing has been put on it yet */
+function pmqBlankSec(s){return !!s&&!pmqFill(s.name||"",s.fills||{}).trim()&&!s.type&&!Object.keys(s.hrs||{}).some(function(k){return pmNum(s.hrs[k])>0;})&&!(s.stg||[]).length&&!String(s.price||"").trim()&&!(s.lines||[]).some(function(l){return (l.t||"").trim();});}
+/* 1.34: one loader for several services at once (the strata package and your quote sets): added after card ix, replacing it when it's blank */
+function pmqInsertSecs(q,ix,list){if(!q||!list.length)return;var at=ix==null?q.secs.length-1:ix,cur=q.secs[at];
+ if(cur&&pmqBlankSec(cur))q.secs.splice(at,1,list[0]);else q.secs.splice(at+1,0,list[0]);
+ var base=q.secs.indexOf(list[0]);list.slice(1).forEach(function(s,j){q.secs.splice(base+1+j,0,s);});
+ q.updated=Date.now();pmQuotesSave();PM.favUsed=base;pmRender();
+ var c=document.querySelector(".pmq-card[data-s='"+base+"']");if(c&&c.scrollIntoView)c.scrollIntoView({block:"start"});}
+function pmqPkgSecs(q,id){var K=PMQ_PKGS.find(function(k){return k.id===id;});if(!K)return null;
+ var E=K.ids.map(pmqLibById);if(E.some(function(e){return !e;})){alert("This package needs the 1.28 library \u2014 upload the new pm-vault.json to the site, then reload.");return null;}
+ return E.map(function(e,j){var s=pmqApplyLib(pmqNorm({name:"",hrs:{}}),e);s.price="";if(K.close&&j===E.length-1)s.notes.push({t:pmqHourlyNote(q),on:true,why:""});return s;});}
+function pmqLoadPkg(id,ix){var q=pmCurQ();if(!q)return;var L=pmqPkgSecs(q,id);if(L)pmqInsertSecs(q,ix,L);}
 /* price-line labels offered in the pick-list (free text allowed) */
 var PMQ_PLABS=["1st trip / setup","1st trip to setup","Each additional trip","Any future trips","Per visit"];
 var PMQ_RSNOTE="The price above covers 3 trips to site (additional trips billed hourly based on time \u2014 see the attached hourly rate sheet)";
@@ -2039,27 +2071,68 @@ function pmqSaveFav(ix){
  var q=pmCurQ(),s=q&&q.secs[ix];if(!s)return;
  var nm=prompt("Name for your version of this service:",pmqTitle(s,ix)+" – my wording");if(!nm||!nm.trim())return;
  var a=pmqFavs(),f={id:"f"+Date.now(),type:s.type||"custom",vname:nm.trim(),name:s.name,lead:s.lead,lines:JSON.parse(JSON.stringify(s.lines)),notes:JSON.parse(JSON.stringify(s.notes))};
- a.push(f);pmqFavsSave(a);s.ver=f.id;pmQuotesSave();pmRender();
+ a.push(f);pmqFavsSave(a);s.ver=f.id;s.vname=f.vname;pmQuotesSave();pmRender();
 }
-function pmqApplyFav(s,f){s.type=f.type==="custom"?"":f.type;s.ver=f.id;s.name=f.name;s.lead=f.lead||"";s.lines=JSON.parse(JSON.stringify(f.lines||[]));s.notes=JSON.parse(JSON.stringify(f.notes||[]));return s;}
-function pmqFavExport(){var a=pmqFavs();var el=document.createElement("a");el.href=URL.createObjectURL(new Blob([JSON.stringify({app:"elevate-office",kind:"quote-favourites",v:1,favs:a},null,1)],{type:"application/json"}));el.download="elevate-quote-favourites.json";el.click();setTimeout(function(){URL.revokeObjectURL(el.href);},2000);}
+function pmqApplyFav(s,f){s.type=f.type==="custom"?"":f.type;s.ver=f.id;s.vname=f.vname;s.name=f.name;s.lead=f.lead||"";s.lines=JSON.parse(JSON.stringify(f.lines||[]));s.notes=JSON.parse(JSON.stringify(f.notes||[]));return s;}
+function pmqFavExport(){var a=pmqFavs();var el=document.createElement("a");el.href=URL.createObjectURL(new Blob([JSON.stringify({app:"elevate-office",kind:"quote-favourites",v:2,favs:a,hrs:pmqHPs(),sets:pmqSets()},null,1)],{type:"application/json"}));el.download="elevate-quote-favourites.json";el.click();setTimeout(function(){URL.revokeObjectURL(el.href);},2000);}
 function pmqFavImportText(t){var d;try{d=JSON.parse(t);}catch(e){alert("That file isn't a favourites export.");return 0;}if(!d||d.kind!=="quote-favourites"||!Array.isArray(d.favs)){alert("That file isn't a favourites export.");return 0;}
- var a=pmqFavs(),n=0;d.favs.forEach(function(f){if(!f||!f.id)return;var i=a.findIndex(function(x){return x.id===f.id;});if(i>=0)a[i]=f;else a.push(f);n++;});pmqFavsSave(a);pmRender();return n;}
+ var mrg=function(a,b){var n=0;(b||[]).forEach(function(f){if(!f||!f.id)return;var i=a.findIndex(function(x){return x.id===f.id;});if(i>=0)a[i]=f;else a.push(f);n++;});return n;};
+ var a=pmqFavs(),n=mrg(a,d.favs);pmqFavsSave(a);
+ /* 1.34: hours presets and quote sets travel in the same file */
+ var h=pmqHPs();n+=mrg(h,d.hrs);pmqHPsSave(h);var st=pmqSets();n+=mrg(st,d.sets);pmqSetsSave(st);pmRender();return n;}
 function pmqFavsHtml(){
  var a=pmqFavs();
- return "<details class='cu-fold' id='pm-favfold'><summary>My saved versions ("+a.length+")</summary><div class='cu-manual'>"+(a.length?"<table class='pm-rt'>"+a.map(function(f){var e=pmqLibById(f.type);return "<tr><td>"+pmEsc(f.vname)+"</td><td class='pm-rate'>"+pmEsc(e?e.name:"Custom service")+"</td><td><button class='btn pri' data-favuse='"+f.id+"' title='add this version to the open quote as a service'>Use</button> <button class='btn' data-favren='"+f.id+"'>Rename</button> <button class='btn' data-favdel='"+f.id+"'>Delete</button></td></tr>";}).join("")+"</table>":"<p class='hint' style='margin:0'>None yet — edit a service on a quote, then “Save as my version”.</p>")+"<div class='cu-dl'><button class='btn' onclick='pmqFavExport()'>Export</button><label class='btn'>Import<input type='file' id='pm-favimp' accept='.json,application/json' style='display:none'></label><span class='hint' style='margin:0'>moves your versions to another computer; they stay on this device only</span></div><div class='hint' style='margin:4px 0 0'><b>Use</b> adds a version to the open quote as a service. You can also pick one on any service card: first dropdown \u2192 \u201cMy saved versions\u201d.</div></div></details>";
+ return "<details class='cu-fold' id='pm-favfold'><summary>My saved versions ("+a.length+")</summary><div class='cu-manual'>"+(a.length?"<table class='pm-rt'>"+a.map(function(f){var e=pmqLibById(f.type);return "<tr><td>"+pmEsc(f.vname)+"</td><td class='pm-rate'>"+pmEsc(e?e.name:"Custom service")+"</td><td><button class='btn pri' data-favuse='"+f.id+"' title='add this version to the open quote as a service'>Use</button> <button class='btn' data-favren='"+f.id+"'>Rename</button> <button class='btn' data-favdel='"+f.id+"'>Delete</button></td></tr>";}).join("")+"</table>":"<p class='hint' style='margin:0'>None yet — edit a service on a quote, then “Save as my version”.</p>")+"<div class='cu-dl'><button class='btn' onclick='pmqFavExport()'>Export</button><label class='btn'>Import<input type='file' id='pm-favimp' accept='.json,application/json' style='display:none'></label><span class='hint' style='margin:0'>moves your versions, hours presets and quote sets to another computer; they stay on this device only</span></div><div class='hint' style='margin:4px 0 0'><b>Use</b> adds a version to the open quote as a service. You can also pick one on any service card: first dropdown \u2192 \u201cMy saved versions\u201d.</div></div></details>";
 }
 
 /* ---------- service card UI ---------- */
-function pmqTypeOptions(sel){
- var groups={},order=[];pmqLib().forEach(function(e){if(!groups[e.group]){groups[e.group]=[];order.push(e.group);}groups[e.group].push(e);});
- return "<option value=''"+(sel?"":" selected")+">Custom service</option>"+order.map(function(g){return "<optgroup label='"+pmEsc(g)+"'>"+groups[g].map(function(e){return "<option value='"+e.id+"'"+(e.id===sel?" selected":"")+">"+pmEsc(e.name)+"</option>";}).join("")+"</optgroup>";}).join("")
-  /* 1.33: your saved versions, from any service card whatever their type */
-  +(function(){var a=pmqFavs();return a.length?"<optgroup label='My saved versions'>"+a.map(function(f){return "<option value='fav:"+pmEsc(f.id)+"'>\u2605 "+pmEsc(f.vname)+"</option>";}).join("")+"</optgroup>":"";})();
+function pmqTypeOptions(sel,ver){
+ /* 1.34: a loaded saved version shows as itself; the strata package pieces are loaded together, not one at a time */
+ var favs=pmqFavs(),fsel=ver&&ver!=="approved"&&favs.some(function(f){return f.id===ver;})?ver:null;
+ var groups={},order=[];pmqLib().forEach(function(e){if(/^strata_pk_/.test(e.id)&&e.id!==sel)return;if(!groups[e.group]){groups[e.group]=[];order.push(e.group);}groups[e.group].push(e);});
+ var pkgs=PMQ_PKGS.filter(function(k){return k.ids.every(pmqLibById);}),pkgOpt=function(){return pkgs.map(function(k){return "<option value='pkg:"+k.id+"'>"+pmEsc(k.label)+" \u2014 adds "+k.ids.length+" services</option>";}).join("");},pkgDone=false;
+ var h="<option value=''"+(sel||fsel?"":" selected")+">Custom service</option>"+order.map(function(g){var extra="";if(!pkgDone&&/^strata$/i.test(g)){extra=pkgOpt();pkgDone=true;}
+  return "<optgroup label='"+pmEsc(g)+"'>"+groups[g].map(function(e){return "<option value='"+e.id+"'"+(e.id===sel&&!fsel?" selected":"")+">"+pmEsc(e.name)+"</option>";}).join("")+extra+"</optgroup>";}).join("");
+ if(!pkgDone&&pkgs.length)h+="<optgroup label='Packages'>"+pkgOpt()+"</optgroup>";
+ /* 1.33: your saved versions, from any service card whatever their type */
+ if(favs.length)h+="<optgroup label='My saved versions'>"+favs.map(function(f){return "<option value='fav:"+pmEsc(f.id)+"'"+(f.id===fsel?" selected":"")+">\u2605 "+pmEsc(f.vname)+"</option>";}).join("")+"</optgroup>";
+ /* 1.34: your quote sets (several services at once) */
+ var st=pmqSets();if(st.length)h+="<optgroup label='My quote sets'>"+st.map(function(x){return "<option value='set:"+pmEsc(x.id)+"'>\u25a4 "+pmEsc(x.name)+" \u2014 "+x.secs.length+" service"+(x.secs.length===1?"":"s")+"</option>";}).join("")+"</optgroup>";
+ return h;
 }
+/* ---------- 1.34: option numbers as they print (Option 1, Option 2 …) ---------- */
+function pmqOptNos(secs){var n=0;return (secs||[]).map(function(s){return s.status==="option"?++n:0;});}
+/* ---------- 1.34: hours presets (per PM, this device) — role hours and stages only, never $ ---------- */
+function pmqHPs(){try{var a=JSON.parse(sget("eo:pmhrs")||"[]");return Array.isArray(a)?a:[];}catch(e){return [];}}
+function pmqHPsSave(a){sset("eo:pmhrs",JSON.stringify(a));}
+function pmqHrsClean(H){var o={};Object.keys(H||{}).forEach(function(k){var v=pmNum(H[k]);if(v>0)o[k]=String(H[k]).trim();});return o;}
+function pmqHrsSum(H,kind){var R=(PM.vault&&PM.vault.rates)||[];return Object.keys(H||{}).reduce(function(t,k){var r=R.find(function(x){return x.id===k;});return t+(r&&r.kind===kind?pmNum(H[k]):0);},0);}
+function pmqHPSummary(p){var all=[p.hrs||{}].concat((p.stg||[]).map(function(g){return g.hrs||{};})),f=0,o=0;all.forEach(function(H){f+=pmqHrsSum(H,"field");o+=pmqHrsSum(H,"office");});
+ return ((p.stg||[]).length?(p.stg.length+" stage"+(p.stg.length===1?"":"s")+" \u00b7 "):"")+pmH(f)+" field \u00b7 "+pmH(o)+" office";}
+function pmqSecHasHrs(s){return Object.keys(pmqHrsClean(s.hrs)).length>0||(s.stg||[]).length>0;}
+function pmqSaveHP(ix){var q=pmCurQ(),s=q&&q.secs[ix];if(!s)return;
+ if(!pmqSecHasHrs(s)){alert("Enter some hours on this service first, then save them as a preset.");return;}
+ var nm=prompt("Name for these hours (e.g. Basic topo hours):","");if(!nm||!nm.trim())return;
+ var a=pmqHPs(),p={id:"h"+Date.now(),name:nm.trim(),hrs:pmqHrsClean(s.hrs),stg:(s.stg||[]).map(function(g){return {lab:g.lab||"",hrs:pmqHrsClean(g.hrs)};})};
+ a.push(p);pmqHPsSave(a);pmRender();}
+/* replaces the card's hours and stages with the preset's; prices follow today's rates */
+function pmqApplyHP(s,p,ask){var R=(PM.vault&&PM.vault.rates)||[],gone=[],keep=function(H){var o={};Object.keys(H||{}).forEach(function(k){var r=R.find(function(x){return x.id===k;});if(r)o[k]=H[k];else gone.push(pmH(pmNum(H[k]))+" hrs "+k.toUpperCase());});return o;};
+ if(ask&&pmqSecHasHrs(s)&&!confirm("Replace this service\u2019s hours"+((s.stg||[]).length?" ("+s.stg.length+" stage"+(s.stg.length===1?"":"s")+")":"")+" with \u201c"+p.name+"\u201d?"))return false;
+ s.hrs=keep(p.hrs);s.stg=(p.stg||[]).map(function(g){return {lab:g.lab||"",hrs:keep(g.hrs)};});
+ if(gone.length)alert("Not loaded \u2014 role no longer in the rates: "+gone.join(", "));return true;}
+/* ---------- 1.34: quote sets — several services saved together (per PM, this device) ---------- */
+function pmqSets(){try{var a=JSON.parse(sget("eo:pmsets")||"[]");return Array.isArray(a)?a.filter(function(x){return x&&Array.isArray(x.secs);}):[];}catch(e){return [];}}
+function pmqSetsSave(a){sset("eo:pmsets",JSON.stringify(a));}
+function pmqSetSec(s,withHrs){var c=JSON.parse(JSON.stringify({type:s.type||"",ver:s.ver||"approved",vname:s.vname,name:s.name||"",fills:s.fills||{},lead:s.lead||"",lines:s.lines||[],notes:s.notes||[],status:s.status||"inc",plab:s.plab||"",pnote:s.pnote||""}));
+ if(withHrs){c.hrs=pmqHrsClean(s.hrs);c.stg=(s.stg||[]).map(function(g){return {lab:g.lab||"",hrs:pmqHrsClean(g.hrs)};});}return c;}
+function pmqSaveSet(){var q=pmCurQ();if(!q)return;var S=q.secs.filter(function(s){return !pmqBlankSec(s);});if(!S.length){alert("Add some services first.");return;}
+ var nm=prompt("Name for this set of "+S.length+" service"+(S.length===1?"":"s")+" (e.g. Topo + strata + construction):","");if(!nm||!nm.trim())return;
+ var wh=confirm("Include the hours with \u201c"+nm.trim()+"\u201d?\n\nOK = wording and hours (hours only \u2014 prices always come from the current rates)\nCancel = wording only");
+ var a=pmqSets();a.push({id:"t"+Date.now(),name:nm.trim(),hours:wh,secs:S.map(function(s){return pmqSetSec(s,wh);})});pmqSetsSave(a);pmRender();}
+function pmqSetSecs(x){return x.secs.map(function(c){var s=pmqNorm(JSON.parse(JSON.stringify(c)));if(!x.hours){s.hrs={};s.stg=[];}s.price="";return s;});}
 function pmqPasteLines(t){return String(t||"").replace(/\r/g,"").split("\n").map(function(l){return l.replace(/\u00a0/g," ").replace(/^\s*(?:[-\u2013\u2014\u2022*\u00b7\u25aa\u25cf\u25cb\u25e6\u2010]+|\(?\d{1,2}[.)]|\(?[a-zA-Z][.)])\s+/,"").replace(/\s+/g," ").trim().replace(/([^.])\.$/,"$1");}).filter(Boolean);}
 function pmqItemRows(s,ix,k){
- return s[k].map(function(it,j){var p=k+":"+j;return "<div class='pmq-item"+(it.on?"":" off")+"'><input type='checkbox' class='pmq-on' data-s='"+ix+"' data-p='"+p+"'"+(it.on?" checked":"")+" title='include on the quote'><input type='text' class='pmq-f pmq-lt' data-s='"+ix+"' data-p='"+p+"' value='"+pmEsc(it.t)+"'>"+(it.why?"<span class='pmq-why' title='when to include this'>"+pmEsc(it.why)+"</span>":"")+"<button class='pmq-mini' data-act='iup' data-s='"+ix+"' data-p='"+p+"' title='move up'>↑</button><button class='pmq-mini' data-act='idn' data-s='"+ix+"' data-p='"+p+"' title='move down'>↓</button><button class='pmq-mini' data-act='irm' data-s='"+ix+"' data-p='"+p+"' title='remove'>✕</button></div>";}).join("")
+ return s[k].map(function(it,j){var p=k+":"+j;return "<div class='pmq-item"+(it.on?"":" off")+(it.hi?" hi":"")+"'><input type='checkbox' class='pmq-on' data-s='"+ix+"' data-p='"+p+"'"+(it.on?" checked":"")+" title='include on the quote'><input type='text' class='pmq-f pmq-lt' data-s='"+ix+"' data-p='"+p+"' value='"+pmEsc(it.t)+"'>"+(it.why?"<span class='pmq-why' title='when to include this'>"+pmEsc(it.why)+"</span>":"")+"<button class='pmq-mini pmq-hib"+(it.hi?" on":"")+"' data-act='ihi' data-s='"+ix+"' data-p='"+p+"' title='"+(it.hi?"red on the quote \u2014 click for black":"print this line in red on the quote, so it stands out")+"'>A</button><button class='pmq-mini' data-act='iup' data-s='"+ix+"' data-p='"+p+"' title='move up'>↑</button><button class='pmq-mini' data-act='idn' data-s='"+ix+"' data-p='"+p+"' title='move down'>↓</button><button class='pmq-mini' data-act='irm' data-s='"+ix+"' data-p='"+p+"' title='remove'>✕</button></div>";}).join("")
   +"<button class='btn pmq-add' data-act='iadd' data-s='"+ix+"' data-p='"+k+"' title='tip: paste a list into any line (e.g. from a client’s email) to add one line per item'>+ "+(k==="lines"?"scope line":"note")+"</button>";
 }
 function pmqRateTable(s,ix,j,H,lab,attr){var V=PM.vault,dl=j==null?"":" data-"+(attr||"l")+"='"+j+"'",h="<table class='pm-rt'>";
@@ -2067,13 +2140,16 @@ function pmqRateTable(s,ix,j,H,lab,attr){var V=PM.vault,dl=j==null?"":" data-"+(
  return h+"<tr class='pm-sub'><td></td><td colspan='3'>"+lab+"</td><td class='pm-stot' data-s='"+ix+"'"+dl+"></td></tr></table>";}
 function pmqPlabList(){return "<datalist id='pmq-plabs'>"+PMQ_PLABS.map(function(o){return "<option value='"+pmEsc(o)+"'>";}).join("")+"</datalist>";}
 function pmqCardHtml(q,s,ix){
- var V=PM.vault,favs=pmqFavs().filter(function(f){return f.type===(s.type||"custom");});
+ var V=PM.vault,ono=pmqOptNos(q.secs),nOpt=ono.filter(Boolean).length;
  var h="<div class='pm-sec pmq-card st-"+s.status+"' data-s='"+ix+"'><div class='pmq-head'><b class='pmq-num'>"+(ix+1)+".</b>";
- h+="<select class='pmq-type' data-s='"+ix+"' title='job type from the library'>"+pmqTypeOptions(s.type)+"</select>";
- h+="<select class='pmq-ver' data-s='"+ix+"' title='approved wording or one of your saved versions'><option value='approved'"+(s.ver==="approved"?" selected":"")+">"+(s.type?"Approved wording":"Blank")+"</option>"+favs.map(function(f){return "<option value='"+f.id+"'"+(s.ver===f.id?" selected":"")+">Mine: "+pmEsc(f.vname)+"</option>";}).join("")+"</select>";
+ h+="<select class='pmq-type' data-s='"+ix+"' title='job type from the library, a package, or one of your saved versions / quote sets'>"+pmqTypeOptions(s.type,s.ver)+"</select>";
  h+="<select class='pmq-status' data-s='"+ix+"'><option value='inc'"+(s.status==="inc"?" selected":"")+">Included</option><option value='opt'"+(s.status==="opt"?" selected":"")+">Optional add-on</option><option value='option'"+(s.status==="option"?" selected":"")+">Option (choose one)</option></select>";
  h+="<span style='flex:1'></span><button class='pmq-mini' data-act='up' data-s='"+ix+"' title='move service up'>↑</button><button class='pmq-mini' data-act='dn' data-s='"+ix+"' title='move service down'>↓</button>"+(q.secs.length>1?"<button class='pmq-mini' data-act='rm' data-s='"+ix+"' title='remove service'>✕</button>":"")+"</div>";
- h+="<input type='text' class='pmq-f pmq-title' data-s='"+ix+"' data-p='name' value='"+pmEsc(s.name)+"' placeholder='Service title as it appears on the quote'>";
+ if(s.ver&&s.ver!=="approved"){var fv=pmqFavs().find(function(f){return f.id===s.ver;}),vn=(fv&&fv.vname)||s.vname;if(vn)h+="<div class='pmq-vtag'>\u2605 My version: <b>"+pmEsc(vn)+"</b>"+(pmqLibById(s.type)?" <button class='pmq-mini' data-act='appr' data-s='"+ix+"' title='load the approved wording for this job type instead'>use approved wording</button>":"")+"</div>";}
+ /* 1.34: the title reads as it prints — Option 1: … / … (Optional) */
+ var tPre=s.status==="option"?"<b class='pmq-optlab'>Option "+ono[ix]+":</b>":"",tSuf=s.status==="opt"&&!/optional/i.test(pmqFill(s.name,s.fills))?"<b class='pmq-optlab'>(Optional)</b>":"";
+ h+="<div class='pmq-trow'>"+tPre+"<input type='text' class='pmq-f pmq-title' data-s='"+ix+"' data-p='name' value='"+pmEsc(s.name)+"' placeholder='Service title as it appears on the quote'>"+tSuf+"</div>";
+ if(s.status==="option"&&nOpt===1)h+="<div class='cu-idwarn pmq-onewarn'>Only one service is set to Option \u2014 add another option, or set this one to Included / Optional add-on.</div>";
  var toks=pmqCardTokens(s);
  if(toks.length)h+="<div class='pmq-fills'>"+toks.map(function(k){var v=s.fills[k.label]||"",miss=!v&&!k.def;return "<label class='"+(miss?"miss":"")+"'><span>"+pmEsc(k.label)+"</span><input type='text' class='pmq-f' data-s='"+ix+"' data-p='fill:"+pmEsc(k.label)+"' value='"+pmEsc(v)+"' placeholder='"+pmEsc(k.def||"fill in")+"'"+(k.opts.length?" list='pmq-dl-"+ix+"-"+pmNorm(k.label)+"'":"")+">"+(k.opts.length?"<datalist id='pmq-dl-"+ix+"-"+pmNorm(k.label)+"'>"+k.opts.map(function(o){return "<option value='"+pmEsc(o)+"'>";}).join("")+"</datalist>":"")+"</label>";}).join("")+"</div>";
  h+="<input type='text' class='pmq-f pmq-lead' data-s='"+ix+"' data-p='lead' value='"+pmEsc(s.lead)+"' placeholder='Lead-in line (optional), e.g. Survey showing lot features such as:'>";
@@ -2092,6 +2168,8 @@ function pmqCardHtml(q,s,ix){
   h+=pmqRateTable(s,ix,j,l.hrs,"Labour — price line "+(j+2));
   h+="<div class='pmq-price'><label>Price on the quote <input type='text' class='pmq-f' data-s='"+ix+"' data-p='pl:"+j+":price' value='"+pmEsc(l.price)+"' placeholder='calculated' style='width:170px'></label></div></div>";});
  h+="<div class='pmq-price'><button class='btn' data-act='stgadd' data-s='"+ix+"' title='split this service into stages / trips (e.g. excavation layout, building layout, forms certificate) \u2014 each with its own hours, all in this price and the job total'>+ Add stage</button><button class='btn' data-act='pladd' data-s='"+ix+"' title='another price for this same service, e.g. future trips \u2014 its own hours, not in the job total'>+ Add price line</button><span style='flex:1'></span><button class='btn' data-act='fav' data-s='"+ix+"'>Save as my version</button></div>";
+ /* 1.34: hours presets */
+ var HP=pmqHPs();h+="<div class='pmq-price pmq-hprow'><select class='pmq-hp' data-s='"+ix+"' title='load one of your saved hours (replaces this service\u2019s hours and stages; prices use the current rates)'><option value=''>Hours preset \u25be</option>"+HP.map(function(p){return "<option value='"+pmEsc(p.id)+"'>"+pmEsc(p.name)+" \u2014 "+pmEsc(pmqHPSummary(p))+"</option>";}).join("")+"</select><button class='btn' data-act='hsave' data-s='"+ix+"' title='save the hours on this service (and its stages) under a name, to load on any service later \u2014 hours only, never prices'>Save hours as preset\u2026</button>"+(HP.length?"":"<span class='hint' style='margin:0'>no hours presets yet</span>")+"</div>";
  h+="<div class='pmq-price'><label>Price note <input type='text' class='pmq-f' data-s='"+ix+"' data-p='pnote' value='"+pmEsc(s.pnote)+"' placeholder='optional \u2014 prints as *note under the service, price gets *' style='width:420px'></label><button class='btn' data-act='pnrs' data-s='"+ix+"' title='3-trip wording that points to the attached rate sheet (ticks Attach rate sheet)'>Rate-sheet wording</button></div>";
  if(ix===0)h+=pmqPlabList();
  return h+"</div>";
@@ -2115,14 +2193,13 @@ function pmqWire(host,q){
  host.querySelectorAll(".pmq-on").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s],P=pmqPath(s,el.dataset.p);s[P.k][P.j].on=el.checked;save();pmqRerender();};});
  host.querySelectorAll(".pmq-type").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s];
   if(el.value.indexOf("fav:")===0){var fv=pmqFavs().find(function(x){return x.id===el.value.slice(4);});if(fv)pmqApplyFav(s,fv);save();pmRender();return;}
+  if(el.value.indexOf("pkg:")===0){pmqLoadPkg(el.value.slice(4),+el.dataset.s);return;}
+  if(el.value.indexOf("set:")===0){var st=pmqSets().find(function(x){return x.id===el.value.slice(4);});if(st)pmqInsertSecs(q,+el.dataset.s,pmqSetSecs(st));else pmRender();return;}
   var e=pmqLibById(el.value);
   if(e){pmqApplyLib(s,e);if(e.disb){q.disb=q.disb||{};Object.keys(e.disb).forEach(function(k){if(pmNum(q.disb[k])<pmNum(e.disb[k]))q.disb[k]=e.disb[k];});}}else{s.type="";s.ver="approved";}save();pmRender();};});
- host.querySelectorAll(".pmq-ver").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s];
-  if(el.value==="approved"){var e=pmqLibById(s.type);if(e)pmqApplyLib(s,e);else{s.ver="approved";}}
-  else{var f=pmqFavs().find(function(x){return x.id===el.value;});if(f)pmqApplyFav(s,f);}save();pmRender();};});
+ host.querySelectorAll(".pmq-hp").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s],p=pmqHPs().find(function(x){return x.id===el.value;});if(p&&pmqApplyHP(s,p,true))save();pmRender();};});
  host.querySelectorAll(".pmq-status").forEach(function(el){el.onchange=function(){q.secs[+el.dataset.s].status=el.value;save();pmRender();};});
  host.querySelectorAll(".pmq-per").forEach(function(el){el.onchange=function(){var s=q.secs[+el.dataset.s];s.per=el.value;if(s.per&&!String(s.up||"").trim()&&pmqOvP(s.price)&&pmqOvP(s.price).num!=null)s.up=String(pmqOvP(s.price).num);save();pmRender();};});
- host.querySelectorAll("[data-pkg]").forEach(function(b){b.onclick=function(){pmqLoadPkg(b.dataset.pkg);};});
  host.querySelectorAll("[data-act]").forEach(function(b){b.onclick=function(){var ix=+b.dataset.s,s=q.secs[ix],a=b.dataset.act,P=b.dataset.p?pmqPath(s,b.dataset.p):null;
   if(a==="up"&&ix>0){q.secs.splice(ix-1,0,q.secs.splice(ix,1)[0]);}
   else if(a==="dn"&&ix<q.secs.length-1){q.secs.splice(ix+1,0,q.secs.splice(ix,1)[0]);}
@@ -2132,6 +2209,9 @@ function pmqWire(host,q){
   else if(a==="irm"){s[P.k].splice(P.j,1);}
   else if(a==="iadd"){s[P.k].push({t:"",on:true,why:""});}
   else if(a==="fav"){pmqSaveFav(ix);return;}
+  else if(a==="hsave"){pmqSaveHP(ix);return;}
+  else if(a==="ihi"){s[P.k][P.j].hi=!s[P.k][P.j].hi;}
+  else if(a==="appr"){var ae=pmqLibById(s.type);if(!ae)return;if(!confirm("Replace your wording on this service with the approved wording?"))return;pmqApplyLib(s,ae);}
   else if(a==="pladd"){s.pl.push({lab:s.pl.length?"":"Any future trips",hrs:{},price:""});if(!s.plab)s.plab="1st trip to setup";}
   else if(a==="plrm"){s.pl.splice(P.j,1);}
   else if(a==="stgadd"){if(!s.stg.length){s.stg.push({lab:"",hrs:JSON.parse(JSON.stringify(s.hrs||{}))});s.hrs={};}s.stg.push({lab:"",hrs:{}});}
@@ -2151,6 +2231,7 @@ function pmqWireFavs(host){
   var c=document.querySelector(".pmq-card[data-s='"+PM.favUsed+"']");if(c&&c.scrollIntoView)c.scrollIntoView({block:"center"});};});
  host.querySelectorAll("[data-favren]").forEach(function(b){b.onclick=function(){var a=pmqFavs(),f=a.find(function(x){return x.id===b.dataset.favren;});if(!f)return;var nm=prompt("Rename this version:",f.vname);if(!nm||!nm.trim())return;f.vname=nm.trim();pmqFavsSave(a);pmRender();var d=document.getElementById("pm-favfold");if(d)d.open=true;};});
  host.querySelectorAll("[data-favdel]").forEach(function(b){b.onclick=function(){var a=pmqFavs(),f=a.find(function(x){return x.id===b.dataset.favdel;});if(!f||!confirm("Delete your version “"+f.vname+"” from this device?"))return;pmqFavsSave(a.filter(function(x){return x!==f;}));pmRender();var d=document.getElementById("pm-favfold");if(d)d.open=true;};});
+ pmqWireLists(host);
  var fi=document.getElementById("pm-favimp");if(fi)fi.onchange=function(){var file=fi.files[0];if(!file)return;var r=new FileReader();r.onload=function(){pmqFavImportText(r.result);var d=document.getElementById("pm-favfold");if(d)d.open=true;};r.readAsText(file);fi.value="";};
 }
 function pmqRerender(){var y=window.scrollY,a=document.activeElement,key=a&&a.dataset?(a.dataset.s+"|"+a.dataset.p):null;pmRender();window.scrollTo(0,y);if(key){var el=[].find.call(document.querySelectorAll(".pmq-f"),function(x){return x.dataset.s+"|"+x.dataset.p===key;});if(el)el.focus();}}
@@ -2159,6 +2240,9 @@ function pmqRerender(){var y=window.scrollY,a=document.activeElement,key=a&&a.da
 var PMQ_CONTRACT=[[1,"Quote Acceptance and Client Contract - Please sign and email back if you accept the terms of our agreement. "],[0,"By signing below, you are entering a contract with us indicating that you have the authorization and responsibility to approve and pay for this project. All cancellations must be notified 24 hours prior to the survey. If cancellations occur after the start of survey, all work done on the project will be charged at our hourly rates. "],[1,"Unless previously agreed, payment is required prior to any plans or files being released"],[0,". We can process multiple methods of payment including cheque, Interac E-Transfer, and credit card. 2% interest is charged after more than one month for all overdue accounts. This quote is valid for up to 3 months and hourly rates are subject to annual increases."]];
 function pmqX(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function pmqRun(s,b){return "<w:r>"+(b?"<w:rPr><w:b/><w:bCs/></w:rPr>":"")+"<w:t xml:space=\"preserve\">"+pmqX(s)+"</w:t></w:r>";}
+/* 1.34: a line highlighted in red (the letter a., b. stays black) */
+var PMQ_RED="C00000";
+function pmqRunHi(s,hi){return hi?"<w:r><w:rPr><w:color w:val=\""+PMQ_RED+"\"/></w:rPr><w:t xml:space=\"preserve\">"+pmqX(s)+"</w:t></w:r>":pmqRun(s);}
 /* site bar: one address as before; several are stacked, one line per street (addresses sharing a street and city share a line: 5864 & 5868 Pioneer Avenue, Burnaby) */
 function pmqSiteLines(q){var A=pmProps(q).map(function(p){return String(p.site||"").replace(/\s*\n\s*/g," ").trim();}).filter(Boolean),groups=[],by={};
  A.forEach(function(a){var m=a.match(/^(\d+[A-Za-z]?(?:\s*-\s*\d+[A-Za-z]?)?)\s+(\D.*)$/);
@@ -2190,7 +2274,7 @@ function pmqServices(q){
   if(s.status==="option"){opt++;title="Option "+opt+": "+title;}
   else if(s.status==="opt"&&!/optional/i.test(title))title+=" (Optional)";
   var price=fmt(x.ov,x.num),many=x.xs.length>0;
-  var notes=s.notes.filter(function(n){return n.on&&n.t.trim();}).map(function(n){return pmqFill(n.t,s.fills);});
+  var nOn=s.notes.filter(function(n){return n.on&&n.t.trim();}),notes=nOn.map(function(n){return pmqFill(n.t,s.fills);}),lOn=s.lines.filter(function(l){return l.on&&l.t.trim();});
   var pn=pmqFill(s.pnote||"",s.fills).trim().replace(/^\*+\s*/,""),pnote=pn?"*"+pn:"";
   var star=pnote?"":((notes.map(function(n){var m=n.match(/^\*+/);return m?m[0]:"";}).filter(Boolean)[0])||"");
   if(price&&star&&!/\*$/.test(price))price+=star;
@@ -2200,7 +2284,7 @@ function pmqServices(q){
   if(pnote&&pl.length)pl[0].a="*"+pl[0].a;
   if(s.status==="opt")pl.forEach(function(l){l.a="Additional "+l.a;});
   var lines=pl.map(function(l){return l.a+(l.l?" ("+l.l+")":"");});
-  return {title:title,lead:pmqFill(s.lead,s.fills).trim(),lines:s.lines.filter(function(l){return l.on&&l.t.trim();}).map(function(l){return pmqFill(l.t,s.fills);}),notes:notes,pnote:pnote,prices:lines,plist:pl,price:lines.join(" / "),main:price,xs:x.xs.map(function(e){return fmt(e.ov,e.num);}),status:s.status};
+  return {title:title,lead:pmqFill(s.lead,s.fills).trim(),lines:lOn.map(function(l){return pmqFill(l.t,s.fills);}),linesHi:lOn.map(function(l){return !!l.hi;}),notes:notes,notesHi:nOn.map(function(n){return !!n.hi;}),pnote:pnote,prices:lines,plist:pl,price:lines.join(" / "),main:price,xs:x.xs.map(function(e){return fmt(e.ov,e.num);}),status:s.status};
  });
 }
 function pmqCheck(q){
@@ -2227,8 +2311,8 @@ function pmqBodyXml(q){
  var rows=P.map(function(v,i){/* no drawn rule between services (Acrobat auto-detect turned each one into fields); space above each row instead */var bd="<w:tcMar><w:top w:w=\"100\" w:type=\"dxa\"/></w:tcMar>";
   var ps=[pmqPara("EQService",pmqRun(v.title))];
   if(v.lead)ps.push(pmqPara("EQLead",pmqRun(v.lead)));
-  v.lines.forEach(function(l){ps.push(pmqPara("EQScope",pmqRun(l),"<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\""+(10+i)+"\"/></w:numPr>"));});
-  v.notes.forEach(function(n){ps.push(pmqPara("EQScopeNote",pmqRun(n)));});
+  v.lines.forEach(function(l,k){ps.push(pmqPara("EQScope",pmqRunHi(l,v.linesHi&&v.linesHi[k]),"<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\""+(10+i)+"\"/></w:numPr>"));});
+  v.notes.forEach(function(n,k){ps.push(pmqPara("EQScopeNote",pmqRunHi(n,v.notesHi&&v.notesHi[k])));});
   if(v.pnote)ps.push(pmqPara("EQScopeNote",pmqRun(v.pnote)));
   return "<w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w=\""+DW+"\" w:type=\"dxa\"/>"+bd+"</w:tcPr>"+ps.join("")+"</w:tc><w:tc><w:tcPr><w:tcW w:w=\""+PW+"\" w:type=\"dxa\"/>"+bd+"</w:tcPr>"+(v.plist.length?v.plist:[{a:"",l:""}]).map(function(t,k){/* amount, then its label on the line below in smaller plain text (one paragraph, so it reads back as "$830 (Any future trips)") */
    return pmqPara("EQPrice",pmqRun(t.a)+(t.l?"<w:r><w:rPr><w:b w:val=\"0\"/><w:bCs w:val=\"0\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><w:br/><w:t xml:space=\"preserve\"> ("+pmqX(t.l)+")</w:t></w:r>":""),k?"<w:spacing w:before=\"100\"/>":"");}).join("")+"</w:tc></w:tr>";}).join("");
@@ -2256,7 +2340,8 @@ function pmqRateSheetXml(){
  var R=pmqRS(),V=PM.vault,TW=9360,PW=1800,DW=TW-PW,yr=new Date().getFullYear(),rows=[];
  var cell=function(w,inner){return "<w:tc><w:tcPr><w:tcW w:w=\""+w+"\" w:type=\"dxa\"/></w:tcPr>"+inner+"</w:tc>";};
  var p=function(t,o){o=o||{};return "<w:p><w:pPr><w:pStyle w:val=\"EQBody\"/><w:spacing w:before=\""+(o.before||40)+"\" w:after=\"40\"/>"+(o.right?"<w:jc w:val=\"right\"/>":"")+"</w:pPr>"+(t?"<w:r><w:rPr>"+(o.b?"<w:b/><w:bCs/>":"")+(o.teal?"<w:color w:val=\"2E9AA6\"/>":"")+(o.sz?"<w:sz w:val=\""+o.sz+"\"/><w:szCs w:val=\""+o.sz+"\"/>":"")+"</w:rPr><w:t xml:space=\"preserve\">"+pmqX(t)+"</w:t></w:r>":"")+"</w:p>";};
- var row=function(a,b,o){return "<w:tr><w:trPr><w:cantSplit/></w:trPr>"+cell(DW,p(a,o))+cell(PW,p(b,{right:1,before:o&&o.before}))+"</w:tr>";};
+ /* 1.34: amounts in bold, as on the office rate sheet ("No Extra charge" stays plain) */
+ var row=function(a,b,o){return "<w:tr><w:trPr><w:cantSplit/></w:trPr>"+cell(DW,p(a,o))+cell(PW,p(b,{right:1,before:o&&o.before,b:/^\$/.test(b)}))+"</w:tr>";};
  var head=function(t,first){return "<w:tr><w:trPr><w:cantSplit/></w:trPr>"+cell(DW,p(t,{b:1,teal:1,sz:23,before:first?40:220}))+cell(PW,p(""))+"</w:tr>";};
  rows.push(head("Rates",1));
  V.rates.forEach(function(r){rows.push(row((R.labels&&R.labels[r.id])||r.label,pmMoney(r.rate,false)+"/hr."));});
@@ -2267,7 +2352,7 @@ function pmqRateSheetXml(){
  var x=[];
  x.push(pmqPara("EQSite",pmqRun("Rates, Fees, & Deliverables for "+yr),"<w:pageBreakBefore/>"));
  x.push("<w:tbl><w:tblPr><w:tblW w:w=\""+TW+"\" w:type=\"dxa\"/><w:tblLayout w:type=\"fixed\"/><w:tblBorders><w:top w:val=\"nil\"/><w:left w:val=\"nil\"/><w:bottom w:val=\"nil\"/><w:right w:val=\"nil\"/><w:insideH w:val=\"nil\"/><w:insideV w:val=\"nil\"/></w:tblBorders><w:tblCellMar><w:left w:w=\"0\" w:type=\"dxa\"/><w:right w:w=\"0\" w:type=\"dxa\"/></w:tblCellMar><w:tblLook w:val=\"0000\"/></w:tblPr><w:tblGrid><w:gridCol w:w=\""+DW+"\"/><w:gridCol w:w=\""+PW+"\"/></w:tblGrid>"+rows.join("")+"</w:tbl>");
- (R.foot||[]).forEach(function(f,i){x.push("<w:p><w:pPr><w:pStyle w:val=\"EQBody\"/><w:spacing w:before=\""+(i?60:240)+"\" w:after=\"40\"/></w:pPr>"+f.map(function(r){return "<w:r><w:rPr>"+(r[1]?"<w:b/><w:bCs/>":"")+"<w:sz w:val=\"19\"/><w:szCs w:val=\"19\"/></w:rPr><w:t xml:space=\"preserve\">"+pmqX(r[0])+"</w:t></w:r>";}).join("")+"</w:p>");});
+ (R.foot||[]).forEach(function(f,i){x.push("<w:p><w:pPr><w:pStyle w:val=\"EQBody\"/><w:spacing w:before=\""+(i?60:240)+"\" w:after=\"40\"/></w:pPr>"+f.map(function(r){return "<w:r><w:rPr>"+(r[1]?"<w:b/><w:bCs/>":"")+(r[2]||/minimum charge/i.test(r[0])?"<w:color w:val=\""+PMQ_RED+"\"/>":"")+"<w:sz w:val=\"19\"/><w:szCs w:val=\"19\"/></w:rPr><w:t xml:space=\"preserve\">"+pmqX(r[0])+"</w:t></w:r>";}).join("")+"</w:p>");});
  return x.join("");
 }
 function pmqNumbering(n){
@@ -2325,6 +2410,40 @@ function pmqDownloadDocx(){
 }
 var PMQ_LAST=null;
 window.pmqRateSheetXml=pmqRateSheetXml;window.PMQ_RSNOTE=PMQ_RSNOTE;window.pmqDownloadDocx=pmqDownloadDocx;window.pmqFavExport=pmqFavExport;window.pmqFavImportText=pmqFavImportText;window.pmqServices=pmqServices;window.pmqCheck=pmqCheck;window.pmqBuildDocx=pmqBuildDocx;window.pmqFill=pmqFill;window.pmqApplyLib=pmqApplyLib;window.pmqNorm=pmqNorm;window.pmqDisbLine=pmqDisbLine;window.pmqDefaultName=pmqDefaultName;window.pmqFavs=pmqFavs;window.pmqApplyFav=pmqApplyFav;window.pmqLibById=pmqLibById;window.pmqUnfilled=pmqUnfilled;
+
+/* ---------- 1.34: live quote preview (built from pmqServices, the same data the Word quote is made from) ---------- */
+function pmqPrevOn(){var v=null;try{v=sget("eo:pmprev");}catch(e){}return v!=="0";}
+var PMQ_PVT=null;
+function pmqPreviewSoon(){if(PMQ_PVT)clearTimeout(PMQ_PVT);PMQ_PVT=setTimeout(function(){PMQ_PVT=null;pmqPreviewDraw();},200);}
+function pmqPreviewDraw(){var el=document.getElementById("pm-qprev"),q=pmCurQ();if(!el||!q||el.style.display==="none")return;try{el.innerHTML=pmqPreviewHtml(q);}catch(e){el.innerHTML="<p class='hint'>Preview unavailable: "+pmEsc(e.message)+"</p>";}}
+function pmqPreviewHtml(q){
+ var E=pmEsc,P=pmqServices(q),L=pmqSiteLines(q),many=pmProps(q).filter(function(p){return (p.site||"").trim();}).length>1,pj=String(q.f.proj||"").replace(/\s*\n\s*/g," ").trim();
+ var h="<div class='qp-cap'>Preview — layout matches the Word quote; page breaks and fonts may differ slightly.</div><div class='qp-paper'>";
+ h+="<div class='qp-date'>"+E(pmqDate(new Date()))+"</div>";
+ h+="<div class='qp-to'><span>To: "+E(pmqTo(q)||"—")+"</span><span>Quote# "+E((q.f.qn||"").trim()||"—")+"</span></div>";
+ h+="<div class='qp-site'>"+(L.length<=1?E((many?"Site addresses: ":"Site address: ")+(L[0]||"")):E("Site addresses:")+"<br>"+L.map(E).join("<br>"))+(pj?"<br>"+E(pj):"")+"</div>";
+ h+=P.map(function(v,i){var r="<div class='qp-row'><div class='qp-d'><div class='qp-t'><span class='qp-n'>"+(i+1)+".</span><u>"+E(v.title)+"</u></div>";
+  if(v.lead)r+="<div class='qp-lead'>"+E(v.lead)+"</div>";
+  if(v.lines.length)r+="<ol type='a' class='qp-ol'>"+v.lines.map(function(l,k){return "<li"+(v.linesHi&&v.linesHi[k]?" class='qp-hi'":"")+"><span>"+E(l)+"</span></li>";}).join("")+"</ol>";
+  v.notes.forEach(function(n,k){r+="<div class='qp-note"+(v.notesHi&&v.notesHi[k]?" qp-hi":"")+"'>"+E(n)+"</div>";});
+  if(v.pnote)r+="<div class='qp-note'>"+E(v.pnote)+"</div>";
+  r+="</div><div class='qp-p'>"+(v.plist.length?v.plist.map(function(t){return "<div>"+E(t.a)+(t.l?"<small>("+E(t.l)+")</small>":"")+"</div>";}).join(""):"<div class='qp-miss'>no price</div>")+"</div></div>";return r;}).join("");
+ h+="<div class='qp-terms'>GST EXTRA</div>";var d=pmqDisbLine(q);if(d)h+="<div class='qp-terms'>"+E(d)+"</div>";
+ h+="<div class='qp-sign'>"+E((q.f.pm||"").trim()||"—")+"</div><div class='qp-fine'>Contract terms and the signature block follow"+(q.rs?"; page 2: rates, fees &amp; deliverables for "+new Date().getFullYear():"")+".</div>";
+ return h+"</div>";
+}
+/* ---------- 1.34: lists of hours presets and quote sets (rename / delete) ---------- */
+function pmqListFold(id,title,a,label,sub,empty){
+ return "<details class='cu-fold' id='"+id+"'><summary>"+title+" ("+a.length+")</summary><div class='cu-manual'>"+(a.length?"<table class='pm-rt'>"+a.map(function(x){return "<tr><td>"+pmEsc(label(x))+"</td><td class='pm-rate'>"+pmEsc(sub(x))+"</td><td><button class='btn' data-lren='"+id+"|"+x.id+"'>Rename</button> <button class='btn' data-ldel='"+id+"|"+x.id+"'>Delete</button></td></tr>";}).join("")+"</table>":"<p class='hint' style='margin:0'>"+empty+"</p>")+"<div class='hint' style='margin:4px 0 0'>Kept on this computer only. Export / Import under My saved versions moves them with your versions.</div></div></details>";}
+function pmqHPsHtml(){return pmqListFold("pm-hpfold","My hours presets",pmqHPs(),function(p){return p.name;},pmqHPSummary,"None yet — enter hours on a service, then “Save hours as preset…”. Load one on any service from “Hours preset ▾”.");}
+function pmqSetsHtml(){return pmqListFold("pm-setfold","My quote sets",pmqSets(),function(x){return x.name;},function(x){return x.secs.length+" service"+(x.secs.length===1?"":"s")+(x.hours?" with hours":", wording only");},"None yet — build the services on a quote, then “Save these services as a set…”. Load one from the first dropdown on any service → My quote sets.");}
+function pmqWireLists(host){
+ var store=function(id){return id==="pm-hpfold"?[pmqHPs,pmqHPsSave]:[pmqSets,pmqSetsSave];},reopen=function(id){var d=document.getElementById(id);if(d)d.open=true;};
+ host.querySelectorAll("[data-lren]").forEach(function(b){b.onclick=function(){var k=b.dataset.lren.split("|"),S=store(k[0]),a=S[0](),x=a.find(function(y){return y.id===k[1];});if(!x)return;var nm=prompt("Rename:",x.name);if(!nm||!nm.trim())return;x.name=nm.trim();S[1](a);pmRender();reopen(k[0]);};});
+ host.querySelectorAll("[data-ldel]").forEach(function(b){b.onclick=function(){var k=b.dataset.ldel.split("|"),S=store(k[0]),a=S[0](),x=a.find(function(y){return y.id===k[1];});if(!x||!confirm("Delete “"+x.name+"” from this computer?"))return;S[1](a.filter(function(y){return y!==x;}));pmRender();reopen(k[0]);};});
+ var t=document.getElementById("pm-pvtog");if(t)t.onchange=function(){sset("eo:pmprev",t.checked?"1":"0");pmRender();};
+ pmqPreviewDraw();
+}
 /* ---------- PM: draft hidden inside the Word quote; reopen a quote; sub-quotes ---------- */
 var PMQD_NS="urn:elevate-office:quote-draft";
 function pmqdUnesc(s){return String(s).replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,"\"").replace(/&apos;/g,"'").replace(/&#(\d+);/g,function(m,n){return String.fromCharCode(+n);}).replace(/&#x([0-9a-f]+);/gi,function(m,n){return String.fromCharCode(parseInt(n,16));}).replace(/&amp;/g,"&");}
@@ -2347,9 +2466,11 @@ function pmqdParts(q,bodyXml,files){
  });
 }
 /* read the services back out of an app-made quote as Word now shows them (after any hand edits) */
+/* 1.34: Word can rename the styles' IDs from their display names when it saves (EQService -> EQServiceTitle …); read both */
+var PMQD_STYLE_ALIAS={EQServiceTitle:"EQService",EQScopeLead:"EQLead",EQScopeLine:"EQScope",EQSiteAddress:"EQSite",EQSignatory:"EQSign",EQSignatureLine:"EQBlank"};
 function pmqdReadServices(docXml){
  var out=[],rows=docXml.split(/<w:tr[ >]/).slice(1);
- var text=function(p){return pmqdTextOf(p);},style=function(p){var m=p.match(/<w:pStyle w:val="([^"]+)"/);return m?m[1]:"";};
+ var text=function(p){return pmqdTextOf(p);},style=function(p){var m=p.match(/<w:pStyle w:val="([^"]+)"/);return m?(PMQD_STYLE_ALIAS[m[1]]||m[1]):"";};
  rows.forEach(function(r){var ps=r.split(/<w:p[ >]/).slice(1),v={title:"",lead:"",lines:[],notes:[],price:""},any=false;
   ps.forEach(function(p){var st=style(p),t=text(p);if(!t)return;
    if(st==="EQService"){v.title=t;any=true;}else if(st==="EQLead")v.lead=t;else if(st==="EQScope")v.lines.push(t);else if(st==="EQScopeNote")v.notes.push(t);else if(st==="EQPrice")v.price=v.price?v.price+" / "+t:t;});
@@ -2373,6 +2494,8 @@ function pmqdImportDocx(buf,fname){
    var rep={file:fname||"",fromDocx:true,read:0,unread:[],rateDiff:[],wordDiffs:[]};
    if(changed){
     var W=pmqdReadServices(docXml),P=pmqServices(q),diffs=[];
+    /* 1.34: if no services can be found in the Word file, never empty the quote — open the app's saved version */
+    if(!W.length&&P.length){rep.noWord=true;}else{
     W.forEach(function(ws,i){var ps=P[i];if(!ps){diffs.push("Service "+(i+1)+" (“"+ws.title+"”) is only in the Word file");return;}
      if(ws.title!==ps.title)diffs.push("Service "+(i+1)+" title: “"+ws.title+"”");
      if(ws.lines.join("|")!==ps.lines.join("|"))diffs.push("Service "+(i+1)+" scope lines changed");
@@ -2382,16 +2505,18 @@ function pmqdImportDocx(buf,fname){
     var take=confirm("This quote was edited in Word after it was made in the app.\n\n"+(diffs.length?diffs.slice(0,8).join("\n")+(diffs.length>8?"\n…":""):"(wording outside the services changed)")+"\n\nOK = take the services’ text from the Word file (hours stay from the app)\nCancel = open the app’s version as it was downloaded");
     if(take){
      W.forEach(function(ws,i){var s=q.secs[i];if(!s){s=pmqNorm({name:"",hrs:{}});q.secs.push(s);}
-      var t=ws.title.replace(/^Option \d+:\s*/,"");if(s.status==="opt")t=t.replace(/\s*\(optional\)$/i,"");s.name=t;s.fills={};s.lead=ws.lead;
+      var t=ws.title.replace(/^Option \d+:\s*/,"");if(s.status==="opt")t=t.replace(/\s*\(optional\)$/i,"");s.name=t;var oldF=s.fills||{};s.fills={};s.lead=ws.lead;
       var offL=s.lines.filter(function(x){return !x.on;}),offN=s.notes.filter(function(x){return !x.on;});
       var pnW=P[i]&&P[i].pnote?ws.notes.filter(function(x){return x===P[i].pnote;}).length:0;if(pnW)ws.notes=ws.notes.filter(function(x){return x!==P[i].pnote;});
-      s.lines=ws.lines.map(function(x){return {t:x,on:true,why:""};}).concat(offL);s.notes=ws.notes.map(function(x){return {t:x,on:true,why:""};}).concat(offN);
+      /* 1.34: a line that was red in the app stays red when its text comes back from Word */
+      var hiL={},hiN={};s.lines.forEach(function(x){if(x.hi&&x.on)hiL[pmqFill(x.t,oldF)]=1;});s.notes.forEach(function(x){if(x.hi&&x.on)hiN[pmqFill(x.t,oldF)]=1;});
+      s.lines=ws.lines.map(function(x){return {t:x,on:true,why:"",hi:!!hiL[x]};}).concat(offL);s.notes=ws.notes.map(function(x){return {t:x,on:true,why:"",hi:!!hiN[x]};}).concat(offN);
       if((s.pl||[]).length)return; /* several price lines: prices stay as the app had them (any Word edit is listed in the note) */
       var cl=function(v){return v.replace(/^Additional\s+/i,"").replace(/^\*+|\*+$/g,"").trim();},pr=cl(ws.price),calc=pmqServices(q)[i];
       if(calc&&cl(calc.price)!==pr)s.price=pr.replace(/^\$/,"");});
      if(q.secs.length>W.length)q.secs=q.secs.slice(0,W.length);
      rep.wordDiffs=diffs;
-    }
+    }}
    }
    pmqdKeepMine(q,rep);q.updated=Date.now();q.exported=q.updated;q.importRep=rep;
    var qn=(q.f.qn||"").trim(),ex=qn?PM.quotes.find(function(x){return (x.f.qn||"").trim()===qn;}):null;
@@ -2949,6 +3074,17 @@ function pmCalc(q){
  var oa=pmNum(q.other.amt);if(oa>0){out.disb+=oa;out.disbParts.push((q.other.label||"other")+" ("+pmMoney(oa,false)+")");}
  out.total=out.quoted+out.disb;return out;
 }
+/* 1.34: how a service is named in the job details — "Option 1 — Title", "Title (Optional add-on)" */
+function pmSvcPre(C,s){var n=pmqOptNos(C.secs)[C.secs.indexOf(s)];return n?"Option "+n+" \u2014 ":"";}
+function pmSvcSuf(s){return s.status==="opt"?" (Optional add-on)":"";}
+/* a title already ending "(Optional)" isn't doubled: "Posting plan (Optional add-on)" */
+function pmSvcNm(s,nm){return s.status==="opt"?String(nm).replace(/\s*\(optional\)\s*$/i,""):nm;}
+/* 1.34: with options on the quote, a total for each (included services + that option + disbursements) */
+function pmOptTotals(C){var no=pmqOptNos(C.secs),anyInc=C.secs.some(function(s){return s.status==="inc";});
+ return C.secs.map(function(s,i){if(!no[i])return null;var v=s.quote||0,parts=[];
+  if(anyInc){parts.push(pmMoney(C.quoted)+" included services");parts.push(pmMoney(v)+" Option "+no[i]);}else parts.push(pmMoney(v)+" labour");
+  if(C.disb>0)parts.push(pmMoney(C.disb)+" disbursements");
+  return {n:no[i],name:s.name,total:C.quoted+v+C.disb,text:"Option "+no[i]+" total before GST: "+pmMoney(C.quoted+v+C.disb)+(parts.length>1?" ("+parts.join(" + ")+")":"")};}).filter(Boolean);}
 function pmTimeLine(C,kind){
  var hrs=function(h){return pmH(h)+" hr"+(h===1?"":"s");},stg=C.secs.filter(function(s){return s.status==="inc"&&(s.stages||[]).length;});
  var withK=C.secs.filter(function(s){return s.status==="inc"&&s.rows.some(function(x){return x.r.kind===kind;});});
@@ -2967,7 +3103,7 @@ function pmTimeSvc(C,kind,L){
   /* a staged service shows which stage the hours are for: 8.0 hrs 2 MAN CREW (4.0 excavation layout + 2.0 foundation layout + 2.0 forms certificate) */
   var b=(stg||[]).map(function(g){var y=g.rows.find(function(z){return z.r.id===x.r.id;});return y?pmH(y.h)+" "+g.lab.toLowerCase():null;}).filter(Boolean);
   return pmH(x.h)+" hr"+(x.h===1?"":"s")+" "+pmShort(x.r)+(b.length>1?" ("+b.join(" + ")+")":(b.length===1&&(stg||[]).length>1?" ("+b[0].replace(/^[\d.]+ /,"")+")":""));});};
- hs.forEach(function(s){var nm=s.name||("Service "+(C.secs.indexOf(s)+1)),suf=s.status==="opt"?" (optional \u2014 not in total)":(s.status==="option"?" (option \u2014 not in total)":""),X=s.extra||[];
+ hs.forEach(function(s){var nm=pmSvcPre(C,s)+pmSvcNm(s,s.name||("Service "+(C.secs.indexOf(s)+1))),suf=pmSvcSuf(s),X=s.extra||[];
   var parts=pt(s.rows,s.stages);if(parts.length)L.push("   "+nm+(X.length&&s.plab?" \u2014 "+s.plab:"")+suf+": "+parts.join(" + "));
   X.forEach(function(e){var p=pt(e.rows);if(p.length)L.push("   "+nm+" \u2014 "+e.lab+" (per trip, not in total): "+p.join(" + "));});});
 }
@@ -2989,10 +3125,10 @@ function pmJobText(q){
   var multi=shown.length>1;
   var hrl=function(x){return (x.r.kind==="field"?"Field: ":"Office: ")+pmH(x.h)+" hr"+(x.h===1?"":"s")+" "+pmShort(x.r)+" x "+pmMoney(x.r.rate,false)+"/hr = "+pmMoney(x.amt);};
   shown.forEach(function(s){
-   var suf=s.status==="opt"?" (optional \u2014 not in total)":(s.status==="option"?" (option \u2014 not in total)":""),X=s.extra||[];
-   if(multi||s.name||suf||X.length||(s.stages||[]).length)L.push(s.name+suf+":");
+   var pre=pmSvcPre(C,s),suf=pmSvcSuf(s),X=s.extra||[];
+   if(multi||s.name||suf||pre||X.length||(s.stages||[]).length)L.push(pre+pmSvcNm(s,s.name)+suf+":");
    var G=s.stages||[],stageBlock=function(){G.forEach(function(g,j){L.push("Stage "+(j+1)+" \u2014 "+g.lab+":");g.rows.forEach(function(x){L.push(hrl(x));});});};
-   if(G.length&&!X.length){stageBlock();if(s.rows.length)L.push((s.name||"Service")+" Labour: "+pmMoney(s.total)+(s.quoted?" (quoted "+pmMoney(s.ov.num)+")":""));return;}
+   if(G.length&&!X.length){stageBlock();if(s.rows.length)L.push(pre+(pmSvcNm(s,s.name)||"Service")+" Labour: "+pmMoney(s.total)+(s.quoted?" (quoted "+pmMoney(s.ov.num)+")":""));return;}
    if(X.length){
     /* several prices for one service: each price line keeps its own hours; only price line 1 counts in the totals */
     var p1=s.plab||"Price line 1";L.push("Price line 1 \u2014 "+p1+":");
@@ -3003,12 +3139,16 @@ function pmJobText(q){
     return;}
    s.rows.forEach(function(x){L.push(hrl(x));});
    if(!s.rows.length)L.push("Quoted price: "+pmMoney(s.ov.num)+pmqHow(s.ov));
-   else if(multi||s.quoted)L.push(s.name+" Labour: "+pmMoney(s.total)+(s.quoted?" (quoted "+pmMoney(s.ov.num)+")":""));
+   else if(multi||s.quoted||pre)L.push(pre+pmSvcNm(s,s.name)+" Labour: "+pmMoney(s.total)+(s.quoted?" (quoted "+pmMoney(s.ov.num)+")":""));
   });
-  L.push("Total Labour"+(multi?" (Sublabour)":"")+": "+pmMoney(C.labour));
-  if(C.anyQuote)L.push("Total quoted: "+pmMoney(C.quoted));
+  var anyInc=C.secs.some(function(x){return x.status==="inc";}),OT=pmOptTotals(C);
+  /* 1.34: when every service is an option, the job-wide totals would read $0 — each option gets its own total instead */
+  if(anyInc||!OT.length){L.push("Total Labour"+(multi?" (Sublabour)":"")+": "+pmMoney(C.labour));
+   if(C.anyQuote)L.push("Total quoted: "+pmMoney(C.quoted));}
   L.push("Disbursements: "+pmMoney(C.disb));
-  L.push("Total before GST: "+pmMoney(C.total));L.push("GST extra.");
+  if(anyInc||!OT.length)L.push("Total before GST: "+pmMoney(C.total));
+  OT.forEach(function(o){L.push(o.text);});
+  L.push("GST extra.");
  }
  return L.join("\n").replace(/\r/g,"").split("\n").join("\r\n")+"\r\n";
 }
@@ -3055,23 +3195,25 @@ function pmRenderMain(host){
  h+="<div class='pm-savedrow'>"+pmUnsavedCount()+(PM.tidied?"<span class='hint' style='margin:0 0 0 12px'>"+PM.tidied+" quote"+(PM.tidied>1?"s":"")+" saved to "+(PM.tidied>1?"their folders":"its folder")+" and untouched for 30+ days "+(PM.tidied>1?"were":"was")+" tidied off this computer \u2014 the downloaded files remain the record.</span>":"")+"</div>";
  if(q&&q.importRep){var R=q.importRep,msg;
   if(R.sub)msg="Sub-quote of <b>"+pmEsc(R.sub)+"</b> \u2014 client, site and every service carried over. Remove any services not needed with \u2715, then build the quote."+(R.subNote?"<div>"+pmEsc(R.subNote)+"</div>":"")+(R.pmWas?"<div>"+pmEsc(R.pmWas)+"</div>":"");
-  else if(R.fromDocx)msg="Opened"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 the draft saved inside the Word quote."+(R.wordDiffs&&R.wordDiffs.length?"<div>Taken from the Word file: "+R.wordDiffs.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.pmWas?"<div>"+pmEsc(R.pmWas)+"</div>":"");
+  else if(R.fromDocx)msg="Opened"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 the draft saved inside the Word quote."+(R.wordDiffs&&R.wordDiffs.length?"<div>Taken from the Word file: "+R.wordDiffs.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.noWord?"<div class='cu-idwarn' style='margin:4px 0 0'>The Word file was edited, but its services couldn\u2019t be read \u2014 opened the app\u2019s version as it was downloaded. Make any Word changes again here.</div>":"")+(R.pmWas?"<div>"+pmEsc(R.pmWas)+"</div>":"");
   else msg="Imported"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 "+R.read+" hour line"+(R.read===1?"":"s")+" read."+(R.unread.length?"<div class='cu-idbad' style='font-weight:400'>Couldn't read \u2014 enter manually: "+R.unread.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.rateDiff.length?"<div>Rates in the file differ from current (current rates are used): "+R.rateDiff.map(pmEsc).join("; ")+"</div>":"")+(R.pmWas?"<div>"+pmEsc(R.pmWas)+"</div>":"");
   h+="<div class='cu-sfhit' id='pm-imprep'>"+msg+" <button class='btn' id='pm-impok'>OK</button></div>";}
- if(!q){h+="<p class='hint'>No quotes on this device yet — tap New quote.</p>"+pmRatesHtml()+pmqFavsHtml()+pmjFoldersHtml();host.innerHTML=h;pmWireMain(host,null);return;}
+ if(!q){h+="<p class='hint'>No quotes on this device yet — tap New quote.</p>"+pmRatesHtml()+pmqFavsHtml()+pmqHPsHtml()+pmqSetsHtml()+pmjFoldersHtml();host.innerHTML=h;pmWireMain(host,null);return;}
  h+=pmjQfHtml(q);
  h+="<div class='pm-grid'>"+PM_FIELDS.map(function(fd){if(fd[0]==="legal"||fd[0]==="pid")return "";if(fd[0]==="site")return pmPropsHtml(q);var v=q.f[fd[0]]||"";return "<label class='pm-f"+(fd[3]?" wide":"")+"'><span>"+fd[1]+(fd[0]==="qn"?" <b class='pm-req'>required to save</b>":"")+"</span>"+(fd[3]?"<textarea data-f='"+fd[0]+"' rows='3'>"+pmEsc(v)+"</textarea>":"<input type='text' data-f='"+fd[0]+"' value='"+pmEsc(v)+"' placeholder='"+pmEsc(fd[2])+"'"+(fd[0]==="qn"?" id='pm-qn' class='mono'":"")+">")+"</label>";}).join("")+"</div>";
- h+="<div class='pm-h'>Services &amp; rate calculation</div><p class='hint' style='margin:0 0 8px'>Each service is one numbered item on the Word quote and one section of the job details calculation. Pick a job type to load the approved wording; everything can then be edited for this quote.</p>";
+ var pv=pmqPrevOn();h+="<div class='pmq-wrap"+(pv?" pv":"")+"'><div class='pmq-main'>";
+ h+="<div class='pm-h'>Services &amp; rate calculation <label class='pmq-pvtog' title='show the quote as it will print, beside the services'><input type='checkbox' id='pm-pvtog'"+(pv?" checked":"")+"> Show preview</label></div><p class='hint' style='margin:0 0 8px'>Each service is one numbered item on the Word quote and one section of the job details calculation. Pick a job type to load the approved wording; everything can then be edited for this quote.</p>";
  q.secs.forEach(function(s,ix){pmqNorm(s);h+=pmqCardHtml(q,s,ix);});
- h+="<div class='row' style='gap:8px;flex-wrap:wrap'><button class='btn' onclick='pmAddSec()'>+ Add service</button>"+pmqPkgHtml()+"</div>";
+ h+="<div class='row' style='gap:8px;flex-wrap:wrap'><button class='btn' onclick='pmAddSec()'>+ Add service</button><span style='flex:1'></span><button class='btn' onclick='pmqSaveSet()' title='save all these services (wording, Included / Optional / Option, and optionally hours) as one set, to load on a future quote from the first dropdown \u2192 My quote sets'>Save these services as a set\u2026</button></div>";
  h+="<div class='pm-h'>Disbursements</div><div class='pm-disb'>"+(V.disb||[]).map(function(d){return "<label><span>"+pmEsc(d.label.replace(/^./,function(c){return c.toUpperCase();}))+" "+pmMoney(d.price,false)+"</span><input type='number' min='0' step='1' class='pm-dn' data-d='"+d.id+"' value='"+pmEsc(q.disb[d.id]||0)+"'></label>";}).join("")+"<label><span>Other</span><input type='text' id='pm-olab' value='"+pmEsc(q.other.label)+"' placeholder='description' style='width:150px'> <input type='text' inputmode='decimal' id='pm-oamt' value='"+pmEsc(q.other.amt)+"' placeholder='$' style='width:80px'></label></div>";
  h+="<div class='pm-tot' id='pm-tot'></div>";
+ h+="</div><aside class='pmq-prev' id='pm-qprev'"+(pv?"":" style='display:none'")+"></aside></div>";
  h+="<div class='pm-h'>Field Crew Instructions</div><div class='row'>"+((V.fci||[]).length?"<select id='pm-fcisel'>"+V.fci.map(function(o,i){return "<option value='"+i+"'>"+pmEsc(o.label)+"</option>";}).join("")+"</select> <button class='btn' id='pm-fciins'>Insert</button>":"")+"<span class='hint' style='margin:0 0 0 8px'>options are edited under Rates &amp; crew instructions</span></div><textarea id='pm-fci' rows='6' class='pm-ta'>"+pmEsc(q.fci)+"</textarea>";
  h+="<div class='pm-h'>Notes appended after the fields</div><textarea id='pm-notes' rows='4' class='pm-ta' placeholder='Date received, source, transcription of the request…'>"+pmEsc(q.notes)+"</textarea>";
- h+="<div class='pm-h'>Quote document</div><div class='row'><label class='pm-f' style='flex:1;max-width:560px'><span>Word file name</span><input type='text' id='pm-docname' value='"+pmEsc(q.f.docname||"")+"' placeholder='"+pmEsc(pmqDefaultName(q))+"'></label></div><div class='cu-dl'><button class='btn pri' onclick='pmjSaveToQuoteFolder()' title='saves the Word quote and the job details file into this quote’s folder in Quotes - Documents'>Save to quote folder</button><button class='btn' onclick='pmqDownloadDocx()'>Download quote (.docx)</button><span class='hint' style='margin:0'>date, GST, disbursements, signatory and contract fill in automatically</span></div><div class='cu-idwarn' id='pm-disbrem' style='display:"+(pmqDisbLine(q)?"none":"block")+"'>No disbursements selected \u2014 title, plans, checklist or filing fee? (Not required \u2014 just a reminder.)</div><div class='row'><label class='cu-sfhit' style='margin:0'><input type='checkbox' id='pm-rs'"+(q.rs?" checked":"")+"> Attach rate sheet (page 2) \u2014 hourly rates, fees &amp; deliverables for "+new Date().getFullYear()+", from the current rates</label></div><div class='cu-err' id='pm-qwarn' style='display:none'></div><div id='pm-qsave' style='display:none'></div>";
- h+="<div class='pm-h'>Job details file</div><div class='cu-dl'><button class='btn pri' onclick='pmDownload()'>Download job details (.txt)</button><button class='btn' onclick='pmCopyJob()'>Copy job details</button><button class='btn' onclick='pmCopyRow()' title='tab-separated row for To Do Quotes, columns A–K'>Copy tracker row</button><span class='hint' id='pm-copied' style='margin:0'></span></div><div class='jobnote' id='pm-qnote' style='display:none'>Enter the Quote # before saving the job details file.</div>";
+ h+="<div class='pm-h'>Quote document</div><div class='row'><label class='pm-f' style='flex:1;max-width:560px'><span>Word file name</span><input type='text' id='pm-docname' value='"+pmEsc(q.f.docname||"")+"' placeholder='"+pmEsc(pmqDefaultName(q))+"'></label></div><div class='cu-dl'><button class='btn pri' onclick='pmjSaveToQuoteFolder()' title='saves the Word quote and the job details file into this quote’s folder in Quotes - Documents'>Save both to quote folder (Word quote + job details)</button><button class='btn' onclick='pmqDownloadDocx()'>Download quote (.docx)</button><span class='hint' style='margin:0'>date, GST, disbursements, signatory and contract fill in automatically</span></div><div class='cu-idwarn' id='pm-disbrem' style='display:"+(pmqDisbLine(q)?"none":"block")+"'>No disbursements selected \u2014 title, plans, checklist or filing fee? (Not required \u2014 just a reminder.)</div><div class='row'><label class='cu-sfhit' style='margin:0'><input type='checkbox' id='pm-rs'"+(q.rs?" checked":"")+"> Attach rate sheet (page 2) \u2014 hourly rates, fees &amp; deliverables for "+new Date().getFullYear()+", from the current rates</label></div><div class='cu-err' id='pm-qwarn' style='display:none'></div><div id='pm-qsave' style='display:none'></div>";
+ h+="<div class='pm-h'>Job details file</div><div class='cu-dl'><button class='btn pri' onclick='pmDownload()'>Download job details (.txt)</button><button class='btn' onclick='pmCopyJob()' title='copies the job details text, to paste into an email or Teams'>Copy job details</button><button class='btn' onclick='pmCopyRow()' title='one row, columns A–K, to paste into To Do Quotes \u2014 click column A of an empty row, then paste'>Copy tracker row</button><span class='hint' id='pm-copied' style='margin:0'></span></div><div class='jobnote' id='pm-qnote' style='display:none'>Enter the Quote # before saving the job details file.</div>";
  h+="<details class='cu-scman'><summary>Preview</summary><pre class='pm-pre' id='pm-pre'></pre></details>";
- h+=pmRatesHtml()+pmqFavsHtml();
+ h+=pmRatesHtml()+pmqFavsHtml()+pmqHPsHtml()+pmqSetsHtml();
  h+=pmjFoldersHtml();host.innerHTML=h;pmWireMain(host,q);pmUpdate();
 }
 function pmRatesHtml(){
@@ -3111,9 +3253,10 @@ function pmUpdate(){
   var at=document.querySelector(".pm-stot-all[data-s='"+ix+"']");if(at)at.textContent=pmMoney(C.secs[ix]?C.secs[ix].total:0);
   sets.forEach(function(S){var tot=0,nl=S[0]?"":":not([data-l]):not([data-g])";PM.vault.rates.forEach(function(r){var el=document.querySelector(".pm-amt[data-s='"+ix+"'][data-r='"+r.id+"']"+(S[0]||nl));var h=pmNum(S[1][r.id]);if(el)el.textContent=h>0?pmMoney(h*r.rate):"";if(h>0)tot+=h*r.rate;});var st=document.querySelector(".pm-stot[data-s='"+ix+"']"+(S[0]||nl));if(st)st.textContent=pmMoney(tot);});});
  var t=document.getElementById("pm-tot");
- if(t)t.innerHTML="<div><span>Field time (included services)</span><b>"+pmEsc(pmTimeLine(C,"field")||"—")+"</b></div><div><span>Draft time (included services)</span><b>"+pmEsc(pmTimeLine(C,"office")||"—")+"</b></div><div><span>Total labour</span><b>"+pmMoney(C.labour)+"</b></div>"+(C.anyQuote?"<div><span>Total quoted</span><b>"+pmMoney(C.quoted)+"</b></div>":"")+"<div><span>Disbursements</span><b>"+pmMoney(C.disb)+"</b></div><div class='pm-grand'><span>Total before GST</span><b>"+pmMoney(C.total)+"</b></div>";
+ if(t)t.innerHTML="<div><span>Field time (included services)</span><b>"+pmEsc(pmTimeLine(C,"field")||"—")+"</b></div><div><span>Draft time (included services)</span><b>"+pmEsc(pmTimeLine(C,"office")||"—")+"</b></div>"+(C.secs.some(function(x){return x.status==="inc";})||!pmOptTotals(C).length?"<div><span>Total labour</span><b>"+pmMoney(C.labour)+"</b></div>":"")+(C.anyQuote?"<div><span>Total quoted</span><b>"+pmMoney(C.quoted)+"</b></div>":"")+"<div><span>Disbursements</span><b>"+pmMoney(C.disb)+"</b></div>"+(function(){var OT=pmOptTotals(C),inc=C.secs.some(function(x){return x.status==="inc";});return (inc||!OT.length?"<div class='pm-grand'><span>Total before GST</span><b>"+pmMoney(C.total)+"</b></div>":"")+OT.map(function(o){return "<div class='pm-grand'><span>Option "+o.n+" total before GST"+(o.name?" \u2014 "+pmEsc(o.name):"")+"</span><b>"+pmMoney(o.total)+"</b></div>";}).join("");})();
  document.querySelectorAll(".pmq-price input.pmq-f").forEach(function(el){var sc=C.secs[+el.dataset.s],m=/^pl:(\d+):price$/.exec(el.dataset.p||"");if(sc&&m)sc=sc.extra[+m[1]];else if(el.dataset.p!=="price")return;if(sc)el.placeholder=sc.total>0?"calculated "+pmMoney(sc.total):"calculated";});
  var p=document.getElementById("pm-pre");if(p)p.textContent=pmJobText(q);
+ pmqPreviewSoon();
 }
 function pmNeedQn(){var q=pmCurQ();if(q&&(q.f.qn||"").trim())return false;var el=document.getElementById("pm-qn"),n=document.getElementById("pm-qnote");if(el){el.classList.add("needjob");el.focus();}if(n)n.style.display="block";return true;}
 function pmDownload(){var q=pmCurQ();if(!q||pmNeedQn())return;var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([pmJobText(q)],{type:"text/plain"}));a.download="quote-"+q.f.qn.trim().replace(/[^\w.-]+/g,"_")+"-job_details.txt";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);pmMarkSaved(q);}
@@ -3224,7 +3367,10 @@ function pmParseJob(text){
   var plm=st.match(/^price line (\d+)\s*[\u2014-]+\s*(.*?)(?:\s*\(per trip, not in total\))?:$/i);
   if(plm){if(!cur){cur={name:"",hrs:{}};q.secs.push(cur);}var pn=+plm[1];
    if(pn<=1){cur.plab=plm[2].trim();tgt=cur;}else{cur.pl=cur.pl||[];var nl={lab:plm[2].trim(),hrs:{},price:""};cur.pl.push(nl);tgt=nl;}return;}
-  if(/:$/.test(st)&&!/\$/.test(st)){var nm=st.replace(/:$/,"").trim(),stt="inc",sm=nm.match(/\s*\((optional|option)\s*[\u2014-]+\s*not in total\)$/i);if(sm){stt=sm[1].toLowerCase()==="optional"?"opt":"option";nm=nm.slice(0,sm.index).trim();}cur={name:nm,hrs:{},status:stt};q.secs.push(cur);tgt=cur;return;}
+  if(/:$/.test(st)&&!/\$/.test(st)){var nm=st.replace(/:$/,"").trim(),stt="inc",sm=nm.match(/\s*\((optional|option)\s*[\u2014-]+\s*not in total\)$/i);if(sm){stt=sm[1].toLowerCase()==="optional"?"opt":"option";nm=nm.slice(0,sm.index).trim();}
+   /* 1.34 wording: "Option 2 — Title" and "Title (Optional add-on)" */
+   var om=nm.match(/^Option\s+\d+\s*[\u2014\u2013-]+\s*/i);if(om){stt="option";nm=nm.slice(om[0].length).trim();}
+   var oa=nm.match(/\s*\(optional add-on\)$/i);if(oa){stt="opt";nm=nm.slice(0,oa.index).trim();}cur={name:nm,hrs:{},status:stt};q.secs.push(cur);tgt=cur;return;}
   if(/\d\s*hrs?\b/i.test(st))rep.unread.push(st);
  });
  q.secs.forEach(function(s){(s.stg||[]).forEach(function(g){delete g._stage;});});

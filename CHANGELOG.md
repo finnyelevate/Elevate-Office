@@ -1,5 +1,43 @@
 # Elevate Office — changelog
 
+## Build 1.34 — 2026-10-22
+- **PM › Live quote preview.** The quote as it will print sits beside the services and updates as you type, tick lines, change prices or move services.
+  - It shows the To: line, Quote #, date, the teal site address bar, numbered services with their lettered lines, prices, red lines, GST, disbursements and the signatory.
+  - It's built from the same data as the Word quote, so the two always match. Page breaks and fonts may differ slightly. **Download quote (.docx)** still makes the real file.
+  - **Show preview** (next to the Services heading) turns it off; the app remembers your choice. On narrower screens the preview sits below the services.
+- **PM › Options shown as they print.**
+  - A service set to *Option (choose one)* shows a bold **Option 1:**, **Option 2:**… before its title. The numbers follow the card order, the same as the Word quote.
+  - An *Optional add-on* shows **(Optional)** after its title.
+  - If only one service is set to Option, the card reminds you to add another option or set it to Included / Optional add-on. It's only a reminder.
+- **PM › Red lines.** The red **A** beside any scope line or note prints that line in red on the Word quote (e.g. "Includes all services in option #1"). The letter stays black. Click again for black. Red lines are kept in saved versions, quote sets and when the Word quote is reopened.
+- **PM › Hours presets** (each PM's own, on their computer).
+  - **Save hours as preset…** on a service saves its hours under a name you choose ("Basic topo hours", "New construction hours"). With stages, each stage's name and hours are saved too.
+  - **Hours preset ▾** on any service loads one. It replaces that service's hours and stages, and asks first if there are hours already. The list shows what's inside each preset, e.g. "3 stages · 6.0 field · 4.5 office".
+  - Only hours are saved, never dollar amounts, so prices always come from the current rates. A role that's no longer in the rates is skipped, and the app says which.
+  - Rename or delete them under **My hours presets**.
+- **PM › Quote sets** (each PM's own).
+  - **Save these services as a set…** (beside + Add service) saves every service on the quote together: wording, ticked and red lines, notes, and Included / Optional / Option.
+  - You choose whether to include the hours (hours only, never prices). Client, site, prices and disbursements are never saved.
+  - Load a set from the first dropdown on any service → **My quote sets**. All its services are added there, filling the empty service first.
+  - Rename or delete them under **My quote sets**.
+  - Export / Import (under My saved versions) now moves your saved versions, hours presets and quote sets together. Older export files still import.
+- **PM › One wording picker.**
+  - The second dropdown on each service is gone. The first dropdown loads the approved wording for a job type, or one of your saved versions (★).
+  - A card using your version shows **★ My version: …**, with a button to go back to the approved wording.
+- **PM › Strata package in the dropdown.** The "+ Strata package" button is gone. Pick **Strata package (townhouse / condo / mixed) — adds 4 services** in the Strata group of the first dropdown to add all four at once. The four pieces aren't offered one at a time any more.
+- **PM › Final strata plan: Form V ticked by default.** "Signed Form V of unit entitlement areas" is a standard line now, since the surveyor prepares it for almost every strata plan. Untick it in the rare case it isn't needed. (Library change, in the new pm-vault.json.)
+- **PM › Job details: options named and totalled.**
+  - Options read "Option 1 — Building Location Certificate: 4.0 hrs 2 MAN CREW", and optional add-ons read "Posting plan (Optional add-on)", instead of "(option — not in total)".
+  - With options on the quote, each one gets its own line: "Option 1 total before GST: $1,270.00 ($1,225.00 labour + $45.00 disbursements)". When there are also included services, they're added in.
+  - When every service is an option, the $0 labour and disbursements-only total lines are left out. The same totals show on screen.
+  - Older job details files still open.
+- **PM › Save both to quote folder (Word quote + job details)** is the new name of the Save to quote folder button. Copy job details and Copy tracker row have hover tips saying what each is for.
+- **Fix — reopening a Word quote that was edited and saved in Word** (e.g. 26-632).
+  - Word sometimes renames the hidden style names the app uses to find each service (EQService became EQServiceTitle, and so on). The app then found no services and offered "3 service(s) removed in Word". Clicking OK left the quote with no services.
+  - The app now reads both names, so your Word edits come back with the services, and the hours stay from the app.
+  - If the services in a Word file still can't be read, the app never empties the quote. It opens its own saved version and says so.
+- **PM › Rate sheet (page 2) formatting** matches the office sheet: rates and fees in bold, and the $400 minimum charge line in red.
+
 ## Build 1.33 — 2026-10-21
 - **PM › Save to quote folder: dates in file names are no longer read as quote numbers.**
   - Only files with "quote" in the name are checked for a quote number. Example: in 26-623-Astria Properties, "2026-10-20 Survey Extents.pdf" was read as quote "10-20" and you were asked which folder to use.
