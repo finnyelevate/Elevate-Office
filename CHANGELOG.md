@@ -1,5 +1,27 @@
 # Elevate Office — changelog
 
+## Build 1.35 — 2026-10-26
+- **PM › Research buttons under each site address.**
+  - **City GIS** is picked from the city in the address, using the same list as the Resources tab (Surrey → COSMOS, Coquitlam, Burnaby, Vancouver and so on).
+    - "North Vancouver" or "Langley" on its own shows both the City and the District / Township, unless the address lookup settles which.
+    - If no city is typed, the address lookup supplies it.
+  - **ParcelMap BC** (maps.ltsa.ca), **Job map** (your Google My Maps, at the address) and **Google Maps**.
+  - Most of these sites can't open straight to an address, so clicking a button copies the address first; ParcelMap BC copies the PID when there is one. Paste it into the site's search with Ctrl+V.
+  - Each property on a quote gets its own buttons, and they follow the address as you type.
+  - They aren't shown on sub-quotes (e.g. 26-616B), where the research was already done.
+- **PM › Job map preview with the address pinned.**
+  - When an address is entered, the app finds it on the BC Address Geocoder (the Province's free address lookup).
+  - It then opens your job map right on the quote page, zoomed to that address, with a green pin on it.
+  - It's your live job map, so new jobs you add show up; Google may take a few minutes to show the latest changes.
+  - Click any marker for that job's details. Pan and zoom as usual. **Re-centre** goes back to the address, and **Open in My Maps** opens the full map there.
+  - The green pin only marks the quote's address and is never added to your map.
+  - If the address is only an approximate match, there's no pin and the app says so. **Hide job map** / **Job map preview** turns it off and on, and the app remembers your choice.
+  - Not shown on sub-quotes.
+- **PM › A shorter quote row.**
+  - The row shows the **5 most recently edited** quotes, plus the one that's open and **every NOT SAVED quote**. **Show all** lists the rest.
+  - **Clear completed quotes** removes quotes that are saved and unchanged since from this computer. It asks first, listing them, and never touches NOT SAVED quotes or the open one. Their Word quote and job details stay in the quote folders; reopen any with **Open a quote**.
+- **Resources:** ParcelMap BC (LTSA) added to Provincial / federal.
+
 ## Build 1.34 — 2026-10-22
 - **PM › Live quote preview.** The quote as it will print sits beside the services and updates as you type, tick lines, change prices or move services.
   - It shows the To: line, Quote #, date, the teal site address bar, numbered services with their lettered lines, prices, red lines, GST, disbursements and the signatory.

@@ -329,6 +329,14 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .pmq-wrap.pv .pm-sec{max-width:none}
 .pmq-prev{position:sticky;top:64px;max-height:calc(100vh - 72px);overflow:auto;min-width:0}
 @media (max-width:1340px){.pmq-wrap.pv{grid-template-columns:1fr;width:auto;margin-left:0}.pmq-prev{position:static;max-height:none}}
+.pmr-strip{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 2px}.pmr-strip:empty{display:none}
+.pmr-lab{font:600 10.5px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-right:2px}
+.pmr-b{padding:4px 10px;font-size:12px;text-decoration:none;color:inherit}
+.pmr-map{margin:8px 0 4px;border:1px solid var(--hair);background:var(--panel);padding:6px 8px}
+.pmr-mh{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;margin-bottom:6px}
+.pmr-frame{position:relative;height:420px}.pmr-frame iframe{width:100%;height:100%;border:0;display:block}
+.pmr-pin{position:absolute;left:50%;top:50%;width:22px;height:30px;margin:-30px 0 0 -11px;pointer-events:none;background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 30'%3E%3Cpath d='M11 1C5.5 1 1 5.4 1 10.9 1 18 11 29 11 29s10-11 10-18.1C21 5.4 16.5 1 11 1z' fill='%2378d23c' stroke='%23215f0e' stroke-width='1.5'/%3E%3Ccircle cx='11' cy='11' r='3.5' fill='%23215f0e'/%3E%3C/svg%3E");filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+.pm-qall{padding:4px 10px;font-size:12px}
 .qp-cap{font-size:11.5px;color:var(--faint);margin:2px 0 6px}
 .qp-paper{background:#fff;color:#111;border:1px solid var(--hair);box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px 24px;font:13px/1.35 Calibri,Carlito,"Segoe UI",Arial,sans-serif}
 .qp-date{text-align:right;margin-bottom:6px}
@@ -762,6 +770,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
     <ul>
       <li><a href="https://clss.nrcan.gc.ca/mb-nc/en/index.html" target="_blank" rel="noopener">Canada Lands plans (CLSS)</a></li>
       <li><a href="https://a100.gov.bc.ca/pub/pls/gator/gator$queryforms.menu" target="_blank" rel="noopener">Crown Grants (GATOR)</a></li>
+      <li><a href="https://maps.ltsa.ca/" target="_blank" rel="noopener">ParcelMap BC (LTSA)</a></li>
       <li><a href="https://geonetbc.gov.bc.ca/geonetbc" target="_blank" rel="noopener">GeoNetBC — geodetic control</a></li>
     </ul>
   </div>
@@ -795,8 +804,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.34";
-const NEWS=["PM: live quote preview beside the services \u2014 the quote as it will print, updating as you type (Show preview to switch it off).", "PM: Option 1 / Option 2 and (Optional) show on the service cards as they print; a reminder when only one service is an Option.", "PM: highlight any scope line or note in red with the A button \u2014 it prints red on the Word quote.", "PM: hours presets \u2014 save a service\u2019s hours (with stages) under a name and load them on any service; prices come from the current rates.", "PM: quote sets \u2014 save several services together and load them all on a future quote (first dropdown \u2192 My quote sets).", "PM: one wording picker \u2014 your saved versions are in the first dropdown, with a \u2605 My version tag on the card.", "PM: job details name options \u201cOption 1 \u2014 \u2026\u201d and give a total for each option; Strata package is now in the dropdown; Form V ticked by default on Final strata plan.", "PM: \u201cSave both to quote folder (Word quote + job details)\u201d; rate sheet amounts in bold and the $400 minimum line in red.","PM: fix \u2014 a Word quote edited and saved in Word now reopens with its services and your Word edits (it could open with none)."];
+const BUILD="1.35";
+const NEWS=["PM: research buttons under each site address \u2014 City GIS (picked from the address), ParcelMap BC, Job map and Google Maps; the address or PID is copied, ready to paste into the search.", "PM: job map preview \u2014 your job map opens at the quote\u2019s address with a green pin; click any marker to see that job.", "PM: the quote row shows the 5 most recent, the open quote and every NOT SAVED one \u2014 Show all for the rest; Clear completed quotes tidies the saved ones off this computer.", "Resources: ParcelMap BC (LTSA) added."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -2444,6 +2453,75 @@ function pmqWireLists(host){
  var t=document.getElementById("pm-pvtog");if(t)t.onchange=function(){sset("eo:pmprev",t.checked?"1":"0");pmRender();};
  pmqPreviewDraw();
 }
+
+/* ---------- 1.35: research links under each site address, and a job map preview with the address pinned ---------- */
+var PMR_MID="1b2eNsbiIgDsWLYNYHdewCsDMLCDKmQ8",PMR_PARCEL="https://maps.ltsa.ca/";
+/* city in the address -> the GIS list's names (Resources tab); ambiguous names give both */
+var PMR_CITY=[
+ [/\bport\s*coquitlam\b|\bpoco\b/,["Port Coquitlam"]],[/\bport\s*moody\b/,["Port Moody"]],[/\bcoquitlam\b/,["Coquitlam"]],
+ [/\b(city of north vancouver|north vancouver city|cnv)\b/,["North Vancouver City"]],
+ [/\b(district of north vancouver|north vancouver district|dnv|lynn valley|deep cove|lynnmour|seymour)\b/,["North Vancouver District"]],
+ [/\b(north\s*van(couver)?|n\.?\s*vancouver)\b/,["North Vancouver City","North Vancouver District"]],
+ [/\b(west\s*van(couver)?|w\.?\s*vancouver)\b/,["West Vancouver District"]],
+ [/\b(city of langley|langley city)\b/,["City of Langley"]],
+ [/\b(township of langley|langley township|twp\.? of langley|aldergrove|walnut grove|fort langley|murrayville|willoughby|brookswood)\b/,["Township of Langley"]],
+ [/\blangley\b/,["City of Langley","Township of Langley"]],
+ [/\bnew\s*west(minster)?\b/,["New Westminster"]],[/\bwhite\s*rock\b/,["White Rock"]],
+ [/\b(surrey|cloverdale|fleetwood|newton|guildford|whalley|south surrey)\b/,["Surrey"]],
+ [/\b(delta|ladner|tsawwassen)\b/,["Delta"]],[/\bburnaby\b/,["Burnaby"]],[/\brichmond\b/,["Richmond"]],[/\bvancouver\b/,["Vancouver"]],
+ [/\bmaple\s*ridge\b/,["Maple Ridge"]],[/\bpitt\s*meadows\b/,["Pitt Meadows"]],[/\babbotsford\b/,["Abbotsford"]],[/\bchilliwack\b/,["Chilliwack"]],[/\bmission\b/,["Mission"]]];
+function pmrCities(addr,geo){var a=String(addr||"").toLowerCase(),c=a.indexOf(",")>=0?a.slice(a.indexOf(",")+1):a,hit=null;
+ PMR_CITY.some(function(r){if(r[0].test(c)){hit=r[1];return true;}return false;});
+ if(!hit)PMR_CITY.some(function(r){if(r[0].test(a)){hit=r[1];return true;}return false;});
+ /* the geocoder's municipality (e.g. "District of North Vancouver") settles City vs District / Township, or finds the city when none was typed */
+ if((!hit||hit.length>1)&&geo&&geo.loc){var gl=String(geo.loc).toLowerCase(),gh=null;PMR_CITY.some(function(r){if(r[0].test(gl)){gh=r[1];return true;}return false;});if(gh&&(!hit||gh.length<hit.length))hit=gh;}
+ /* the geocoder settles City vs District / Township when the typed address doesn't say */
+ if(hit&&hit.length>1&&geo&&geo.ltype){var t=geo.ltype.toLowerCase(),pickd=hit.filter(function(n){return /district|township/i.test(n)===/district|township/.test(t);});if(pickd.length===1)hit=pickd;}
+ var G=typeof GIS!=="undefined"?GIS:[];return (hit||[]).map(function(n){var g=G.find(function(x){return x[0]===n;});return g?{name:n,url:g[1]}:null;}).filter(Boolean);}
+function pmrIsSub(q){return !!(q&&(q.subOf||/^\d{2}-\d+[A-Z]$/i.test((q.f.qn||"").trim())));}
+/* BC Address Geocoder (free, no key); results kept per address on this computer */
+var PMR_GEO={};
+function pmrGeoKey(a){return String(a||"").trim().toLowerCase().replace(/\s+/g," ");}
+function pmrGeoGet(a){var k=pmrGeoKey(a);if(!k)return null;if(PMR_GEO[k])return PMR_GEO[k];try{var c=JSON.parse(sget("eo:geo")||"{}");if(c[k]){PMR_GEO[k]=c[k];return c[k];}}catch(e){}return null;}
+function pmrGeoPut(a,v){var k=pmrGeoKey(a);PMR_GEO[k]=v;try{var c=JSON.parse(sget("eo:geo")||"{}"),ks=Object.keys(c);if(ks.length>300)ks.slice(0,100).forEach(function(x){delete c[x];});c[k]=v;sset("eo:geo",JSON.stringify(c));}catch(e){}}
+function pmrGeocode(a){var k=pmrGeoKey(a);if(!k||k.length<6||!/\d/.test(k))return Promise.resolve(null);var have=pmrGeoGet(a);if(have)return Promise.resolve(have);if(typeof fetch==="undefined")return Promise.resolve(null);
+ var u="https://geocoder.api.gov.bc.ca/addresses.json?maxResults=1&outputSRS=4326&addressString="+encodeURIComponent(String(a).replace(/\s*\n\s*/g," ")+(/\bbc\b|british columbia/i.test(a)?"":", BC"));
+ return fetch(u).then(function(r){return r.ok?r.json():null;}).then(function(j){var f=j&&j.features&&j.features[0];if(!f)return null;var P=f.properties||{},c=f.geometry&&f.geometry.coordinates;
+  var exact=/CIVIC_NUMBER|BLOCK|SITE|UNIT/i.test(P.matchPrecision||"")&&(P.score||0)>=70;
+  var v={lat:c[1],lng:c[0],full:P.fullAddress||"",loc:P.localityName||"",ltype:P.localityType||"",exact:exact,score:P.score||0};pmrGeoPut(a,v);return v;}).catch(function(){return null;});}
+function pmrStripHtml(q,i,p){if(pmrIsSub(q)||!(p.site||"").trim())return "<div class='pmr-strip' data-pr='"+i+"'></div>";
+ var geo=pmrGeoGet(p.site),C=pmrCities(p.site,geo),pid=(p.pid||"").trim(),a=String(p.site).replace(/\s*\n\s*/g," ").trim(),E=pmEsc;
+ var btn=function(lab,url,copy,tip){return "<a class='btn pmr-b' href='"+E(url)+"' target='_blank' rel='noopener'"+(copy?" data-copy='"+E(copy)+"'":"")+" title='"+E(tip)+"'>"+E(lab)+"</a>";};
+ var h="<span class='pmr-lab'>Research</span>";
+ h+=C.length?C.map(function(c){return btn("City GIS — "+c.name,c.url,a,"opens "+c.name+"’s map; the address is copied — paste it into the map’s search");}).join(""):"<span class='hint pmr-nocity' style='margin:0'>city not recognised — see Resources for the GIS list</span>";
+ h+=btn("ParcelMap BC",PMR_PARCEL,pid||a,"opens ParcelMap BC (LTSA); "+(pid?"the PID":"the address")+" is copied — paste it into the search");
+ h+=btn("Job map",geo&&geo.exact?"https://www.google.com/maps/d/viewer?mid="+PMR_MID+"&ll="+geo.lat+","+geo.lng+"&z=19":"https://www.google.com/maps/d/viewer?mid="+PMR_MID,geo&&geo.exact?"":a,"your job map (Google My Maps)"+(geo&&geo.exact?", at this address":"; the address is copied"));
+ h+=btn("Google Maps","https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a),"","street view and aerial for this address");
+ h+="<button class='btn pmr-b' data-pmap='"+i+"' title='show your job map here, with this address pinned'>"+(PM.mapOpen&&PM.mapAt===i&&pmrMapOn()?"Hide job map":"Job map preview")+"</button><span class='hint pmr-msg' style='margin:0'></span>";
+ return "<div class='pmr-strip' data-pr='"+i+"'>"+h+"</div>";}
+function pmrMapOn(){try{return sget("eo:pmmap")!=="0";}catch(e){return true;}}
+function pmrMapHtml(q){if(pmrIsSub(q))return "";return "<div class='pmr-map' id='pmr-map' style='display:none'></div>";}
+function pmrMapDraw(q){var box=document.getElementById("pmr-map");if(!box)return;var P=pmProps(q),i=PM.mapAt||0;if(!P[i])i=0;var p=P[i];
+ if(!PM.mapOpen||!p||!(p.site||"").trim()){box.style.display="none";box.innerHTML="";return;}
+ var geo=pmrGeoGet(p.site);box.style.display="block";
+ if(!geo){box.innerHTML="<div class='hint' style='margin:6px 0'>Finding "+pmEsc(p.site)+" …</div>";pmrGeocode(p.site).then(function(g){if(g)pmrMapDraw(pmCurQ()||q);else box.innerHTML="<div class='cu-idwarn'>Couldn’t find this address on the BC address map — use the Job map button to open the full map.</div>";});return;}
+ if(!geo.exact){box.innerHTML="<div class='cu-idwarn'>Only an approximate match for this address"+(geo.full?" (“"+pmEsc(geo.full)+"”)":"")+" — check the spelling, or use the Job map button.</div>";return;}
+ var src="https://www.google.com/maps/d/embed?mid="+PMR_MID+"&ll="+geo.lat+","+geo.lng+"&z=19",cur=box.querySelector("iframe");
+ if(cur&&cur.dataset.src===src)return;
+ box.innerHTML="<div class='pmr-mh'><b>Job map</b> — "+pmEsc(geo.full||p.site)+" <span class='hint' style='margin:0'>click a marker for its job · the green pin is this quote’s address (not on your map)</span><span style='flex:1'></span><button class='btn pmr-b' id='pmr-recentre'>Re-centre</button><a class='btn pmr-b' target='_blank' rel='noopener' href='https://www.google.com/maps/d/viewer?mid="+PMR_MID+"&ll="+geo.lat+","+geo.lng+"&z=19'>Open in My Maps</a></div><div class='pmr-frame'><iframe loading='lazy' data-src='"+src+"' src='"+src+"' title='Job map'></iframe><div class='pmr-pin' title='this quote’s address'></div></div>";
+ var rc=document.getElementById("pmr-recentre");if(rc)rc.onclick=function(){var f=box.querySelector("iframe");if(f){f.src="about:blank";setTimeout(function(){f.src=src;},30);}};}
+var PMR_T=null;
+function pmrRefreshSoon(){if(PMR_T)clearTimeout(PMR_T);PMR_T=setTimeout(function(){PMR_T=null;pmrRefresh(true);},1000);}
+function pmrRefresh(look){var q=pmCurQ();if(!q)return;var P=pmProps(q);
+ P.forEach(function(p,i){var el=document.querySelector(".pmr-strip[data-pr='"+i+"']");if(!el)return;var d=document.createElement("div");d.innerHTML=pmrStripHtml(q,i,p);el.replaceWith(d.firstChild);
+  if(look&&!pmrIsSub(q)&&(p.site||"").trim()&&!pmrGeoGet(p.site))pmrGeocode(p.site).then(function(g){if(g){var s=document.querySelector(".pmr-strip[data-pr='"+i+"']");if(s){var e=document.createElement("div");e.innerHTML=pmrStripHtml(q,i,pmProps(q)[i]||p);s.replaceWith(e.firstChild);pmrWire();}if(PM.mapOpen&&(PM.mapAt||0)===i)pmrMapDraw(q);}});});
+ pmrWire();if(PM.mapOpen)pmrMapDraw(q);}
+function pmrWire(){
+ document.querySelectorAll(".pmr-strip a[data-copy]").forEach(function(a){a.onclick=function(){var t=a.dataset.copy,m=a.parentNode.querySelector(".pmr-msg");try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(function(){});}catch(e){}if(m){m.textContent="“"+t+"” copied — paste it into the search (Ctrl+V)";setTimeout(function(){m.textContent="";},6000);}};});
+ document.querySelectorAll("[data-pmap]").forEach(function(b){b.onclick=function(){var i=+b.dataset.pmap,q=pmCurQ();if(!q)return;if(PM.mapOpen&&(PM.mapAt||0)===i){PM.mapOpen=false;sset("eo:pmmap","0");}else{PM.mapOpen=true;PM.mapAt=i;sset("eo:pmmap","1");}pmrRefresh(false);pmrMapDraw(q);var box=document.getElementById("pmr-map");if(PM.mapOpen&&box&&box.scrollIntoView)box.scrollIntoView({block:"nearest"});};});
+}
+/* new quote: the map opens on its own once the address is found (unless switched off) */
+function pmrInit(q){if(!q||pmrIsSub(q))return;if(PM.mapQ!==q.id){PM.mapQ=q.id;PM.mapAt=0;PM.mapOpen=pmrMapOn();}pmrRefresh(true);}
 /* ---------- PM: draft hidden inside the Word quote; reopen a quote; sub-quotes ---------- */
 var PMQD_NS="urn:elevate-office:quote-draft";
 function pmqdUnesc(s){return String(s).replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,"\"").replace(/&apos;/g,"'").replace(/&#(\d+);/g,function(m,n){return String.fromCharCode(+n);}).replace(/&#x([0-9a-f]+);/gi,function(m,n){return String.fromCharCode(parseInt(n,16));}).replace(/&amp;/g,"&");}
@@ -3036,6 +3114,15 @@ function pmLoadVaultFile(){
  }).catch(function(){return local;});
 }
 function pmFlagUnsaved(q){var chip=document.querySelector(".pm-bar .cu-src.on");if(chip&&!chip.querySelector(".pm-unsaved")){var b=document.createElement("b");b.className="pm-unsaved";b.title="not downloaded since the last change";b.textContent="NOT SAVED";chip.insertBefore(b,chip.querySelector(".cu-srcx"));chip.insertBefore(document.createTextNode(" "),chip.querySelector(".cu-srcx"));}var c=document.getElementById("pm-unsavedct");if(c)c.outerHTML=pmUnsavedCount();}
+/* 1.35: which drafts show in the quote row, and clearing completed ones */
+var PM_QSHOW=5;
+function pmVisibleQuotes(){if(PM.showAllQ)return PM.quotes.slice().sort(function(a,b){return (b.updated||0)-(a.updated||0);});
+ var by=PM.quotes.slice().sort(function(a,b){return (b.updated||0)-(a.updated||0);}),top=by.slice(0,PM_QSHOW);
+ return by.filter(function(x){return top.indexOf(x)>=0||x.id===PM.cur||pmUnsaved(x);});}
+function pmCompletedQuotes(){return PM.quotes.filter(function(x){return !pmUnsaved(x)&&x.id!==PM.cur;});}
+function pmClearCompleted(){var C=pmCompletedQuotes();if(!C.length)return;
+ if(!confirm("Clear "+C.length+" completed quote"+(C.length>1?"s":"")+" from this computer?\n\n"+C.map(function(x){return (x.f.qn||"(no quote #)")+(x.f.client?" \u00b7 "+x.f.client:"");}).slice(0,15).join("\n")+(C.length>15?"\n\u2026":"")+"\n\nThese are saved and unchanged since. Their Word quote and job details stay in the quote folders \u2014 reopen any with \u201cOpen a quote\u201d. Quotes marked NOT SAVED and the one open now are kept."))return;
+ PM.quotes=PM.quotes.filter(function(x){return C.indexOf(x)<0;});PM.cleared=C.length;PM.showAllQ=false;pmQuotesSave();pmRender();PM.cleared=0;}
 function pmUnsaved(q){return !q.exported||(q.updated||0)>q.exported;}
 function pmMarkSaved(q){q.exported=Date.now();if((q.updated||0)>q.exported)q.exported=q.updated;pmQuotesSave();var chip=document.querySelector(".pm-bar .cu-src.on .pm-unsaved");if(chip)chip.remove();var c=document.getElementById("pm-unsavedct");if(c)c.outerHTML=pmUnsavedCount();}
 function pmUnsavedCount(){var n=PM.quotes.filter(pmUnsaved).length;return "<span class='hint' id='pm-unsavedct' style='margin:0'>"+(n?"<b class='pm-req'>"+n+" quote"+(n>1?"s":"")+" not saved yet</b> \u2014 download the Word quote or job details to keep it":"")+"</span>";}
@@ -3188,11 +3275,13 @@ function pmLock(){PM.key=null;PM.vault=null;sdel("eo:pmkey");PM.err="";pmRender(
 function pmRenderMain(host){
  var V=PM.vault,q=pmCurQ();
  var h=pmModeBar()+"<div class='pm-bar'><button class='btn pri' onclick='pmNewQ()'>New quote</button><button class='btn' onclick='pmPasteBox()' title='select the row(s) in To Do Quotes, Ctrl+C, then Ctrl+V here'>New from tracker row</button>";
- h+=PM.quotes.map(function(x){return "<span class='cu-src"+(x.id===PM.cur?" on":"")+"' data-q='"+x.id+"'>"+pmEsc(x.f.qn||"(no quote #)")+(x.f.client?" · "+pmEsc(x.f.client.slice(0,24)):"")+" "+(pmUnsaved(x)?"<b class='pm-unsaved' title='not downloaded since the last change'>NOT SAVED</b> ":"")+"<button class='cu-srcx' data-q='"+x.id+"' title='delete this draft'>✕</button></span>";}).join("");
- h+="<button class='btn' onclick='pmjStartFromQuote()' title='quote accepted: create the job folder from this quote'>Convert to job…</button><button class='btn' onclick='pmqdSubQuote()' title='copy this quote as the next lettered sub-quote, e.g. 26-586B'>Duplicate as sub-quote</button><label class='btn'>Open a quote (.docx or .txt)<input type='file' id='pm-imp' accept='.docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' style='display:none'></label><span style='flex:1'></span><button class='btn' onclick='pmLock()'>Lock</button></div>";
+ /* 1.35: the 5 most recently edited, plus the open quote and every NOT SAVED one; Show all for the rest */
+ var QV=pmVisibleQuotes(),qHid=PM.quotes.length-QV.length;
+ h+=QV.map(function(x){return "<span class='cu-src"+(x.id===PM.cur?" on":"")+"' data-q='"+x.id+"'>"+pmEsc(x.f.qn||"(no quote #)")+(x.f.client?" · "+pmEsc(x.f.client.slice(0,24)):"")+" "+(pmUnsaved(x)?"<b class='pm-unsaved' title='not downloaded since the last change'>NOT SAVED</b> ":"")+"<button class='cu-srcx' data-q='"+x.id+"' title='delete this draft'>✕</button></span>";}).join("")+(qHid>0?"<button class='btn pm-qall' onclick='PM.showAllQ=true;pmRender()'>Show all ("+PM.quotes.length+")</button>":(PM.showAllQ&&PM.quotes.length>PM_QSHOW?"<button class='btn pm-qall' onclick='PM.showAllQ=false;pmRender()'>Show fewer</button>":""));
+ h+="<button class='btn' onclick='pmjStartFromQuote()' title='quote accepted: create the job folder from this quote'>Convert to job…</button><button class='btn' onclick='pmqdSubQuote()' title='copy this quote as the next lettered sub-quote, e.g. 26-586B'>Duplicate as sub-quote</button><label class='btn'>Open a quote (.docx or .txt)<input type='file' id='pm-imp' accept='.docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' style='display:none'></label><span style='flex:1'></span>"+(pmCompletedQuotes().length?"<button class='btn' onclick='pmClearCompleted()' title='removes quotes that are saved and unchanged since from this computer \u2014 their Word quote and job details stay in the quote folders; reopen any with Open a quote'>Clear completed quotes ("+pmCompletedQuotes().length+")</button>":"")+"<button class='btn' onclick='pmLock()'>Lock</button></div>";
  h+="<div id='pm-rowbox' class='cu-sfhit' style='display:none'>In To Do Quotes, select the whole row (click the row number; several rows make several quotes), press <b>Ctrl+C</b>, then click in the box and press <b>Ctrl+V</b>. Tip: you can also just press Ctrl+V anywhere on this tab.<textarea id='pm-rowta' rows='2' class='pm-ta' placeholder='paste the row here'></textarea><div class='hint' id='pm-rowmsg' style='margin:0'></div></div>";
  if(PM.rowMsg){h+="<div class='cu-sfhit' id='pm-rowdone'>"+pmEsc(PM.rowMsg)+"</div>";PM.rowMsg="";}
- h+="<div class='pm-savedrow'>"+pmUnsavedCount()+(PM.tidied?"<span class='hint' style='margin:0 0 0 12px'>"+PM.tidied+" quote"+(PM.tidied>1?"s":"")+" saved to "+(PM.tidied>1?"their folders":"its folder")+" and untouched for 30+ days "+(PM.tidied>1?"were":"was")+" tidied off this computer \u2014 the downloaded files remain the record.</span>":"")+"</div>";
+ h+="<div class='pm-savedrow'>"+pmUnsavedCount()+(PM.cleared?"<span class='hint' style='margin:0 0 0 12px'>"+PM.cleared+" completed quote"+(PM.cleared>1?"s":"")+" cleared from this computer \u2014 the files in the quote folders remain the record.</span>":"")+(PM.tidied?"<span class='hint' style='margin:0 0 0 12px'>"+PM.tidied+" quote"+(PM.tidied>1?"s":"")+" saved to "+(PM.tidied>1?"their folders":"its folder")+" and untouched for 30+ days "+(PM.tidied>1?"were":"was")+" tidied off this computer \u2014 the downloaded files remain the record.</span>":"")+"</div>";
  if(q&&q.importRep){var R=q.importRep,msg;
   if(R.sub)msg="Sub-quote of <b>"+pmEsc(R.sub)+"</b> \u2014 client, site and every service carried over. Remove any services not needed with \u2715, then build the quote."+(R.subNote?"<div>"+pmEsc(R.subNote)+"</div>":"")+(R.pmWas?"<div>"+pmEsc(R.pmWas)+"</div>":"");
   else if(R.fromDocx)msg="Opened"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 the draft saved inside the Word quote."+(R.wordDiffs&&R.wordDiffs.length?"<div>Taken from the Word file: "+R.wordDiffs.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.noWord?"<div class='cu-idwarn' style='margin:4px 0 0'>The Word file was edited, but its services couldn\u2019t be read \u2014 opened the app\u2019s version as it was downloaded. Make any Word changes again here.</div>":"")+(R.pmWas?"<div>"+pmEsc(R.pmWas)+"</div>":"");
@@ -3214,7 +3303,7 @@ function pmRenderMain(host){
  h+="<div class='pm-h'>Job details file</div><div class='cu-dl'><button class='btn pri' onclick='pmDownload()'>Download job details (.txt)</button><button class='btn' onclick='pmCopyJob()' title='copies the job details text, to paste into an email or Teams'>Copy job details</button><button class='btn' onclick='pmCopyRow()' title='one row, columns A–K, to paste into To Do Quotes \u2014 click column A of an empty row, then paste'>Copy tracker row</button><span class='hint' id='pm-copied' style='margin:0'></span></div><div class='jobnote' id='pm-qnote' style='display:none'>Enter the Quote # before saving the job details file.</div>";
  h+="<details class='cu-scman'><summary>Preview</summary><pre class='pm-pre' id='pm-pre'></pre></details>";
  h+=pmRatesHtml()+pmqFavsHtml()+pmqHPsHtml()+pmqSetsHtml();
- h+=pmjFoldersHtml();host.innerHTML=h;pmWireMain(host,q);pmUpdate();
+ h+=pmjFoldersHtml();host.innerHTML=h;pmWireMain(host,q);pmUpdate();pmrInit(q);
 }
 function pmRatesHtml(){
  var V=PM.vault;
@@ -3257,6 +3346,8 @@ function pmUpdate(){
  document.querySelectorAll(".pmq-price input.pmq-f").forEach(function(el){var sc=C.secs[+el.dataset.s],m=/^pl:(\d+):price$/.exec(el.dataset.p||"");if(sc&&m)sc=sc.extra[+m[1]];else if(el.dataset.p!=="price")return;if(sc)el.placeholder=sc.total>0?"calculated "+pmMoney(sc.total):"calculated";});
  var p=document.getElementById("pm-pre");if(p)p.textContent=pmJobText(q);
  pmqPreviewSoon();
+ /* 1.35: research links follow the site address as it's typed */
+ var rk=pmProps(q).map(function(p){return p.site+"|"+p.pid;}).join("\n")+"|"+q.f.qn;if(rk!==PM.prKey){var first=PM.prKey==null||PM.prQ!==q.id;PM.prKey=rk;PM.prQ=q.id;if(!first)pmrRefreshSoon();}
 }
 function pmNeedQn(){var q=pmCurQ();if(q&&(q.f.qn||"").trim())return false;var el=document.getElementById("pm-qn"),n=document.getElementById("pm-qnote");if(el){el.classList.add("needjob");el.focus();}if(n)n.style.display="block";return true;}
 function pmDownload(){var q=pmCurQ();if(!q||pmNeedQn())return;var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([pmJobText(q)],{type:"text/plain"}));a.download="quote-"+q.f.qn.trim().replace(/[^\w.-]+/g,"_")+"-job_details.txt";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},2000);pmMarkSaved(q);}
@@ -3266,7 +3357,7 @@ function pmPropsHtml(q){var P=pmProps(q),multi=P.length>1;
  return "<div class='pm-props wide'>"+P.map(function(p,i){var at=i===0?function(k){return "data-f='"+k+"'";}:function(k){return "data-xp='"+(i-1)+"' data-k='"+k+"'";};
   return "<div class='pm-prop'>"+(multi?"<div class='pm-proph'>Property "+(i+1)+(i?" <button class='cu-srcx' data-xpx='"+(i-1)+"' title='remove this property'>\u2715</button>":"")+"</div>":"")+
    "<div class='pm-propg'><label class='pm-f'><span>Site Address</span><input type='text' "+at("site")+" value='"+pmEsc(p.site)+"'></label><label class='pm-f'><span>PID</span><input type='text' "+at("pid")+" value='"+pmEsc(p.pid)+"' class='mono'></label>"+
-   "<label class='pm-f wide'><span>Legal Desc.</span><textarea "+at("legal")+" rows='2'>"+pmEsc(p.legal)+"</textarea></label></div></div>";}).join("")+
+   "<label class='pm-f wide'><span>Legal Desc.</span><textarea "+at("legal")+" rows='2'>"+pmEsc(p.legal)+"</textarea></label></div>"+pmrStripHtml(q,i,p)+"</div>";}).join("")+pmrMapHtml(q)+
   "<button class='btn' id='pm-addprop'>+ Add another property</button>"+
   "<label class='pm-f wide' style='margin-top:8px'><span>Project line (optional) \u2014 prints under the site address on the quote</span><input type='text' data-f='proj' value='"+pmEsc(q.f.proj||"")+"' placeholder='e.g. 5 BUILDING (TWENTY UNITS) TOWNHOUSE COMPLEX'></label></div>";}
 /* ---- new quote(s) from To Do Quotes rows: select the row(s) in Excel, Ctrl+C, then Ctrl+V on the PM tab (or the paste box) ---- */
