@@ -337,6 +337,13 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .pmr-frame{position:relative;height:420px}.pmr-frame iframe{width:100%;height:100%;border:0;display:block}
 .pmr-pin{position:absolute;left:50%;top:50%;width:22px;height:30px;margin:-30px 0 0 -11px;pointer-events:none;background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 30'%3E%3Cpath d='M11 1C5.5 1 1 5.4 1 10.9 1 18 11 29 11 29s10-11 10-18.1C21 5.4 16.5 1 11 1z' fill='%2378d23c' stroke='%23215f0e' stroke-width='1.5'/%3E%3Ccircle cx='11' cy='11' r='3.5' fill='%23215f0e'/%3E%3C/svg%3E");filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
 .pm-qall{padding:4px 10px;font-size:12px}
+.pmsc{margin:4px 0 8px}.pmsc-row{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--hair);background:var(--panel);padding:8px;margin:0 0 8px;max-width:900px}
+.pmsc-img img{width:180px;max-height:240px;object-fit:contain;border:1px solid var(--hair);background:#fff;display:block}
+.pmsc-side{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}.pmsc-side .pm-f input{width:100%}
+.pmsc-add{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border:1px dashed var(--hair);padding:8px;max-width:900px;outline:none}.pmsc-add:focus,.pmsc-add.on{border-color:var(--blue);background:#eef3f9}
+.pmsc-pick{border:1px solid var(--hair);background:var(--panel);padding:8px;margin:6px 0;max-width:900px}.pmsc-thumbs{display:flex;flex-wrap:wrap;gap:8px}
+.pmsc-th{border:1px solid var(--hair);background:#fff;padding:4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px}.pmsc-th:hover{border-color:var(--blue)}.pmsc-thc{max-width:150px;max-height:150px}
+.qp-p2{margin-top:12px}.qp-scimg{width:100%;display:block;border:1px solid #eee}.qp-cap2{text-align:center;font-style:italic;margin-top:6px}
 .qp-cap{font-size:11.5px;color:var(--faint);margin:2px 0 6px}
 .qp-paper{background:#fff;color:#111;border:1px solid var(--hair);box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px 24px;font:13px/1.35 Calibri,Carlito,"Segoe UI",Arial,sans-serif}
 .qp-date{text-align:right;margin-bottom:6px}
@@ -804,8 +811,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.35";
-const NEWS=["PM: research buttons under each site address \u2014 City GIS (picked from the address), ParcelMap BC, Job map and Google Maps; the address or PID is copied, ready to paste into the search.", "PM: job map preview \u2014 your job map opens at the quote\u2019s address with a green pin; click any marker to see that job.", "PM: the quote row shows the 5 most recent, the open quote and every NOT SAVED one \u2014 Show all for the rest; Clear completed quotes tidies the saved ones off this computer.", "Resources: ParcelMap BC (LTSA) added."];
+const BUILD="1.36";
+const NEWS=["PM: Scope page \u2014 attach a marked-up PDF page, a picture or a pasted screenshot; it prints on its own page after the quote (before the rate sheet), with an optional caption, and the quote says \u201cSee page 2 for the scope of work\u2026\u201d.", "PM: fix \u2014 several tracker rows pasted at once now make fully separate quotes (they could be linked, so deleting one deleted the other). Drafts already linked are separated automatically.", "PM: tracker rows with two emails in one cell paste into the right fields.", "PM: job map preview \u2014 the green pin hides once you move the map; Re-centre brings it back."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -2312,8 +2319,8 @@ function pmqCheck(q){
   if(/rate sheet/i.test(s.pnote||"")&&!q.rs)issues.push("Service "+(ix+1)+"’s price note mentions the attached rate sheet \u2014 tick “Attach rate sheet (page 2)”");});
  return issues;
 }
-function pmqBodyXml(q){
- var TW=9360,PW=1800,DW=TW-PW,x=[],P=pmqServices(q);
+function pmqBodyXml(q,media){
+ var TW=9360,PW=1800,DW=TW-PW,x=[],P=pmqServices(q),pp=pmqPages(q,P);
  x.push(pmqPara("EQDate",pmqRun(pmqDate(new Date()))));
  x.push(pmqPara("EQTo",pmqRun("To: "+pmqTo(q))+"<w:r><w:tab/></w:r>"+pmqRun("Quote# "+q.f.qn.trim())));
  x.push(pmqSiteBar(q));
@@ -2321,13 +2328,15 @@ function pmqBodyXml(q){
   var ps=[pmqPara("EQService",pmqRun(v.title))];
   if(v.lead)ps.push(pmqPara("EQLead",pmqRun(v.lead)));
   v.lines.forEach(function(l,k){ps.push(pmqPara("EQScope",pmqRunHi(l,v.linesHi&&v.linesHi[k]),"<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\""+(10+i)+"\"/></w:numPr>"));});
-  v.notes.forEach(function(n,k){ps.push(pmqPara("EQScopeNote",pmqRunHi(n,v.notesHi&&v.notesHi[k])));});
-  if(v.pnote)ps.push(pmqPara("EQScopeNote",pmqRun(v.pnote)));
+  v.notes.forEach(function(n,k){ps.push(pmqPara("EQScopeNote",pmqRunRefs(n,v.notesHi&&v.notesHi[k],pp)));});
+  if(v.pnote)ps.push(pmqPara("EQScopeNote",pmqRunRefs(v.pnote,false,pp)));
   return "<w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w=\""+DW+"\" w:type=\"dxa\"/>"+bd+"</w:tcPr>"+ps.join("")+"</w:tc><w:tc><w:tcPr><w:tcW w:w=\""+PW+"\" w:type=\"dxa\"/>"+bd+"</w:tcPr>"+(v.plist.length?v.plist:[{a:"",l:""}]).map(function(t,k){/* amount, then its label on the line below in smaller plain text (one paragraph, so it reads back as "$830 (Any future trips)") */
    return pmqPara("EQPrice",pmqRun(t.a)+(t.l?"<w:r><w:rPr><w:b w:val=\"0\"/><w:bCs w:val=\"0\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><w:br/><w:t xml:space=\"preserve\"> ("+pmqX(t.l)+")</w:t></w:r>":""),k?"<w:spacing w:before=\"100\"/>":"");}).join("")+"</w:tc></w:tr>";}).join("");
  x.push("<w:tbl><w:tblPr><w:tblStyle w:val=\"EQServiceTable\"/><w:tblW w:w=\""+TW+"\" w:type=\"dxa\"/><w:tblLayout w:type=\"fixed\"/><w:tblLook w:val=\"0000\"/></w:tblPr><w:tblGrid><w:gridCol w:w=\""+DW+"\"/><w:gridCol w:w=\""+PW+"\"/></w:tblGrid>"+rows+"</w:tbl>");
  x.push(pmqPara("EQTerms",pmqRun("GST EXTRA"),"<w:spacing w:before=\"160\"/>"));
  var d=pmqDisbLine(q);if(d)x.push(pmqPara("EQTerms",pmqRun(d)));
+ /* 1.36: point to the scope page and the rate sheet */
+ var see=pmqSeeXml(pp);if(see)x.push(see);
  x.push(pmqPara("EQSign",pmqRun(q.f.pm.trim())));
  x.push(pmqPara("EQContract",PMQ_CONTRACT.map(function(c){return pmqRun(c[1],c[0]);}).join("")));
  var tab=function(p){return "<w:tab w:val=\"left\" w:leader=\"underscore\" w:pos=\""+p+"\"/>";},T="<w:r><w:tab/></w:r>";
@@ -2336,6 +2345,7 @@ function pmqBodyXml(q){
   [[tab(TW)],pmqRun("Billing address: ")+T,""],
   [[tab(5500),tab(TW)],pmqRun("Date: ")+T+pmqRun("    Signature: ")+T,""]].forEach(function(b,i){
   x.push(pmqPara("EQBlank",b[1],(i===2?"<w:keepNext w:val=\"0\"/>":"")+"<w:tabs>"+b[0].join("")+"</w:tabs>"+b[2]));});
+ x.push(pmqScopeXml(q,media||{}));
  if(q.rs)x.push(pmqRateSheetXml());
  return {xml:x.join(""),n:P.length};
 }
@@ -2359,7 +2369,7 @@ function pmqRateSheetXml(){
  rows.push(head("Deliverables"));
  (R.deliv||[]).forEach(function(t,i){rows.push(row(t,i===0?(R.delivNote||""):""));});
  var x=[];
- x.push(pmqPara("EQSite",pmqRun("Rates, Fees, & Deliverables for "+yr),"<w:pageBreakBefore/>"));
+ x.push(pmqPara("EQSite","<w:bookmarkStart w:id=\"9102\" w:name=\"eqRates\"/>"+pmqRun("Rates, Fees, & Deliverables for "+yr)+"<w:bookmarkEnd w:id=\"9102\"/>","<w:pageBreakBefore/>"));
  x.push("<w:tbl><w:tblPr><w:tblW w:w=\""+TW+"\" w:type=\"dxa\"/><w:tblLayout w:type=\"fixed\"/><w:tblBorders><w:top w:val=\"nil\"/><w:left w:val=\"nil\"/><w:bottom w:val=\"nil\"/><w:right w:val=\"nil\"/><w:insideH w:val=\"nil\"/><w:insideV w:val=\"nil\"/></w:tblBorders><w:tblCellMar><w:left w:w=\"0\" w:type=\"dxa\"/><w:right w:w=\"0\" w:type=\"dxa\"/></w:tblCellMar><w:tblLook w:val=\"0000\"/></w:tblPr><w:tblGrid><w:gridCol w:w=\""+DW+"\"/><w:gridCol w:w=\""+PW+"\"/></w:tblGrid>"+rows.join("")+"</w:tbl>");
  (R.foot||[]).forEach(function(f,i){x.push("<w:p><w:pPr><w:pStyle w:val=\"EQBody\"/><w:spacing w:before=\""+(i?60:240)+"\" w:after=\"40\"/></w:pPr>"+f.map(function(r){return "<w:r><w:rPr>"+(r[1]?"<w:b/><w:bCs/>":"")+(r[2]||/minimum charge/i.test(r[0])?"<w:color w:val=\""+PMQ_RED+"\"/>":"")+"<w:sz w:val=\"19\"/><w:szCs w:val=\"19\"/></w:rPr><w:t xml:space=\"preserve\">"+pmqX(r[0])+"</w:t></w:r>";}).join("")+"</w:p>");});
  return x.join("");
@@ -2396,13 +2406,21 @@ function pmqMaster(){
   .catch(function(){var b=sget("eo:qmaster");if(!b)throw new Error("nomaster");return pmUnB64(b).buffer;});
 }
 function pmqBuildDocx(q){
- return pmqMaster().then(function(buf){
-  var ents=cuZipEntries(buf),B=pmqBodyXml(q),enc=new TextEncoder(),dec=new TextDecoder();
+ var SC=pmscList(q);
+ return Promise.all([pmqMaster()].concat(SC.map(function(s){return pmscGet(s.id);}))).then(function(R){
+  var buf=R[0],imgs=R.slice(1),miss=SC.filter(function(s,i){return !imgs[i];});
+  if(miss.length)throw new Error("The scope page picture isn\u2019t on this computer \u2014 remove scope page "+(SC.indexOf(miss[0])+1)+" and add it again.");
+  /* 1.36: scope pictures go in word/media with their own relationships */
+  var media={},extra=[];SC.forEach(function(s,i){var ext=/png/.test(imgs[i].type)?"png":"jpeg",nm="eqscope_"+s.id+"."+ext;media[s.id]={rid:"rIdEQScope"+(i+1),name:nm,ext:ext};extra.push({name:"word/media/"+nm,data:imgs[i].u8});});
+  var ents=cuZipEntries(buf),B=pmqBodyXml(q,media),enc=new TextEncoder(),dec=new TextDecoder();
   return Promise.all(ents.map(function(e){return cuZipRead(buf,e).then(function(u8){return {name:e.name,data:u8};});})).then(function(files){
    files.forEach(function(f){
     if(f.name==="word/document.xml"){var d=dec.decode(f.data),a=d.indexOf("<w:body>")+8,b=d.lastIndexOf("<w:sectPr");f.data=enc.encode(d.slice(0,a)+B.xml+d.slice(b));}
     else if(f.name==="word/numbering.xml")f.data=enc.encode(pmqNumbering(B.n));
+    else if(f.name==="word/_rels/document.xml.rels"&&SC.length){var r=dec.decode(f.data);f.data=enc.encode(r.replace("</Relationships>",SC.map(function(s){var m=media[s.id];return "<Relationship Id=\""+m.rid+"\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image\" Target=\"media/"+m.name+"\"/>";}).join("")+"</Relationships>"));}
+    else if(f.name==="[Content_Types].xml"&&SC.some(function(s){return media[s.id].ext==="jpeg";})&&!/Extension="jpeg"/.test(dec.decode(f.data))){f.data=enc.encode(dec.decode(f.data).replace("<Default Extension=\"rels\"","<Default Extension=\"jpeg\" ContentType=\"image/jpeg\"/><Default Extension=\"rels\""));}
    });
+   extra.forEach(function(e){files.push(e);});
    pmqdParts(q,B.xml,files);
    return pmqZip(files).then(function(parts){return new Blob(parts,{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});});
   });
@@ -2426,7 +2444,7 @@ var PMQ_PVT=null;
 function pmqPreviewSoon(){if(PMQ_PVT)clearTimeout(PMQ_PVT);PMQ_PVT=setTimeout(function(){PMQ_PVT=null;pmqPreviewDraw();},200);}
 function pmqPreviewDraw(){var el=document.getElementById("pm-qprev"),q=pmCurQ();if(!el||!q||el.style.display==="none")return;try{el.innerHTML=pmqPreviewHtml(q);}catch(e){el.innerHTML="<p class='hint'>Preview unavailable: "+pmEsc(e.message)+"</p>";}}
 function pmqPreviewHtml(q){
- var E=pmEsc,P=pmqServices(q),L=pmqSiteLines(q),many=pmProps(q).filter(function(p){return (p.site||"").trim();}).length>1,pj=String(q.f.proj||"").replace(/\s*\n\s*/g," ").trim();
+ var E=pmEsc,P=pmqServices(q),pp=pmqPages(q,P),ref=function(t){return pp.rates?String(t).replace(/(attached (hourly )?rate sheet)/i,"$1 on page "+pp.rates):t;},L=pmqSiteLines(q),many=pmProps(q).filter(function(p){return (p.site||"").trim();}).length>1,pj=String(q.f.proj||"").replace(/\s*\n\s*/g," ").trim();
  var h="<div class='qp-cap'>Preview — layout matches the Word quote; page breaks and fonts may differ slightly.</div><div class='qp-paper'>";
  h+="<div class='qp-date'>"+E(pmqDate(new Date()))+"</div>";
  h+="<div class='qp-to'><span>To: "+E(pmqTo(q)||"—")+"</span><span>Quote# "+E((q.f.qn||"").trim()||"—")+"</span></div>";
@@ -2434,12 +2452,17 @@ function pmqPreviewHtml(q){
  h+=P.map(function(v,i){var r="<div class='qp-row'><div class='qp-d'><div class='qp-t'><span class='qp-n'>"+(i+1)+".</span><u>"+E(v.title)+"</u></div>";
   if(v.lead)r+="<div class='qp-lead'>"+E(v.lead)+"</div>";
   if(v.lines.length)r+="<ol type='a' class='qp-ol'>"+v.lines.map(function(l,k){return "<li"+(v.linesHi&&v.linesHi[k]?" class='qp-hi'":"")+"><span>"+E(l)+"</span></li>";}).join("")+"</ol>";
-  v.notes.forEach(function(n,k){r+="<div class='qp-note"+(v.notesHi&&v.notesHi[k]?" qp-hi":"")+"'>"+E(n)+"</div>";});
-  if(v.pnote)r+="<div class='qp-note'>"+E(v.pnote)+"</div>";
+  v.notes.forEach(function(n,k){r+="<div class='qp-note"+(v.notesHi&&v.notesHi[k]?" qp-hi":"")+"'>"+E(ref(n))+"</div>";});
+  if(v.pnote)r+="<div class='qp-note'>"+E(ref(v.pnote))+"</div>";
   r+="</div><div class='qp-p'>"+(v.plist.length?v.plist.map(function(t){return "<div>"+E(t.a)+(t.l?"<small>("+E(t.l)+")</small>":"")+"</div>";}).join(""):"<div class='qp-miss'>no price</div>")+"</div></div>";return r;}).join("");
  h+="<div class='qp-terms'>GST EXTRA</div>";var d=pmqDisbLine(q);if(d)h+="<div class='qp-terms'>"+E(d)+"</div>";
+ var see=pmqSeeText(pp,function(b,n){return "See page "+n;}).replace(/ and See page /," and page ");if(see)h+="<div class='qp-terms'>"+E(see)+"</div>";
  h+="<div class='qp-sign'>"+E((q.f.pm||"").trim()||"—")+"</div><div class='qp-fine'>Contract terms and the signature block follow"+(q.rs?"; page 2: rates, fees &amp; deliverables for "+new Date().getFullYear():"")+".</div>";
- return h+"</div>";
+ h+="</div>";
+ /* scope pages */
+ pmscList(q).forEach(function(s,i){var u=pmscUrl(s.id);h+="<div class='qp-paper qp-p2'><div class='qp-site'>Scope of work"+(pmscList(q).length>1?" ("+(i+1)+" of "+pmscList(q).length+")":"")+"</div>"+(u?"<img class='qp-scimg' src='"+u+"' alt=''>":"<div class='qp-miss'>picture not on this computer</div>")+(String(s.caption||"").trim()?"<div class='qp-cap2'>"+E(s.caption)+"</div>":"")+"<div class='qp-fine'>Page "+(pp.scope+i)+" (estimated)</div></div>";});
+ if(q.rs)h+="<div class='qp-paper qp-p2'><div class='qp-site'>Rates, Fees, &amp; Deliverables for "+new Date().getFullYear()+"</div><div class='qp-fine'>Rate sheet \u2014 page "+pp.rates+" (estimated)</div></div>";
+ return h;
 }
 /* ---------- 1.34: lists of hours presets and quote sets (rename / delete) ---------- */
 function pmqListFold(id,title,a,label,sub,empty){
@@ -2508,8 +2531,14 @@ function pmrMapDraw(q){var box=document.getElementById("pmr-map");if(!box)return
  if(!geo.exact){box.innerHTML="<div class='cu-idwarn'>Only an approximate match for this address"+(geo.full?" (“"+pmEsc(geo.full)+"”)":"")+" — check the spelling, or use the Job map button.</div>";return;}
  var src="https://www.google.com/maps/d/embed?mid="+PMR_MID+"&ll="+geo.lat+","+geo.lng+"&z=19",cur=box.querySelector("iframe");
  if(cur&&cur.dataset.src===src)return;
- box.innerHTML="<div class='pmr-mh'><b>Job map</b> — "+pmEsc(geo.full||p.site)+" <span class='hint' style='margin:0'>click a marker for its job · the green pin is this quote’s address (not on your map)</span><span style='flex:1'></span><button class='btn pmr-b' id='pmr-recentre'>Re-centre</button><a class='btn pmr-b' target='_blank' rel='noopener' href='https://www.google.com/maps/d/viewer?mid="+PMR_MID+"&ll="+geo.lat+","+geo.lng+"&z=19'>Open in My Maps</a></div><div class='pmr-frame'><iframe loading='lazy' data-src='"+src+"' src='"+src+"' title='Job map'></iframe><div class='pmr-pin' title='this quote’s address'></div></div>";
- var rc=document.getElementById("pmr-recentre");if(rc)rc.onclick=function(){var f=box.querySelector("iframe");if(f){f.src="about:blank";setTimeout(function(){f.src=src;},30);}};}
+ box.innerHTML="<div class='pmr-mh'><b>Job map</b> — "+pmEsc(geo.full||p.site)+" <span class='hint' style='margin:0'>click a marker for its job · the green pin is this quote’s address (not on your map)</span><span style='flex:1'></span><button class='btn pmr-b' id='pmr-recentre'>Re-centre</button><a class='btn pmr-b' target='_blank' rel='noopener' href='https://www.google.com/maps/d/viewer?mid="+PMR_MID+"&ll="+geo.lat+","+geo.lng+"&z=19'>Open in My Maps</a></div><div class='pmr-frame'><iframe loading='lazy' data-src='"+src+"' src='"+src+"' title='Job map'></iframe><div class='pmr-pin' title='this quote’s address'></div></div><div class='hint pmr-pinoff' style='display:none;margin:4px 0 0'>Address pin hidden while you move the map — <b>Re-centre</b> to show it.</div>";
+ pmrPinWatch();
+ var rc=document.getElementById("pmr-recentre");if(rc)rc.onclick=function(){var f=box.querySelector("iframe");if(f){f.src="about:blank";setTimeout(function(){f.src=src;},30);}pmrPin(true);};}
+/* 1.36: the pin sits over the frame centre, so once the map is clicked (to pan or zoom) it's hidden until Re-centre */
+function pmrPin(on){var p=document.querySelector("#pmr-map .pmr-pin"),n=document.querySelector("#pmr-map .pmr-pinoff");if(p)p.style.display=on?"":"none";if(n)n.style.display=on?"none":"block";}
+var PMR_WATCH=false;
+function pmrPinWatch(){if(PMR_WATCH)return;PMR_WATCH=true;
+ window.addEventListener("blur",function(){setTimeout(function(){var a=document.activeElement;if(a&&a.tagName==="IFRAME"&&a.closest&&a.closest("#pmr-map"))pmrPin(false);},0);});}
 var PMR_T=null;
 function pmrRefreshSoon(){if(PMR_T)clearTimeout(PMR_T);PMR_T=setTimeout(function(){PMR_T=null;pmrRefresh(true);},1000);}
 function pmrRefresh(look){var q=pmCurQ();if(!q)return;var P=pmProps(q);
@@ -2522,18 +2551,97 @@ function pmrWire(){
 }
 /* new quote: the map opens on its own once the address is found (unless switched off) */
 function pmrInit(q){if(!q||pmrIsSub(q))return;if(PM.mapQ!==q.id){PM.mapQ=q.id;PM.mapAt=0;PM.mapOpen=pmrMapOn();}pmrRefresh(true);}
+
+/* ---------- 1.36: scope page(s) on the Word quote — a marked-up PDF page, an image file or a pasted screenshot ---------- */
+/* the pictures live in this browser's IndexedDB (too big for the draft store); the draft keeps id, size and caption, and the Word file carries the picture so a reopened quote gets it back */
+var PMSC_IMG={},PMSC_DBP=null,PMSC_MAXPX=2400,PMSC_PDFJS="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+function pmscDb(){if(PMSC_DBP)return PMSC_DBP;PMSC_DBP=new Promise(function(res){try{if(typeof indexedDB==="undefined")return res(null);var r=indexedDB.open("eo-scope",1);r.onupgradeneeded=function(){r.result.createObjectStore("img");};r.onsuccess=function(){res(r.result);};r.onerror=function(){res(null);};}catch(e){res(null);}});return PMSC_DBP;}
+function pmscPut(id,u8,type){PMSC_IMG[id]={u8:u8,type:type};return pmscDb().then(function(db){if(!db)return;return new Promise(function(res){try{var t=db.transaction("img","readwrite");t.objectStore("img").put({u8:u8,type:type},id);t.oncomplete=res;t.onerror=res;t.onabort=res;}catch(e){res();}});});}
+function pmscGet(id){if(PMSC_IMG[id])return Promise.resolve(PMSC_IMG[id]);return pmscDb().then(function(db){if(!db)return null;return new Promise(function(res){try{var r=db.transaction("img").objectStore("img").get(id);r.onsuccess=function(){var v=r.result;if(v&&v.u8)PMSC_IMG[id]={u8:v.u8,type:v.type};res(PMSC_IMG[id]||null);};r.onerror=function(){res(null);};}catch(e){res(null);}});});}
+function pmscDel(id){var m=PMSC_IMG[id];if(m&&m.url)try{URL.revokeObjectURL(m.url);}catch(e){}delete PMSC_IMG[id];pmscDb().then(function(db){if(db)try{db.transaction("img","readwrite").objectStore("img").delete(id);}catch(e){}});}
+function pmscUrl(id){var m=PMSC_IMG[id];if(!m)return "";if(!m.url)try{m.url=URL.createObjectURL(new Blob([m.u8],{type:m.type}));}catch(e){m.url="";}return m.url;}
+function pmscList(q){if(!q)return [];if(!Array.isArray(q.scope))q.scope=[];return q.scope;}
+/* add one picture (already as bytes) to the quote */
+function pmscAddBytes(q,u8,type,w,h,src){var s={id:"sc"+pmUid().slice(1),w:w,h:h,type:type,src:src||"",caption:""};pmscList(q).push(s);q.updated=Date.now();pmQuotesSave();return pmscPut(s.id,u8,type).then(function(){pmRender();return s;});}
+/* a drawn canvas -> PNG (sharp for plans), or JPEG when the PNG would be very large */
+function pmscFromCanvas(q,cv,src){return new Promise(function(res){cv.toBlob(function(b){if(b&&b.size<=1600000)return res(b);cv.toBlob(function(j){res(j||b);},"image/jpeg",0.9);},"image/png");}).then(function(b){if(!b)throw new Error("Couldn’t read that picture.");return b.arrayBuffer().then(function(ab){return pmscAddBytes(q,new Uint8Array(ab),b.type,cv.width,cv.height,src);});});}
+function pmscFit(w,h){var k=Math.min(1,PMSC_MAXPX/Math.max(w,h));return [Math.max(1,Math.round(w*k)),Math.max(1,Math.round(h*k))];}
+function pmscAddImageFile(q,file){var url=URL.createObjectURL(file);return new Promise(function(res,rej){var im=new Image();im.onload=function(){var d=pmscFit(im.naturalWidth,im.naturalHeight),cv=document.createElement("canvas");cv.width=d[0];cv.height=d[1];var g=cv.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,d[0],d[1]);g.drawImage(im,0,0,d[0],d[1]);URL.revokeObjectURL(url);res(pmscFromCanvas(q,cv,file.name||"pasted picture"));};im.onerror=function(){URL.revokeObjectURL(url);rej(new Error("That file isn’t a picture this browser can read (use PNG or JPG)."));};im.src=url;});}
+/* PDFs: pdf.js is loaded only when a PDF is picked */
+var PMSC_PDFP=null;
+function pmscPdfLib(){if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);if(PMSC_PDFP)return PMSC_PDFP;PMSC_PDFP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src=PMSC_PDFJS+"pdf.min.js";sc.onload=function(){if(!window.pdfjsLib)return rej(new Error("PDF reader didn’t load"));window.pdfjsLib.GlobalWorkerOptions.workerSrc=PMSC_PDFJS+"pdf.worker.min.js";res(window.pdfjsLib);};sc.onerror=function(){PMSC_PDFP=null;rej(new Error("Couldn’t load the PDF reader — check you’re online."));};document.head.appendChild(sc);});return PMSC_PDFP;}
+function pmscRenderPage(doc,n,maxpx){return doc.getPage(n).then(function(pg){var v1=pg.getViewport({scale:1}),k=Math.min(4,maxpx/Math.max(v1.width,v1.height)),v=pg.getViewport({scale:k}),cv=document.createElement("canvas");cv.width=Math.round(v.width);cv.height=Math.round(v.height);var g=cv.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,cv.width,cv.height);return pg.render({canvasContext:g,viewport:v}).promise.then(function(){return cv;});});}
+function pmscAddPdf(q,file){var msg=document.getElementById("pmsc-msg");if(msg)msg.textContent="Reading "+file.name+" …";
+ return Promise.all([pmscPdfLib(),file.arrayBuffer()]).then(function(r){return r[0].getDocument({data:new Uint8Array(r[1])}).promise;}).then(function(doc){
+  var pick=function(n){if(msg)msg.textContent="Adding page "+n+" …";return pmscRenderPage(doc,n,PMSC_MAXPX).then(function(cv){return pmscFromCanvas(q,cv,file.name+" — page "+n);});};
+  if(doc.numPages===1)return pick(1);
+  var box=document.getElementById("pmsc-pick");if(!box)return pick(1);
+  box.style.display="block";box.innerHTML="<div class='hint' style='margin:0 0 6px'>"+pmEsc(file.name)+" has "+doc.numPages+" pages — click the page to use"+(doc.numPages>40?" (first 40 shown)":"")+". <button class='btn pmr-b' id='pmsc-pickx'>Cancel</button></div><div class='pmsc-thumbs'></div>";
+  document.getElementById("pmsc-pickx").onclick=function(){box.style.display="none";box.innerHTML="";if(msg)msg.textContent="";};
+  var th=box.querySelector(".pmsc-thumbs"),N=Math.min(doc.numPages,40),chain=Promise.resolve();
+  for(var i=1;i<=N;i++)(function(n){var cell=document.createElement("button");cell.className="pmsc-th";cell.title="use page "+n;cell.innerHTML="<span>Page "+n+"</span>";cell.onclick=function(){box.style.display="none";box.innerHTML="";pick(n).catch(pmscErr);};th.appendChild(cell);
+   chain=chain.then(function(){return pmscRenderPage(doc,n,220).then(function(cv){cv.className="pmsc-thc";cell.insertBefore(cv,cell.firstChild);}).catch(function(){});});})(i);
+  if(msg)msg.textContent="";return chain;});}
+function pmscErr(e){var m=document.getElementById("pmsc-msg");if(m)m.textContent=(e&&e.message)||String(e);}
+function pmscAddFile(q,file){if(!file)return Promise.resolve();if(/pdf$/i.test(file.type)||/\.pdf$/i.test(file.name||""))return pmscAddPdf(q,file).catch(pmscErr);if(/^image\//.test(file.type)||/\.(png|jpe?g|gif|bmp|webp)$/i.test(file.name||""))return pmscAddImageFile(q,file).catch(pmscErr);pmscErr(new Error("Use a PDF or a picture (PNG / JPG)."));return Promise.resolve();}
+/* the panel under Quote document */
+function pmscHtml(q){var L=pmscList(q),E=pmEsc;
+ var h="<div class='pm-h'>Scope page <span class='hint' style='margin:0;text-transform:none;letter-spacing:0;font-weight:400'>(optional — a marked-up plan on its own page after the quote, before the rate sheet)</span></div><div class='pmsc'>";
+ h+=L.map(function(s,i){var u=pmscUrl(s.id);return "<div class='pmsc-row' data-sc='"+i+"'><div class='pmsc-img'>"+(u?"<img src='"+u+"' alt='scope page "+(i+1)+"'>":"<span class='cu-idwarn' style='margin:0'>picture not on this computer — remove and add it again</span>")+"</div><div class='pmsc-side'><b>Scope page "+(i+1)+"</b><span class='hint' style='margin:0'>"+E(s.src||"")+"</span><label class='pm-f'><span>Caption (optional)</span><input type='text' class='pmsc-cap' data-sc='"+i+"' value='"+E(s.caption||"")+"' placeholder='e.g. Scope of work — highlighted area to be surveyed'></label><div class='row' style='gap:6px'>"+(L.length>1?"<button class='pmq-mini' data-scup='"+i+"' title='move up'>↑</button><button class='pmq-mini' data-scdn='"+i+"' title='move down'>↓</button>":"")+"<button class='btn pmr-b' data-scrm='"+i+"'>Remove</button></div></div></div>";}).join("");
+ h+="<div class='pmsc-add' tabindex='0' id='pmsc-zone' title='click here, then Ctrl+V to paste a screenshot — or drop a PDF / picture'><label class='btn pmr-b'>"+(L.length?"+ another page from a PDF…":"+ From a PDF…")+"<input type='file' id='pmsc-pdf' accept='.pdf,application/pdf' style='display:none'></label><label class='btn pmr-b'>+ From a picture…<input type='file' id='pmsc-imgf' accept='image/*' style='display:none'></label><span class='hint' style='margin:0'>or click here and paste a screenshot (Ctrl+V), or drop a file here</span><span class='hint pmsc-msg' id='pmsc-msg' style='margin:0'></span></div><div id='pmsc-pick' class='pmsc-pick' style='display:none'></div>";
+ return h+"</div>";}
+function pmscWire(q){if(!q)return;var L=pmscList(q),save=function(){q.updated=Date.now();pmQuotesSave();pmFlagUnsaved(q);pmUpdate();};
+ document.querySelectorAll(".pmsc-cap").forEach(function(el){el.oninput=function(){var s=L[+el.dataset.sc];if(s){s.caption=el.value;save();}};});
+ document.querySelectorAll("[data-scrm]").forEach(function(b){b.onclick=function(){var i=+b.dataset.scrm,s=L[i];if(!s||!confirm("Remove scope page "+(i+1)+" from this quote?"))return;L.splice(i,1);pmscDel(s.id);save();pmRender();};});
+ document.querySelectorAll("[data-scup]").forEach(function(b){b.onclick=function(){var i=+b.dataset.scup;if(i>0){L.splice(i-1,0,L.splice(i,1)[0]);save();pmRender();}};});
+ document.querySelectorAll("[data-scdn]").forEach(function(b){b.onclick=function(){var i=+b.dataset.scdn;if(i<L.length-1){L.splice(i+1,0,L.splice(i,1)[0]);save();pmRender();}};});
+ var fp=document.getElementById("pmsc-pdf");if(fp)fp.onchange=function(){var f=fp.files[0];fp.value="";pmscAddFile(q,f);};
+ var fi=document.getElementById("pmsc-imgf");if(fi)fi.onchange=function(){var f=fi.files[0];fi.value="";pmscAddFile(q,f);};
+ var z=document.getElementById("pmsc-zone");if(z){
+  z.addEventListener("paste",function(e){var it=[].slice.call((e.clipboardData&&e.clipboardData.items)||[]).find(function(x){return x.kind==="file"&&/^image\/|pdf$/.test(x.type);});if(!it)return;e.preventDefault();e.stopPropagation();pmscAddFile(q,it.getAsFile());});
+  z.addEventListener("dragover",function(e){e.preventDefault();z.classList.add("on");});z.addEventListener("dragleave",function(){z.classList.remove("on");});
+  z.addEventListener("drop",function(e){e.preventDefault();z.classList.remove("on");var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];pmscAddFile(q,f);});}
+ /* pictures not yet in memory (after a reload) are fetched from the browser store, then the panel and preview are redrawn */
+ var miss=L.filter(function(s){return !PMSC_IMG[s.id];});if(miss.length)Promise.all(miss.map(function(s){return pmscGet(s.id);})).then(function(r){if(r.some(Boolean)&&pmCurQ()===q){var y=window.scrollY;pmRender();window.scrollTo(0,y);}});}
+/* ---------- Word: page numbers, scope pages ---------- */
+/* a quote's own length in pages (the services table rows don't split, so this is a close estimate); Word refreshes the page fields when it prints / saves as PDF */
+function pmqEstPages(q,P){var wr=function(t,n){return Math.max(1,Math.ceil(String(t||"").length/n));},u=5+Math.max(0,pmqSiteLines(q).length-1)*1.1+(String(q.f.proj||"").trim()?1.1:0),pg=1,cap=40;
+ /* calibrated on 36 test quotes (1–6 services, 0–14 extra lines) against the page the rate sheet actually starts on */
+ P.forEach(function(v){var d=2+(v.lead?wr(v.lead,95):0)+v.lines.reduce(function(a,l){return a+wr(l,82)*0.9;},0)+v.notes.reduce(function(a,n){return a+wr(n,95)*0.8;},0)+(v.pnote?wr(v.pnote,95)*0.8:0)+0.6,p=v.plist.length*1.6+0.6,r=Math.max(d,p);
+  if(u+r>cap&&u>8){pg++;u=2;}u+=r;});
+ var tail=11.9+(pmqDisbLine(q)?1:0)+((pmscList(q).length||q.rs)?1.1:0);
+ /* the contract and signature block stay together, so they move to the next page whole when they don't fit */
+ if(u+tail>cap)pg++;return pg;}
+function pmqPageRef(bm,n){return "<w:r><w:fldChar w:fldCharType=\"begin\"/></w:r><w:r><w:instrText xml:space=\"preserve\"> PAGEREF "+bm+" \\h </w:instrText></w:r><w:r><w:fldChar w:fldCharType=\"separate\"/></w:r><w:r><w:t>"+n+"</w:t></w:r><w:r><w:fldChar w:fldCharType=\"end\"/></w:r>";}
+function pmqPages(q,P){var n=pmqEstPages(q,P),sc=pmscList(q).length;return {quote:n,scope:sc?n+1:0,rates:q.rs?n+1+sc:0};}
+/* "See page 2 for the scope of work and page 3 for our hourly rates, fees & deliverables." */
+function pmqSeeText(pp,fmt){var a=[];if(pp.scope)a.push(fmt("eqScope",pp.scope)+" for the scope of work");if(pp.rates)a.push(fmt("eqRates",pp.rates)+" for our hourly rates, fees & deliverables");return a.length?a.join(" and ")+".":"";}
+function pmqSeeXml(pp){if(!pp.scope&&!pp.rates)return "";var parts=[];var r=function(t){return "<w:r><w:t xml:space=\"preserve\">"+pmqX(t)+"</w:t></w:r>";};
+ var x=r("See page ")+(pp.scope?pmqPageRef("eqScope",pp.scope)+r(" for the scope of work")+(pp.rates?r(" and page ")+pmqPageRef("eqRates",pp.rates)+r(" for our hourly rates, fees & deliverables"):""):pmqPageRef("eqRates",pp.rates)+r(" for our hourly rates, fees & deliverables"))+r(".");
+ return pmqPara("EQTerms",x);}
+/* "…see the attached hourly rate sheet" in a note gets "on page 3" */
+function pmqRunRefs(t,hi,pp){if(!pp||!pp.rates)return pmqRunHi(t,hi);var m=String(t).match(/attached (hourly )?rate sheet/i);if(!m)return pmqRunHi(t,hi);var k=m.index+m[0].length;
+ return pmqRunHi(t.slice(0,k),hi)+pmqRunHi(" on page ",hi)+pmqPageRef("eqRates",pp.rates)+pmqRunHi(t.slice(k),hi);}
+var PMQ_EMU_W=5943600,PMQ_EMU_H=6858000;
+function pmqScopeXml(q,media){return pmscList(q).map(function(s,i){var md=media[s.id];if(!md)return "";var w=s.w||1,h=s.h||1,k=Math.min(PMQ_EMU_W/w,PMQ_EMU_H/h),cx=Math.round(w*k),cy=Math.round(h*k);
+ var head=pmqPara("EQSite",(i===0?"<w:bookmarkStart w:id=\"9101\" w:name=\"eqScope\"/>":"")+pmqRun("Scope of work"+(pmscList(q).length>1?" ("+(i+1)+" of "+pmscList(q).length+")":""))+(i===0?"<w:bookmarkEnd w:id=\"9101\"/>":""),"<w:pageBreakBefore/>");
+ var pic="<w:p><w:pPr><w:pStyle w:val=\"EQBody\"/><w:jc w:val=\"center\"/><w:spacing w:before=\"120\" w:after=\"80\"/></w:pPr><w:r><w:drawing><wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\""+cx+"\" cy=\""+cy+"\"/><wp:docPr id=\""+(9200+i)+"\" name=\"Scope page "+(i+1)+"\"/><wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" noChangeAspect=\"1\"/></wp:cNvGraphicFramePr><a:graphic xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\"><a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/picture\"><pic:pic xmlns:pic=\"http://schemas.openxmlformats.org/drawingml/2006/picture\"><pic:nvPicPr><pic:cNvPr id=\"0\" name=\""+md.name+"\"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed=\""+md.rid+"\"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\""+cx+"\" cy=\""+cy+"\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>";
+ var cap=String(s.caption||"").trim()?"<w:p><w:pPr><w:pStyle w:val=\"EQBody\"/><w:jc w:val=\"center\"/><w:spacing w:before=\"60\"/></w:pPr><w:r><w:rPr><w:i/><w:iCs/></w:rPr><w:t xml:space=\"preserve\">"+pmqX(String(s.caption).trim())+"</w:t></w:r></w:p>":"";
+ return head+pic+cap;}).join("");}
 /* ---------- PM: draft hidden inside the Word quote; reopen a quote; sub-quotes ---------- */
 var PMQD_NS="urn:elevate-office:quote-draft";
 function pmqdUnesc(s){return String(s).replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,"\"").replace(/&apos;/g,"'").replace(/&#(\d+);/g,function(m,n){return String.fromCharCode(+n);}).replace(/&#x([0-9a-f]+);/gi,function(m,n){return String.fromCharCode(parseInt(n,16));}).replace(/&amp;/g,"&");}
 /* fingerprint of the visible words, so a later edit in Word can be spotted however Word re-saves the XML */
 function pmqdTextOf(bodyXml){var out=[];String(bodyXml).replace(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g,function(m,t){out.push(pmqdUnesc(t));return m;});return out.join("").replace(/\s+/g," ").trim();}
+/* 1.36: page numbers Word fills in itself (page fields) don't count as an edit */
+function pmqdHashText(bodyXml){return pmqdTextOf(bodyXml).replace(/\bpage \d+/gi,"page #");}
 function pmqdHash(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;return h.toString(16);}
 function pmqdSnapshot(q){var c=JSON.parse(JSON.stringify(q));delete c.importRep;delete c.id;delete c.exported;return c;}
 /* the extra parts that carry the draft: customXml item + its props + relationships + content type */
 function pmqdParts(q,bodyXml,files){
  var enc=new TextEncoder(),dec=new TextDecoder(),n=1;
  while(files.some(function(f){return f.name==="customXml/item"+n+".xml";}))n++;
- var payload={app:"elevate-office",kind:"quote-draft",v:1,build:BUILD,saved:new Date().toISOString(),hash:pmqdHash(pmqdTextOf(bodyXml)),quote:pmqdSnapshot(q)};
+ var payload={app:"elevate-office",kind:"quote-draft",v:1,build:BUILD,saved:new Date().toISOString(),hash:pmqdHash(pmqdHashText(bodyXml)),quote:pmqdSnapshot(q)};
  var b64=pmB64(enc.encode(JSON.stringify(payload))),gid="{"+("xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx").replace(/x/g,function(){return (Math.random()*16|0).toString(16).toUpperCase();})+"}";
  files.push({name:"customXml/item"+n+".xml",data:enc.encode("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<eoDraft xmlns=\""+PMQD_NS+"\" v=\"1\">"+b64+"</eoDraft>")});
  files.push({name:"customXml/itemProps"+n+".xml",data:enc.encode("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<ds:datastoreItem ds:itemID=\""+gid+"\" xmlns:ds=\"http://schemas.openxmlformats.org/officeDocument/2006/customXml\"><ds:schemaRefs><ds:schemaRef ds:uri=\""+PMQD_NS+"\"/></ds:schemaRefs></ds:datastoreItem>")});
@@ -2551,7 +2659,7 @@ function pmqdReadServices(docXml){
  var text=function(p){return pmqdTextOf(p);},style=function(p){var m=p.match(/<w:pStyle w:val="([^"]+)"/);return m?(PMQD_STYLE_ALIAS[m[1]]||m[1]):"";};
  rows.forEach(function(r){var ps=r.split(/<w:p[ >]/).slice(1),v={title:"",lead:"",lines:[],notes:[],price:""},any=false;
   ps.forEach(function(p){var st=style(p),t=text(p);if(!t)return;
-   if(st==="EQService"){v.title=t;any=true;}else if(st==="EQLead")v.lead=t;else if(st==="EQScope")v.lines.push(t);else if(st==="EQScopeNote")v.notes.push(t);else if(st==="EQPrice")v.price=v.price?v.price+" / "+t:t;});
+   if(st==="EQService"){v.title=t;any=true;}else if(st==="EQLead")v.lead=t;else if(st==="EQScope")v.lines.push(t);else if(st==="EQScopeNote")v.notes.push(t.replace(/ on page \d+/g,""));else if(st==="EQPrice")v.price=v.price?v.price+" / "+t:t;});
   if(any)out.push(v);});
  return out;
 }
@@ -2567,8 +2675,10 @@ function pmqdImportDocx(buf,fname){
   try{payload=JSON.parse(new TextDecoder().decode(pmUnB64(m[1].replace(/\s+/g,""))));}catch(e){alert("The draft inside this Word file couldn’t be read.");return null;}
   return cuZipRead(buf,de).then(function(u){
    var docXml=dec.decode(u),a=docXml.indexOf("<w:body>"),b=docXml.lastIndexOf("<w:sectPr");
-   var body=docXml.slice(a<0?0:a,b<0?docXml.length:b),changed=pmqdHash(pmqdTextOf(body))!==payload.hash;
-   var q=payload.quote;q.id="q"+Date.now();q.secs=(q.secs||[]).map(pmqNorm);
+   var body=docXml.slice(a<0?0:a,b<0?docXml.length:b),changed=pmqdHash(pmqdHashText(body))!==payload.hash&&pmqdHash(pmqdTextOf(body))!==payload.hash;
+   var q=payload.quote;q.id=pmUid();q.secs=(q.secs||[]).map(pmqNorm);
+   /* 1.36: scope pictures come back out of the Word file when this computer doesn't have them */
+   (q.scope||[]).forEach(function(s){pmscGet(s.id).then(function(have){if(have)return;var e=ents.find(function(x){return /^word\/media\/eqscope_/.test(x.name)&&x.name.indexOf(s.id)>=0;});if(!e)return;cuZipRead(buf,e).then(function(u8){return pmscPut(s.id,u8,/png$/i.test(e.name)?"image/png":"image/jpeg");}).then(function(){if(pmCurQ()&&pmCurQ().scope&&pmCurQ().scope.some(function(x){return x.id===s.id;}))pmRender();});});});
    var rep={file:fname||"",fromDocx:true,read:0,unread:[],rateDiff:[],wordDiffs:[]};
    if(changed){
     var W=pmqdReadServices(docXml),P=pmqServices(q),diffs=[];
@@ -2624,9 +2734,9 @@ function pmqdKeepMine(q,rep){var me=(typeof sget==="function"&&sget("eo:pmname")
 function pmqdMakeSub(q,next,note,replaceId){
  /* 1.32: a sub-quote is new services and new hours (amendments are made on the quote itself) — only the job details on top carry over;
     services, hours, stages, price lines, held / typed prices, disbursements, crew instructions, notes and the rate-sheet option start blank */
- var c=JSON.parse(JSON.stringify(q));c.id="q"+Date.now();c.f.qn=next;c.f.docname="";c.updated=Date.now();delete c.exported;delete c.importRep;delete c.qfolder;c.subOf=(q.f.qn||"").trim();
+ var c=JSON.parse(JSON.stringify(q));c.id=pmUid();c.f.qn=next;c.f.docname="";c.updated=Date.now();delete c.exported;delete c.importRep;delete c.qfolder;c.subOf=(q.f.qn||"").trim();
  c.f.services="";c.f.task="";c.f.pmc="";c.f.date="";/* 1.33: these describe the original request */
- c.secs=[pmqNorm({name:"",hrs:{}})];c.disb={};(PM.vault&&PM.vault.disb||[]).forEach(function(d){c.disb[d.id]=0;});c.other={label:"",amt:""};c.fci="";c.notes="";delete c.rs;
+ c.secs=[pmqNorm({name:"",hrs:{}})];c.scope=[];c.disb={};(PM.vault&&PM.vault.disb||[]).forEach(function(d){c.disb[d.id]=0;});c.other={label:"",amt:""};c.fci="";c.notes="";delete c.rs;
  note=(note?note+" ":"")+"Sub-quote of "+c.subOf+": job details copied; services, hours, prices, disbursements, Services Provided, task details, PM comments and date requested start blank.";
  c.importRep={file:"",sub:pmjQnParts&&pmjQnParts(q.f.qn)?q.f.qn:q.f.qn,subNote:note||"",read:0,unread:[],rateDiff:[],wordDiffs:[]};pmqdKeepMine(c,c.importRep);
  if(replaceId)PM.quotes=PM.quotes.filter(function(x){return x.id!==replaceId;});
@@ -3119,25 +3229,32 @@ var PM_QSHOW=5;
 function pmVisibleQuotes(){if(PM.showAllQ)return PM.quotes.slice().sort(function(a,b){return (b.updated||0)-(a.updated||0);});
  var by=PM.quotes.slice().sort(function(a,b){return (b.updated||0)-(a.updated||0);}),top=by.slice(0,PM_QSHOW);
  return by.filter(function(x){return top.indexOf(x)>=0||x.id===PM.cur||pmUnsaved(x);});}
+/* 1.36: a removed draft's scope pictures leave this browser too */
+function pmscDropFor(x){(x&&x.scope||[]).forEach(function(s){if(!PM.quotes.some(function(o){return o!==x&&(o.scope||[]).some(function(t){return t.id===s.id;});}))pmscDel(s.id);});}
 function pmCompletedQuotes(){return PM.quotes.filter(function(x){return !pmUnsaved(x)&&x.id!==PM.cur;});}
 function pmClearCompleted(){var C=pmCompletedQuotes();if(!C.length)return;
  if(!confirm("Clear "+C.length+" completed quote"+(C.length>1?"s":"")+" from this computer?\n\n"+C.map(function(x){return (x.f.qn||"(no quote #)")+(x.f.client?" \u00b7 "+x.f.client:"");}).slice(0,15).join("\n")+(C.length>15?"\n\u2026":"")+"\n\nThese are saved and unchanged since. Their Word quote and job details stay in the quote folders \u2014 reopen any with \u201cOpen a quote\u201d. Quotes marked NOT SAVED and the one open now are kept."))return;
- PM.quotes=PM.quotes.filter(function(x){return C.indexOf(x)<0;});PM.cleared=C.length;PM.showAllQ=false;pmQuotesSave();pmRender();PM.cleared=0;}
+ C.forEach(pmscDropFor);PM.quotes=PM.quotes.filter(function(x){return C.indexOf(x)<0;});PM.cleared=C.length;PM.showAllQ=false;pmQuotesSave();pmRender();PM.cleared=0;}
 function pmUnsaved(q){return !q.exported||(q.updated||0)>q.exported;}
 function pmMarkSaved(q){q.exported=Date.now();if((q.updated||0)>q.exported)q.exported=q.updated;pmQuotesSave();var chip=document.querySelector(".pm-bar .cu-src.on .pm-unsaved");if(chip)chip.remove();var c=document.getElementById("pm-unsavedct");if(c)c.outerHTML=pmUnsavedCount();}
 function pmUnsavedCount(){var n=PM.quotes.filter(pmUnsaved).length;return "<span class='hint' id='pm-unsavedct' style='margin:0'>"+(n?"<b class='pm-req'>"+n+" quote"+(n>1?"s":"")+" not saved yet</b> \u2014 download the Word quote or job details to keep it":"")+"</span>";}
-function pmQuotesLoad(){try{PM.quotes=JSON.parse(sget("eo:pmq")||"[]");}catch(e){PM.quotes=[];}PM.quotes.forEach(function(q){(q.secs||[]).forEach(pmqNorm);});
+function pmQuotesLoad(){try{PM.quotes=JSON.parse(sget("eo:pmq")||"[]");}catch(e){PM.quotes=[];}
+ /* 1.36: drafts that ended up sharing an id are separated (each keeps its contents) */
+ (function(){var seen={},fixed=0;PM.quotes.forEach(function(q){if(!q.id||seen[q.id]){q.id=pmUid();fixed++;}seen[q.id]=1;});if(fixed){PM.idFixed=fixed;try{sset("eo:pmq",JSON.stringify(PM.quotes));}catch(e){}}})();PM.quotes.forEach(function(q){(q.secs||[]).forEach(pmqNorm);});
  /* same rule as the checklists: saved (downloaded) and untouched for 30+ days -> tidied off this device; unsaved drafts are never erased */
  var cutoff=Date.now()-30*24*3600*1000,keep=PM.quotes.filter(function(q){return pmUnsaved(q)||Math.max(q.updated||0,q.exported||0)>=cutoff;});
  if(keep.length<PM.quotes.length){PM.tidied=(PM.tidied||0)+(PM.quotes.length-keep.length);PM.quotes=keep;pmQuotesSave();}
 }
 function pmQuotesSave(){sset("eo:pmq",JSON.stringify(PM.quotes));}
 function pmNewQuote(){
- var q={id:"q"+Date.now(),updated:Date.now(),f:{},secs:[pmqNorm({name:"",hrs:{}})],disb:{},other:{label:"",amt:""},fci:"",notes:""};
+ var q={id:pmUid(),updated:Date.now(),f:{},secs:[pmqNorm({name:"",hrs:{}})],disb:{},other:{label:"",amt:""},fci:"",notes:""};
  q.f.pm=sget("eo:pmname")||"";q.f.assigned=sget("eo:pminit")||"";
  (PM.vault.disb||[]).forEach(function(d){q.disb[d.id]=0;}); /* disbursements start at $0; the PM adds what the job needs */
  PM.quotes.unshift(q);PM.cur=q.id;pmQuotesSave();return q;
 }
+/* 1.36: every draft gets its own id — several made in the same millisecond (pasting tracker rows) used to share one, so they acted as one */
+var PM_UIDN=0;
+function pmUid(){PM_UIDN=(PM_UIDN+1)%1679616;return "q"+Date.now().toString(36)+PM_UIDN.toString(36)+Math.floor(Math.random()*46656).toString(36);}
 function pmCurQ(){return PM.quotes.find(function(q){return q.id===PM.cur;})||null;}
 function pmNum(v){var n=parseFloat(String(v==null?"":v).replace(/[$,\s]/g,""));return isNaN(n)?0:n;}
 function pmMoney(v,cents){var s=(cents===false&&Math.abs(v-Math.round(v))<0.005)?String(Math.round(v)):v.toFixed(2);return "$"+s.replace(/^(\d+)/,function(m){return m.replace(/\B(?=(\d{3})+$)/g,",");});}
@@ -3299,11 +3416,11 @@ function pmRenderMain(host){
  h+="</div><aside class='pmq-prev' id='pm-qprev'"+(pv?"":" style='display:none'")+"></aside></div>";
  h+="<div class='pm-h'>Field Crew Instructions</div><div class='row'>"+((V.fci||[]).length?"<select id='pm-fcisel'>"+V.fci.map(function(o,i){return "<option value='"+i+"'>"+pmEsc(o.label)+"</option>";}).join("")+"</select> <button class='btn' id='pm-fciins'>Insert</button>":"")+"<span class='hint' style='margin:0 0 0 8px'>options are edited under Rates &amp; crew instructions</span></div><textarea id='pm-fci' rows='6' class='pm-ta'>"+pmEsc(q.fci)+"</textarea>";
  h+="<div class='pm-h'>Notes appended after the fields</div><textarea id='pm-notes' rows='4' class='pm-ta' placeholder='Date received, source, transcription of the request…'>"+pmEsc(q.notes)+"</textarea>";
- h+="<div class='pm-h'>Quote document</div><div class='row'><label class='pm-f' style='flex:1;max-width:560px'><span>Word file name</span><input type='text' id='pm-docname' value='"+pmEsc(q.f.docname||"")+"' placeholder='"+pmEsc(pmqDefaultName(q))+"'></label></div><div class='cu-dl'><button class='btn pri' onclick='pmjSaveToQuoteFolder()' title='saves the Word quote and the job details file into this quote’s folder in Quotes - Documents'>Save both to quote folder (Word quote + job details)</button><button class='btn' onclick='pmqDownloadDocx()'>Download quote (.docx)</button><span class='hint' style='margin:0'>date, GST, disbursements, signatory and contract fill in automatically</span></div><div class='cu-idwarn' id='pm-disbrem' style='display:"+(pmqDisbLine(q)?"none":"block")+"'>No disbursements selected \u2014 title, plans, checklist or filing fee? (Not required \u2014 just a reminder.)</div><div class='row'><label class='cu-sfhit' style='margin:0'><input type='checkbox' id='pm-rs'"+(q.rs?" checked":"")+"> Attach rate sheet (page 2) \u2014 hourly rates, fees &amp; deliverables for "+new Date().getFullYear()+", from the current rates</label></div><div class='cu-err' id='pm-qwarn' style='display:none'></div><div id='pm-qsave' style='display:none'></div>";
+ h+="<div class='pm-h'>Quote document</div><div class='row'><label class='pm-f' style='flex:1;max-width:560px'><span>Word file name</span><input type='text' id='pm-docname' value='"+pmEsc(q.f.docname||"")+"' placeholder='"+pmEsc(pmqDefaultName(q))+"'></label></div><div class='cu-dl'><button class='btn pri' onclick='pmjSaveToQuoteFolder()' title='saves the Word quote and the job details file into this quote’s folder in Quotes - Documents'>Save both to quote folder (Word quote + job details)</button><button class='btn' onclick='pmqDownloadDocx()'>Download quote (.docx)</button><span class='hint' style='margin:0'>date, GST, disbursements, signatory and contract fill in automatically</span></div><div class='cu-idwarn' id='pm-disbrem' style='display:"+(pmqDisbLine(q)?"none":"block")+"'>No disbursements selected \u2014 title, plans, checklist or filing fee? (Not required \u2014 just a reminder.)</div><div class='row'><label class='cu-sfhit' style='margin:0'><input type='checkbox' id='pm-rs'"+(q.rs?" checked":"")+"> Attach rate sheet (page 2) \u2014 hourly rates, fees &amp; deliverables for "+new Date().getFullYear()+", from the current rates</label></div><div class='cu-err' id='pm-qwarn' style='display:none'></div><div id='pm-qsave' style='display:none'></div>"+pmscHtml(q);
  h+="<div class='pm-h'>Job details file</div><div class='cu-dl'><button class='btn pri' onclick='pmDownload()'>Download job details (.txt)</button><button class='btn' onclick='pmCopyJob()' title='copies the job details text, to paste into an email or Teams'>Copy job details</button><button class='btn' onclick='pmCopyRow()' title='one row, columns A–K, to paste into To Do Quotes \u2014 click column A of an empty row, then paste'>Copy tracker row</button><span class='hint' id='pm-copied' style='margin:0'></span></div><div class='jobnote' id='pm-qnote' style='display:none'>Enter the Quote # before saving the job details file.</div>";
  h+="<details class='cu-scman'><summary>Preview</summary><pre class='pm-pre' id='pm-pre'></pre></details>";
  h+=pmRatesHtml()+pmqFavsHtml()+pmqHPsHtml()+pmqSetsHtml();
- h+=pmjFoldersHtml();host.innerHTML=h;pmWireMain(host,q);pmUpdate();pmrInit(q);
+ h+=pmjFoldersHtml();host.innerHTML=h;pmWireMain(host,q);pmUpdate();pmrInit(q);pmscWire(q);
 }
 function pmRatesHtml(){
  var V=PM.vault;
@@ -3315,7 +3432,7 @@ function pmWireMain(host,q){
  pmWireMode(host);pmjWireFolders(host);pmjWireQf(host);
  host.querySelectorAll(".pm-fcix").forEach(function(b){b.onclick=function(){b.closest(".pm-fcie").remove();};});
  host.querySelectorAll(".pm-bar .cu-src").forEach(function(el){el.onclick=function(e){if(e.target.classList.contains("cu-srcx"))return;PM.cur=el.dataset.q;pmRender();};});
- host.querySelectorAll(".pm-bar .cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();var x=PM.quotes.find(function(z){return z.id===b.dataset.q;});if(!confirm((x&&pmUnsaved(x)?"This quote was never downloaded since its last change \u2014 deleting it loses the draft.\n\n":"")+"Delete the draft "+((x&&x.f.qn)||"(no quote #)")+" from this device?"))return;PM.quotes=PM.quotes.filter(function(z){return z.id!==b.dataset.q;});if(PM.cur===b.dataset.q)PM.cur=PM.quotes[0]?PM.quotes[0].id:null;pmQuotesSave();pmRender();};});
+ host.querySelectorAll(".pm-bar .cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();var x=PM.quotes.find(function(z){return z.id===b.dataset.q;});if(!confirm((x&&pmUnsaved(x)?"This quote was never downloaded since its last change \u2014 deleting it loses the draft.\n\n":"")+"Delete the draft "+((x&&x.f.qn)||"(no quote #)")+" from this device?"))return;pmscDropFor(x);PM.quotes=PM.quotes.filter(function(z){return z.id!==b.dataset.q;});if(PM.cur===b.dataset.q)PM.cur=PM.quotes[0]?PM.quotes[0].id:null;pmQuotesSave();pmRender();};});
  var imp=document.getElementById("pm-imp");if(imp)imp.onchange=function(){if(imp.files[0])pmImportFile(imp.files[0]);imp.value="";};
  pmqWireFavs(host);
  if(!q)return;
@@ -3370,9 +3487,13 @@ function pmTsv(text){var rows=[],row=[],cell="",i=0,q=false,t=String(text).repla
 function pmRowsFromText(text){if(String(text).indexOf("\t")<0)return [];
  return pmTsv(text).filter(function(r){return r.length>=6&&r.some(function(c){return c.trim();})&&!/^client\s*name$/i.test((r[1]||"").trim())&&!/^quote\s*#$/i.test((r[0]||"").trim());});}
 /* a selection that doesn't start at column A (e.g. Client to Service) is lined up by the email column (D) */
-function pmRowAlign(r){var k=-1;for(var i=0;i<r.length;i++){if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(r[i]).trim())){k=i;break;}}
+/* 1.36: an email cell can hold several addresses ("a@x.com, b@y.ca") */
+var PM_EMAILS=/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+(\s*[,;/]?\s*[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+)*$/;
+function pmRowAlign(r){var k=-1;for(var i=0;i<r.length;i++){if(PM_EMAILS.test(String(r[i]).trim())){k=i;break;}}
  if(k<0||k===3)return r;return k<3?new Array(3-k).fill("").concat(r):r.slice(k-3);}
-function pmRowVals(r){var v={};r=pmRowAlign(r);PM_ROWCOLS.forEach(function(k,i){v[k]=String(r[i]||"").replace(/\s*\n\s*/g,k==="task"||k==="pmc"?"\n":" ").trim();});return v;}
+function pmRowVals(r){var v={};r=pmRowAlign(r);PM_ROWCOLS.forEach(function(k,i){v[k]=String(r[i]||"").replace(/\s*\n\s*/g,k==="task"||k==="pmc"?"\n":" ").trim();});
+ /* 1.36: only a real quote number goes in Quote # (a mis-lined paste must never make a client name the number) */
+ if(v.qn&&!/^\d{2}-\d{2,5}[A-Z]?$/i.test(v.qn))v.qn="";return v;}
 /* rows for the same client (same name and email, same or no Quote #) but different sites can become one quote with several properties */
 function pmRowGroups(vals){var groups=[],key=function(v){return [(v.client||v.contact).toLowerCase().replace(/\s+/g," "),v.email.toLowerCase(),v.qn.toUpperCase()].join("|");};
  vals.forEach(function(v){var k=key(v),g=(v.client||v.contact)&&v.site?groups.find(function(x){return x.k===k&&x.rows[0].site.toLowerCase()!==v.site.toLowerCase();}):null;if(g)g.rows.push(v);else groups.push({k:k,rows:[v]});});return groups;}
@@ -3438,7 +3559,7 @@ function pmParseJob(text){
   if(mode==="sub"){sub.push(st);if(/^total\s*before\s*gst/i.test(st))mode="after";continue;}
   if(mode==="after"){if(st&&!/^gst\s*extra\.?$/i.test(st))after.push(s);continue;}
   notes.push(s);}
- var q={id:"q"+Date.now(),updated:Date.now(),f:f,secs:[],disb:{},other:{label:"",amt:""},fci:fci.join("\n"),notes:notes.concat(after.length?[""].concat(after):[]).join("\n").replace(/^\s+|\s+$/g,"")};
+ var q={id:pmUid(),updated:Date.now(),f:f,secs:[],disb:{},other:{label:"",amt:""},fci:fci.join("\n"),notes:notes.concat(after.length?[""].concat(after):[]).join("\n").replace(/^\s+|\s+$/g,"")};
  var rep={read:0,unread:[],rateDiff:[]};
  /* hours: Sublabour block first */
  var cur=null,tgt=null,HR=/(\d+(?:\.\d+)?)\s*hrs?\.?\s+(.+?)\s*(?:x|@|×|\*)\s*\$\s*([\d,]+(?:\.\d+)?)\s*\/\s*hr/i;

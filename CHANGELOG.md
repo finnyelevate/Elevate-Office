@@ -1,5 +1,24 @@
 # Elevate Office — changelog
 
+## Build 1.36 — 2026-10-27
+- **PM › Scope page on the Word quote** (optional).
+  - Under *Quote document*, **Scope page** adds a page in one of three ways:
+    - **From a PDF…**: pick the PDF, then click the page to use (a multi-page PDF shows thumbnails).
+    - **From a picture…**: a PNG or JPG.
+    - Click the box and paste a screenshot (Ctrl+V), or drop a file on it.
+  - Add a caption if you like (e.g. "Scope of work — highlighted area"). Usually there's one page; **+ another page** covers the rare case of several.
+  - On the Word quote, it's its own page after the signature block and **before the rate sheet**: a teal **SCOPE OF WORK** heading, the picture at full page width (proportions kept), then the caption.
+  - The quote points to it: "See page 2 for the scope of work and page 3 for our hourly rates, fees & deliverables." A note that mentions the attached hourly rate sheet now says "…on page 3".
+    - These are Word page fields, so Word corrects them if the quote runs longer; they refresh when you print or save as PDF.
+    - The numbers the app writes are its own estimate, checked against 30+ test quotes of different lengths.
+  - The picture is kept with the draft on this computer, shown in the live preview, and saved inside the Word file. Reopening the Word quote with **Open a quote** brings the picture back, even on another computer.
+  - Sub-quotes start without a scope page.
+- **Fix — tracker rows pasted together could become "linked" drafts.**
+  - Quotes made at the same moment (several rows pasted at once) got the same hidden ID, so selecting, saving or deleting one affected the other.
+  - Every draft now gets its own ID, and drafts already linked are separated automatically when the app opens; both are kept.
+- **Fix — tracker paste with two emails in one cell** ("a@x.com, b@y.ca"). A selection that doesn't start at column A now lines up correctly instead of shifting every field. Only a real quote number (e.g. 26-641) is ever put in Quote #.
+- **PM › Job map preview:** once you click into the map to pan or zoom, the green pin hides (it marks the frame centre, so it would drift) and a note says so. **Re-centre** brings back the map at the address with the pin. Tip: the map's + / − buttons zoom on the centre.
+
 ## Build 1.35 — 2026-10-26
 - **PM › Research buttons under each site address.**
   - **City GIS** is picked from the city in the address, using the same list as the Resources tab (Surrey → COSMOS, Coquitlam, Burnaby, Vancouver and so on).
