@@ -1,5 +1,37 @@
 # Elevate Office — changelog
 
+## Build 1.37 — 2026-10-28
+- **Points › Height check** (new tool button), to catch topo heights that are too high or too low before the drawing goes out.
+  - Load the topo's **.msz** in the Points tab as usual, open **Height check**, then **Add drawing (.dwg / .dxf)**.
+    - Every point is matched to the drawing exactly, by MicroSurvey's own link between the two.
+    - The layer that counts is each point's **elevation text** layer.
+    - The DWG reader loads only the first time a DWG is picked, which takes a few seconds; a DXF works too.
+  - **Ground layers** (the surface) start as ELEVATION, FIELD <date> ELVS, CONTROL and ELEV_TREE. Tick others in or out; your choice is remembered on this computer.
+    - **HIDE is always ignored:** those heights have already been dealt with.
+    - Inverts are never treated as ground.
+  - **What gets flagged:**
+    - A ground shot more than **0.30 m** (adjustable) above or below **all** the points around it.
+      - Ditch and bank shots (DB, BB …) are compared with their own kind nearby, so a ditch isn't flagged for being lower than the bank.
+      - A FIELD-visit shot that disagrees with the original topo says "site change or error?".
+    - **Trees** more than 0.30 m above (or below) the ground around them, e.g. a reflectorless trunk shot.
+    - **Reflectorless shots not at target height 99**, on ground or tree points, when the package holds the raw shots.
+    - The **same spot shot twice** at heights more than 0.10 m apart, and **0.00 elevations** on a ground layer.
+  - **The view:** a plan of the points coloured by height, with contours (0.25 / 0.5 / 1 m or off) and flagged points circled. A bad height shows as a bullseye.
+    - Scroll to zoom, drag to move, click a point to see its number, description, height, layer and why it's flagged.
+    - Below the plan is the list (click a row to go to it) and **Copy list**.
+  - The flags are *worth a look*, not verdicts: a real pit, mound or wall can stand out too.
+  - Tested on 26-3582: it flags 5160, 5398, 5186, 4216 and 4199 (the bullseyes in your contours) and no trees. A height raised 1.2 m and a tree shot 1.5 m up the trunk were both caught.
+- **PM › BC Assessment** button under each site address, alongside ParcelMap BC, Job map and Google Maps (the address is copied, ready to paste). BC Assessment is also added to Resources.
+- **PM › Next quote number: no silent jumps.**
+  - The note now names the folder the count started from ("Next free number after 26-652 ('Elev. Survey Quotes 26-652-…')").
+  - If the next number would skip a run of unused numbers, it warns ("26-652 may be a mistyped number") and offers **Use 26-643 instead**. This covers a lone or mistyped folder, like the jump that turned 26-643 into 26-653.
+  - A Quote # brought in from a tracker row that skips numbers is questioned the same way before its folder is created.
+  - **Renumber…** works the same way.
+- **PM › Convert to job: the job folder is found by its last digits.** Job numbers run in one sequence, so if the year part is typed wrong (24-2353), the app finds **23-2353**, asks, and uses it (fixing the Job # field). It never makes a second folder for the same job digits.
+- **PM › Tidy moves folders file by file instead of copying them.**
+  - The browser can move files but not folders, so a folder like DRAFTS or "Field Data 2021" is re-made in its new place and every file is moved into it, subfolders included. There are no duplicate copies to check.
+  - The old folders are left **empty** and listed as "Now empty — safe to delete". The app still never deletes anything.
+
 ## Build 1.36 — 2026-10-27
 - **PM › Scope page on the Word quote** (optional).
   - Under *Quote document*, **Scope page** adds a page in one of three ways:

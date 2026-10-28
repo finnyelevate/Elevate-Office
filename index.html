@@ -329,6 +329,9 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .pmq-wrap.pv .pm-sec{max-width:none}
 .pmq-prev{position:sticky;top:64px;max-height:calc(100vh - 72px);overflow:auto;min-width:0}
 @media (max-width:1340px){.pmq-wrap.pv{grid-template-columns:1fr;width:auto;margin-left:0}.pmq-prev{position:static;max-height:none}}
+.hc-src{font-size:13px;margin:3px 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.hc-layers{margin:6px 0;font-size:13px}.hc-lay{display:flex;flex-wrap:wrap;gap:4px 16px;margin:6px 0}
+.hc-wrap{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:10px;margin:8px 0}.hc-cv{width:100%;height:560px;border:1px solid var(--hair);background:#fff;cursor:grab;display:block}.hc-info{font-size:13px;border:1px solid var(--hair);background:var(--panel);padding:8px;align-self:start}
+@media (max-width:900px){.hc-wrap{grid-template-columns:1fr}}.hc-tbl tr[data-hcp]{cursor:pointer}.hc-tbl tr.on td{background:#fdf6e7}.hc-tbl td{vertical-align:top;font-size:12.5px}
 .pmr-strip{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 2px}.pmr-strip:empty{display:none}
 .pmr-lab{font:600 10.5px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-right:2px}
 .pmr-b{padding:4px 10px;font-size:12px;text-decoration:none;color:inherit}
@@ -778,6 +781,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
       <li><a href="https://clss.nrcan.gc.ca/mb-nc/en/index.html" target="_blank" rel="noopener">Canada Lands plans (CLSS)</a></li>
       <li><a href="https://a100.gov.bc.ca/pub/pls/gator/gator$queryforms.menu" target="_blank" rel="noopener">Crown Grants (GATOR)</a></li>
       <li><a href="https://maps.ltsa.ca/" target="_blank" rel="noopener">ParcelMap BC (LTSA)</a></li>
+      <li><a href="https://www.bcassessment.ca/" target="_blank" rel="noopener">BC Assessment</a></li>
       <li><a href="https://geonetbc.gov.bc.ca/geonetbc" target="_blank" rel="noopener">GeoNetBC — geodetic control</a></li>
     </ul>
   </div>
@@ -811,8 +815,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.36";
-const NEWS=["PM: Scope page \u2014 attach a marked-up PDF page, a picture or a pasted screenshot; it prints on its own page after the quote (before the rate sheet), with an optional caption, and the quote says \u201cSee page 2 for the scope of work\u2026\u201d.", "PM: fix \u2014 several tracker rows pasted at once now make fully separate quotes (they could be linked, so deleting one deleted the other). Drafts already linked are separated automatically.", "PM: tracker rows with two emails in one cell paste into the right fields.", "PM: job map preview \u2014 the green pin hides once you move the map; Re-centre brings it back."];
+const BUILD="1.37";
+const NEWS=["Points: Height check \u2014 load the topo .msz and add its drawing (.dwg / .dxf): ground heights out of line with the points around them, trees above the ground, reflectorless shots not at 99 and spots shot twice at different heights are flagged on a coloured plan with contours. HIDE is always ignored.", "PM: BC Assessment button under each site address (and in Resources).", "PM: the next quote number names the folder it counted from, and warns when it would skip unused numbers (e.g. a stray 26-652) \u2014 with a button for the right one.", "PM: Convert to job finds the job folder by its last digits if the year part is typed wrong (24-2353 \u2192 23-2353), and never makes a second folder for the same job.", "PM: Tidy moves folders file by file instead of copying them \u2014 the old folders are left empty, listed as safe to delete."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -2478,7 +2482,7 @@ function pmqWireLists(host){
 }
 
 /* ---------- 1.35: research links under each site address, and a job map preview with the address pinned ---------- */
-var PMR_MID="1b2eNsbiIgDsWLYNYHdewCsDMLCDKmQ8",PMR_PARCEL="https://maps.ltsa.ca/";
+var PMR_MID="1b2eNsbiIgDsWLYNYHdewCsDMLCDKmQ8",PMR_PARCEL="https://maps.ltsa.ca/",PMR_BCA="https://www.bcassessment.ca/";
 /* city in the address -> the GIS list's names (Resources tab); ambiguous names give both */
 var PMR_CITY=[
  [/\bport\s*coquitlam\b|\bpoco\b/,["Port Coquitlam"]],[/\bport\s*moody\b/,["Port Moody"]],[/\bcoquitlam\b/,["Coquitlam"]],
@@ -2520,6 +2524,8 @@ function pmrStripHtml(q,i,p){if(pmrIsSub(q)||!(p.site||"").trim())return "<div c
  h+=btn("ParcelMap BC",PMR_PARCEL,pid||a,"opens ParcelMap BC (LTSA); "+(pid?"the PID":"the address")+" is copied — paste it into the search");
  h+=btn("Job map",geo&&geo.exact?"https://www.google.com/maps/d/viewer?mid="+PMR_MID+"&ll="+geo.lat+","+geo.lng+"&z=19":"https://www.google.com/maps/d/viewer?mid="+PMR_MID,geo&&geo.exact?"":a,"your job map (Google My Maps)"+(geo&&geo.exact?", at this address":"; the address is copied"));
  h+=btn("Google Maps","https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a),"","street view and aerial for this address");
+ /* 1.37: BC Assessment (assessed values, property details) — its search takes the address */
+ h+=btn("BC Assessment",PMR_BCA,a,"opens BC Assessment; the address is copied \u2014 paste it into the search");
  h+="<button class='btn pmr-b' data-pmap='"+i+"' title='show your job map here, with this address pinned'>"+(PM.mapOpen&&PM.mapAt===i&&pmrMapOn()?"Hide job map":"Job map preview")+"</button><span class='hint pmr-msg' style='margin:0'></span>";
  return "<div class='pmr-strip' data-pr='"+i+"'>"+h+"</div>";}
 function pmrMapOn(){try{return sget("eo:pmmap")!=="0";}catch(e){return true;}}
@@ -2958,13 +2964,23 @@ function pmjTidyDest(name,kind){if(/^(field|office)$/i.test(name)||pmjJunk(name)
  return {into:"Office",contents:false};}
 async function pmjFindCI(dir,name,kind){if(!dir)return null;var lo=name.toLowerCase(),l=await pmjList(dir);
  for(var i=0;i<l.length;i++)if(l[i].name.toLowerCase()===lo&&(!kind||l[i].kind===(kind==="dir"?"directory":"file")))return l[i];return null;}
-async function pmjJobDir(job,make){var R=pmjRanges(job);if(!R||!PMJ.dirs.jobs)return null;var root=await pmjDir("jobs",!!make),th=await pmjChild(root,R.th,"dir"),hu=th&&await pmjChild(th,R.hu,"dir"),jd=hu&&await pmjChild(hu,R.job,"dir");return jd?{dir:jd,R:R}:null;}
+async function pmjJobDir(job,make){var R=pmjRanges(job);if(!R||!PMJ.dirs.jobs)return null;var root=await pmjDir("jobs",!!make),th=await pmjChild(root,R.th,"dir"),hu=th&&await pmjChild(th,R.hu,"dir"),jd=hu&&await pmjChild(hu,R.job,"dir");
+ if(jd)return {dir:jd,R:R};
+ /* 1.37: job numbers run in one sequence, so the last digits identify the job — a wrong year prefix (24-2353 for 23-2353) still finds it */
+ var al=hu&&await pmjJobAlias(hu,R.job);return al?{dir:al,R:Object.assign({},R,{job:al.name}),alias:true,typed:R.job}:null;}
+async function pmjJobAlias(hu,job){var m=String(job).match(/^\d{2}-(\d{3,5})$/);if(!m)return null;var l=await pmjList(hu);
+ return l.find(function(h){if(h.kind!=="directory")return false;var k=h.name.match(/^(\d{2})-(\d{3,5})$/);return k&&k[2]===m[1]&&h.name!==job;})||null;}
+/* 1.37: when the typed job # only matches by its last digits, ask before using the existing folder (and fix the Job # field) */
+function pmjAliasOk(X){if(!X||!X.alias)return true;var J=PMJ.j;
+ if(!confirm("Found job folder "+X.R.job+" (you typed "+X.typed+").\n\nJob numbers share one sequence, so this looks like the same job.\n\nOK = use "+X.R.job+"\nCancel = check the number")){J.aliasNo=X.R.job;return false;}
+ J.job=X.R.job;J.aliasNo=null;var el=document.getElementById("pm-jno");if(el)el.value=X.R.job;return true;}
 /* how many of src's items are not yet in dest (by name, any capitals) */
 async function pmjNotYetIn(src,dest){var a=await pmjList(src),b=dest?(await pmjList(dest)).map(function(h){return h.name.toLowerCase();}):[];
  return a.filter(function(h){return !pmjJunk(h.name)&&b.indexOf(h.name.toLowerCase())<0;}).length;}
 async function pmjCheckJob(quiet){
  var J=PMJ.j;if(!J)return;J.exist=null;
- try{var X=await pmjJobDir(J.job,false);if(!X){if(!quiet)pmRender();return;}
+ try{var X=await pmjJobDir(J.job,false);if(!X){J.aliasNo=null;if(!quiet)pmRender();return;}
+  if(X.alias&&!pmjAliasOk(X)){if(!quiet)pmRender();return;}
   var top=await pmjList(X.dir),plan=[],missing=[],done=[],empty=[],subs={};
   for(var a=0;a<PMJ_JOBSUB.length;a++){var p=PMJ_JOBSUB[a],d=await pmjFindCI(X.dir,p[0],"dir");if(!d)missing.push(p[0]);subs[p[0]]=d;
    for(var b=0;b<p[1].length;b++)subs[p[0]+"/"+p[1][b]]=d?await pmjFindCI(d,p[1][b],"dir"):null;}
@@ -2995,6 +3011,10 @@ async function pmjMoveOrCopy(h,dest,nm,out,label){
   try{if(nm&&nm!==h.name)await h.move(dest,nm);else await h.move(dest);out.moved++;return "moved";}
   catch(e){if(!(e&&(e.name==="NotSupportedError"||e.name==="NotAllowedError"||e.name==="InvalidModificationError"||e.name==="TypeError"))){out.left.push(label+" ("+((e&&e.message)||e)+")");return "left";}
    if(dirK)out.noMoveDir=true;else out.noMoveFile=true;}}
+ /* 1.37: a folder the browser can't move in one go is moved piece by piece — same folder made at the destination, every file moved into it; the old folder is left empty (the app never deletes) */
+ if(dirK){var d2=await dest.getDirectoryHandle(name,{create:true}),kids=await pmjList(h),c0=out.copied,l0=out.left.length;
+  for(var i=0;i<kids.length;i++){if(pmjJunk(kids[i].name))continue;await pmjMoveOrCopy(kids[i],d2,null,out,label+" \u203a "+kids[i].name);}
+  out.dirsByPiece=(out.dirsByPiece||0)+1;return (out.copied>c0||out.left.length>l0)?"copied":"emptied";}
  var r=await pmjCopyTree(h,dest,name,out,label);if(r){out.copied++;out.copiedAny=true;}return r?"copied":"left";}
 async function pmjMergeInto(src,dest,out,label){var kids=await pmjList(src);
  for(var i=0;i<kids.length;i++){if(pmjJunk(kids[i].name))continue;await pmjMoveOrCopy(kids[i],dest,null,out,label+" › "+kids[i].name);}}
@@ -3009,8 +3029,8 @@ async function pmjCopyTree(src,destParent,name,out,label){
 async function pmjTidyJob(){
  var J=PMJ.j,E=J&&J.exist;if(!E||!E.plan)return;
  var lines=E.plan.map(pmjPlanLine);
- if(!confirm("Tidy job folder "+E.path+"?\n\nCreate Field › Data, Uploads and Office › Obsolete, Requests where missing, then:\n"+lines.slice(0,25).join("\n")+(lines.length>25?"\n… and "+(lines.length-25)+" more":"")+"\n\nNothing is deleted or overwritten. If the browser can’t move a folder it is copied instead, and the original is listed for you to delete."))return;
- var out={moved:0,copied:0,left:[],made:[],cleanup:[],noMoveDir:false,noMoveFile:false};
+ if(!confirm("Tidy job folder "+E.path+"?\n\nCreate Field › Data, Uploads and Office › Obsolete, Requests where missing, then:\n"+lines.slice(0,25).join("\n")+(lines.length>25?"\n… and "+(lines.length-25)+" more":"")+"\n\nNothing is deleted or overwritten. Folders the browser can’t move in one go are moved file by file; the old folders are left empty for you to delete."))return;
+ var out={moved:0,copied:0,left:[],made:[],cleanup:[],emptied:[],noMoveDir:false,noMoveFile:false};
  try{var X=await pmjJobDir(J.job,true),jd=X.dir,dirs={};
   var placing={};E.plan.forEach(function(p){if(p.contents&&p.place)placing[p.into]=true;});
   for(var i=0;i<PMJ_JOBSUB.length;i++){var p=PMJ_JOBSUB[i],d=await pmjFindCI(jd,p[0],"dir");if(!d){d=await jd.getDirectoryHandle(p[0],{create:true});out.made.push(p[0]);}dirs[p[0]]=d;
@@ -3020,12 +3040,12 @@ async function pmjTidyJob(){
    if(P.contents){
     if(!dirs[key2]){/* no Requests / Data yet: the old folder becomes it */
      var c0=out.copied,r=await pmjMoveOrCopy(P.h,parent,sub,out,lab);dirs[key2]=await pmjFindCI(parent,sub,"dir");
-     if(r==="copied")out.cleanup.push(lab+" — copied as "+key2.replace("/"," › ")+"; delete the original once you’ve checked");
+     if(r==="copied")out.cleanup.push(lab+" — copied as "+key2.replace("/"," › ")+"; delete the original once you’ve checked");else if(r==="emptied")out.emptied.push(lab+" (now "+key2.replace("/"," › ")+")");
      else if(r==="left"&&!dirs[key2]){dirs[key2]=await parent.getDirectoryHandle(sub,{create:true});out.made.push(key2.replace("/"," › "));}}
     else{var c1=out.copied,l1=out.left.length;await pmjMergeInto(P.h,dirs[key2],out,lab);
-     if(out.left.length===l1)out.cleanup.push(lab+(out.copied>c1?" — copied into "+key2.replace("/"," › ")+"; delete the original once you’ve checked":" — now empty; delete it if you like"));}}
+     if(out.left.length===l1){if(out.copied>c1)out.cleanup.push(lab+" — copied into "+key2.replace("/"," › ")+"; delete the original once you’ve checked");else out.emptied.push(lab+" (moved into "+key2.replace("/"," › ")+")");}}}
    else{var dest=sub?dirs[key2]:parent;if(!dest){dest=await parent.getDirectoryHandle(sub,{create:true});dirs[key2]=dest;}
-    var r2=await pmjMoveOrCopy(P.h,dest,null,out,lab);if(r2==="copied")out.cleanup.push(lab+" — copied into "+key2.replace("/"," › ")+"; delete the original once you’ve checked");}}
+    var r2=await pmjMoveOrCopy(P.h,dest,null,out,lab);if(r2==="copied")out.cleanup.push(lab+" — copied into "+key2.replace("/"," › ")+"; delete the original once you’ve checked");else if(r2==="emptied")out.emptied.push(lab+" (moved into "+key2.replace("/"," › ")+")");}}
  }catch(e){out.err=(e&&e.message)||String(e);}
  J.tidyOut=out;await pmjCheckJob(true);pmRender();
 }
@@ -3036,6 +3056,8 @@ async function pmjCreate(){
   var root=await pmjDir("jobs",true),th=await pmjChild(root,R.th,"dir");
   if(!th){J.err="There’s no “"+R.th+"” folder in "+root.name+" — check the right folder is connected. Nothing was created.";pmRender();return;}
   var hu=await pmjChild(th,R.hu,"dir"),newRange=!hu,existing=!!(hu&&await pmjChild(hu,R.job,"dir"));
+  /* 1.37: never make a second folder for the same job digits */
+  if(!existing&&hu){var al=await pmjJobAlias(hu,R.job);if(al){if(!pmjAliasOk({alias:true,R:Object.assign({},R,{job:al.name}),typed:R.job})){J.err="Job folder "+al.name+" already has these digits \u2014 nothing was created. Check the Job #.";pmRender();return;}R=pmjRanges(al.name);existing=true;}}
   if(existing){if(!confirm("Job folder "+R.job+" already exists.\n\nAdd this quote to it?\n• copy "+J.files.length+" item"+(J.files.length===1?"":"s")+" from "+J.folder.name+" into Office (files already there are kept, never replaced)\n• add Office › Requests › "+pmjApprName(J.appr)+"\n• create Field / Office folders that are missing"))return;}
   else if(!confirm("Create job folder "+R.job+"?\n\nJob Files - Documents › "+R.th+" › "+R.hu+" › "+R.job+(newRange?"\n(the "+R.hu+" folder will be created too)":"")+"\n\nand copy "+J.files.length+" item"+(J.files.length===1?"":"s")+" from "+J.folder.name+" into Office."))return;
   if(!hu)hu=await th.getDirectoryHandle(R.hu,{create:true});
@@ -3061,6 +3083,7 @@ function pmjExistHtml(J){var E=J.exist,h="";
   if(old.length)h+="<div class='hint' style='margin:6px 0 0'>Old folders you can delete yourself: "+old.map(pmEsc).join(" · ")+"</div>";
   h+="</div>";}
  var T=J.tidyOut;if(T){h+="<div class='"+(T.err?"cu-err":"cu-sfhit")+"' style='display:block'>"+(T.err?pmEsc(T.err):"<b>Tidy-up:</b> "+(T.made.length?"created "+T.made.map(pmEsc).join(", ")+". ":"")+"Moved "+T.moved+" item"+(T.moved===1?"":"s")+(T.copied?", copied "+T.copied+" (the browser couldn’t move them)":"")+"."
+  +((T.emptied||[]).length?"<div style='margin-top:4px'><b>Now empty \u2014 safe to delete</b> (everything in them was moved; the app never deletes):<ul style='margin:4px 0 0 18px'>"+T.emptied.map(function(x){return "<li>"+pmEsc(x)+"</li>";}).join("")+"</ul></div>":"")
   +(T.cleanup.length?"<div style='margin-top:4px'><b>Delete these old folders yourself</b> (the app never deletes):<ul style='margin:4px 0 0 18px'>"+T.cleanup.map(function(x){return "<li>"+pmEsc(x)+"</li>";}).join("")+"</ul></div>":"")
   +(T.left.length?"<div class='cu-idbad' style='margin-top:4px'><b>Not done — sort these in File Explorer:</b><ul style='margin:4px 0 0 18px'>"+T.left.map(function(x){return "<li>"+pmEsc(x)+"</li>";}).join("")+"</ul></div>":""))+"</div>";}
  return h;}
@@ -3071,7 +3094,7 @@ function pmjRender(host){
  h+="<div class='pm-step'><b>1</b> Accepted quote</div><div class='row'><label class='pm-f'><span>Quote #</span><input type='text' id='pm-jqn' class='mono' value='"+pmEsc(J.qn)+"' placeholder='26-561' style='width:140px'></label> <button class='btn pri' id='pm-jfind' style='align-self:flex-end'>Find quote folder</button></div><div id='pm-jchoose' style='display:none' class='cu-sfhit'></div>";
  if(J.folder)h+="<div class='pm-jfold'>Quote folder: <b>"+pmEsc(J.folder.name)+"</b> — "+J.files.length+" item"+(J.files.length===1?"":"s")+" to copy into Office"+(J.files.length?": <span class='hint' style='margin:0'>"+J.files.map(function(x){return pmEsc(x.name)+(x.name===pmjPickJobTxt(J.files.map(function(y){return y.name;}),J.f.qn||J.qn)&&R?" → "+pmEsc(R.job)+"-job details.txt":"");}).join(" · ")+"</span>":"")+"</div>";
  if(J.folder||J.src){var sm=[J.f.client,J.f.addr].map(function(v){return String(v||"").trim();}).filter(Boolean);h+="<p class='hint' style='margin:4px 0'>"+(sm.length?"<b>"+sm.map(pmEsc).join(" · ")+"</b> — from "+pmEsc(J.src)+". Check it’s the right quote.":"No draft or job details found in the folder — check the folder is the right quote.")+"</p>";}
- h+="<div class='pm-step'><b>2</b> Job number</div><div class='row'><label class='pm-f'><span>Job # (from the online app)</span><input type='text' id='pm-jno' class='mono' value='"+pmEsc(J.job)+"' placeholder='26-3466' style='width:140px'></label></div><p class='hint' style='margin:4px 0'>Enter the job in the online app first — it issues the job number.</p>"+pmjExistHtml(J);
+ h+="<div class='pm-step'><b>2</b> Job number</div><div class='row'><label class='pm-f'><span>Job # (from the online app)</span><input type='text' id='pm-jno' class='mono' value='"+pmEsc(J.job)+"' placeholder='26-3466' style='width:140px'></label></div><p class='hint' style='margin:4px 0'>Enter the job in the online app first — it issues the job number.</p>"+(J.aliasNo?"<div class='cu-idwarn'>Job folder <b>"+pmEsc(J.aliasNo)+"</b> already has these last digits \u2014 check the Job #. A second folder for the same job number won\u2019t be created.</div>":"")+pmjExistHtml(J);
  h+="<div class='pm-step'><b>3</b> Job folder</div><div class='row'><label class='pm-f'><span>Approval date</span><input type='date' id='pm-jappr' value='"+pmEsc(J.appr)+"'></label></div>";
  h+="<pre class='pm-pre pm-tree'>"+(R?"Job Files - Documents › "+R.th+" › "+R.hu+" › "+R.job+"\n":"Job Files - Documents › … › (job #)\n")+"  Field\n    Data\n    Uploads\n  Office\n    "+(J.folder?"("+J.files.length+" item"+(J.files.length===1?"":"s")+" from the quote folder)\n    ":"")+"Obsolete\n    Requests\n      "+pmEsc(pmjApprName(J.appr)||"yy-mm-dd-approval")+"</pre>";
  h+="<div class='cu-dl'><button class='btn pri' id='pm-jcreate'"+(why.length?" disabled title='"+pmEsc("To do: "+why.join("; "))+"'":"")+">"+(J.exist&&J.exist.path?"Add to existing job":"Create job folder")+"</button><span class='hint' style='margin:0'>"+(why.length?"To do: "+pmEsc(why.join("; ")):"only adds folders and copies files — never deletes or overwrites")+"</span></div>";
@@ -3105,8 +3128,8 @@ function pmjRangeName(yy,h){var lo=h*100;return "Elev. Survey Quotes "+yy+"-"+pm
 async function pmjQuotePlan(root,yy,N){
  var top=await pmjDirs(root),all=await pmjYearQuotes(root,yy,null,top),names={};
  top.forEach(function(e){names[e.h.name.toLowerCase()]=1;});
- var used={};all.forEach(function(x){used[x.n]=1;});var max=all.reduce(function(a,x){return Math.max(a,x.n);},0);
- var plan={top:top,used:used,max:max,names:names,tidy:[],year:null};
+ var used={},byN={};all.forEach(function(x){used[x.n]=1;if(!byN[x.n])byN[x.n]=x.h.name;});var max=all.reduce(function(a,x){return Math.max(a,x.n);},0);
+ var plan={top:top,used:used,byN:byN,max:max,names:names,tidy:[],year:null};
  if(N!=null){
   /* finished hundreds still loose at the top -> their range folder */
   var groups={};top.forEach(function(e){if(e.k&&e.k.quote&&e.k.yy===yy&&e.k.n>0&&Math.floor(e.k.n/100)<Math.floor(N/100)){var g=Math.floor(e.k.n/100);(groups[g]=groups[g]||[]).push(e.h);}});
@@ -3122,11 +3145,13 @@ function pmjByHtml(q){var cl=pmjNameFor(q,"client"),c=pmjNameFor(q,"contact");va
 /* 1.32: renumber a quote whose number another quote already has — suggests the next free number, checks it, never touches the other quote */
 async function pmjRenumber(){
  var q=pmCurQ();if(!q)return;var old=(q.f.qn||"").trim(),mq=pmjQnParts(old),yy=mq?mq.yy:pmjYY(),used={},max=0,src="your drafts";
- if(pmjFsOk()&&PMJ.dirs.quotes){try{var L=await pmjQuotePlan(await pmjDir("quotes",false),yy,null);used=L.used||{};max=L.max||0;src="Quotes - Documents and your drafts";}catch(e){}}
+ var gapT="",LL=null;if(pmjFsOk()&&PMJ.dirs.quotes){try{var L=await pmjQuotePlan(await pmjDir("quotes",false),yy,null);LL=L;used=L.used||{};max=L.max||0;src="Quotes - Documents and your drafts";}catch(e){}}
  var dq={};PM.quotes.forEach(function(x){if(x.id===q.id)return;var m=pmjQnParts((x.f.qn||"").trim());if(m&&m.yy===yy){dq[m.n]=1;if(m.n>max)max=m.n;}});
  var sug=yy+"-"+pmjPad(max+1),ans=sug;
+ /* 1.37: name the folder that set the count, and suggest the first free number after the last unbroken run when there's a suspicious gap */
+ if(LL&&LL.max&&max===LL.max){var gp=pmjGap(LL,yy,max+1,false);if(gp){gapT="\n\n\u26a0 "+gp.t;sug=gp.alt;}else if(LL.byN[max])gapT="\n(highest folder: \u201c"+LL.byN[max]+"\u201d)";}
  for(var tries=0;tries<4;tries++){
-  ans=prompt("Renumber quote "+(old||"(no number)")+" to:\n\nSuggested: the next free number after "+(max?yy+"-"+pmjPad(max):"none")+" (checked "+src+"). The other quote and its folder are left as they are.",sug);
+  ans=prompt("Renumber quote "+(old||"(no number)")+" to:\n\nSuggested: the next free number after "+(max?yy+"-"+pmjPad(max):"none")+" (checked "+src+"). The other quote and its folder are left as they are."+gapT,sug);
   if(ans==null)return;ans=String(ans).trim();var m2=pmjQnParts(ans);
   if(!m2){alert("The Quote # should look like 26-591.");continue;}
   if(ans.toUpperCase()===old.toUpperCase())return;
@@ -3146,23 +3171,34 @@ function pmjQfHtml(q){
  var h="<div class='pm-qf'>";if(!P)h+=rn;
  if(q.qfolder)h+="<span class='pm-dok'>Quote folder: "+pmEsc(q.qfolder)+"</span>";
  else if(!P)h+="<button class='btn' id='pm-qfnew' title='finds the next free quote number in Quotes - Documents and creates its folder — only after you confirm'>"+((q.f.qn||"").trim()?"Create quote folder for "+pmEsc(q.f.qn.trim()):"Create next quote folder")+"</button><span class='hint' id='pm-qfhint' style='margin:0"+(pmjShortName(q)?";display:none":"")+"'>needs the client or contact name</span>";
- else{h+="<div class='cu-sfhit'>Create <b>Quotes - Documents › "+pmEsc(pmjQfName(P.qn,""))+"</b><input type='text' id='pm-qfshort' value='"+pmEsc(P.short)+"' style='width:200px'> ? <button class='btn pri' id='pm-qfok'>Create folder</button> <button class='btn' id='pm-qfno'>Cancel</button>"+pmjByHtml(q)+(P.note?"<div class='hint' style='margin:4px 0 0'>"+pmEsc(P.note)+"</div>":"");
+ else{h+="<div class='cu-sfhit'>Create <b>Quotes - Documents › "+pmEsc(pmjQfName(P.qn,""))+"</b><input type='text' id='pm-qfshort' value='"+pmEsc(P.short)+"' style='width:200px'> ? <button class='btn pri' id='pm-qfok'>Create folder</button> <button class='btn' id='pm-qfno'>Cancel</button>"+pmjByHtml(q)+(P.note?"<div class='hint' style='margin:4px 0 0'>"+pmEsc(P.note)+"</div>":"")+(P.warn?"<div class='cu-idwarn' id='pm-qfwarn' style='margin:6px 0 0'>"+pmEsc(P.warn)+" <button class='btn' id='pm-qfalt'>Use "+pmEsc(P.alt)+" instead</button></div>":"");
   (P.tidy||[]).concat(P.year||[]).forEach(function(t,i){var first=t.items[0].name.replace(/^Elev\. Survey Quotes /,""),last=t.items[t.items.length-1].name.replace(/^Elev\. Survey Quotes /,"");
    h+="<label class='cu-cb' style='margin-top:6px'><input type='checkbox' class='pm-qftidy' data-i='"+i+"' checked> Also tidy up as usual: move "+t.items.length+" folder"+(t.items.length===1?"":"s")+" ("+pmEsc(first)+(t.items.length>1?" … "+pmEsc(last):"")+") into <b>"+pmEsc(t.dest)+"</b>"+(P.top.some(function(e){return e.h.name.toLowerCase()===t.dest.toLowerCase();})?"":" (creates it)")+"</label>";});
   h+="</div>";}
  if(PMJ.qfMsg){h+="<div class='"+(PMJ.qfMsg.bad?"cu-err":"hint")+"' style='display:block;margin:4px 0 0'>"+PMJ.qfMsg.t+"</div>";PMJ.qfMsg=null;}
  return h+"</div>";
 }
+/* 1.37: a number that would skip unused numbers is suspicious (26-653 when the last real quote was 26-642) — say which folder set the count, offer the first free one after the last unbroken run */
+function pmjGap(L,yy,N,given){var ns=Object.keys(L.used).map(Number).sort(function(a,b){return a-b;}),max=L.max||0,fmt=function(n){return yy+"-"+pmjPad(n);};
+ if(!given){if(!max)return null;var prev=0;ns.forEach(function(n){if(n<max)prev=n;});if(max-prev-1<3)return null;
+  return {alt:fmt(prev+1),t:"The highest quote folder is "+fmt(max)+" (\u201c"+(L.byN[max]||"")+"\u201d), but "+fmt(prev+1)+(max-prev-1>1?" \u2013 "+fmt(max-1):"")+" are all unused \u2014 "+fmt(max)+" may be a mistyped number. Next free after the last unbroken run: "+fmt(prev+1)+"."};}
+ if(N>max+3&&!L.used[N])return {alt:fmt(max+1),t:fmt(N)+" skips "+fmt(max+1)+" \u2013 "+fmt(N-1)+" \u2014 the highest quote folder is "+(max?fmt(max)+" (\u201c"+(L.byN[max]||"")+"\u201d)":"none this year")+". Is "+fmt(N)+" right?"};
+ return null;}
+function pmjQfAlt(){var q=pmCurQ(),P=PMJ.qf;if(!q||!P||!P.alt)return;var alt=P.alt;
+ if(P.given){var old=(q.f.qn||"").trim();if(q.f.docname&&old&&q.f.docname.indexOf(old)>=0)q.f.docname=q.f.docname.split(old).join(alt);q.f.qn=alt;q.updated=Date.now();pmQuotesSave();PMJ.force=null;}else PMJ.force=alt;
+ PMJ.qf=null;pmjQfStart();}
 async function pmjQfStart(){
  var q=pmCurQ();if(!q)return;var who=pmjShortName(q);
  if(!who){PMJ.qfMsg={bad:true,t:"Enter the client or contact name first — it goes in the folder name."};pmRender();return;}
  try{var root=await pmjDir("quotes",true),qn=(q.f.qn||"").trim(),note="",yy=pmjYY(),N;
   if(qn){var ex=await pmjFindQuoteFolders(qn,"",true);if(ex.length&&!ex.ask){q.qfolder=ex[0].name;pmQuotesSave();PMJ.qfMsg={t:"A folder for "+pmEsc(qn)+" already exists — using it."};pmRender();return;}
    var mq=pmjQnParts(qn);if(!mq){PMJ.qfMsg={bad:true,t:"The Quote # should look like 26-591 (or 26-591B) to create its folder."};pmRender();return;}yy=mq.yy;N=mq.n;if(mq.sub)note="Sub-quote "+qn+": its folder is the main quote’s, "+yy+"-"+pmjPad(N)+".";qn=yy+"-"+pmjPad(N);}
-  var L=await pmjQuotePlan(root,yy,null);
-  if(!qn){N=L.max+1;qn=yy+"-"+pmjPad(N);note="Next free number after "+(L.max?yy+"-"+pmjPad(L.max):"none this year")+" (checked the range and year folders too). The Quote # on this quote will be set to "+qn+".";}
+  var L=await pmjQuotePlan(root,yy,null),given=!!qn,gap=null,force=PMJ.force;PMJ.force=null;
+  if(!qn&&force){var fm=pmjQnParts(force);if(fm&&!L.used[fm.n]){N=fm.n;qn=force;note="Using "+qn+" (the first free number after the last unbroken run). The Quote # on this quote will be set to "+qn+".";}}
+  if(!qn){N=L.max+1;qn=yy+"-"+pmjPad(N);note="Next free number after "+(L.max?yy+"-"+pmjPad(L.max)+" (\u201c"+(L.byN[L.max]||"")+"\u201d)":"none this year")+" (checked the range and year folders too). The Quote # on this quote will be set to "+qn+".";gap=pmjGap(L,yy,N,false);}
+  else if(given)gap=pmjGap(L,yy,N,true);
   var plan=await pmjQuotePlan(root,yy,N);
-  PMJ.qf={id:q.id,qn:qn,short:who,note:note,tidy:plan.tidy,year:plan.year,top:plan.top};}catch(e){PMJ.qfMsg={bad:true,t:pmEsc(e&&e.message||String(e))};}
+  PMJ.qf={id:q.id,qn:qn,short:who,note:note,tidy:plan.tidy,year:plan.year,top:plan.top,warn:gap?gap.t:"",alt:gap?gap.alt:"",given:given};}catch(e){PMJ.qfMsg={bad:true,t:pmEsc(e&&e.message||String(e))};}
  pmRender();var el=document.getElementById("pm-qfshort");if(el)el.focus();
 }
 async function pmjMoveInto(root,t){
@@ -3195,7 +3231,7 @@ async function pmjQfCreate(){
  }catch(e){PMJ.qfMsg={bad:true,t:pmEsc(e&&e.message||String(e))};}
  pmRender();
 }
-function pmjWireQf(host){host.querySelectorAll("input[name='pm-qfby']").forEach(function(r){r.onchange=function(){var q=pmCurQ();if(!q)return;q.nameBy=r.value;pmQuotesSave();var el=document.getElementById("pm-qfshort");if(el)el.value=pmjNameFor(q,r.value);if(PMJ.qf)PMJ.qf.short=pmjNameFor(q,r.value);var dn=document.getElementById("pm-docname");if(dn&&!dn.value)dn.placeholder=pmqDefaultName(q);};});var a=document.getElementById("pm-qfnew");if(a)a.onclick=pmjQfStart;var rb=document.getElementById("pm-renum");if(rb)rb.onclick=pmjRenumber;var b=document.getElementById("pm-qfok");if(b)b.onclick=pmjQfCreate;var c=document.getElementById("pm-qfno");if(c)c.onclick=function(){PMJ.qf=null;pmRender();};var s=document.getElementById("pm-qfshort");if(s)s.onkeydown=function(e){if(e.key==="Enter")pmjQfCreate();};}
+function pmjWireQf(host){host.querySelectorAll("input[name='pm-qfby']").forEach(function(r){r.onchange=function(){var q=pmCurQ();if(!q)return;q.nameBy=r.value;pmQuotesSave();var el=document.getElementById("pm-qfshort");if(el)el.value=pmjNameFor(q,r.value);if(PMJ.qf)PMJ.qf.short=pmjNameFor(q,r.value);var dn=document.getElementById("pm-docname");if(dn&&!dn.value)dn.placeholder=pmqDefaultName(q);};});var a=document.getElementById("pm-qfnew");if(a)a.onclick=pmjQfStart;var rb=document.getElementById("pm-renum");if(rb)rb.onclick=pmjRenumber;var b=document.getElementById("pm-qfok");if(b)b.onclick=pmjQfCreate;var al=document.getElementById("pm-qfalt");if(al)al.onclick=pmjQfAlt;var c=document.getElementById("pm-qfno");if(c)c.onclick=function(){PMJ.qf=null;pmRender();};var s=document.getElementById("pm-qfshort");if(s)s.onkeydown=function(e){if(e.key==="Enter")pmjQfCreate();};}
 window.pmjQfStart=pmjQfStart;window.pmjQfCreate=pmjQfCreate;window.pmjRenumber=pmjRenumber;
 /* ---------- PM tab: encrypted vault + quote builder ---------- */
 function pmEsc(v){return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
@@ -3946,7 +3982,7 @@ function cuRender(){
  }
  h+="<div class='cu-manual'><h3>Add your own fix</h3><div class='row'><input type='text' id='cu-mf' placeholder='find' style='width:130px'> <span>\u2192</span> <input type='text' id='cu-mr' placeholder='replace' style='width:130px'> <label class='cu-cb'><input type='checkbox' id='cu-mw' checked> whole token</label> <input type='text' id='cu-mrange' placeholder='point range (optional)' style='width:150px'> <button class='btn' onclick='cuManAdd()'>Add rule</button></div><div id='cu-mprev' class='hint'></div></div>";
  h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div></div>";
- [["scale","cu-scale"],["match","cu-match"],["dvf","cu-dvf"],["mon","cu-mon"],["tree","cu-tree"],["tf","cu-tf"]].forEach(function(p){h+="<div class='cu-tv' data-t='"+p[0]+"'><div class='cu-vids' data-v='"+p[0]+"'></div><div id='"+p[1]+"'></div></div>";});
+ [["scale","cu-scale"],["match","cu-match"],["dvf","cu-dvf"],["mon","cu-mon"],["tree","cu-tree"],["hc","cu-hc"],["tf","cu-tf"]].forEach(function(p){h+="<div class='cu-tv' data-t='"+p[0]+"'><div class='cu-vids' data-v='"+p[0]+"'></div><div id='"+p[1]+"'></div></div>";});
  host.innerHTML=h;
  host.querySelectorAll(".cu-src").forEach(function(el){el.onclick=function(e){if(e.target.classList.contains("cu-srcx"))return;cuActivate(el.dataset.id);};});
  host.querySelectorAll(".cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();cuShelfRemove(b.dataset.id);};});
@@ -3967,12 +4003,12 @@ function cuRender(){
  }
  mf.oninput=mprev;mr.oninput=mprev;
  document.getElementById("cu-mw").onchange=mprev;document.getElementById("cu-mrange").oninput=mprev;
- cuRenderReview();cuRenderScale();cuRenderMatch();cuRenderDvf();cuRenderMon();cuRenderTree();cuRenderTf();
+ cuRenderReview();cuRenderScale();cuRenderMatch();cuRenderDvf();cuRenderMon();cuRenderTree();cuRenderTf();cuRenderHc();
  host.querySelectorAll(".cu-tools button").forEach(function(b){b.onclick=function(){cuToolSet(b.dataset.t);};});
  cuToolsApply();
 }
 /* ---------- Points tab tool buttons (1.31): one tool shown at a time; the file shelf stays on top ---------- */
-var CU_TOOLS=[["clean","Clean-up"],["scale","Scale"],["match","Match points"],["dvf","Design vs Field"],["mon","Monitoring"],["tree","Tree table"],["tf","Transform"]];
+var CU_TOOLS=[["clean","Clean-up"],["scale","Scale"],["match","Match points"],["dvf","Design vs Field"],["mon","Monitoring"],["tree","Tree table"],["hc","Height check"],["tf","Transform"]];
 var CU_TOOL_VIDS={clean:["Fixing tree sizes to imperial (Points tab)","Points upload for crew \u2014 example","RW5 file to points for a topo in feet (Points tab)"],match:["Points matching (Match points tab)","Points matching \u2014 PL sample"],dvf:["Design vs Field \u2014 comparing cut / fills (Points tab)","Design vs Field \u2014 comparing residuals (Points tab)"],tree:["Tree table (Points tab)"]};
 var cuTool=(function(){try{var t=localStorage.getItem("eo:cutool");return CU_TOOLS.some(function(x){return x[0]===t;})?t:"clean";}catch(e){return "clean";}})();
 function cuHasTrees(){try{return cuTreeRows().length>0;}catch(e){return false;}}
@@ -3986,6 +4022,7 @@ function cuToolsApply(){
  document.querySelectorAll("#cu-body .cu-tools button").forEach(function(b){b.classList.toggle("on",b.dataset.t===t);});
  document.querySelectorAll("#cu-body .cu-tv").forEach(function(d){var on=d.dataset.t===t;d.style.display=on?"":"none";
   if(on){d.querySelectorAll("details.cu-fold").forEach(function(f){if(!f.open)f.open=true;});var vv=d.querySelector(".cu-vids");if(vv&&!vv.innerHTML)vv.innerHTML=cuVidsHtml(t);}});
+ if(t==="hc"&&typeof hcDraw==="function")setTimeout(hcDraw,0);
 }
 function cuToolSet(t){cuTool=t;try{localStorage.setItem("eo:cutool",t);}catch(e){}cuToolsApply();}
 window.cuToolSet=cuToolSet;window.cuToolsApply=cuToolsApply;
@@ -5137,6 +5174,170 @@ function cuZipRead(buf,e){
  w.write(data);w.close();
  return new Response(ds.readable).arrayBuffer().then(function(ab){return new Uint8Array(ab);});
 }
+/* HC-START */
+/* Delaunator 5.0.1 — ISC License, Copyright (c) 2021 Mapbox — https://github.com/mapbox/delaunator */
+!function(t,i){"object"==typeof exports&&"undefined"!=typeof module?module.exports=i():"function"==typeof define&&define.amd?define(i):(t="undefined"!=typeof globalThis?globalThis:t||self).Delaunator=i()}(this,(function(){"use strict";const t=11102230246251565e-32,i=134217729,s=(3+8*t)*t;function e(t,i,s,e,n){let h,r,l,o,a=i[0],f=e[0],c=0,u=0;f>a==f>-a?(h=a,a=i[++c]):(h=f,f=e[++u]);let _=0;if(c<t&&u<s)for(f>a==f>-a?(r=a+h,l=h-(r-a),a=i[++c]):(r=f+h,l=h-(r-f),f=e[++u]),h=r,0!==l&&(n[_++]=l);c<t&&u<s;)f>a==f>-a?(r=h+a,o=r-h,l=h-(r-o)+(a-o),a=i[++c]):(r=h+f,o=r-h,l=h-(r-o)+(f-o),f=e[++u]),h=r,0!==l&&(n[_++]=l);for(;c<t;)r=h+a,o=r-h,l=h-(r-o)+(a-o),a=i[++c],h=r,0!==l&&(n[_++]=l);for(;u<s;)r=h+f,o=r-h,l=h-(r-o)+(f-o),f=e[++u],h=r,0!==l&&(n[_++]=l);return 0===h&&0!==_||(n[_++]=h),_}function n(t){return new Float64Array(t)}const h=22204460492503146e-32,r=11093356479670487e-47,l=n(4),o=n(8),a=n(12),f=n(16),c=n(4);function u(t,n,u,_,d,g){const y=(n-g)*(u-d),w=(t-d)*(_-g),b=y-w,A=Math.abs(y+w);return Math.abs(b)>=33306690738754716e-32*A?b:-function(t,n,u,_,d,g,y){let w,b,A,k,M,p,x,S,T,z,U,m,K,L,v,F,P,E;const H=t-d,I=u-d,N=n-g,j=_-g;L=H*j,p=i*H,x=p-(p-H),S=H-x,p=i*j,T=p-(p-j),z=j-T,v=S*z-(L-x*T-S*T-x*z),F=N*I,p=i*N,x=p-(p-N),S=N-x,p=i*I,T=p-(p-I),z=I-T,P=S*z-(F-x*T-S*T-x*z),U=v-P,M=v-U,l[0]=v-(U+M)+(M-P),m=L+U,M=m-L,K=L-(m-M)+(U-M),U=K-F,M=K-U,l[1]=K-(U+M)+(M-F),E=m+U,M=E-m,l[2]=m-(E-M)+(U-M),l[3]=E;let q=function(t,i){let s=i[0];for(let e=1;e<t;e++)s+=i[e];return s}(4,l),D=h*y;if(q>=D||-q>=D)return q;if(M=t-H,w=t-(H+M)+(M-d),M=u-I,A=u-(I+M)+(M-d),M=n-N,b=n-(N+M)+(M-g),M=_-j,k=_-(j+M)+(M-g),0===w&&0===b&&0===A&&0===k)return q;if(D=r*y+s*Math.abs(q),q+=H*k+j*w-(N*A+I*b),q>=D||-q>=D)return q;L=w*j,p=i*w,x=p-(p-w),S=w-x,p=i*j,T=p-(p-j),z=j-T,v=S*z-(L-x*T-S*T-x*z),F=b*I,p=i*b,x=p-(p-b),S=b-x,p=i*I,T=p-(p-I),z=I-T,P=S*z-(F-x*T-S*T-x*z),U=v-P,M=v-U,c[0]=v-(U+M)+(M-P),m=L+U,M=m-L,K=L-(m-M)+(U-M),U=K-F,M=K-U,c[1]=K-(U+M)+(M-F),E=m+U,M=E-m,c[2]=m-(E-M)+(U-M),c[3]=E;const B=e(4,l,4,c,o);L=H*k,p=i*H,x=p-(p-H),S=H-x,p=i*k,T=p-(p-k),z=k-T,v=S*z-(L-x*T-S*T-x*z),F=N*A,p=i*N,x=p-(p-N),S=N-x,p=i*A,T=p-(p-A),z=A-T,P=S*z-(F-x*T-S*T-x*z),U=v-P,M=v-U,c[0]=v-(U+M)+(M-P),m=L+U,M=m-L,K=L-(m-M)+(U-M),U=K-F,M=K-U,c[1]=K-(U+M)+(M-F),E=m+U,M=E-m,c[2]=m-(E-M)+(U-M),c[3]=E;const C=e(B,o,4,c,a);L=w*k,p=i*w,x=p-(p-w),S=w-x,p=i*k,T=p-(p-k),z=k-T,v=S*z-(L-x*T-S*T-x*z),F=b*A,p=i*b,x=p-(p-b),S=b-x,p=i*A,T=p-(p-A),z=A-T,P=S*z-(F-x*T-S*T-x*z),U=v-P,M=v-U,c[0]=v-(U+M)+(M-P),m=L+U,M=m-L,K=L-(m-M)+(U-M),U=K-F,M=K-U,c[1]=K-(U+M)+(M-F),E=m+U,M=E-m,c[2]=m-(E-M)+(U-M),c[3]=E;const G=e(C,a,4,c,f);return f[G-1]}(t,n,u,_,d,g,A)}const _=Math.pow(2,-52),d=new Uint32Array(512);class g{static from(t,i=M,s=p){const e=t.length,n=new Float64Array(2*e);for(let h=0;h<e;h++){const e=t[h];n[2*h]=i(e),n[2*h+1]=s(e)}return new g(n)}constructor(t){const i=t.length>>1;if(i>0&&"number"!=typeof t[0])throw new Error("Expected coords to contain numbers.");this.coords=t;const s=Math.max(2*i-5,0);this._triangles=new Uint32Array(3*s),this._halfedges=new Int32Array(3*s),this._hashSize=Math.ceil(Math.sqrt(i)),this._hullPrev=new Uint32Array(i),this._hullNext=new Uint32Array(i),this._hullTri=new Uint32Array(i),this._hullHash=new Int32Array(this._hashSize),this._ids=new Uint32Array(i),this._dists=new Float64Array(i),this.update()}update(){const{coords:t,_hullPrev:i,_hullNext:s,_hullTri:e,_hullHash:n}=this,h=t.length>>1;let r=1/0,l=1/0,o=-1/0,a=-1/0;for(let i=0;i<h;i++){const s=t[2*i],e=t[2*i+1];s<r&&(r=s),e<l&&(l=e),s>o&&(o=s),e>a&&(a=e),this._ids[i]=i}const f=(r+o)/2,c=(l+a)/2;let d,g,w;for(let i=0,s=1/0;i<h;i++){const e=y(f,c,t[2*i],t[2*i+1]);e<s&&(d=i,s=e)}const k=t[2*d],M=t[2*d+1];for(let i=0,s=1/0;i<h;i++){if(i===d)continue;const e=y(k,M,t[2*i],t[2*i+1]);e<s&&e>0&&(g=i,s=e)}let p=t[2*g],x=t[2*g+1],S=1/0;for(let i=0;i<h;i++){if(i===d||i===g)continue;const s=b(k,M,p,x,t[2*i],t[2*i+1]);s<S&&(w=i,S=s)}let T=t[2*w],z=t[2*w+1];if(S===1/0){for(let i=0;i<h;i++)this._dists[i]=t[2*i]-t[0]||t[2*i+1]-t[1];A(this._ids,this._dists,0,h-1);const i=new Uint32Array(h);let s=0;for(let t=0,e=-1/0;t<h;t++){const n=this._ids[t],h=this._dists[n];h>e&&(i[s++]=n,e=h)}return this.hull=i.subarray(0,s),this.triangles=new Uint32Array(0),void(this.halfedges=new Uint32Array(0))}if(u(k,M,p,x,T,z)<0){const t=g,i=p,s=x;g=w,p=T,x=z,w=t,T=i,z=s}const U=function(t,i,s,e,n,h){const r=s-t,l=e-i,o=n-t,a=h-i,f=r*r+l*l,c=o*o+a*a,u=.5/(r*a-l*o);return{x:t+(a*f-l*c)*u,y:i+(r*c-o*f)*u}}(k,M,p,x,T,z);this._cx=U.x,this._cy=U.y;for(let i=0;i<h;i++)this._dists[i]=y(t[2*i],t[2*i+1],U.x,U.y);A(this._ids,this._dists,0,h-1),this._hullStart=d;let m=3;s[d]=i[w]=g,s[g]=i[d]=w,s[w]=i[g]=d,e[d]=0,e[g]=1,e[w]=2,n.fill(-1),n[this._hashKey(k,M)]=d,n[this._hashKey(p,x)]=g,n[this._hashKey(T,z)]=w,this.trianglesLen=0,this._addTriangle(d,g,w,-1,-1,-1);for(let h,r,l=0;l<this._ids.length;l++){const o=this._ids[l],a=t[2*o],f=t[2*o+1];if(l>0&&Math.abs(a-h)<=_&&Math.abs(f-r)<=_)continue;if(h=a,r=f,o===d||o===g||o===w)continue;let c=0;for(let t=0,i=this._hashKey(a,f);t<this._hashSize&&(c=n[(i+t)%this._hashSize],-1===c||c===s[c]);t++);c=i[c];let y,b=c;for(;y=s[b],u(a,f,t[2*b],t[2*b+1],t[2*y],t[2*y+1])>=0;)if(b=y,b===c){b=-1;break}if(-1===b)continue;let A=this._addTriangle(b,o,s[b],-1,-1,e[b]);e[o]=this._legalize(A+2),e[b]=A,m++;let k=s[b];for(;y=s[k],u(a,f,t[2*k],t[2*k+1],t[2*y],t[2*y+1])<0;)A=this._addTriangle(k,o,y,e[o],-1,e[k]),e[o]=this._legalize(A+2),s[k]=k,m--,k=y;if(b===c)for(;y=i[b],u(a,f,t[2*y],t[2*y+1],t[2*b],t[2*b+1])<0;)A=this._addTriangle(y,o,b,-1,e[b],e[y]),this._legalize(A+2),e[y]=A,s[b]=b,m--,b=y;this._hullStart=i[o]=b,s[b]=i[k]=o,s[o]=k,n[this._hashKey(a,f)]=o,n[this._hashKey(t[2*b],t[2*b+1])]=b}this.hull=new Uint32Array(m);for(let t=0,i=this._hullStart;t<m;t++)this.hull[t]=i,i=s[i];this.triangles=this._triangles.subarray(0,this.trianglesLen),this.halfedges=this._halfedges.subarray(0,this.trianglesLen)}_hashKey(t,i){return Math.floor(function(t,i){const s=t/(Math.abs(t)+Math.abs(i));return(i>0?3-s:1+s)/4}(t-this._cx,i-this._cy)*this._hashSize)%this._hashSize}_legalize(t){const{_triangles:i,_halfedges:s,coords:e}=this;let n=0,h=0;for(;;){const r=s[t],l=t-t%3;if(h=l+(t+2)%3,-1===r){if(0===n)break;t=d[--n];continue}const o=r-r%3,a=l+(t+1)%3,f=o+(r+2)%3,c=i[h],u=i[t],_=i[a],g=i[f];if(w(e[2*c],e[2*c+1],e[2*u],e[2*u+1],e[2*_],e[2*_+1],e[2*g],e[2*g+1])){i[t]=g,i[r]=c;const e=s[f];if(-1===e){let i=this._hullStart;do{if(this._hullTri[i]===f){this._hullTri[i]=t;break}i=this._hullPrev[i]}while(i!==this._hullStart)}this._link(t,e),this._link(r,s[h]),this._link(h,f);const l=o+(r+1)%3;n<d.length&&(d[n++]=l)}else{if(0===n)break;t=d[--n]}}return h}_link(t,i){this._halfedges[t]=i,-1!==i&&(this._halfedges[i]=t)}_addTriangle(t,i,s,e,n,h){const r=this.trianglesLen;return this._triangles[r]=t,this._triangles[r+1]=i,this._triangles[r+2]=s,this._link(r,e),this._link(r+1,n),this._link(r+2,h),this.trianglesLen+=3,r}}function y(t,i,s,e){const n=t-s,h=i-e;return n*n+h*h}function w(t,i,s,e,n,h,r,l){const o=t-r,a=i-l,f=s-r,c=e-l,u=n-r,_=h-l,d=f*f+c*c,g=u*u+_*_;return o*(c*g-d*_)-a*(f*g-d*u)+(o*o+a*a)*(f*_-c*u)<0}function b(t,i,s,e,n,h){const r=s-t,l=e-i,o=n-t,a=h-i,f=r*r+l*l,c=o*o+a*a,u=.5/(r*a-l*o),_=(a*f-l*c)*u,d=(r*c-o*f)*u;return _*_+d*d}function A(t,i,s,e){if(e-s<=20)for(let n=s+1;n<=e;n++){const e=t[n],h=i[e];let r=n-1;for(;r>=s&&i[t[r]]>h;)t[r+1]=t[r--];t[r+1]=e}else{let n=s+1,h=e;k(t,s+e>>1,n),i[t[s]]>i[t[e]]&&k(t,s,e),i[t[n]]>i[t[e]]&&k(t,n,e),i[t[s]]>i[t[n]]&&k(t,s,n);const r=t[n],l=i[r];for(;;){do{n++}while(i[t[n]]<l);do{h--}while(i[t[h]]>l);if(h<n)break;k(t,n,h)}t[s+1]=t[h],t[h]=r,e-n+1>=h-s?(A(t,i,n,e),A(t,i,s,h-1)):(A(t,i,s,h-1),A(t,i,n,e))}}function k(t,i,s){const e=t[i];t[i]=t[s],t[s]=e}function M(t){return t[0]}function p(t){return t[1]}return g}));
+/* ---------- 1.37: Points › Height check — catch topo heights that are too high or too low before the drawing goes out ---------- */
+/* Points come from the loaded MicroSurvey package (.msz/.mbz; its raw shots too, when the package has them) or points file.
+   Layers come from the drawing (.dwg via a WebAssembly reader loaded only when a DWG is picked, or .dxf): each package point is
+   matched to its drawing point by handle; the layer that counts is the elevation text's (ELEVATION, ELEV_TREE, HIDE …). */
+var HC={pkg:null,pts:null,src:"",raw:null,dwg:null,res:null,sel:null,msg:"",busy:"",view:null,lim:0.30,ci:0.5,showAll:false};
+var HC_DWGLIB="https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web@0.8.0/";
+var HC_GENERIC=/^(G|EG|GS|GL|GRD|GRND|OG|NG|GROUND)$/;
+var HC_NOTGROUND=/^(INV|INVERT)\b/i;
+var HC_TREE=/^T(DEC|CON|FIR|CED|STUMP|MAP|CLU|BIR|HEM|PIN|SPR|OAK|ALD|CHE|PALM|TREE)/i;
+/* the surface: ELEVATION + FIELD <date> ELVS + CONTROL + ELEV_TREE by default; HIDE is never used (heights already dealt with) */
+function hcGroundDef(l){var u=String(l||"").toUpperCase().trim();return u==="ELEVATION"||u==="CONTROL"||u==="ELEV_TREE"||/^FIELD\b.*\bELVS$/.test(u)||u==="(NO DRAWING)";}
+function hcLayerChoices(){try{return JSON.parse(localStorage.getItem("eo:hclayers")||"{}")||{};}catch(e){return {};}}
+function hcLayerOn(l){if(String(l).toUpperCase()==="HIDE")return false;var c=hcLayerChoices();return c.hasOwnProperty(l)?!!c[l]:hcGroundDef(l);}
+function hcSetLayer(l,on){var c=hcLayerChoices();c[l]=on;try{localStorage.setItem("eo:hclayers",JSON.stringify(c));}catch(e){}}
+function hcCode(desc){var m=String(desc||"").toUpperCase().match(/^[A-Z]+/);return m?m[0]:"?";}
+function hcIsTree(p){return String(p.layer||"").toUpperCase()==="ELEV_TREE"||HC_TREE.test(String(p.desc||"").trim());}
+function hcVisit(l){var m=String(l||"").match(/^FIELD\s+(.+?)\s+ELVS$/i);return m?m[1]:null;}
+function hcFmt(v){return (Math.round(v*100)/100).toFixed(2);}
+/* ---- reading the package: points with their drawing handles, and the raw shots (reflectorless or prism, target height) ---- */
+function hcClean(s){return String(s||"").replace(/[\x00-\x1f]/g,"").trim();}
+function hcFromPackage(buf,name){var ents=cuZipEntries(buf),prim=ents.filter(function(e){return /(^|\/)db_coord\.dbf$/i.test(e.name);})[0];
+ if(!prim)return Promise.reject(new Error("No coordinate database (db_coord.dbf) inside "+name+"."));
+ var raws={};ents.forEach(function(e){var m=e.name.match(/^(.*)raw(shot|note)\.dbf$/i);if(m&&!/_travtmp$/i.test(m[1]))(raws[m[1]]=raws[m[1]]||{})[m[2].toLowerCase()]=e;});
+ return cuZipRead(buf,prim).then(function(u8){var dbf=cuParseDbf(u8),pts=[];
+  dbf.recs.forEach(function(o){var num=hcClean(o.NUM);if(!num)return;var N=parseFloat(o.NORTH),E=parseFloat(o.EAST),Z=parseFloat(o.ELEVATION);if(isNaN(N)||isNaN(E))return;
+   pts.push({num:num,N:N,E:E,Z:isNaN(Z)?0:Z,desc:hcClean(o.DESC),h:hcClean(o.HNDL).toUpperCase(),eh:hcClean(o.ELEVTHNDL).toUpperCase(),layer:"(no drawing)"});});
+  var pairs=Object.keys(raws).filter(function(k){return raws[k].shot&&raws[k].note;});
+  return Promise.all(pairs.map(function(k){return Promise.all([cuZipRead(buf,raws[k].shot),cuZipRead(buf,raws[k].note)]);})).then(function(R){
+   var raw={};R.forEach(function(r){var S=cuParseDbf(r[0]).recs,Nt=cuParseDbf(r[1]).recs,ev=[];
+    S.forEach(function(s){ev.push({k:parseFloat(s.RECNUM),s:s});});Nt.forEach(function(n){ev.push({k:parseFloat(n.RECNUM),n:n});});ev.sort(function(a,b){return a.k-b.k;});
+    var mode="";ev.forEach(function(x){if(x.n){var t=hcClean(x.n.NOTE);if(/prism type/i.test(t))mode=/reflectorless/i.test(t)?"RL":"PR";return;}
+     var pt=hcClean(x.s.PT),ht=parseFloat(x.s.TRGTHT);if(!pt||isNaN(ht))return;(raw[pt]=raw[pt]||[]).push({mode:mode,ht:ht});});});
+   return {pts:pts,raw:pairs.length?raw:null,file:name,rawFiles:pairs.length};});});}
+/* ---- reading the drawing ---- */
+function hcDxfEntities(text){var L=String(text).split(/\r?\n/),out=[],i=0,inE=false,cur=null;
+ var flush=function(){if(cur&&(cur.t==="POINT"||cur.t==="TEXT"||cur.t==="MTEXT"))out.push(cur);cur=null;};
+ for(;i+1<L.length;i+=2){var c=L[i].trim(),v=L[i+1];
+  if(c==="0"){var vt=v.trim();if(vt==="SECTION"){flush();continue;}if(vt==="ENDSEC"){flush();inE=false;continue;}if(inE){flush();cur={t:vt,h:"",l:""};}continue;}
+  if(c==="2"&&!inE&&v.trim()==="ENTITIES"){inE=true;continue;}
+  if(!cur)continue;if(c==="5")cur.h=v.trim().toUpperCase();else if(c==="8")cur.l=v.trim();}
+ flush();return out;}
+var HC_DWGP=null;
+function hcDwgLib(){if(HC_DWGP)return HC_DWGP;HC_DWGP=import(HC_DWGLIB+"dist/libredwg-web.js").then(function(m){return m.LibreDwg.create(HC_DWGLIB+"wasm");}).catch(function(e){HC_DWGP=null;throw new Error("Couldn’t load the DWG reader — check you’re online, or save the drawing as DXF.");});return HC_DWGP;}
+function hcDwgEntities(buf){return hcDwgLib().then(function(lib){var dwg=lib.dwg_read_data(buf,0);if(!dwg)throw new Error("That DWG couldn’t be read — save it as DXF and try that.");
+ var db=lib.convert(dwg);try{lib.dwg_free(dwg);}catch(e){}
+ return (db.entities||[]).filter(function(e){return e.type==="POINT"||e.type==="TEXT"||e.type==="MTEXT";}).map(function(e){return {t:e.type,h:String(e.handle||"").toUpperCase(),l:e.layer||""};});});}
+function hcApplyDrawing(ents,name){var by={};ents.forEach(function(e){if(e.h)by[e.h]=e;});var hit=0,miss=[];
+ HC.pts.forEach(function(p){var et=by[p.eh],pe=by[p.h];if(et||pe){hit++;p.layer=(et&&et.l)||(pe&&pe.l)||"0";}else{p.layer="(not in drawing)";miss.push(p.num);}});
+ var inDwg=ents.filter(function(e){return e.t==="POINT";}).length;
+ HC.dwg={file:name,matched:hit,missing:miss,dwgPoints:inDwg};}
+/* ---- the checks ---- */
+function hcTin(list){var co=new Float64Array(list.length*2);list.forEach(function(p,i){co[2*i]=p.E;co[2*i+1]=p.N;});return new Delaunator(co);}
+function hcNeighbours(d,n){var nb=[];for(var i=0;i<n;i++)nb.push([]);var T=d.triangles;for(var t=0;t<T.length;t+=3){var a=T[t],b=T[t+1],c=T[t+2];nb[a].push(b,c);nb[b].push(a,c);nb[c].push(a,b);}
+ return nb.map(function(x){return x.filter(function(v,i){return x.indexOf(v)===i;});});}
+function hcInterp(d,list,x,y){/* ground height at x,y from the triangle it falls in (null outside) */
+ var T=d.triangles;for(var t=0;t<T.length;t+=3){var A=list[T[t]],B=list[T[t+1]],C=list[T[t+2]];
+  var det=(B.N-C.N)*(A.E-C.E)+(C.E-B.E)*(A.N-C.N);if(Math.abs(det)<1e-12)continue;
+  var l1=((B.N-C.N)*(x-C.E)+(C.E-B.E)*(y-C.N))/det,l2=((C.N-A.N)*(x-C.E)+(A.E-C.E)*(y-C.N))/det,l3=1-l1-l2;
+  if(l1>=-1e-9&&l2>=-1e-9&&l3>=-1e-9)return l1*A.Z+l2*B.Z+l3*C.Z;}return null;}
+function hcRun(){
+ var lim=HC.lim,P=HC.pts||[];if(!P.length){HC.res=null;return;}
+ /* inverts are never ground, whatever layer they sit on */
+ var G=P.filter(function(p){return hcLayerOn(p.layer)&&Math.abs(p.Z)>0.001&&!HC_NOTGROUND.test(String(p.desc||"").trim());});
+ /* the same spot shot twice: keep one for the surface, check the pair */
+ var seen={},Gu=[],dups=[];G.forEach(function(p){var k=Math.round(p.E*20)+","+Math.round(p.N*20);if(seen[k]){dups.push([seen[k],p]);return;}seen[k]=p;Gu.push(p);});
+ var flags={},add=function(p,why,score,extra){var f=flags[p.num]||(flags[p.num]={p:p,why:[],score:0,nb:null});f.why.push(why);f.score=Math.max(f.score,score);if(extra)Object.assign(f,extra);};
+ var res={checked:Gu.length,ground:G.length,flags:[],tri:null,G:Gu};
+ if(Gu.length>=3){
+  var d=hcTin(Gu),nb=hcNeighbours(d,Gu.length);res.tri=d;
+  /* neighbours of the same code nearby (a ditch bottom is compared with the ditch, not the bank beside it) */
+  var grid={},cell=30,key=function(e,n){return Math.floor(e/cell)+","+Math.floor(n/cell);};Gu.forEach(function(p,i){var k=key(p.E,p.N);(grid[k]=grid[k]||[]).push(i);});
+  var near=function(i,r){var p=Gu[i],out=[],cx=Math.floor(p.E/cell),cy=Math.floor(p.N/cell);for(var a=-1;a<=1;a++)for(var b=-1;b<=1;b++)(grid[(cx+a)+","+(cy+b)]||[]).forEach(function(j){if(j!==i&&Math.hypot(Gu[j].E-p.E,Gu[j].N-p.N)<=r)out.push(j);});return out;};
+  Gu.forEach(function(p,i){var js=nb[i].filter(function(j){return Math.hypot(Gu[j].E-p.E,Gu[j].N-p.N)<25;});if(js.length<3)return;
+   var zs=js.map(function(j){return Gu[j].Z;}),lo=Math.min.apply(null,zs),hi=Math.max.apply(null,zs),out=Math.max(p.Z-hi,lo-p.Z);if(out<=lim)return;
+   var code=hcCode(p.desc),same=near(i,30).filter(function(j){return hcCode(Gu[j].desc)===code;}).sort(function(a,b){return Math.hypot(Gu[a].E-p.E,Gu[a].N-p.N)-Math.hypot(Gu[b].E-p.E,Gu[b].N-p.N);}).slice(0,4);
+   if(HC_GENERIC.test(code))same=[];/* plain ground shots are judged against everything around them */
+   if(same.length>=2){var s2=same.map(function(j){return Gu[j].Z;});if(Math.max(p.Z-Math.max.apply(null,s2),Math.min.apply(null,s2)-p.Z)<=lim)return;}
+   var up=p.Z>hi,why=hcFmt(out)+" m "+(up?"higher":"lower")+" than all "+js.length+" points around it ("+hcFmt(lo)+" – "+hcFmt(hi)+")";
+   var vis=hcVisit(p.layer),orig=js.filter(function(j){return !hcVisit(Gu[j].layer);}).length;
+   if(vis&&orig>js.length/2)why+=" — field "+vis+" shot that differs from the original topo: site change or error?";
+   add(p,why,out,{lo:lo,hi:hi,n:js.length});});
+  /* trees: the base of a tree should be at the ground around it (a trunk shot higher up reads high) */
+  var nonTree=Gu.filter(function(p){return !hcIsTree(p);});
+  if(nonTree.length>=3){var d2=hcTin(nonTree);P.forEach(function(p){if(!hcIsTree(p)||String(p.layer).toUpperCase()==="HIDE"||Math.abs(p.Z)<0.001)return;var g=hcInterp(d2,nonTree,p.E,p.N);if(g==null)return;var dz=p.Z-g;
+   if(Math.abs(dz)>lim)add(p,"tree "+hcFmt(Math.abs(dz))+" m "+(dz>0?"above":"below")+" the ground around it ("+hcFmt(g)+")"+(dz>0?" — shot up the trunk?":""),Math.abs(dz));});}
+ }
+ /* reflectorless shots not at the office target height 99 (a ground height then comes from whatever the beam hit) */
+ if(HC.raw){P.forEach(function(p){var R=HC.raw[p.num];if(!R)return;var on=hcLayerOn(p.layer)||hcIsTree(p);if(!on)return;
+  var bad=R.filter(function(r){return r.mode==="RL"&&Math.abs(r.ht-99)>0.0005;});if(!bad.length)return;
+  add(p,"reflectorless shot at target height "+bad[bad.length-1].ht+" (not 99)",flags[p.num]?flags[p.num].score+1:0.35);});}
+ dups.forEach(function(pr){var dz=Math.abs(pr[0].Z-pr[1].Z);if(dz>0.10)add(pr[1],"same spot as point "+pr[0].num+" but "+hcFmt(dz)+" m different ("+hcFmt(pr[0].Z)+")",dz);});
+ P.forEach(function(p){if(hcLayerOn(p.layer)&&Math.abs(p.Z)<=0.001)add(p,"no elevation (0.00) on a ground layer",0.3);});
+ res.flags=Object.keys(flags).map(function(k){return flags[k];}).sort(function(a,b){return (b.why.length-a.why.length)||(b.score-a.score);});
+ HC.res=res;}
+/* contour segments (marching triangles) at interval ci */
+function hcContours(res,ci){var segs=[];if(!res||!res.tri||!(ci>0))return segs;var T=res.tri.triangles,G=res.G;
+ for(var t=0;t<T.length;t+=3){var v=[G[T[t]],G[T[t+1]],G[T[t+2]]],zs=v.map(function(p){return p.Z;}),lo=Math.min.apply(null,zs),hi=Math.max.apply(null,zs);
+  if(Math.max(Math.hypot(v[0].E-v[1].E,v[0].N-v[1].N),Math.hypot(v[1].E-v[2].E,v[1].N-v[2].N),Math.hypot(v[0].E-v[2].E,v[0].N-v[2].N))>40)continue;
+  for(var c=Math.ceil(lo/ci)*ci;c<hi;c+=ci){var pts=[];for(var k=0;k<3;k++){var a=v[k],b=v[(k+1)%3];if((a.Z-c)*(b.Z-c)<0||(a.Z===c&&b.Z!==c)){var f=(c-a.Z)/(b.Z-a.Z);pts.push([a.E+f*(b.E-a.E),a.N+f*(b.N-a.N)]);}}
+   if(pts.length>=2)segs.push({c:c,a:pts[0],b:pts[1],major:Math.abs(c/(ci*5)-Math.round(c/(ci*5)))<1e-6});}}
+ return segs;}
+/* ---- the view ---- */
+function hcColor(z,lo,hi){var t=hi>lo?(z-lo)/(hi-lo):0.5;t=Math.max(0,Math.min(1,t));var h=240-240*t;return "hsl("+h.toFixed(0)+",75%,45%)";}
+function hcDraw(){var cv=document.getElementById("hc-cv"),res=HC.res;if(!cv||!res||!cv.offsetParent)return;/* hidden (another tool showing): drawn when shown */var g=cv.getContext&&cv.getContext("2d");if(!g)return;
+ var W=cv.clientWidth||900,H=cv.clientHeight||560,dpr=window.devicePixelRatio||1;cv.width=W*dpr;cv.height=H*dpr;g.setTransform(dpr,0,0,dpr,0,0);g.fillStyle="#fff";g.fillRect(0,0,W,H);
+ var P=HC.pts,G=res.G;if(!HC.view){var xs=G.map(function(p){return p.E;}).sort(function(a,b){return a-b;}),ys=G.map(function(p){return p.N;}).sort(function(a,b){return a-b;});if(!xs.length)return;var q=function(a,f){return a[Math.min(a.length-1,Math.max(0,Math.floor(a.length*f)))];},x0=q(xs,0.01),x1=q(xs,0.99),y0=q(ys,0.01),y1=q(ys,0.99),s=Math.min((W-40)/Math.max(1,x1-x0),(H-40)/Math.max(1,y1-y0));HC.view={s:s,cx:(x0+x1)/2,cy:(y0+y1)/2};}
+ var V=HC.view,X=function(e){return W/2+(e-V.cx)*V.s;},Y=function(n){return H/2-(n-V.cy)*V.s;};
+ var zs=G.map(function(p){return p.Z;}).sort(function(a,b){return a-b;}),lo=zs[Math.floor(zs.length*0.02)]||0,hi=zs[Math.floor(zs.length*0.98)]||1;
+ hcContours(res,HC.ci).forEach(function(s){g.strokeStyle=s.major?"rgba(90,70,40,.7)":"rgba(140,120,90,.35)";g.lineWidth=s.major?1.1:0.7;g.beginPath();g.moveTo(X(s.a[0]),Y(s.a[1]));g.lineTo(X(s.b[0]),Y(s.b[1]));g.stroke();});
+ P.forEach(function(p){var on=hcLayerOn(p.layer)&&Math.abs(p.Z)>0.001;var x=X(p.E),y=Y(p.N);if(x<-5||y<-5||x>W+5||y>H+5)return;g.fillStyle=on?hcColor(p.Z,lo,hi):"rgba(150,150,150,.45)";g.beginPath();g.arc(x,y,on?(V.s>8?2.6:1.6):1.2,0,7);g.fill();});
+ res.flags.forEach(function(f){var x=X(f.p.E),y=Y(f.p.N);g.strokeStyle=HC.sel===f.p.num?"#000":"#c00000";g.lineWidth=HC.sel===f.p.num?3:2;g.beginPath();g.arc(x,y,9,0,7);g.stroke();g.fillStyle="#c00000";g.font="bold 11px sans-serif";g.fillText(f.p.num,x+11,y-6);});
+ /* elevation legend */
+ for(var i=0;i<=40;i++){g.fillStyle=hcColor(lo+(hi-lo)*i/40,lo,hi);g.fillRect(12+i*4,H-22,4,10);}g.fillStyle="#333";g.font="11px sans-serif";g.fillText(hcFmt(lo),12,H-26);g.fillText(hcFmt(hi),150,H-26);}
+function hcPick(mx,my){var cv=document.getElementById("hc-cv"),V=HC.view;if(!cv||!V)return null;var W=cv.clientWidth,H=cv.clientHeight,best=null,bd=10;
+ HC.pts.forEach(function(p){var x=W/2+(p.E-V.cx)*V.s,y=H/2-(p.N-V.cy)*V.s,d=Math.hypot(x-mx,y-my);if(d<bd){bd=d;best=p;}});return best;}
+function hcInfo(p){if(!p)return "";var f=HC.res&&HC.res.flags.find(function(x){return x.p===p;});
+ return "<b>Point "+esc(p.num)+"</b> — "+esc(p.desc||"(no description)")+" · elev "+p.Z.toFixed(3)+" · layer "+esc(p.layer)+(hcLayerOn(p.layer)?"":" (not checked)")+(f?"<div class='cu-idwarn' style='margin:4px 0 0'>"+f.why.map(esc).join("<br>")+"</div>":"");}
+function hcFocus(num){var p=HC.pts.find(function(x){return x.num===num;});if(!p)return;HC.sel=num;if(HC.view){HC.view.cx=p.E;HC.view.cy=p.N;HC.view.s=Math.max(HC.view.s,4);}hcDraw();var ib=document.getElementById("hc-info");if(ib)ib.innerHTML=hcInfo(p);}
+function hcCopy(){var r=HC.res;if(!r)return;var t="Pt\tDesc\tElev\tLayer\tWhy\n"+r.flags.map(function(f){return [f.p.num,f.p.desc,f.p.Z.toFixed(3),f.p.layer,f.why.join("; ")].join("\t");}).join("\n");
+ try{navigator.clipboard.writeText(t);}catch(e){}var m=document.getElementById("hc-copied");if(m){m.textContent="Copied "+r.flags.length+" rows.";setTimeout(function(){m.textContent="";},3000);}}
+/* points from the current Points file when no package is loaded (no layers, handles or raw shots) */
+function hcFromCurrent(){var out=[];try{cu.lines.forEach(function(r){if(!r.point)return;var co=cuCoordOf(r);if(!co||isNaN(co.n)||isNaN(co.e))return;out.push({num:String(r.pt),N:co.n,E:co.e,Z:isNaN(co.z)?0:co.z,desc:r.desc.trim(),h:"",eh:"",layer:"(no drawing)"});});}catch(e){}return out;}
+function hcEnsure(){/* (re)load points when the Points tab file changed */
+ var key=(cu&&cu.name)||"";if(HC.src===key&&HC.pts)return Promise.resolve();HC.src=key;HC.dwg=null;HC.raw=null;HC.res=null;HC.view=null;HC.sel=null;HC.msg="";
+ var L=window.CU_LASTPKG;if(L&&cu.pkg&&cu.pkg.file===L.name){HC.busy="Reading "+L.name+" …";return hcFromPackage(L.buf,L.name).then(function(r){HC.pts=r.pts;HC.raw=r.raw;HC.pkg={file:r.file,rawFiles:r.rawFiles};HC.busy="";}).catch(function(e){HC.busy="";HC.msg=e.message;HC.pts=hcFromCurrent();HC.pkg=null;});}
+ HC.pts=hcFromCurrent();HC.pkg=null;return Promise.resolve();}
+function cuRenderHc(){var host=document.getElementById("cu-hc");if(!host)return;
+ hcEnsure().then(function(){if(HC.pts&&!HC.res)hcRun();hcPaint();});hcPaint();}
+function hcPaint(){var host=document.getElementById("cu-hc");if(!host)return;var E=esc,P=HC.pts||[],r=HC.res;
+ var h="<div class='cu-manual'><h3>Height check</h3><p class='hint' style='margin:0 0 6px'>Finds ground heights that are out of line with the points around them, trees above the ground, reflectorless shots not at target height 99, and the same spot shot twice at different heights — to catch before the drawing goes out. The flags are <b>worth a look</b>, not verdicts: a real pit, mound or wall can also stand out.</p>";
+ if(HC.busy)h+="<div class='hint'>"+E(HC.busy)+"</div>";
+ h+="<div class='hc-src'>Points: <b>"+E(HC.pkg?HC.pkg.file:((cu&&cu.name)||"—"))+"</b> ("+P.length+")"+(HC.pkg?(HC.pkg.rawFiles?" · raw shots read from "+HC.pkg.rawFiles+" raw file"+(HC.pkg.rawFiles>1?"s":"")+" (reflectorless check on)":" · <span class='hint' style='margin:0'>no raw shots in this package — reflectorless check off</span>"):" · <span class='hint' style='margin:0'>load the .msz in the Points tab for handles and raw shots</span>")+"</div>";
+ h+="<div class='hc-src'>Drawing: "+(HC.dwg?"<b>"+E(HC.dwg.file)+"</b> — "+HC.dwg.matched+" of "+P.length+" points matched to the drawing"+(HC.dwg.missing.length?" <span class='cu-pkgwarn'>"+HC.dwg.missing.length+" not in the drawing (e.g. "+E(HC.dwg.missing.slice(0,6).join(", "))+")</span>":""):"<span class='hint' style='margin:0'>none — add the layered drawing so walls, roofs, inverts and HIDE are left out</span>")+" <label class='btn'>"+(HC.dwg?"Change drawing…":"Add drawing (.dwg / .dxf)…")+"<input type='file' id='hc-dwg' accept='.dwg,.dxf' style='display:none'></label></div>";
+ if(HC.msg)h+="<div class='cu-err' style='display:block'>"+E(HC.msg)+"</div>";
+ if(P.length){var cnt={};P.forEach(function(p){cnt[p.layer]=(cnt[p.layer]||0)+1;});var Ls=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];});
+  h+="<details class='hc-layers'"+(HC.dwg&&!HC.layOpen?"":" open")+"><summary>Ground layers — "+Ls.filter(hcLayerOn).length+" of "+Ls.length+" used for the surface</summary><div class='hc-lay'>"+Ls.map(function(l){var hide=l.toUpperCase()==="HIDE";return "<label class='cu-cb'><input type='checkbox' class='hc-l' data-l='"+E(l)+"'"+(hcLayerOn(l)?" checked":"")+(hide?" disabled":"")+"> "+E(l)+" <span class='hint' style='margin:0'>("+cnt[l]+(hide?" — always ignored: heights already dealt with":"")+")</span></label>";}).join("")+"</div></details>";
+  h+="<div class='row' style='gap:12px;margin:6px 0'><label>Flag when off by more than <input type='text' inputmode='decimal' id='hc-lim' value='"+HC.lim+"' style='width:60px'> m</label><label style='margin-left:12px'>Contours <select id='hc-ci'><option value='0'"+(HC.ci?"":" selected")+">off</option>"+[0.25,0.5,1].map(function(v){return "<option value='"+v+"'"+(HC.ci===v?" selected":"")+">"+v+" m</option>";}).join("")+"</select></label></div>";}
+ if(r){h+="<div class='cu-sum'>"+r.checked+" ground points checked — <b>"+r.flags.length+" flagged</b></div>";
+  h+="<div class='hc-wrap'><canvas id='hc-cv' class='hc-cv' title='scroll to zoom, drag to move, click a point'></canvas><div id='hc-info' class='hc-info'>"+(HC.sel?hcInfo(P.find(function(p){return p.num===HC.sel;})):"<span class='hint'>Click a point, or a row below.</span>")+"</div></div>";
+  if(r.flags.length){var F=HC.showAll?r.flags:r.flags.slice(0,60);h+="<div class='row' style='gap:8px;margin:6px 0'><button class='btn' id='hc-copy'>Copy list</button><span class='hint' id='hc-copied' style='margin:0'></span></div><table class='cu-tbl hc-tbl'><tr><th>Pt</th><th>Desc</th><th>Elev</th><th>Layer</th><th>Why</th></tr>"+F.map(function(f){return "<tr data-hcp='"+E(f.p.num)+"'"+(HC.sel===f.p.num?" class='on'":"")+"><td>"+E(f.p.num)+"</td><td>"+E(f.p.desc)+"</td><td>"+f.p.Z.toFixed(3)+"</td><td>"+E(f.p.layer)+"</td><td>"+f.why.map(E).join("<br>")+"</td></tr>";}).join("")+"</table>"+(r.flags.length>F.length?"<button class='btn' id='hc-more'>Show all "+r.flags.length+"</button>":"");}
+  else h+="<div class='hint'>Nothing stands out at this limit.</div>";}
+ h+="</div>";host.innerHTML=h;
+ var fi=document.getElementById("hc-dwg");if(fi)fi.onchange=function(){var f=fi.files[0];fi.value="";if(f)hcLoadDrawing(f);};
+ host.querySelectorAll(".hc-l").forEach(function(c){c.onchange=function(){hcSetLayer(c.dataset.l,c.checked);HC.layOpen=true;hcRun();hcPaint();};});
+ var li=document.getElementById("hc-lim");if(li)li.onchange=function(){var v=parseFloat(li.value);if(v>0){HC.lim=v;hcRun();hcPaint();}};
+ var ci=document.getElementById("hc-ci");if(ci)ci.onchange=function(){HC.ci=parseFloat(ci.value)||0;hcDraw();};
+ host.querySelectorAll("[data-hcp]").forEach(function(tr){tr.onclick=function(){hcFocus(tr.dataset.hcp);host.querySelectorAll("[data-hcp]").forEach(function(x){x.classList.toggle("on",x===tr);});var c=document.getElementById("hc-cv");if(c&&c.scrollIntoView)c.scrollIntoView({block:"nearest"});};});
+ var cp=document.getElementById("hc-copy");if(cp)cp.onclick=hcCopy;var mo=document.getElementById("hc-more");if(mo)mo.onclick=function(){HC.showAll=true;hcPaint();};
+ var cv=document.getElementById("hc-cv");if(cv){hcDraw();var drag=null;
+  cv.onwheel=function(e){e.preventDefault();var V=HC.view;if(!V)return;var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,W=cv.clientWidth,H=cv.clientHeight,ex=V.cx+(mx-W/2)/V.s,ny=V.cy-(my-H/2)/V.s,k=e.deltaY<0?1.25:0.8;V.s*=k;V.cx=ex-(mx-W/2)/V.s;V.cy=ny+(my-H/2)/V.s;hcDraw();};
+  cv.onmousedown=function(e){drag={x:e.clientX,y:e.clientY,moved:false};};
+  cv.onmousemove=function(e){if(!drag||!HC.view)return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;HC.view.cx-=dx/HC.view.s;HC.view.cy+=dy/HC.view.s;drag.x=e.clientX;drag.y=e.clientY;hcDraw();};
+  cv.onmouseup=function(e){var was=drag;drag=null;if(was&&was.moved)return;var b=cv.getBoundingClientRect(),p=hcPick(e.clientX-b.left,e.clientY-b.top);if(p){HC.sel=p.num;hcDraw();document.getElementById("hc-info").innerHTML=hcInfo(p);}};
+  cv.onmouseleave=function(){drag=null;};}}
+function hcLoadDrawing(file){HC.msg="";HC.busy="Reading "+file.name+(/\.dwg$/i.test(file.name)?" (the first DWG takes a few seconds to load the reader) …":" …");hcPaint();
+ var p=/\.dxf$/i.test(file.name)?file.text().then(hcDxfEntities):file.arrayBuffer().then(function(ab){return hcDwgEntities(new Uint8Array(ab));});
+ return p.then(function(ents){if(!HC.pts||!HC.pts.length)throw new Error("Load the points (.msz) in the Points tab first.");if(!HC.pts.some(function(x){return x.h;}))throw new Error("These points have no drawing handles — load the MicroSurvey package (.msz) in the Points tab, not a points file, to match them to the drawing.");
+  hcApplyDrawing(ents,file.name);HC.busy="";HC.view=null;HC.layOpen=false;hcRun();hcPaint();}).catch(function(e){HC.busy="";HC.msg=(e&&e.message)||String(e);hcPaint();});}
+window.cuRenderHc=cuRenderHc;
+
+/* HC-END */
 function cuDosDate(e){
  var y=((e.mdate>>9)&0x7f)+1980,m=(e.mdate>>5)&0xf,d=e.mdate&0x1f,hh=(e.mtime>>11)&0x1f,mm=(e.mtime>>5)&0x3f;
  return y+"-"+("0"+m).slice(-2)+"-"+("0"+d).slice(-2)+" "+("0"+hh).slice(-2)+":"+("0"+mm).slice(-2);
@@ -5179,7 +5380,7 @@ function cuLoadPackage(buf,name){
  var conflicts=entries.filter(function(e){return /(^|\/)db_coord-[^\/]*\.dbf$/i.test(e.name);});
  if(!prim){host.innerHTML="<div class='cu-err'>No coordinate database (db_coord.dbf) inside "+esc(name)+" \u2014 is this a MicroSurvey project package?</div>";return Promise.resolve();}
  return cuZipRead(buf,prim).then(function(u8){
-  var dbf=cuParseDbf(u8),text=cuDbfToPnezd(dbf);
+  var dbf=cuParseDbf(u8),text=cuDbfToPnezd(dbf);window.CU_LASTPKG={buf:buf,name:name};
   var proj=(prim.name.split("/")[0]||name).replace(/\.msj$/i,"");
   cuPendingPkg={file:name,project:proj,date:cuDosDate(prim),count:text?text.trim().split("\n").length:0,conflicts:conflicts.length,backup:isMbz,kind:isMbz?"mbz":"msz"};
   cuParse(text,proj+"-pts.txt");
