@@ -1,5 +1,19 @@
 # Elevate Office — changelog
 
+## Build 1.38 — 2026-10-30
+- **Points › Height check works on feet drawings.**
+  - A **Metres / Feet** switch sits beside the limit. It's picked from the drawing's own units (or from UTM-in-feet coordinates) and says where it came from; change it any time.
+  - In feet, the limits are round foot values: flag at **1.0 ft**, look **80 ft** around each point, same-spot shots **0.3 ft** apart. All still editable.
+  - Contours are **1 ft by default** on a feet drawing (2 ft, 5 ft or off).
+  - Everything reads in feet: "11.95 ft lower than all 4 points around it", the point details, the legend and **Copy list** (Elev (ft)). Your points and drawing are never converted.
+  - Metric drawings are checked exactly as before (26-3582: the same 30 flags).
+- **PM › ALR button** under each site address, next to BC Assessment. It opens the Agricultural Land Commission's *Is My Property in the ALR?* map and copies the **PID without dashes** (the way that map's search wants it), or the address when there's no PID. Not on sub-quotes, like the other research buttons.
+- **Resources:** *Is My Property in the ALR? (ALC)* added under Provincial / federal.
+- **Training:** three new videos.
+  - *Height check (Points tab)*, also as the ▶ Training link on the Height check tool.
+  - *Pasting a tracker row* (PM tab).
+  - *Topo + posting + new construction + strata sample (multi-service)* (PM tab).
+
 ## Build 1.37 — 2026-10-28
 - **Points › Height check** (new tool button), to catch topo heights that are too high or too low before the drawing goes out.
   - Load the topo's **.msz** in the Points tab as usual, open **Height check**, then **Add drawing (.dwg / .dxf)**.

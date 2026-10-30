@@ -782,6 +782,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
       <li><a href="https://a100.gov.bc.ca/pub/pls/gator/gator$queryforms.menu" target="_blank" rel="noopener">Crown Grants (GATOR)</a></li>
       <li><a href="https://maps.ltsa.ca/" target="_blank" rel="noopener">ParcelMap BC (LTSA)</a></li>
       <li><a href="https://www.bcassessment.ca/" target="_blank" rel="noopener">BC Assessment</a></li>
+      <li><a href="https://experience.arcgis.com/experience/d6a45c98667f484fbebc3e1cb072b77e" target="_blank" rel="noopener">Is My Property in the ALR? (ALC)</a></li>
       <li><a href="https://geonetbc.gov.bc.ca/geonetbc" target="_blank" rel="noopener">GeoNetBC — geodetic control</a></li>
     </ul>
   </div>
@@ -815,8 +816,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.37";
-const NEWS=["Points: Height check \u2014 load the topo .msz and add its drawing (.dwg / .dxf): ground heights out of line with the points around them, trees above the ground, reflectorless shots not at 99 and spots shot twice at different heights are flagged on a coloured plan with contours. HIDE is always ignored.", "PM: BC Assessment button under each site address (and in Resources).", "PM: the next quote number names the folder it counted from, and warns when it would skip unused numbers (e.g. a stray 26-652) \u2014 with a button for the right one.", "PM: Convert to job finds the job folder by its last digits if the year part is typed wrong (24-2353 \u2192 23-2353), and never makes a second folder for the same job.", "PM: Tidy moves folders file by file instead of copying them \u2014 the old folders are left empty, listed as safe to delete."];
+const BUILD="1.38";
+const NEWS=["Points: Height check works on feet drawings \u2014 a Metres / Feet switch (picked up from the drawing), limits in round feet (1.0 ft) and 1 ft contours by default.", "PM: ALR button under each site address \u2014 the ALC\u2019s \u201cIs My Property in the ALR?\u201d map (the PID or address is copied). Also in Resources.", "Training: three new videos \u2014 Height check, pasting a tracker row, and a topo + posting + new construction + strata quote."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -2483,6 +2484,8 @@ function pmqWireLists(host){
 
 /* ---------- 1.35: research links under each site address, and a job map preview with the address pinned ---------- */
 var PMR_MID="1b2eNsbiIgDsWLYNYHdewCsDMLCDKmQ8",PMR_PARCEL="https://maps.ltsa.ca/",PMR_BCA="https://www.bcassessment.ca/";
+/* 1.38: Agricultural Land Commission — Is My Property in the ALR? (its search takes a PID without dashes, a PIN or an address) */
+var PMR_ALR="https://experience.arcgis.com/experience/d6a45c98667f484fbebc3e1cb072b77e";
 /* city in the address -> the GIS list's names (Resources tab); ambiguous names give both */
 var PMR_CITY=[
  [/\bport\s*coquitlam\b|\bpoco\b/,["Port Coquitlam"]],[/\bport\s*moody\b/,["Port Moody"]],[/\bcoquitlam\b/,["Coquitlam"]],
@@ -2526,6 +2529,7 @@ function pmrStripHtml(q,i,p){if(pmrIsSub(q)||!(p.site||"").trim())return "<div c
  h+=btn("Google Maps","https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a),"","street view and aerial for this address");
  /* 1.37: BC Assessment (assessed values, property details) — its search takes the address */
  h+=btn("BC Assessment",PMR_BCA,a,"opens BC Assessment; the address is copied \u2014 paste it into the search");
+ h+=btn("ALR",PMR_ALR,pid?pid.replace(/[^0-9]/g,""):a,"opens the ALC\u2019s \u201cIs My Property in the ALR?\u201d map; "+(pid?"the PID (no dashes)":"the address")+" is copied \u2014 paste it into its search");
  h+="<button class='btn pmr-b' data-pmap='"+i+"' title='show your job map here, with this address pinned'>"+(PM.mapOpen&&PM.mapAt===i&&pmrMapOn()?"Hide job map":"Job map preview")+"</button><span class='hint pmr-msg' style='margin:0'></span>";
  return "<div class='pmr-strip' data-pr='"+i+"'>"+h+"</div>";}
 function pmrMapOn(){try{return sget("eo:pmmap")!=="0";}catch(e){return true;}}
@@ -4009,7 +4013,7 @@ function cuRender(){
 }
 /* ---------- Points tab tool buttons (1.31): one tool shown at a time; the file shelf stays on top ---------- */
 var CU_TOOLS=[["clean","Clean-up"],["scale","Scale"],["match","Match points"],["dvf","Design vs Field"],["mon","Monitoring"],["tree","Tree table"],["hc","Height check"],["tf","Transform"]];
-var CU_TOOL_VIDS={clean:["Fixing tree sizes to imperial (Points tab)","Points upload for crew \u2014 example","RW5 file to points for a topo in feet (Points tab)"],match:["Points matching (Match points tab)","Points matching \u2014 PL sample"],dvf:["Design vs Field \u2014 comparing cut / fills (Points tab)","Design vs Field \u2014 comparing residuals (Points tab)"],tree:["Tree table (Points tab)"]};
+var CU_TOOL_VIDS={clean:["Fixing tree sizes to imperial (Points tab)","Points upload for crew \u2014 example","RW5 file to points for a topo in feet (Points tab)"],match:["Points matching (Match points tab)","Points matching \u2014 PL sample"],dvf:["Design vs Field \u2014 comparing cut / fills (Points tab)","Design vs Field \u2014 comparing residuals (Points tab)"],tree:["Tree table (Points tab)"],hc:["Height check (Points tab)"]};
 var cuTool=(function(){try{var t=localStorage.getItem("eo:cutool");return CU_TOOLS.some(function(x){return x[0]===t;})?t:"clean";}catch(e){return "clean";}})();
 function cuHasTrees(){try{return cuTreeRows().length>0;}catch(e){return false;}}
 function cuToolsBar(){var tr=cuHasTrees();
@@ -5181,7 +5185,16 @@ function cuZipRead(buf,e){
 /* Points come from the loaded MicroSurvey package (.msz/.mbz; its raw shots too, when the package has them) or points file.
    Layers come from the drawing (.dwg via a WebAssembly reader loaded only when a DWG is picked, or .dxf): each package point is
    matched to its drawing point by handle; the layer that counts is the elevation text's (ELEVATION, ELEV_TREE, HIDE …). */
-var HC={pkg:null,pts:null,src:"",raw:null,dwg:null,res:null,sel:null,msg:"",busy:"",view:null,lim:0.30,ci:0.5,showAll:false};
+var HC={pkg:null,pts:null,src:"",raw:null,dwg:null,res:null,sel:null,msg:"",busy:"",view:null,lim:0.30,ci:0.5,showAll:false,unit:"m",unitSrc:"",unitSet:false};
+/* 1.38: feet drawings — every distance limit follows the drawing's unit (round foot values in feet; all still editable) */
+var HC_U={m:{lim:0.30,rad:25,same:30,dup:0.10,edge:40,cis:[0.25,0.5,1],ci:0.5,lab:"m"},ft:{lim:1.0,rad:80,same:100,dup:0.3,edge:130,cis:[1,2,5],ci:1,lab:"ft"}};
+function hcU(){return HC_U[HC.unit]||HC_U.m;}
+function hcSetUnit(u,src,byUser){if(!HC_U[u])return;var ch=HC.unit!==u;HC.unit=u;HC.unitSrc=src||"";if(byUser)HC.unitSet=true;if(ch||byUser){HC.lim=HC_U[u].lim;HC.ci=HC_U[u].ci;HC.view=null;}}
+/* a guess from the drawing header ($INSUNITS 2 = feet, 6 = metres; $MEASUREMENT 0 = imperial), else from UTM-sized coordinates (BC northings ≈ 5.4 million m = 17.7 million ft) */
+function hcGuessUnit(hdr,pts){if(hdr){var iu=+hdr.INSUNITS;if(iu===2||iu===1)return {u:"ft",src:"from the drawing"};if(iu===6)return {u:"m",src:"from the drawing"};if(hdr.MEASUREMENT!==undefined&&hdr.MEASUREMENT!==""&&!isNaN(+hdr.MEASUREMENT))return {u:+hdr.MEASUREMENT===0?"ft":"m",src:"from the drawing"};}
+ var ns=(pts||[]).map(function(p){return p.N;}).filter(function(v){return isFinite(v)&&v!==0;}).sort(function(a,b){return a-b;});if(ns.length){var n=ns[Math.floor(ns.length/2)];if(n>15e6&&n<20e6)return {u:"ft",src:"from the coordinates (UTM in feet)"};if(n>5e6&&n<6.2e6)return {u:"m",src:"from the coordinates (UTM in metres)"};}
+ return null;}
+function hcDxfHeader(text){var h={},m=String(text).match(/\$INSUNITS\s*\r?\n\s*70\s*\r?\n\s*(-?\d+)/);if(m)h.INSUNITS=+m[1];m=String(text).match(/\$MEASUREMENT\s*\r?\n\s*70\s*\r?\n\s*(-?\d+)/);if(m)h.MEASUREMENT=+m[1];return h;}
 var HC_DWGLIB="https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web@0.8.0/";
 var HC_GENERIC=/^(G|EG|GS|GL|GRD|GRND|OG|NG|GROUND)$/;
 var HC_NOTGROUND=/^(INV|INVERT)\b/i;
@@ -5195,6 +5208,7 @@ function hcCode(desc){var m=String(desc||"").toUpperCase().match(/^[A-Z]+/);retu
 function hcIsTree(p){return String(p.layer||"").toUpperCase()==="ELEV_TREE"||HC_TREE.test(String(p.desc||"").trim());}
 function hcVisit(l){var m=String(l||"").match(/^FIELD\s+(.+?)\s+ELVS$/i);return m?m[1]:null;}
 function hcFmt(v){return (Math.round(v*100)/100).toFixed(2);}
+function hcFmtU(v){return hcFmt(v)+" "+hcU().lab;}
 /* ---- reading the package: points with their drawing handles, and the raw shots (reflectorless or prism, target height) ---- */
 function hcClean(s){return String(s||"").replace(/[\x00-\x1f]/g,"").trim();}
 function hcFromPackage(buf,name){var ents=cuZipEntries(buf),prim=ents.filter(function(e){return /(^|\/)db_coord\.dbf$/i.test(e.name);})[0];
@@ -5222,7 +5236,8 @@ var HC_DWGP=null;
 function hcDwgLib(){if(HC_DWGP)return HC_DWGP;HC_DWGP=import(HC_DWGLIB+"dist/libredwg-web.js").then(function(m){return m.LibreDwg.create(HC_DWGLIB+"wasm");}).catch(function(e){HC_DWGP=null;throw new Error("Couldn’t load the DWG reader — check you’re online, or save the drawing as DXF.");});return HC_DWGP;}
 function hcDwgEntities(buf){return hcDwgLib().then(function(lib){var dwg=lib.dwg_read_data(buf,0);if(!dwg)throw new Error("That DWG couldn’t be read — save it as DXF and try that.");
  var db=lib.convert(dwg);try{lib.dwg_free(dwg);}catch(e){}
- return (db.entities||[]).filter(function(e){return e.type==="POINT"||e.type==="TEXT"||e.type==="MTEXT";}).map(function(e){return {t:e.type,h:String(e.handle||"").toUpperCase(),l:e.layer||""};});});}
+ var ents=(db.entities||[]).filter(function(e){return e.type==="POINT"||e.type==="TEXT"||e.type==="MTEXT";}).map(function(e){return {t:e.type,h:String(e.handle||"").toUpperCase(),l:e.layer||""};});
+ var H=db.header||{};ents.hdr={INSUNITS:H.INSUNITS!==undefined?H.INSUNITS:H.insunits,MEASUREMENT:H.MEASUREMENT!==undefined?H.MEASUREMENT:H.measurement};return ents;});}
 function hcApplyDrawing(ents,name){var by={};ents.forEach(function(e){if(e.h)by[e.h]=e;});var hit=0,miss=[];
  HC.pts.forEach(function(p){var et=by[p.eh],pe=by[p.h];if(et||pe){hit++;p.layer=(et&&et.l)||(pe&&pe.l)||"0";}else{p.layer="(not in drawing)";miss.push(p.num);}});
  var inDwg=ents.filter(function(e){return e.t==="POINT";}).length;
@@ -5237,44 +5252,44 @@ function hcInterp(d,list,x,y){/* ground height at x,y from the triangle it falls
   var l1=((B.N-C.N)*(x-C.E)+(C.E-B.E)*(y-C.N))/det,l2=((C.N-A.N)*(x-C.E)+(A.E-C.E)*(y-C.N))/det,l3=1-l1-l2;
   if(l1>=-1e-9&&l2>=-1e-9&&l3>=-1e-9)return l1*A.Z+l2*B.Z+l3*C.Z;}return null;}
 function hcRun(){
- var lim=HC.lim,P=HC.pts||[];if(!P.length){HC.res=null;return;}
+ var lim=HC.lim,U=hcU(),P=HC.pts||[],kd=U.dup*0.5;if(!P.length){HC.res=null;return;}
  /* inverts are never ground, whatever layer they sit on */
  var G=P.filter(function(p){return hcLayerOn(p.layer)&&Math.abs(p.Z)>0.001&&!HC_NOTGROUND.test(String(p.desc||"").trim());});
  /* the same spot shot twice: keep one for the surface, check the pair */
- var seen={},Gu=[],dups=[];G.forEach(function(p){var k=Math.round(p.E*20)+","+Math.round(p.N*20);if(seen[k]){dups.push([seen[k],p]);return;}seen[k]=p;Gu.push(p);});
+ var seen={},Gu=[],dups=[];G.forEach(function(p){var k=Math.round(p.E/kd)+","+Math.round(p.N/kd);if(seen[k]){dups.push([seen[k],p]);return;}seen[k]=p;Gu.push(p);});
  var flags={},add=function(p,why,score,extra){var f=flags[p.num]||(flags[p.num]={p:p,why:[],score:0,nb:null});f.why.push(why);f.score=Math.max(f.score,score);if(extra)Object.assign(f,extra);};
  var res={checked:Gu.length,ground:G.length,flags:[],tri:null,G:Gu};
  if(Gu.length>=3){
   var d=hcTin(Gu),nb=hcNeighbours(d,Gu.length);res.tri=d;
   /* neighbours of the same code nearby (a ditch bottom is compared with the ditch, not the bank beside it) */
-  var grid={},cell=30,key=function(e,n){return Math.floor(e/cell)+","+Math.floor(n/cell);};Gu.forEach(function(p,i){var k=key(p.E,p.N);(grid[k]=grid[k]||[]).push(i);});
+  var grid={},cell=U.same,key=function(e,n){return Math.floor(e/cell)+","+Math.floor(n/cell);};Gu.forEach(function(p,i){var k=key(p.E,p.N);(grid[k]=grid[k]||[]).push(i);});
   var near=function(i,r){var p=Gu[i],out=[],cx=Math.floor(p.E/cell),cy=Math.floor(p.N/cell);for(var a=-1;a<=1;a++)for(var b=-1;b<=1;b++)(grid[(cx+a)+","+(cy+b)]||[]).forEach(function(j){if(j!==i&&Math.hypot(Gu[j].E-p.E,Gu[j].N-p.N)<=r)out.push(j);});return out;};
-  Gu.forEach(function(p,i){var js=nb[i].filter(function(j){return Math.hypot(Gu[j].E-p.E,Gu[j].N-p.N)<25;});if(js.length<3)return;
+  Gu.forEach(function(p,i){var js=nb[i].filter(function(j){return Math.hypot(Gu[j].E-p.E,Gu[j].N-p.N)<U.rad;});if(js.length<3)return;
    var zs=js.map(function(j){return Gu[j].Z;}),lo=Math.min.apply(null,zs),hi=Math.max.apply(null,zs),out=Math.max(p.Z-hi,lo-p.Z);if(out<=lim)return;
-   var code=hcCode(p.desc),same=near(i,30).filter(function(j){return hcCode(Gu[j].desc)===code;}).sort(function(a,b){return Math.hypot(Gu[a].E-p.E,Gu[a].N-p.N)-Math.hypot(Gu[b].E-p.E,Gu[b].N-p.N);}).slice(0,4);
+   var code=hcCode(p.desc),same=near(i,U.same).filter(function(j){return hcCode(Gu[j].desc)===code;}).sort(function(a,b){return Math.hypot(Gu[a].E-p.E,Gu[a].N-p.N)-Math.hypot(Gu[b].E-p.E,Gu[b].N-p.N);}).slice(0,4);
    if(HC_GENERIC.test(code))same=[];/* plain ground shots are judged against everything around them */
    if(same.length>=2){var s2=same.map(function(j){return Gu[j].Z;});if(Math.max(p.Z-Math.max.apply(null,s2),Math.min.apply(null,s2)-p.Z)<=lim)return;}
-   var up=p.Z>hi,why=hcFmt(out)+" m "+(up?"higher":"lower")+" than all "+js.length+" points around it ("+hcFmt(lo)+" – "+hcFmt(hi)+")";
+   var up=p.Z>hi,why=hcFmtU(out)+" "+(up?"higher":"lower")+" than all "+js.length+" points around it ("+hcFmt(lo)+" – "+hcFmt(hi)+")";
    var vis=hcVisit(p.layer),orig=js.filter(function(j){return !hcVisit(Gu[j].layer);}).length;
    if(vis&&orig>js.length/2)why+=" — field "+vis+" shot that differs from the original topo: site change or error?";
    add(p,why,out,{lo:lo,hi:hi,n:js.length});});
   /* trees: the base of a tree should be at the ground around it (a trunk shot higher up reads high) */
   var nonTree=Gu.filter(function(p){return !hcIsTree(p);});
   if(nonTree.length>=3){var d2=hcTin(nonTree);P.forEach(function(p){if(!hcIsTree(p)||String(p.layer).toUpperCase()==="HIDE"||Math.abs(p.Z)<0.001)return;var g=hcInterp(d2,nonTree,p.E,p.N);if(g==null)return;var dz=p.Z-g;
-   if(Math.abs(dz)>lim)add(p,"tree "+hcFmt(Math.abs(dz))+" m "+(dz>0?"above":"below")+" the ground around it ("+hcFmt(g)+")"+(dz>0?" — shot up the trunk?":""),Math.abs(dz));});}
+   if(Math.abs(dz)>lim)add(p,"tree "+hcFmtU(Math.abs(dz))+" "+(dz>0?"above":"below")+" the ground around it ("+hcFmt(g)+")"+(dz>0?" — shot up the trunk?":""),Math.abs(dz));});}
  }
  /* reflectorless shots not at the office target height 99 (a ground height then comes from whatever the beam hit) */
  if(HC.raw){P.forEach(function(p){var R=HC.raw[p.num];if(!R)return;var on=hcLayerOn(p.layer)||hcIsTree(p);if(!on)return;
   var bad=R.filter(function(r){return r.mode==="RL"&&Math.abs(r.ht-99)>0.0005;});if(!bad.length)return;
   add(p,"reflectorless shot at target height "+bad[bad.length-1].ht+" (not 99)",flags[p.num]?flags[p.num].score+1:0.35);});}
- dups.forEach(function(pr){var dz=Math.abs(pr[0].Z-pr[1].Z);if(dz>0.10)add(pr[1],"same spot as point "+pr[0].num+" but "+hcFmt(dz)+" m different ("+hcFmt(pr[0].Z)+")",dz);});
+ dups.forEach(function(pr){var dz=Math.abs(pr[0].Z-pr[1].Z);if(dz>U.dup)add(pr[1],"same spot as point "+pr[0].num+" but "+hcFmtU(dz)+" different ("+hcFmt(pr[0].Z)+")",dz);});
  P.forEach(function(p){if(hcLayerOn(p.layer)&&Math.abs(p.Z)<=0.001)add(p,"no elevation (0.00) on a ground layer",0.3);});
  res.flags=Object.keys(flags).map(function(k){return flags[k];}).sort(function(a,b){return (b.why.length-a.why.length)||(b.score-a.score);});
  HC.res=res;}
 /* contour segments (marching triangles) at interval ci */
 function hcContours(res,ci){var segs=[];if(!res||!res.tri||!(ci>0))return segs;var T=res.tri.triangles,G=res.G;
  for(var t=0;t<T.length;t+=3){var v=[G[T[t]],G[T[t+1]],G[T[t+2]]],zs=v.map(function(p){return p.Z;}),lo=Math.min.apply(null,zs),hi=Math.max.apply(null,zs);
-  if(Math.max(Math.hypot(v[0].E-v[1].E,v[0].N-v[1].N),Math.hypot(v[1].E-v[2].E,v[1].N-v[2].N),Math.hypot(v[0].E-v[2].E,v[0].N-v[2].N))>40)continue;
+  if(Math.max(Math.hypot(v[0].E-v[1].E,v[0].N-v[1].N),Math.hypot(v[1].E-v[2].E,v[1].N-v[2].N),Math.hypot(v[0].E-v[2].E,v[0].N-v[2].N))>hcU().edge)continue;
   for(var c=Math.ceil(lo/ci)*ci;c<hi;c+=ci){var pts=[];for(var k=0;k<3;k++){var a=v[k],b=v[(k+1)%3];if((a.Z-c)*(b.Z-c)<0||(a.Z===c&&b.Z!==c)){var f=(c-a.Z)/(b.Z-a.Z);pts.push([a.E+f*(b.E-a.E),a.N+f*(b.N-a.N)]);}}
    if(pts.length>=2)segs.push({c:c,a:pts[0],b:pts[1],major:Math.abs(c/(ci*5)-Math.round(c/(ci*5)))<1e-6});}}
  return segs;}
@@ -5289,22 +5304,22 @@ function hcDraw(){var cv=document.getElementById("hc-cv"),res=HC.res;if(!cv||!re
  P.forEach(function(p){var on=hcLayerOn(p.layer)&&Math.abs(p.Z)>0.001;var x=X(p.E),y=Y(p.N);if(x<-5||y<-5||x>W+5||y>H+5)return;g.fillStyle=on?hcColor(p.Z,lo,hi):"rgba(150,150,150,.45)";g.beginPath();g.arc(x,y,on?(V.s>8?2.6:1.6):1.2,0,7);g.fill();});
  res.flags.forEach(function(f){var x=X(f.p.E),y=Y(f.p.N);g.strokeStyle=HC.sel===f.p.num?"#000":"#c00000";g.lineWidth=HC.sel===f.p.num?3:2;g.beginPath();g.arc(x,y,9,0,7);g.stroke();g.fillStyle="#c00000";g.font="bold 11px sans-serif";g.fillText(f.p.num,x+11,y-6);});
  /* elevation legend */
- for(var i=0;i<=40;i++){g.fillStyle=hcColor(lo+(hi-lo)*i/40,lo,hi);g.fillRect(12+i*4,H-22,4,10);}g.fillStyle="#333";g.font="11px sans-serif";g.fillText(hcFmt(lo),12,H-26);g.fillText(hcFmt(hi),150,H-26);}
+ for(var i=0;i<=40;i++){g.fillStyle=hcColor(lo+(hi-lo)*i/40,lo,hi);g.fillRect(12+i*4,H-22,4,10);}g.fillStyle="#333";g.font="11px sans-serif";g.fillText(hcFmtU(lo),12,H-26);g.fillText(hcFmtU(hi),150,H-26);}
 function hcPick(mx,my){var cv=document.getElementById("hc-cv"),V=HC.view;if(!cv||!V)return null;var W=cv.clientWidth,H=cv.clientHeight,best=null,bd=10;
  HC.pts.forEach(function(p){var x=W/2+(p.E-V.cx)*V.s,y=H/2-(p.N-V.cy)*V.s,d=Math.hypot(x-mx,y-my);if(d<bd){bd=d;best=p;}});return best;}
 function hcInfo(p){if(!p)return "";var f=HC.res&&HC.res.flags.find(function(x){return x.p===p;});
- return "<b>Point "+esc(p.num)+"</b> — "+esc(p.desc||"(no description)")+" · elev "+p.Z.toFixed(3)+" · layer "+esc(p.layer)+(hcLayerOn(p.layer)?"":" (not checked)")+(f?"<div class='cu-idwarn' style='margin:4px 0 0'>"+f.why.map(esc).join("<br>")+"</div>":"");}
+ return "<b>Point "+esc(p.num)+"</b> — "+esc(p.desc||"(no description)")+" · elev "+p.Z.toFixed(3)+" "+hcU().lab+" · layer "+esc(p.layer)+(hcLayerOn(p.layer)?"":" (not checked)")+(f?"<div class='cu-idwarn' style='margin:4px 0 0'>"+f.why.map(esc).join("<br>")+"</div>":"");}
 function hcFocus(num){var p=HC.pts.find(function(x){return x.num===num;});if(!p)return;HC.sel=num;if(HC.view){HC.view.cx=p.E;HC.view.cy=p.N;HC.view.s=Math.max(HC.view.s,4);}hcDraw();var ib=document.getElementById("hc-info");if(ib)ib.innerHTML=hcInfo(p);}
-function hcCopy(){var r=HC.res;if(!r)return;var t="Pt\tDesc\tElev\tLayer\tWhy\n"+r.flags.map(function(f){return [f.p.num,f.p.desc,f.p.Z.toFixed(3),f.p.layer,f.why.join("; ")].join("\t");}).join("\n");
+function hcCopy(){var r=HC.res;if(!r)return;var t="Pt\tDesc\tElev ("+hcU().lab+")\tLayer\tWhy\n"+r.flags.map(function(f){return [f.p.num,f.p.desc,f.p.Z.toFixed(3),f.p.layer,f.why.join("; ")].join("\t");}).join("\n");
  try{navigator.clipboard.writeText(t);}catch(e){}var m=document.getElementById("hc-copied");if(m){m.textContent="Copied "+r.flags.length+" rows.";setTimeout(function(){m.textContent="";},3000);}}
 /* points from the current Points file when no package is loaded (no layers, handles or raw shots) */
 function hcFromCurrent(){var out=[];try{cu.lines.forEach(function(r){if(!r.point)return;var co=cuCoordOf(r);if(!co||isNaN(co.n)||isNaN(co.e))return;out.push({num:String(r.pt),N:co.n,E:co.e,Z:isNaN(co.z)?0:co.z,desc:r.desc.trim(),h:"",eh:"",layer:"(no drawing)"});});}catch(e){}return out;}
 function hcEnsure(){/* (re)load points when the Points tab file changed */
- var key=(cu&&cu.name)||"";if(HC.src===key&&HC.pts)return Promise.resolve();HC.src=key;HC.dwg=null;HC.raw=null;HC.res=null;HC.view=null;HC.sel=null;HC.msg="";
+ var key=(cu&&cu.name)||"";if(HC.src===key&&HC.pts)return Promise.resolve();HC.src=key;HC.dwg=null;HC.raw=null;HC.res=null;HC.view=null;HC.sel=null;HC.msg="";HC.unitSet=false;HC.unitSrc="";
  var L=window.CU_LASTPKG;if(L&&cu.pkg&&cu.pkg.file===L.name){HC.busy="Reading "+L.name+" …";return hcFromPackage(L.buf,L.name).then(function(r){HC.pts=r.pts;HC.raw=r.raw;HC.pkg={file:r.file,rawFiles:r.rawFiles};HC.busy="";}).catch(function(e){HC.busy="";HC.msg=e.message;HC.pts=hcFromCurrent();HC.pkg=null;});}
  HC.pts=hcFromCurrent();HC.pkg=null;return Promise.resolve();}
 function cuRenderHc(){var host=document.getElementById("cu-hc");if(!host)return;
- hcEnsure().then(function(){if(HC.pts&&!HC.res)hcRun();hcPaint();});hcPaint();}
+ hcEnsure().then(function(){if(HC.pts&&!HC.res){if(!HC.unitSet&&!HC.unitSrc){var g=hcGuessUnit(null,HC.pts);if(g)hcSetUnit(g.u,g.src);else hcSetUnit("m","check: units not known — metres assumed");}hcRun();}hcPaint();});hcPaint();}
 function hcPaint(){var host=document.getElementById("cu-hc");if(!host)return;var E=esc,P=HC.pts||[],r=HC.res;
  var h="<div class='cu-manual'><h3>Height check</h3><p class='hint' style='margin:0 0 6px'>Finds ground heights that are out of line with the points around them, trees above the ground, reflectorless shots not at target height 99, and the same spot shot twice at different heights — to catch before the drawing goes out. The flags are <b>worth a look</b>, not verdicts: a real pit, mound or wall can also stand out.</p>";
  if(HC.busy)h+="<div class='hint'>"+E(HC.busy)+"</div>";
@@ -5313,14 +5328,15 @@ function hcPaint(){var host=document.getElementById("cu-hc");if(!host)return;var
  if(HC.msg)h+="<div class='cu-err' style='display:block'>"+E(HC.msg)+"</div>";
  if(P.length){var cnt={};P.forEach(function(p){cnt[p.layer]=(cnt[p.layer]||0)+1;});var Ls=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];});
   h+="<details class='hc-layers'"+(HC.dwg&&!HC.layOpen?"":" open")+"><summary>Ground layers — "+Ls.filter(hcLayerOn).length+" of "+Ls.length+" used for the surface</summary><div class='hc-lay'>"+Ls.map(function(l){var hide=l.toUpperCase()==="HIDE";return "<label class='cu-cb'><input type='checkbox' class='hc-l' data-l='"+E(l)+"'"+(hcLayerOn(l)?" checked":"")+(hide?" disabled":"")+"> "+E(l)+" <span class='hint' style='margin:0'>("+cnt[l]+(hide?" — always ignored: heights already dealt with":"")+")</span></label>";}).join("")+"</div></details>";
-  h+="<div class='row' style='gap:12px;margin:6px 0'><label>Flag when off by more than <input type='text' inputmode='decimal' id='hc-lim' value='"+HC.lim+"' style='width:60px'> m</label><label style='margin-left:12px'>Contours <select id='hc-ci'><option value='0'"+(HC.ci?"":" selected")+">off</option>"+[0.25,0.5,1].map(function(v){return "<option value='"+v+"'"+(HC.ci===v?" selected":"")+">"+v+" m</option>";}).join("")+"</select></label></div>";}
+  h+="<div class='row' style='gap:12px;margin:6px 0'><label>Units <select id='hc-unit'><option value='m'"+(HC.unit==="m"?" selected":"")+">Metres</option><option value='ft'"+(HC.unit==="ft"?" selected":"")+">Feet</option></select></label>"+(HC.unitSrc?"<span class='hint' style='margin:0'>("+E(HC.unitSrc)+")</span>":"")+"<label style='margin-left:12px'>Flag when off by more than <input type='text' inputmode='decimal' id='hc-lim' value='"+HC.lim+"' style='width:60px'> "+hcU().lab+"</label><label style='margin-left:12px'>Contours <select id='hc-ci'><option value='0'"+(HC.ci?"":" selected")+">off</option>"+hcU().cis.map(function(v){return "<option value='"+v+"'"+(HC.ci===v?" selected":"")+">"+v+" "+hcU().lab+"</option>";}).join("")+"</select></label></div>";}
  if(r){h+="<div class='cu-sum'>"+r.checked+" ground points checked — <b>"+r.flags.length+" flagged</b></div>";
   h+="<div class='hc-wrap'><canvas id='hc-cv' class='hc-cv' title='scroll to zoom, drag to move, click a point'></canvas><div id='hc-info' class='hc-info'>"+(HC.sel?hcInfo(P.find(function(p){return p.num===HC.sel;})):"<span class='hint'>Click a point, or a row below.</span>")+"</div></div>";
-  if(r.flags.length){var F=HC.showAll?r.flags:r.flags.slice(0,60);h+="<div class='row' style='gap:8px;margin:6px 0'><button class='btn' id='hc-copy'>Copy list</button><span class='hint' id='hc-copied' style='margin:0'></span></div><table class='cu-tbl hc-tbl'><tr><th>Pt</th><th>Desc</th><th>Elev</th><th>Layer</th><th>Why</th></tr>"+F.map(function(f){return "<tr data-hcp='"+E(f.p.num)+"'"+(HC.sel===f.p.num?" class='on'":"")+"><td>"+E(f.p.num)+"</td><td>"+E(f.p.desc)+"</td><td>"+f.p.Z.toFixed(3)+"</td><td>"+E(f.p.layer)+"</td><td>"+f.why.map(E).join("<br>")+"</td></tr>";}).join("")+"</table>"+(r.flags.length>F.length?"<button class='btn' id='hc-more'>Show all "+r.flags.length+"</button>":"");}
+  if(r.flags.length){var F=HC.showAll?r.flags:r.flags.slice(0,60);h+="<div class='row' style='gap:8px;margin:6px 0'><button class='btn' id='hc-copy'>Copy list</button><span class='hint' id='hc-copied' style='margin:0'></span></div><table class='cu-tbl hc-tbl'><tr><th>Pt</th><th>Desc</th><th>Elev ("+hcU().lab+")</th><th>Layer</th><th>Why</th></tr>"+F.map(function(f){return "<tr data-hcp='"+E(f.p.num)+"'"+(HC.sel===f.p.num?" class='on'":"")+"><td>"+E(f.p.num)+"</td><td>"+E(f.p.desc)+"</td><td>"+f.p.Z.toFixed(3)+"</td><td>"+E(f.p.layer)+"</td><td>"+f.why.map(E).join("<br>")+"</td></tr>";}).join("")+"</table>"+(r.flags.length>F.length?"<button class='btn' id='hc-more'>Show all "+r.flags.length+"</button>":"");}
   else h+="<div class='hint'>Nothing stands out at this limit.</div>";}
  h+="</div>";host.innerHTML=h;
  var fi=document.getElementById("hc-dwg");if(fi)fi.onchange=function(){var f=fi.files[0];fi.value="";if(f)hcLoadDrawing(f);};
  host.querySelectorAll(".hc-l").forEach(function(c){c.onchange=function(){hcSetLayer(c.dataset.l,c.checked);HC.layOpen=true;hcRun();hcPaint();};});
+ var un=document.getElementById("hc-unit");if(un)un.onchange=function(){hcSetUnit(un.value,"set by you",true);hcRun();hcPaint();};
  var li=document.getElementById("hc-lim");if(li)li.onchange=function(){var v=parseFloat(li.value);if(v>0){HC.lim=v;hcRun();hcPaint();}};
  var ci=document.getElementById("hc-ci");if(ci)ci.onchange=function(){HC.ci=parseFloat(ci.value)||0;hcDraw();};
  host.querySelectorAll("[data-hcp]").forEach(function(tr){tr.onclick=function(){hcFocus(tr.dataset.hcp);host.querySelectorAll("[data-hcp]").forEach(function(x){x.classList.toggle("on",x===tr);});var c=document.getElementById("hc-cv");if(c&&c.scrollIntoView)c.scrollIntoView({block:"nearest"});};});
@@ -5332,9 +5348,9 @@ function hcPaint(){var host=document.getElementById("cu-hc");if(!host)return;var
   cv.onmouseup=function(e){var was=drag;drag=null;if(was&&was.moved)return;var b=cv.getBoundingClientRect(),p=hcPick(e.clientX-b.left,e.clientY-b.top);if(p){HC.sel=p.num;hcDraw();document.getElementById("hc-info").innerHTML=hcInfo(p);}};
   cv.onmouseleave=function(){drag=null;};}}
 function hcLoadDrawing(file){HC.msg="";HC.busy="Reading "+file.name+(/\.dwg$/i.test(file.name)?" (the first DWG takes a few seconds to load the reader) …":" …");hcPaint();
- var p=/\.dxf$/i.test(file.name)?file.text().then(hcDxfEntities):file.arrayBuffer().then(function(ab){return hcDwgEntities(new Uint8Array(ab));});
+ var p=/\.dxf$/i.test(file.name)?file.text().then(function(t){var e=hcDxfEntities(t);e.hdr=hcDxfHeader(t);return e;}):file.arrayBuffer().then(function(ab){return hcDwgEntities(new Uint8Array(ab));});
  return p.then(function(ents){if(!HC.pts||!HC.pts.length)throw new Error("Load the points (.msz) in the Points tab first.");if(!HC.pts.some(function(x){return x.h;}))throw new Error("These points have no drawing handles — load the MicroSurvey package (.msz) in the Points tab, not a points file, to match them to the drawing.");
-  hcApplyDrawing(ents,file.name);HC.busy="";HC.view=null;HC.layOpen=false;hcRun();hcPaint();}).catch(function(e){HC.busy="";HC.msg=(e&&e.message)||String(e);hcPaint();});}
+  hcApplyDrawing(ents,file.name);if(!HC.unitSet){var g=hcGuessUnit(ents.hdr,HC.pts);if(g)hcSetUnit(g.u,g.src);}HC.busy="";HC.view=null;HC.layOpen=false;hcRun();hcPaint();}).catch(function(e){HC.busy="";HC.msg=(e&&e.message)||String(e);hcPaint();});}
 window.cuRenderHc=cuRenderHc;
 
 /* HC-END */
@@ -5632,13 +5648,16 @@ const TRAINING=[
   {t:"Design vs Field \u2014 comparing cut / fills (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/POINTS%20TAB-COMPARING%20DESIGN%2BFIELD%20CUT-FILLS.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Design vs Field \u2014 comparing residuals (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/POINTS%20TAB-COMPARING%20DESIGN%2BFIELD%20RESIDUALS.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Tree table (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/POINTS%20TAB-TREE%20TABLE.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Height check (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20tab-height%20check.mp4",h:"SharePoint",x:null,xh:null},
 ]},
 {group:"Elevate Office app \u2014 PM tab",videos:[
   {t:"Cert quote on the PM tab",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/cert%20quote%20on%20PM%20tab.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Convert a quote to a job",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/convert%20quote%20to%20job.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Sub-quote for an existing quote folder",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/SUB-QUOTE%20FOR%20EXISTING%20QUOTE%20FOLDER.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Setting up the connection to the Quotes + Jobs folders",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/setting%20up%20connection%20to%20quotes%2Bjobs%20folder.mp4",h:"SharePoint",x:null,xh:null},
-  {t:"Topo + posting option",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/topo%2Bposting%20option.mp4",h:"SharePoint",x:null,xh:null}]},
+  {t:"Topo + posting option",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/topo%2Bposting%20option.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Pasting a tracker row",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/pm%20tab-tracker%20row%20paste.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Topo + posting + new construction + strata sample (multi-service)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/topo%2Bposting%2Bnewconstruction%2Bstrata%20sample.mp4",h:"SharePoint",x:null,xh:null}]},
 {group:"LISP commands",videos:[
   {t:"Cert in metres to feet (ELVFEET-CERT)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/LISP%20COMMANDS/CERT%20IN%20METERS%20TO%20FEET.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Feet to metric \u2014 topo example (ELVSCALE)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/LISP%20COMMANDS/feet%20to%20metric%28topo%20example%29.mp4",h:"SharePoint",x:null,xh:null},
