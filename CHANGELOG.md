@@ -1,5 +1,20 @@
 # Elevate Office — changelog
 
+## Build 1.39 — 2026-11-02
+- **PM › Start from a past quote…** (new button beside *Open a quote*). Pick a past Word quote (made in the app) or its job details .txt to use as the sample for a **new** quote.
+  - Tick what comes across: **Site details** (address, legal, PID, plans, zoning, project line, extra properties), **Services and wording** (with the field crew instructions and rate-sheet option), and **The sample's hours** — off unless you want them, so hours start at zero.
+  - Two quick choices: **Use as a sample** (services only) and **Same site, new client** (site + services).
+  - Never brought across: client, contact, email, phone, Quote #, date requested, PM comments, notes, Services Provided and task details, scope pages, prices and per-unit prices, disbursements (back to $0).
+  - Dollar amounts typed into the wording are blanked to **$___** and the line marked red. Wording that is word-for-word the current approved library wording keeps its standard amounts.
+  - Project Manager and initials stay yours. It's a new quote (not a sub-quote), **NOT SAVED** until you save it, and the past quote's file is never changed.
+- **PM › Previous quotes at this address.** Under each site address, next to the research buttons: *Quoted before: 24-165 (client, year)*.
+  - Read from **Elev_Quotes_Master.xlsx** in your connected *Quotes - Documents* folder, re-read whenever it changes. Only that exact name counts; dated backups are ignored.
+  - Also checks **To Do Quotes.xlsx** in the same folder, labelled *in To Do Quotes (not in the master yet)*. If it's missing or can't be read, it's skipped quietly.
+  - Matched on civic number + street name: case, unit / suite / #, punctuation, St / Street, Ave / Avenue, W / West, 20 / 20th are ignored. The city keeps same-named streets in different cities apart.
+  - The quote you're on and its sub-quotes aren't listed. Not shown on sub-quotes.
+  - Click a number to copy it (paste into File Explorer's search). **Start from this one** finds that quote's Word quote or job details file in its folder and opens *Start from a past quote* with **Same site, new client** ticked.
+  - If the browser needs your OK to read the folder again, a **Check previous quotes at this address** button asks once.
+
 ## Build 1.38 — 2026-10-30
 - **Points › Height check works on feet drawings.**
   - A **Metres / Feet** switch sits beside the limit. It's picked from the drawing's own units (or from UTM-in-feet coordinates) and says where it came from; change it any time.
