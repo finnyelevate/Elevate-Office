@@ -817,8 +817,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.39";
-const NEWS=["PM: Start from a past quote\u2026 \u2014 a new quote using a past Word quote or job details file as the sample; you tick what comes across (site details, services and wording, hours). Client, Quote #, dates, prices and disbursements never do.", "PM: Previous quotes at this address \u2014 under the site address, quotes already in Elev_Quotes_Master (and To Do Quotes) for the same civic number and street, each with Start from this one."];
+const BUILD="1.39.1";
+const NEWS=["PM: Previous quotes now says \u201c\u2713 Checked: not quoted before\u201d when an address hasn\u2019t been quoted, so you know the check ran.", "PM \u203a Jobs: the approval date stays today\u2019s even if the tab was left open overnight; the quote folder is found as you type the Quote #.", "PM: older Word quotes (not made in the app) open with their header and each service\u2019s sub-items copied \u2014 prices, disbursements and hours you fill in."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -2682,7 +2682,7 @@ function pmqdImportDocx(buf,fname){
  if(!de){alert("That file isn't a Word document.");return Promise.resolve(null);}
  return Promise.all(cx.map(function(e){return cuZipRead(buf,e).then(function(u){return dec.decode(u);});})).then(function(xs){
   var hit=xs.find(function(x){return x.indexOf(PMQD_NS)>=0;});
-  if(!hit){alert("This Word quote wasn’t made by Elevate Office (1.17.1 or later), so it has no draft inside it.\n\nFor older quotes, open the job details .txt instead, or start a new quote.");return null;}
+  if(!hit)return pmoOpen(buf,fname); /* 1.39.1: older Word quote — copy its header and services */
   var m=hit.match(/<eoDraft[^>]*>([^<]+)<\/eoDraft>/),payload;
   try{payload=JSON.parse(new TextDecoder().decode(pmUnB64(m[1].replace(/\s+/g,""))));}catch(e){alert("The draft inside this Word file couldn’t be read.");return null;}
   return cuZipRead(buf,de).then(function(u){
@@ -2926,7 +2926,7 @@ async function pmjFind(given){
   var list=await pmjFindQuoteFolders(qn,draft&&draft.f.client);
   if(!list.length){list=[];list.ask=true;}
   var dir=await pmjChoose("pm-jchoose",list,!list.length?"No folder in Quotes - Documents is named for quote "+qn+". Choose it yourself, or Cancel.":(list.ask?"Not sure which folder is quote "+qn+" (the files inside name a different quote) — which one?":"More than one folder could be quote "+qn+" — which one?"));if(!dir){pmRender();return;}
-  J.folder=dir;var all=await pmjList(dir);J.files=all.map(function(h){return {name:h.kind==="directory"?h.name+"/":h.name,h:h};});
+  J.folder=dir;J.foundFor=qn;var all=await pmjList(dir);J.files=all.map(function(h){return {name:h.kind==="directory"?h.name+"/":h.name,h:h};});
   if(draft)pmjFillFrom(J,draft,given?given.src:"the draft on this computer");
   else{var D=await pmjDetailsFrom(all,qn);if(D)pmjFillFrom(J,D.q,D.src);else{J.f.qn=qn;J.src="";}}
   if(!J.f.qn)J.f.qn=qn;
@@ -2936,7 +2936,7 @@ async function pmjFind(given){
 }
 /* a Word quote or job details file dropped on the Jobs view fills in Jobs (it is not opened as a draft under Quotes) */
 async function pmjDropFile(file){
- var q=null;try{q=/\.docx$/i.test(file.name)?await pmjDraftFromDocx(file):(/\.txt$/i.test(file.name)?pmParseJob(await pmjReadText(file)):null);}catch(e){q=null;}
+ var q=null;try{q=/\.docx$/i.test(file.name)?(await pmjDraftFromDocx(file)||await pmoFromBuf(await pmjReadBuf(file))):(/\.txt$/i.test(file.name)?pmParseJob(await pmjReadText(file)):null);}catch(e){q=null;}
  var keepJob=PMJ.j&&PMJ.j.job;PMJ.j=pmjNew();if(keepJob)PMJ.j.job=keepJob;var J=PMJ.j;
  if(!q){J.err=/\.docx$/i.test(file.name)?"That Word file wasn’t made by Elevate Office, so it has no quote details inside — drop the job details .txt instead, or type the Quote #.":"Drop a Word quote made by the app or a job details .txt.";pmRender();return;}
  var qn=(q.f&&q.f.qn||"").trim();if(!qn){J.err="No Quote # in "+file.name+" — type it in and Find quote folder.";pmjFillFrom(J,q,"the dropped file ("+file.name+")");pmRender();return;}
@@ -3056,7 +3056,7 @@ async function pmjTidyJob(){
  J.tidyOut=out;await pmjCheckJob(true);pmRender();
 }
 async function pmjCreate(){
- var J=PMJ.j,why=pmjReady(J);if(why.length){J.err="Before creating: "+why.join("; ")+".";pmRender();return;}
+ var J=PMJ.j;if(!J.apprSet)J.appr=pmjToday();var why=pmjReady(J);if(why.length){J.err="Before creating: "+why.join("; ")+".";pmRender();return;}
  var R=pmjRanges(J.job);J.err="";J.out=null;
  try{
   var root=await pmjDir("jobs",true),th=await pmjChild(root,R.th,"dir");
@@ -3094,10 +3094,11 @@ function pmjExistHtml(J){var E=J.exist,h="";
   +(T.left.length?"<div class='cu-idbad' style='margin-top:4px'><b>Not done — sort these in File Explorer:</b><ul style='margin:4px 0 0 18px'>"+T.left.map(function(x){return "<li>"+pmEsc(x)+"</li>";}).join("")+"</ul></div>":""))+"</div>";}
  return h;}
 function pmjRender(host){
- var J=PMJ.j||(PMJ.j=pmjNew()),R=pmjRanges(J.job),why=pmjReady(J);
+ var J=PMJ.j||(PMJ.j=pmjNew());if(!J.apprSet)J.appr=pmjToday(); /* 1.39.1: today's date unless the PM picked one (a tab left open overnight kept yesterday's) */
+ var R=pmjRanges(J.job),why=pmjReady(J);
  var h=pmModeBar()+"<div class='pm-h'>Convert an accepted quote to a job</div>";
  if(!pmjFsOk())h+="<div class='cu-err'>Creating job folders needs Edge or Chrome.</div>";
- h+="<div class='pm-step'><b>1</b> Accepted quote</div><div class='row'><label class='pm-f'><span>Quote #</span><input type='text' id='pm-jqn' class='mono' value='"+pmEsc(J.qn)+"' placeholder='26-561' style='width:140px'></label> <button class='btn pri' id='pm-jfind' style='align-self:flex-end'>Find quote folder</button></div><div id='pm-jchoose' style='display:none' class='cu-sfhit'></div>";
+ h+="<div class='pm-step'><b>1</b> Accepted quote</div><div class='row'><label class='pm-f'><span>Quote #</span><input type='text' id='pm-jqn' class='mono' value='"+pmEsc(J.qn)+"' placeholder='26-561' style='width:140px'></label> <button class='btn pri' id='pm-jfind' style='align-self:flex-end' title='it also searches by itself once a full quote number is typed'>"+(J.folder?"Search again":"Find quote folder")+"</button></div><div id='pm-jchoose' style='display:none' class='cu-sfhit'></div>";
  if(J.folder)h+="<div class='pm-jfold'>Quote folder: <b>"+pmEsc(J.folder.name)+"</b> — "+J.files.length+" item"+(J.files.length===1?"":"s")+" to copy into Office"+(J.files.length?": <span class='hint' style='margin:0'>"+J.files.map(function(x){return pmEsc(x.name)+(x.name===pmjPickJobTxt(J.files.map(function(y){return y.name;}),J.f.qn||J.qn)&&R?" → "+pmEsc(R.job)+"-job details.txt":"");}).join(" · ")+"</span>":"")+"</div>";
  if(J.folder||J.src){var sm=[J.f.client,J.f.addr].map(function(v){return String(v||"").trim();}).filter(Boolean);h+="<p class='hint' style='margin:4px 0'>"+(sm.length?"<b>"+sm.map(pmEsc).join(" · ")+"</b> — from "+pmEsc(J.src)+". Check it’s the right quote.":"No draft or job details found in the folder — check the folder is the right quote.")+"</p>";}
  h+="<div class='pm-step'><b>2</b> Job number</div><div class='row'><label class='pm-f'><span>Job # (from the online app)</span><input type='text' id='pm-jno' class='mono' value='"+pmEsc(J.job)+"' placeholder='26-3466' style='width:140px'></label></div><p class='hint' style='margin:4px 0'>Enter the job in the online app first — it issues the job number.</p>"+(J.aliasNo?"<div class='cu-idwarn'>Job folder <b>"+pmEsc(J.aliasNo)+"</b> already has these last digits \u2014 check the Job #. A second folder for the same job number won\u2019t be created.</div>":"")+pmjExistHtml(J);
@@ -3108,18 +3109,29 @@ function pmjRender(host){
  if(J.out){var o=J.out,rp=o.rep;h+="<div class='cu-sfhit pm-jdone'><b>"+(o.existing?"Added to existing job folder:":"Job folder created:")+"</b> Job Files - Documents › "+pmEsc(o.path)+(o.newRange?" (new range folder "+pmEsc(o.newRange)+")":"")+"<ul><li>Field › Data, Uploads · Office › Obsolete, Requests</li><li>"+rp.copied.length+" file"+(rp.copied.length===1?"":"s")+" copied into Office"+(rp.copied.length?": "+rp.copied.map(pmEsc).join(" · "):"")+"</li>"+(rp.skipped.length?"<li>Already there, left as is: "+rp.skipped.map(pmEsc).join(" · ")+"</li>":"")+(rp.failed.length?"<li class='cu-idbad'>Couldn’t copy: "+rp.failed.map(pmEsc).join(" · ")+"</li>":"")+"<li>Save the acceptance into Office › Requests › <b>"+pmEsc(o.appr)+"</b></li></ul>OneDrive uploads it in the background. <button class='btn' id='pm-jnext'>Convert another quote</button></div>";}
  h+=pmjFoldersHtml();
  host.innerHTML=h;pmWireMode(host);pmjWireFolders(host);
- var qi=document.getElementById("pm-jqn");qi.oninput=function(){J.qn=qi.value;};qi.onkeydown=function(e){if(e.key==="Enter")pmjFind();};
+ var qi=document.getElementById("pm-jqn");qi.oninput=function(){J.qn=qi.value;pmjQnTyped(J);};qi.onkeydown=function(e){if(e.key==="Enter"){clearTimeout(PMJ.qt);pmjFind();}};qi.onblur=function(){if(PMJ.qt){clearTimeout(PMJ.qt);PMJ.qt=null;pmjAutoFind(J,false);}};
+ if(PMJ.refocus){PMJ.refocus=false;qi.focus();try{var n=qi.value.length;qi.setSelectionRange(n,n);}catch(e){}}
  document.getElementById("pm-jfind").onclick=pmjFind;
  var jn=document.getElementById("pm-jno");jn.oninput=function(){J.job=jn.value.trim();};jn.onchange=function(){J.tidyOut=null;pmjCheckJob();};
  var tb=document.getElementById("pm-jtidy");if(tb)tb.onclick=pmjTidyJob;
- document.getElementById("pm-jappr").onchange=function(){J.appr=this.value;pmRender();};
+ document.getElementById("pm-jappr").onchange=function(){J.appr=this.value;J.apprSet=!!this.value;if(!this.value)J.appr=pmjToday();pmRender();};
  document.getElementById("pm-jcreate").onclick=pmjCreate;
  var nx=document.getElementById("pm-jnext");if(nx)nx.onclick=function(){PMJ.j=pmjNew();pmRender();};
 }
+/* 1.39.1: Find quote folder runs by itself once a full quote number is typed (after a short pause, or on leaving the box);
+   a changed number clears the old folder at once; if the browser needs an OK to read the folders, the button stays for that click */
+function pmjQnFull(v){var P=pmjQnParts(v);return !!(P&&String(P.n).length>=3);}
+function pmjQnTyped(J){var v=J.qn.trim();clearTimeout(PMJ.qt);PMJ.qt=null;
+ if(J.folder&&J.foundFor&&J.foundFor.toUpperCase()!==v.toUpperCase()){J.folder=null;J.files=[];J.src="";J.exist=null;J.out=null;J.err="";J.foundFor="";J.f={client:"",contact:"",email:"",addr:"",bill:"",qn:""};PMJ.refocus=true;pmRender();}
+ if(pmjQnFull(v))PMJ.qt=setTimeout(function(){PMJ.qt=null;pmjAutoFind(J,true);},800);}
+async function pmjAutoFind(J,keepFocus){var v=J.qn.trim();if(PMJ.j!==J||!pmjQnFull(v)||(J.folder&&J.foundFor===v)||J.autoBusy===v)return;
+ var h=PMJ.dirs.quotes;if(!h)return;try{if(h.queryPermission&&await h.queryPermission({mode:"readwrite"})!=="granted")return;}catch(e){return;}
+ var el=document.getElementById("pm-jqn");PMJ.refocus=!!(keepFocus&&el&&document.activeElement===el);J.autoBusy=v;
+ try{await pmjFind();}finally{J.autoBusy="";}}
 function pmModeBar(){return "<div class='pm-mode seg'><button data-mode='quotes' class='"+(PM.mode!=="jobs"?"on":"")+"'>Quotes</button><button data-mode='jobs' class='"+(PM.mode==="jobs"?"on":"")+"'>Jobs</button></div>";}
 function pmWireMode(host){host.querySelectorAll("[data-mode]").forEach(function(b){b.onclick=function(){PM.mode=b.dataset.mode;sset("eo:pmmode",PM.mode);pmRender();};});}
 function pmjStartFromQuote(){var q=pmCurQ();if(!q)return;PMJ.j=pmjNew();PMJ.j.qn=(q.f.qn||"").trim();pmjFillFrom(PMJ.j,q,"the draft on this computer");PM.mode="jobs";sset("eo:pmmode","jobs");pmRender();if(PMJ.j.qn&&PMJ.dirs.quotes)pmjFind();}
-window.pmjDropFile=pmjDropFile;window.pmjCheckJob=pmjCheckJob;window.pmjTidyJob=pmjTidyJob;window.pmjSaveToQuoteFolder=pmjSaveToQuoteFolder;window.pmjStartFromQuote=pmjStartFromQuote;window.PMJ=PMJ;window.pmjRanges=pmjRanges;window.pmjFind=pmjFind;window.pmjCreate=pmjCreate;window.pmjSaveDir=pmjSaveDir;
+window.pmjDropFile=pmjDropFile;window.pmjQnTyped=pmjQnTyped;window.pmjAutoFind=pmjAutoFind;window.pmjCheckJob=pmjCheckJob;window.pmjTidyJob=pmjTidyJob;window.pmjSaveToQuoteFolder=pmjSaveToQuoteFolder;window.pmjStartFromQuote=pmjStartFromQuote;window.PMJ=PMJ;window.pmjRanges=pmjRanges;window.pmjFind=pmjFind;window.pmjCreate=pmjCreate;window.pmjSaveDir=pmjSaveDir;
 /* ---- Quotes view: create the next quote folder (only on the PM's click + confirmation; never automatic) ---- */
 function pmjYY(){return String(new Date().getFullYear()).slice(2);}
 function pmjQfName(qn,short){return "Elev. Survey Quotes "+qn+"-"+short;}
@@ -3250,7 +3262,7 @@ function pmpNoMoney(t,cnt){return String(t==null?"":t).replace(/\$\s?\d[\d,]*(?:
 function pmpRead(file){
  if(!PM.key){alert("Unlock the PM tab first.");return Promise.resolve(null);}
  if(/\.docx$/i.test(file.name))return pmjDraftFromDocx(file).then(function(q){
-  if(!q)alert("This Word quote wasn’t made by Elevate Office (1.17.1 or later), so the app can’t read its services.\n\nPick its job details .txt instead, if it has one.");return q;},function(){alert("That file isn’t a readable Word document.");return null;});
+  if(q)return q;return pmjReadBuf(file).then(pmoFromBuf).then(function(O){if(!O){alert("This Word quote wasn\u2019t made by Elevate Office, and no quote header or services could be found in it.");return null;}O.older=true;return O;});},function(){alert("That file isn’t a readable Word document.");return null;});
  return pmjReadText(file).then(function(t){var q=pmParseJob(t);if(!q)alert("That doesn’t look like a job details file — no Client / Quote# fields found.");return q;});
 }
 function pmpOpen(src,label,preset){
@@ -3396,7 +3408,7 @@ function pmhHtml(q,i,site,S){var E=pmEsc;
  if(S.off==="perm")return "<button class='btn pmr-b pmh-ask' data-ph='"+i+"' title='the browser needs your OK to read Quotes - Documents again'>Check previous quotes at this address</button>";
  if(S.master&&S.master.miss)return "<span class='hint pmh-off'>Previous quotes: "+PMH_MASTER+" isn’t in Quotes - Documents.</span>";
  if(S.master&&S.master.err)return "<span class='hint pmh-off'>Previous quotes: "+PMH_MASTER+" "+E(S.master.err)+".</span>";
- var L=pmhFind(q,site,S);if(!L.length)return ""; /* nothing shown when the site hasn't been quoted before */
+ var L=pmhFind(q,site,S);if(!L.length)return "<span class='hint pmh-off pmh-none'>\u2713 Checked: not quoted before ("+PMH_MASTER.replace(/\.xlsx$/,"")+", "+S.master.rows.length.toLocaleString("en-CA")+" quotes"+(S.todo?" + To Do Quotes":"")+")</span>"; /* 1.39.1: a faint line so it's clear the check ran */
  var MAX=8,more=L.length-MAX;
  return "<span class='pmh-lab'>Quoted before:</span>"+L.slice(0,MAX).map(function(r){var who=[r.client,r.src==="master"?r.year:""].filter(Boolean).join(", ");
   return "<span class='pmh-it'><button class='pmh-q' data-qn='"+E(r.qn)+"' title='"+E(r.site+(r.folder?"\n"+r.folder:""))+"\nclick to copy the quote number'>"+E(r.qn)+"</button>"+(who?" ("+E(who)+")":"")+(r.src==="todo"?" <i class='hint' style='margin:0'>in To Do Quotes (not in the master yet)</i>":"")+
@@ -3429,6 +3441,63 @@ async function pmhStart(qn,folder,btn){
  }catch(e){if(m)m.textContent="";alert("Couldn’t read the quote folder: "+(e&&e.message||e));return null;}
 }
 window.pmpFile=pmpFile;window.pmpOpen=pmpOpen;window.pmpMake=pmpMake;window.pmhParse=pmhParse;window.pmhMatch=pmhMatch;window.pmhXlsx=pmhXlsx;window.pmhCheck=pmhCheck;window.pmhStart=pmhStart;window.pmhFind=pmhFind;
+/* ---------- 1.39.1: older Word quotes (not made in the app) — copy the header and each service's sub-items as written ----------
+   Kept simple on purpose (Finny): date, client, Quote #, site address; each service's heading, lead and bullet lines.
+   No prices, disbursements or hours. A service gets a library type only when its heading clearly names one. */
+var PMO_MON="january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec";
+function pmoParas(docXml){
+ var a=docXml.indexOf("<w:body"),body=docXml.slice(a<0?0:a),out=[],tbl=0;
+ body.split(/(<w:tbl>|<\/w:tbl>|<\/w:p>)/).reduce(function(buf,t){
+  if(t==="<w:tbl>"){tbl++;return buf;}if(t==="</w:tbl>"){tbl--;return buf;}
+  if(t!=="</w:p>")return buf+t;
+  var p=buf.slice(buf.lastIndexOf("<w:p ")>=0?buf.lastIndexOf("<w:p "):Math.max(0,buf.lastIndexOf("<w:p>")));
+  var txt="";p.replace(/<w:tab\/>|<w:br\/>|<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g,function(m,x){txt+=m==="<w:tab/>"?"\t":(m==="<w:br/>"?"\n":pmqdUnesc(x));return m;});
+  var st=(p.match(/<w:pStyle w:val="([^"]+)"/)||[])[1]||"",b=/<w:b\/>|<w:b w:val="(1|true|on)"\/>/.test(p),num=/<w:numPr>/.test(p)||/^\s*([\u2022\u25cf\u25aa\-\u2013*]|\d{1,2}[.)])\s+/.test(txt);
+  txt=txt.replace(/[ \u00a0]+/g," ").replace(/^\s+|\s+$/g,"");
+  if(txt)out.push({t:txt,st:st,b:b,num:num,tbl:tbl>0,h:/^heading\s*\d|^title$/i.test(st)});
+  return "";},"");
+ return out;
+}
+function pmoLibFor(title){var w=function(s){return String(s||"").toLowerCase().replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(function(x){return x.length>2&&!/^(for|and|the|purposes?|with|plan|survey)$/.test(x);});};
+ var T=w(title),best=null,second=0;if(!T.length)return null;
+ pmqLib().forEach(function(e){var E=w(e.title);if(!E.length)return;var hit=E.filter(function(x){return T.indexOf(x)>=0;}).length,sc=hit/E.length;if(!best||sc>best.sc){second=best?best.sc:0;best={e:e,sc:sc};}else if(sc>second)second=sc;});
+ return best&&best.sc>=0.6&&best.sc-second>=0.2?best.e:null;}
+function pmoQuote(docXml){
+ var P=pmoParas(docXml),f={},secs=[];if(!P.length)return null;
+ var mon=new RegExp("^(?:("+PMO_MON+")\\.?\\s+\\d{1,2},?\\s+\\d{4}|\\d{4}-\\d{2}-\\d{2}|\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4})$","i");
+ P.slice(0,12).forEach(function(p){var t=p.t.split(/\t+/).map(function(x){return x.trim();});
+  t.forEach(function(x){if(!f.date&&mon.test(x))f.date=x;});
+  var qm=p.t.match(/quote\s*(?:#|no\.?|number)\s*:?\s*(\d{2}\s*-\s*\d{1,4}(?:\s*[- ]?[A-Za-z](?![A-Za-z])|-\d{1,2})?)/i);if(qm&&!f.qn)f.qn=qm[1].replace(/\s+/g,"");
+  var cm=p.t.match(/^(?:to|attention|attn|client)\s*:\s*([^\t\n]+?)(?=\s*(?:\t|\n|quote\s*#|$))/i);if(cm&&!f.client)f.client=cm[1].replace(/quote\s*#.*$/i,"").trim();});
+ P.forEach(function(p){var m=p.t.match(/^(?:site|property|project)\s*(?:address|location)?\s*:\s*(.+)$/i);if(m&&!f.site&&m[1].trim())f.site=m[1].trim().replace(/\s*\n\s*/g,", ");});
+ /* services: each run of bullet lines, with the lead just before it and the nearest heading-like line before or after */
+ var skip=/^(gst|disbursement|quote acceptance|name:|billing|date:|signature|site address|to:|quote\s*#|thank|regards|sincerely|terms|note|-{5,})/i,price=/^\$?\s*\d[\d,]*(\.\d\d)?\s*\*{0,2}$|^\$\s*\d/;
+ var used={};
+ for(var i=0;i<P.length;i++){if(!P[i].num||used[i])continue;
+  var j=i;while(j<P.length&&P[j].num){used[j]=1;j++;}
+  var lines=P.slice(i,j).map(function(p){return p.t.replace(/^\s*([\u2022\u25cf\u25aa\-\u2013*]|\d{1,2}[.)])\s+/,"");});
+  var k=i-1,lead="",title="";
+  if(k>=0&&!P[k].num&&!price.test(P[k].t)&&!skip.test(P[k].t)&&(/:$/.test(P[k].t)||P[k].b)&&!P[k].h){lead=P[k].t;k--;}
+  var isTitle=function(p){return p&&!p.num&&!price.test(p.t)&&!skip.test(p.t)&&p.t.length<=140&&(p.h||p.b)&&!/:$/.test(p.t);};
+  for(var b=k;b>=Math.max(0,k-2)&&!title;b--){if(used[b])break;if(isTitle(P[b])&&P[b].h){title=P[b].t;used[b]=1;}}
+  for(var a=j;a<Math.min(P.length,j+4)&&!title;a++){if(P[a].num)break;if(isTitle(P[a])){title=P[a].t;used[a]=1;}}
+  if(!title)for(b=k;b>=Math.max(0,k-2)&&!title;b--){if(used[b])break;if(isTitle(P[b])){title=P[b].t;used[b]=1;}}
+  var s=pmqNorm({name:"",hrs:{}}),e=pmoLibFor(title);
+  if(e)pmqApplyLib(s,e);
+  s.name=title||(e?e.title:"Service "+(secs.length+1));s.lead=lead;s.lines=lines.map(function(t){return {t:t,on:true,why:""};});s.notes=[];s.vname=e?"older Word quote":undefined;if(e)s.ver="custom";
+  secs.push(s);i=j-1;}
+ if(!f.qn&&!f.client&&!f.site&&!secs.length)return null;
+ return {f:f,secs:secs};
+}
+async function pmoFromBuf(buf){var ents=cuZipEntries(buf),de=ents.find(function(e){return e.name==="word/document.xml";});if(!de)return null;return pmoQuote(new TextDecoder().decode(await cuZipRead(buf,de)));}
+/* Open a quote: an older Word quote becomes a new draft with its header and services (not saved) */
+async function pmoOpen(buf,fname){var O=await pmoFromBuf(buf);
+ if(!O){alert("This Word quote wasn\u2019t made by Elevate Office, and no quote header or services could be found in it.\n\nStart a new quote instead.");return null;}
+ var q=pmNewQuote();["date","qn","client","site"].forEach(function(k){if(O.f[k])q.f[k]=O.f[k];});if(O.secs.length)q.secs=O.secs;
+ q.importRep={file:fname||"",older:true,got:["date","Quote #","client","site address"].filter(function(x,i){return O.f[["date","qn","client","site"][i]];}),n:O.secs.length,read:0,unread:[],rateDiff:[],wordDiffs:[]};
+ pmRender();return q;}
+function pmoRepHtml(R){return "Copied "+(R.got.length?"the "+pmEsc(R.got.join(", "))+" and ":"")+R.n+" service"+(R.n===1?"":"s")+" from an older Word quote"+(R.file?" (<b>"+pmEsc(R.file)+"</b>)":"")+" \u2014 check it. Prices, disbursements and hours weren\u2019t copied. <b>NOT SAVED</b> until you save it.";}
+window.pmoQuote=pmoQuote;window.pmoOpen=pmoOpen;window.pmoFromBuf=pmoFromBuf;
 /* ---------- PM tab: encrypted vault + quote builder ---------- */
 function pmEsc(v){return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 var PM={key:null,vault:null,vfile:null,quotes:[],cur:null,err:"",busy:false,mode:(typeof sget==="function"&&sget("eo:pmmode"))||"quotes"};
@@ -3633,7 +3702,8 @@ function pmRenderMain(host){
  if(PM.rowMsg){h+="<div class='cu-sfhit' id='pm-rowdone'>"+pmEsc(PM.rowMsg)+"</div>";PM.rowMsg="";}
  h+="<div class='pm-savedrow'>"+pmUnsavedCount()+(PM.cleared?"<span class='hint' style='margin:0 0 0 12px'>"+PM.cleared+" completed quote"+(PM.cleared>1?"s":"")+" cleared from this computer \u2014 the files in the quote folders remain the record.</span>":"")+(PM.tidied?"<span class='hint' style='margin:0 0 0 12px'>"+PM.tidied+" quote"+(PM.tidied>1?"s":"")+" saved to "+(PM.tidied>1?"their folders":"its folder")+" and untouched for 30+ days "+(PM.tidied>1?"were":"was")+" tidied off this computer \u2014 the downloaded files remain the record.</span>":"")+"</div>";
  if(q&&q.importRep){var R=q.importRep,msg;
-  if(R.past)msg=pmpRepHtml(R);
+  if(R.older)msg=pmoRepHtml(R);
+  else if(R.past)msg=pmpRepHtml(R);
   else if(R.sub)msg="Sub-quote of <b>"+pmEsc(R.sub)+"</b> \u2014 client, site and every service carried over. Remove any services not needed with \u2715, then build the quote."+(R.subNote?"<div>"+pmEsc(R.subNote)+"</div>":"")+(R.pmWas?"<div>"+pmEsc(R.pmWas)+"</div>":"");
   else if(R.fromDocx)msg="Opened"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 the draft saved inside the Word quote."+(R.wordDiffs&&R.wordDiffs.length?"<div>Taken from the Word file: "+R.wordDiffs.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.noWord?"<div class='cu-idwarn' style='margin:4px 0 0'>The Word file was edited, but its services couldn\u2019t be read \u2014 opened the app\u2019s version as it was downloaded. Make any Word changes again here.</div>":"")+(R.pmWas?"<div>"+pmEsc(R.pmWas)+"</div>":"");
   else msg="Imported"+(R.file?" <b>"+pmEsc(R.file)+"</b>":"")+" \u2014 "+R.read+" hour line"+(R.read===1?"":"s")+" read."+(R.unread.length?"<div class='cu-idbad' style='font-weight:400'>Couldn't read \u2014 enter manually: "+R.unread.map(pmEsc).join(" \u00b7 ")+"</div>":"")+(R.rateDiff.length?"<div>Rates in the file differ from current (current rates are used): "+R.rateDiff.map(pmEsc).join("; ")+"</div>":"")+(R.pmWas?"<div>"+pmEsc(R.pmWas)+"</div>":"");

@@ -1,5 +1,18 @@
 # Elevate Office — changelog
 
+## Build 1.39.1 — 2026-11-04
+- **PM › Previous quotes at this address:** when the address hasn't been quoted before, a faint line now says so, e.g. *✓ Checked: not quoted before (Elev_Quotes_Master, 4,955 quotes)*. You can tell the check ran.
+- **PM › Jobs › Approval date:** stays today's date. Before, it was set once when Jobs first opened, so a tab left open overnight still showed yesterday (and named the approval folder for yesterday). It now resets to today when Jobs is shown and again just before the folder is made. A date you pick yourself is kept; clearing it goes back to today.
+- **PM › Jobs › Quote #:** the quote folder is found by itself. Once a full quote number is typed (26-597, 26-597B), it searches after a short pause or when you leave the box. Enter still works.
+  - Typing a different number clears the old folder straight away, so the wrong quote never stays on screen.
+  - The button reads *Search again* once a folder is found.
+  - If the browser needs your OK to read the folders, the button waits for your click; it never asks by itself.
+- **PM › Older Word quotes** (not made in the app) — kept simple:
+  - *Open a quote* (and *Start from a past quote…*) now copies the **header** — date, client, Quote #, site address — and each service's **sub-items as written**: the heading, the lead line and the bullet lines.
+  - A service gets a library type only when its heading clearly names one (e.g. *Topographic Site Plan…* → topo).
+  - Prices, disbursements and hours aren't copied. The Project Manager is yours, it's **NOT SAVED** until you save it, and one line says what was copied.
+  - On the Jobs view, dropping an older Word quote fills in its Quote # and client.
+
 ## Build 1.39 — 2026-11-02
 - **PM › Start from a past quote…** (new button beside *Open a quote*). Pick a past Word quote (made in the app) or its job details .txt to use as the sample for a **new** quote.
   - Tick what comes across: **Site details** (address, legal, PID, plans, zoning, project line, extra properties), **Services and wording** (with the field crew instructions and rate-sheet option), and **The sample's hours** — off unless you want them, so hours start at zero.
