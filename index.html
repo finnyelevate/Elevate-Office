@@ -335,6 +335,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .pmr-strip{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 2px}.pmr-strip:empty{display:none}
 .pmr-lab{font:600 10.5px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-right:2px}
 .pmr-b{padding:4px 10px;font-size:12px;text-decoration:none;color:inherit}
+.pmq-drag{cursor:grab;user-select:none;touch-action:none;color:var(--muted,#888);font-weight:700;letter-spacing:-2px;padding:0 6px 0 0;font-size:16px;line-height:1}.pmq-drag:hover{color:var(--ink)}.pmq-dragging{opacity:.45}.pmq-dragbody,.pmq-dragbody *{cursor:grabbing!important;user-select:none}.pmq-dropline{position:absolute;height:4px;background:var(--blue,#1d4ed8);border-radius:2px;z-index:50;pointer-events:none;display:none}.pm-orow{gap:6px}.pm-ox{border:0;background:none;color:var(--muted,#888);cursor:pointer;font-size:13px;padding:0 2px}.pm-ox:hover{color:#b91c1c}.cu-redo{margin:0 0 8px}.cu-monnew{margin:6px 0}
 .pmh-row{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:13px}.pmh-row:empty{display:none}.pmh-lab{font-weight:600}.pmh-it{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}.pmh-q{border:0;background:none;padding:0;font:inherit;font-weight:600;color:var(--blue);text-decoration:underline;cursor:pointer}.pmh-off{margin:0;font-size:12px}.pmp-box label.pmp-t{display:block;margin:4px 0}.pmp-pre{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
 .pmr-map{margin:8px 0 4px;border:1px solid var(--hair);background:var(--panel);padding:6px 8px}
 .pmr-mh{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;margin-bottom:6px}
@@ -817,8 +818,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.39.1";
-const NEWS=["PM: Previous quotes now says \u201c\u2713 Checked: not quoted before\u201d when an address hasn\u2019t been quoted, so you know the check ran.", "PM \u203a Jobs: the approval date stays today\u2019s even if the tab was left open overnight; the quote folder is found as you type the Quote #.", "PM: older Word quotes (not made in the app) open with their header and each service\u2019s sub-items copied \u2014 prices, disbursements and hours you fill in."];
+const BUILD="1.39.2";
+const NEWS=["Points: an edited file dropped again under the same name now refreshes every tool \u2014 the Height check re-reads the points (keeping your drawing), and Design vs Field, Monitoring and Match points re-run.", "PM: more than one \u201cOther\u201d disbursement (+ Add another); drag a service by its \u22ee\u22ee handle to reorder.", "Points \u203a Monitoring: shots that don\u2019t sit on any base point are listed (new monitoring points?), and the averaged coordinates and the shots can be copied in your sheet\u2019s own columns."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -2163,7 +2164,7 @@ function pmqRateTable(s,ix,j,H,lab,attr){var V=PM.vault,dl=j==null?"":" data-"+(
 function pmqPlabList(){return "<datalist id='pmq-plabs'>"+PMQ_PLABS.map(function(o){return "<option value='"+pmEsc(o)+"'>";}).join("")+"</datalist>";}
 function pmqCardHtml(q,s,ix){
  var V=PM.vault,ono=pmqOptNos(q.secs),nOpt=ono.filter(Boolean).length;
- var h="<div class='pm-sec pmq-card st-"+s.status+"' data-s='"+ix+"'><div class='pmq-head'><b class='pmq-num'>"+(ix+1)+".</b>";
+ var h="<div class='pm-sec pmq-card st-"+s.status+"' data-s='"+ix+"'><div class='pmq-head'>"+(q.secs.length>1?"<span class='pmq-drag' data-s='"+ix+"' title='drag up or down to move this service'>\u22ee\u22ee</span>":"")+"<b class='pmq-num'>"+(ix+1)+".</b>";
  h+="<select class='pmq-type' data-s='"+ix+"' title='job type from the library, a package, or one of your saved versions / quote sets'>"+pmqTypeOptions(s.type,s.ver)+"</select>";
  h+="<select class='pmq-status' data-s='"+ix+"'><option value='inc'"+(s.status==="inc"?" selected":"")+">Included</option><option value='opt'"+(s.status==="opt"?" selected":"")+">Optional add-on</option><option value='option'"+(s.status==="option"?" selected":"")+">Option (choose one)</option></select>";
  h+="<span style='flex:1'></span><button class='pmq-mini' data-act='up' data-s='"+ix+"' title='move service up'>↑</button><button class='pmq-mini' data-act='dn' data-s='"+ix+"' title='move service down'>↓</button>"+(q.secs.length>1?"<button class='pmq-mini' data-act='rm' data-s='"+ix+"' title='remove service'>✕</button>":"")+"</div>";
@@ -2197,8 +2198,27 @@ function pmqCardHtml(q,s,ix){
  return h+"</div>";
 }
 function pmqPath(s,p){var m=p.split(":");return {k:m[0],j:m.length>1?(m[0]==="fill"?m.slice(1).join(":"):+m[1]):null,sub:m[0]==="pl"||m[0]==="stg"?m[2]:null};}
+/* 1.39.2: drag a service by its handle (\u22ee\u22ee) to a new place — a line shows where it will land, the page scrolls near the edges,
+   Esc or letting go away from the list cancels. Same move as the arrows (the service and everything in it moves). */
+function pmqMoveSec(q,from,to){if(to>from)to--;if(to===from||from<0||from>=q.secs.length||to<0||to>q.secs.length-1)return false;q.secs.splice(to,0,q.secs.splice(from,1)[0]);return true;}
+function pmqDragWire(host,q){
+ host.querySelectorAll(".pmq-drag").forEach(function(hd){hd.onpointerdown=function(e){if(e.button!==undefined&&e.button!==0)return;e.preventDefault();
+  var from=+hd.dataset.s,cards=[].slice.call(host.querySelectorAll(".pmq-card")),me=cards[from],line=document.createElement("div"),to=-1,timer=null,lastY=e.clientY,done=false;
+  line.className="pmq-dropline";document.body.appendChild(line);if(me)me.classList.add("pmq-dragging");document.body.classList.add("pmq-dragbody");
+  var place=function(y){var R=cards.map(function(c){return c.getBoundingClientRect();}),first=R[0],last=R[R.length-1];
+   if(!first||y<first.top-80||y>last.bottom+80){to=-1;line.style.display="none";return;}
+   to=R.length;for(var i=0;i<R.length;i++){if(y<R[i].top+R[i].height/2){to=i;break;}}
+   var yy=to<R.length?R[to].top-4:last.bottom+4;line.style.display="block";line.style.top=(yy+window.scrollY)+"px";line.style.left=(first.left+window.scrollX)+"px";line.style.width=first.width+"px";};
+  var scroll=function(){var m=60,v=lastY<m?-(m-lastY):lastY>window.innerHeight-m?(lastY-(window.innerHeight-m)):0;if(v){window.scrollBy(0,v/3);place(lastY);}};
+  var end=function(ok){if(done)return;done=true;clearInterval(timer);line.remove();if(me)me.classList.remove("pmq-dragging");document.body.classList.remove("pmq-dragbody");
+   document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",up);document.removeEventListener("keydown",kd,true);
+   if(ok&&to>=0&&pmqMoveSec(q,from,to)){q.updated=Date.now();pmQuotesSave();pmRender();}};
+  var mv=function(ev){lastY=ev.clientY;place(ev.clientY);},up=function(){end(true);},kd=function(ev){if(ev.key==="Escape"){ev.preventDefault();end(false);}};
+  document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up);document.addEventListener("keydown",kd,true);timer=setInterval(scroll,30);place(e.clientY);};});
+}
 function pmqWire(host,q){
  var save=function(){q.updated=Date.now();pmQuotesSave();pmUpdate();pmFlagUnsaved(q);};
+ pmqDragWire(host,q);
  host.querySelectorAll(".pmq-f").forEach(function(el){
   el.oninput=function(){var s=q.secs[+el.dataset.s],P=pmqPath(s,el.dataset.p);
    if(P.k==="fill")s.fills[P.j]=el.value;else if(P.k==="lines"||P.k==="notes")s[P.k][P.j].t=el.value;else if(P.k==="pl"){if(s.pl[P.j])s.pl[P.j][P.sub]=el.value;}else if(P.k==="stg"){if(s.stg[P.j])s.stg[P.j][P.sub]=el.value;}else s[P.k]=el.value;
@@ -2280,9 +2300,24 @@ function pmqDate(d){return ["January","February","March","April","May","June","J
 /* quote is addressed to the client; the contact only when there is no client (the contact stays in the job details) */
 function pmqTo(q){var c=(q.f.client||"").trim(),n=(q.f.contact||"").trim();return c||n;}
 function pmqDefaultName(q){var who=typeof pmjNameFor==="function"?pmjNameFor(q):(((q.f.client||"").trim())||((q.f.contact||"").trim().split(/\s+/)[0])||"");return "Elev. Survey Quote "+(q.f.qn||"").trim()+(who?"-"+who:"");}
+/* 1.39.2: any number of "Other" disbursements. q.others = [{label, amt}]; an older quote's single q.other becomes the first row.
+   q.other is still written (all rows joined, amounts summed) so a quote saved here opens in an older build. */
+function pmOthers(q){if(!q)return [];if(!Array.isArray(q.others)){var o=q.other||{};q.others=((o.label||"").trim()||(o.amt||"").toString().trim())?[{label:o.label||"",amt:String(o.amt||"")}]:[];}
+ return q.others.filter(function(o){return ((o.label||"").trim()||pmNum(o.amt)>0);});}
+function pmOthersSync(q){var L=pmOthers(q);q.other={label:L.map(function(o){return (o.label||"").trim()||"other";}).join(", "),amt:L.length?String(L.reduce(function(t,o){return t+pmNum(o.amt);},0)):""};}
+function pmOthersHtml(q){pmOthers(q);var rows=q.others.length?q.others:[{label:"",amt:""}];
+ return rows.map(function(o,i){return "<label class='pm-orow'><span>"+(i?"":"Other")+"</span><input type='text' class='pm-olab' data-oi='"+i+"'"+(i?"":" id='pm-olab'")+" value='"+pmEsc(o.label||"")+"' placeholder='description' style='width:150px'> <input type='text' inputmode='decimal' class='pm-oamt' data-oi='"+i+"'"+(i?"":" id='pm-oamt'")+" value='"+pmEsc(o.amt||"")+"' placeholder='$' style='width:80px'>"+(rows.length>1||(o.label||o.amt)?"<button class='pm-ox' data-oi='"+i+"' title='remove this one'>\u2715</button>":"")+"</label>";}).join("")+
+  "<button class='btn au-sm pm-oadd' id='pm-oadd' title='another Other disbursement'>+ Add another</button>";}
+function pmOthersWire(host,q,save,disbRem){
+ var row=function(i){pmOthers(q);while(q.others.length<=i)q.others.push({label:"",amt:""});return q.others[i];};
+ host.querySelectorAll(".pm-olab").forEach(function(el){el.oninput=function(){row(+el.dataset.oi).label=el.value;pmOthersSync(q);save();disbRem();};});
+ host.querySelectorAll(".pm-oamt").forEach(function(el){el.oninput=function(){row(+el.dataset.oi).amt=el.value;pmOthersSync(q);save();disbRem();};});
+ host.querySelectorAll(".pm-ox").forEach(function(b){b.onclick=function(e){e.preventDefault();pmOthers(q);q.others.splice(+b.dataset.oi,1);pmOthersSync(q);q.updated=Date.now();pmQuotesSave();pmRender();};});
+ var ad=host.querySelector("#pm-oadd");if(ad)ad.onclick=function(e){e.preventDefault();pmOthers(q);if(!q.others.length)q.others.push({label:"",amt:""});q.others.push({label:"",amt:""});q.updated=Date.now();pmQuotesSave();pmRender();var L=document.querySelectorAll(".pm-olab");if(L.length)L[L.length-1].focus();};
+}
 function pmqDisbLine(q){
  var parts=[],tot=0,WL={chk:["checklist fee","checklist fees"],filing:["filing fee","filing fees"]};(PM.vault.disb||[]).forEach(function(d){var n=Math.round(pmNum(q.disb[d.id]));if(n>0){var lb=WL[d.id]||[d.label,d.plural];parts.push(n+" "+(n>1?lb[1]:lb[0]));tot+=n*d.price;}});
- var oa=pmNum(q.other&&q.other.amt);if(oa>0){parts.push((q.other.label||"other").trim());tot+=oa;}
+ pmOthers(q).forEach(function(o){var oa=pmNum(o.amt);if(oa>0){parts.push((o.label||"other").trim()+" ("+pmMoney(oa,false)+")");tot+=oa;}});
  return parts.length?"Disbursements extra at cost ("+parts.join(", ")+"): "+pmMoney(tot,false):null;
 }
 /* the services as they print: title, lines, notes, price text */
@@ -2442,7 +2477,7 @@ function pmqDownloadDocx(){
   .catch(function(err){if(box){box.style.display="block";box.innerHTML=(err&&err.message==="nomaster")?"Couldn’t load the quote template (quote-master.docx) — check it’s uploaded next to index.html and you’re online once.":"Couldn’t build the Word file: "+pmEsc(String(err&&err.message||err));}});
 }
 var PMQ_LAST=null;
-window.pmqRateSheetXml=pmqRateSheetXml;window.PMQ_RSNOTE=PMQ_RSNOTE;window.pmqDownloadDocx=pmqDownloadDocx;window.pmqFavExport=pmqFavExport;window.pmqFavImportText=pmqFavImportText;window.pmqServices=pmqServices;window.pmqCheck=pmqCheck;window.pmqBuildDocx=pmqBuildDocx;window.pmqFill=pmqFill;window.pmqApplyLib=pmqApplyLib;window.pmqNorm=pmqNorm;window.pmqDisbLine=pmqDisbLine;window.pmqDefaultName=pmqDefaultName;window.pmqFavs=pmqFavs;window.pmqApplyFav=pmqApplyFav;window.pmqLibById=pmqLibById;window.pmqUnfilled=pmqUnfilled;
+window.pmqRateSheetXml=pmqRateSheetXml;window.PMQ_RSNOTE=PMQ_RSNOTE;window.pmqDownloadDocx=pmqDownloadDocx;window.pmqFavExport=pmqFavExport;window.pmqFavImportText=pmqFavImportText;window.pmqServices=pmqServices;window.pmqCheck=pmqCheck;window.pmqBuildDocx=pmqBuildDocx;window.pmqFill=pmqFill;window.pmqMoveSec=pmqMoveSec;window.pmqApplyLib=pmqApplyLib;window.pmqNorm=pmqNorm;window.pmqDisbLine=pmqDisbLine;window.pmqDefaultName=pmqDefaultName;window.pmqFavs=pmqFavs;window.pmqApplyFav=pmqApplyFav;window.pmqLibById=pmqLibById;window.pmqUnfilled=pmqUnfilled;
 
 /* ---------- 1.34: live quote preview (built from pmqServices, the same data the Word quote is made from) ---------- */
 function pmqPrevOn(){var v=null;try{v=sget("eo:pmprev");}catch(e){}return v!=="0";}
@@ -2748,7 +2783,7 @@ function pmqdMakeSub(q,next,note,replaceId){
     services, hours, stages, price lines, held / typed prices, disbursements, crew instructions, notes and the rate-sheet option start blank */
  var c=JSON.parse(JSON.stringify(q));c.id=pmUid();c.f.qn=next;c.f.docname="";c.updated=Date.now();delete c.exported;delete c.importRep;delete c.qfolder;c.subOf=(q.f.qn||"").trim();
  c.f.services="";c.f.task="";c.f.pmc="";c.f.date="";/* 1.33: these describe the original request */
- c.secs=[pmqNorm({name:"",hrs:{}})];c.scope=[];c.disb={};(PM.vault&&PM.vault.disb||[]).forEach(function(d){c.disb[d.id]=0;});c.other={label:"",amt:""};c.fci="";c.notes="";delete c.rs;
+ c.secs=[pmqNorm({name:"",hrs:{}})];c.scope=[];c.disb={};(PM.vault&&PM.vault.disb||[]).forEach(function(d){c.disb[d.id]=0;});c.other={label:"",amt:""};c.others=[];c.fci="";c.notes="";delete c.rs;
  note=(note?note+" ":"")+"Sub-quote of "+c.subOf+": job details copied; services, hours, prices, disbursements, Services Provided, task details, PM comments and date requested start blank.";
  c.importRep={file:"",sub:pmjQnParts&&pmjQnParts(q.f.qn)?q.f.qn:q.f.qn,subNote:note||"",read:0,unread:[],rateDiff:[],wordDiffs:[]};pmqdKeepMine(c,c.importRep);
  if(replaceId)PM.quotes=PM.quotes.filter(function(x){return x.id!==replaceId;});
@@ -2768,7 +2803,7 @@ function pmqdSubQuote(){
   var src=q,from="",rid=q._rid||null;delete q._rid;
   if(empty){var D=info.dir?await pmjDetailsFrom(await pmjList(info.dir),info.base):null;
    if(!D){alert("Only the Quote # is filled in, and no app-made Word quote or job details file for "+info.base+" was found"+(info.folder?" in "+info.folder:" (no quote folder found)")+".\n\nDrag the quote’s job details file onto the PM tab first, then Duplicate as sub-quote.");return null;}
-   src=D.q;src.f=src.f||{};src.f.qn=info.base;(src.secs||[]).forEach(pmqNorm);if(!src.disb)src.disb={};if(!src.other)src.other={label:"",amt:""};if(src.fci==null)src.fci="";if(src.notes==null)src.notes="";from="Details from "+D.src+". ";rid=!q.exported?q.id:null;}
+   src=D.q;src.f=src.f||{};src.f.qn=info.base;(src.secs||[]).forEach(pmqNorm);if(!src.disb)src.disb={};if(!src.other)src.other={label:"",amt:""};pmOthers(src);c.others=[];if(src.fci==null)src.fci="";if(src.notes==null)src.notes="";from="Details from "+D.src+". ";rid=!q.exported?q.id:null;}
   var next=pmqdNextSub(src.f.qn,info.subs),S=info.subs||[],used=(S.letters||[]).map(function(L){return info.base+L;}).concat((S.nums||[]).map(function(n){return info.base+"-"+n;})),note;
   if(!info.folder)note=from+"No quote folder found for "+info.base+" \u2014 only the drafts here were checked for numbers already used.";
   else note=from+"Checked "+info.folder+": "+(used.length?used.join(", ")+" already there":"no sub-quotes there yet")+" \u2014 this is "+next+".";
@@ -3289,7 +3324,7 @@ function pmpWire(host){var b=host.querySelector("#pm-pastbox");if(!b)return;
  b.querySelector("#pm-pastgo").onclick=function(){pmpMake();};b.querySelector("#pm-pastx").onclick=function(){PM.past=null;pmRender();};
 }
 function pmpMake(){var P=PM.past;if(!P)return null;var S=JSON.parse(JSON.stringify(P.src)),T=P.tick,f=S.f||{},cnt={n:0},took=[];
- var q={id:pmUid(),updated:Date.now(),f:{},secs:[],disb:{},other:{label:"",amt:""},fci:"",notes:""};
+ var q={id:pmUid(),updated:Date.now(),f:{},secs:[],disb:{},other:{label:"",amt:""},others:[],fci:"",notes:""};
  if(T.site){PMP_SITE.forEach(function(k){if((f[k]||"").trim())q.f[k]=f[k];});if((S.xp||[]).length)q.xp=S.xp.map(function(p){return {site:p.site||"",legal:p.legal||"",pid:p.pid||""};});took.push("site details");}
  if(T.svc){
   /* wording that is word-for-word the current approved library wording keeps its amounts (today's standard prices); every other dollar amount is blanked */
@@ -3548,7 +3583,7 @@ function pmQuotesLoad(){try{PM.quotes=JSON.parse(sget("eo:pmq")||"[]");}catch(e)
 }
 function pmQuotesSave(){sset("eo:pmq",JSON.stringify(PM.quotes));}
 function pmNewQuote(){
- var q={id:pmUid(),updated:Date.now(),f:{},secs:[pmqNorm({name:"",hrs:{}})],disb:{},other:{label:"",amt:""},fci:"",notes:""};
+ var q={id:pmUid(),updated:Date.now(),f:{},secs:[pmqNorm({name:"",hrs:{}})],disb:{},other:{label:"",amt:""},others:[],fci:"",notes:""};
  q.f.pm=sget("eo:pmname")||"";q.f.assigned=sget("eo:pminit")||"";
  (PM.vault.disb||[]).forEach(function(d){q.disb[d.id]=0;}); /* disbursements start at $0; the PM adds what the job needs */
  PM.quotes.unshift(q);PM.cur=q.id;pmQuotesSave();return q;
@@ -3576,7 +3611,7 @@ function pmCalc(q){
   if(s.status==="inc"){out.labour+=sec.total;out.quoted+=sec.quote;if(sec.quoted)out.anyQuote=true;}
   out.secs.push(sec);});
  (V.disb||[]).forEach(function(d){var n=pmNum(q.disb[d.id]);if(n<=0)return;var amt=n*d.price;out.disb+=amt;out.disbParts.push(n+" "+(n>1?d.plural:d.label)+" ("+(n>1?pmMoney(d.price,false)+" x "+n+" = ":"")+pmMoney(amt,false)+")");});
- var oa=pmNum(q.other.amt);if(oa>0){out.disb+=oa;out.disbParts.push((q.other.label||"other")+" ("+pmMoney(oa,false)+")");}
+ pmOthers(q).forEach(function(o){var oa=pmNum(o.amt);if(oa>0){out.disb+=oa;out.disbParts.push((o.label||"other").trim()+" ("+pmMoney(oa,false)+")");}});
  out.total=out.quoted+out.disb;return out;
 }
 /* 1.34: how a service is named in the job details — "Option 1 — Title", "Title (Optional add-on)" */
@@ -3715,7 +3750,7 @@ function pmRenderMain(host){
  h+="<div class='pm-h'>Services &amp; rate calculation <label class='pmq-pvtog' title='show the quote as it will print, beside the services'><input type='checkbox' id='pm-pvtog'"+(pv?" checked":"")+"> Show preview</label></div><p class='hint' style='margin:0 0 8px'>Each service is one numbered item on the Word quote and one section of the job details calculation. Pick a job type to load the approved wording; everything can then be edited for this quote.</p>";
  q.secs.forEach(function(s,ix){pmqNorm(s);h+=pmqCardHtml(q,s,ix);});
  h+="<div class='row' style='gap:8px;flex-wrap:wrap'><button class='btn' onclick='pmAddSec()'>+ Add service</button><span style='flex:1'></span><button class='btn' onclick='pmqSaveSet()' title='save all these services (wording, Included / Optional / Option, and optionally hours) as one set, to load on a future quote from the first dropdown \u2192 My quote sets'>Save these services as a set\u2026</button></div>";
- h+="<div class='pm-h'>Disbursements</div><div class='pm-disb'>"+(V.disb||[]).map(function(d){return "<label><span>"+pmEsc(d.label.replace(/^./,function(c){return c.toUpperCase();}))+" "+pmMoney(d.price,false)+"</span><input type='number' min='0' step='1' class='pm-dn' data-d='"+d.id+"' value='"+pmEsc(q.disb[d.id]||0)+"'></label>";}).join("")+"<label><span>Other</span><input type='text' id='pm-olab' value='"+pmEsc(q.other.label)+"' placeholder='description' style='width:150px'> <input type='text' inputmode='decimal' id='pm-oamt' value='"+pmEsc(q.other.amt)+"' placeholder='$' style='width:80px'></label></div>";
+ h+="<div class='pm-h'>Disbursements</div><div class='pm-disb'>"+(V.disb||[]).map(function(d){return "<label><span>"+pmEsc(d.label.replace(/^./,function(c){return c.toUpperCase();}))+" "+pmMoney(d.price,false)+"</span><input type='number' min='0' step='1' class='pm-dn' data-d='"+d.id+"' value='"+pmEsc(q.disb[d.id]||0)+"'></label>";}).join("")+""+pmOthersHtml(q)+"</div>";
  h+="<div class='pm-tot' id='pm-tot'></div>";
  h+="</div><aside class='pmq-prev' id='pm-qprev'"+(pv?"":" style='display:none'")+"></aside></div>";
  h+="<div class='pm-h'>Field Crew Instructions</div><div class='row'>"+((V.fci||[]).length?"<select id='pm-fcisel'>"+V.fci.map(function(o,i){return "<option value='"+i+"'>"+pmEsc(o.label)+"</option>";}).join("")+"</select> <button class='btn' id='pm-fciins'>Insert</button>":"")+"<span class='hint' style='margin:0 0 0 8px'>options are edited under Rates &amp; crew instructions</span></div><textarea id='pm-fci' rows='6' class='pm-ta'>"+pmEsc(q.fci)+"</textarea>";
@@ -3750,8 +3785,7 @@ function pmWireMain(host,q){
  host.querySelectorAll(".pm-hr").forEach(function(el){el.oninput=function(){var s=q.secs[+el.dataset.s],H=el.dataset.l!=null?((s.pl[+el.dataset.l]||{}).hrs||{}):(el.dataset.g!=null?((s.stg[+el.dataset.g]||{}).hrs||{}):s.hrs);if(el.value.trim())H[el.dataset.r]=el.value.trim();else delete H[el.dataset.r];save();};});
  var disbRem=function(){var r=document.getElementById("pm-disbrem");if(r)r.style.display=pmqDisbLine(q)?"none":"block";};
  host.querySelectorAll(".pm-dn").forEach(function(el){el.oninput=function(){q.disb[el.dataset.d]=el.value;save();disbRem();};});
- document.getElementById("pm-olab").oninput=function(){q.other.label=this.value;save();};
- document.getElementById("pm-oamt").oninput=function(){q.other.amt=this.value;save();disbRem();};
+ pmOthersWire(host,q,save,disbRem);
  document.getElementById("pm-fci").oninput=function(){q.fci=this.value;save();};
  document.getElementById("pm-notes").oninput=function(){q.notes=this.value;save();};
  var rsb=document.getElementById("pm-rs");if(rsb)rsb.onchange=function(){q.rs=rsb.checked;save();};
@@ -3864,7 +3898,7 @@ function pmParseJob(text){
   if(mode==="sub"){sub.push(st);if(/^total\s*before\s*gst/i.test(st))mode="after";continue;}
   if(mode==="after"){if(st&&!/^gst\s*extra\.?$/i.test(st))after.push(s);continue;}
   notes.push(s);}
- var q={id:pmUid(),updated:Date.now(),f:f,secs:[],disb:{},other:{label:"",amt:""},fci:fci.join("\n"),notes:notes.concat(after.length?[""].concat(after):[]).join("\n").replace(/^\s+|\s+$/g,"")};
+ var q={id:pmUid(),updated:Date.now(),f:f,secs:[],disb:{},other:{label:"",amt:""},others:[],fci:fci.join("\n"),notes:notes.concat(after.length?[""].concat(after):[]).join("\n").replace(/^\s+|\s+$/g,"")};
  var rep={read:0,unread:[],rateDiff:[]};
  /* hours: Sublabour block first */
  var cur=null,tgt=null,HR=/(\d+(?:\.\d+)?)\s*hrs?\.?\s+(.+?)\s*(?:x|@|×|\*)\s*\$\s*([\d,]+(?:\.\d+)?)\s*\/\s*hr/i;
@@ -3911,8 +3945,8 @@ function pmParseJob(text){
   dl.split(/\+|,(?!\d{3})|\band\b/i).forEach(function(p){p=p.trim();if(!p)return;var amt=(p.match(/\$\s*([\d,.]+)\s*\)?\s*$/)||p.match(/\$\s*([\d,.]+)/)||[])[1];var bare=p.replace(/\([^)]*\)/g,"").replace(/\$\s*[\d,.]+/g,"").trim(),m=bare.match(/^(\d+)\s+(.+)$/)||(/^(titles?|(legal\s*)?plans?|checklists?(\s*fees?)?|filing(\s*fees?)?)$/i.test(bare)?[bare,"1",bare]:null);
    var nm=m?m[2].toLowerCase():"",n=m?parseInt(m[1]):0,id=null;
    if(/^titles?$/.test(nm))id="title";else if(/^(legal\s*)?plans?$/.test(nm))id="plan";else if(/^checklists?(\s*fees?)?$/.test(nm))id="chk";else if(/^filing(\s*fees?)?$/.test(nm))id="filing";
-   if(id&&q.disb.hasOwnProperty(id))q.disb[id]=n;else if(amt){others.push(bare||p);oamt+=pmNum(amt);}else rep.unread.push("Disbursement: "+p);});
-  if(others.length){q.other={label:others.join(", "),amt:String(oamt)};}}
+   if(id&&q.disb.hasOwnProperty(id))q.disb[id]=n;else if(amt){others.push({label:bare||p,amt:pmNum(amt)});oamt+=pmNum(amt);}else rep.unread.push("Disbursement: "+p);});
+  if(others.length){q.others=others.map(function(o){return {label:o.label,amt:String(o.amt)};});pmOthersSync(q);}}
  pmPropSplit(q);q.secs.forEach(pmqNorm);q.importRep=rep;return q;
 }
 function pmImportText(text,fname){
@@ -3998,10 +4032,21 @@ var cu=cuNewState(),cuSources=[],cuMatch=null,cuPendingPkg=null,cuSeq=0;
 function cuMatchNew(){return {mode:"calc",planSrc:null,localSrc:null,excl:{},result:null,open:false,stages:[],autoDone:false,gen:{A:{carried:null,src:null,blocks:{},ctrlOnly:false,label:""},B:{carried:null,src:null,blocks:{},ctrlOnly:false,label:""}}};}
 function cuShelfAdd(name,kind,state){
  var ex=cuSources.find(function(s){return s.name===name;});
- if(ex){ex.state=state;ex.kind=kind;ex.replaced=true;cuSources.forEach(function(s){s.active=(s===ex);});return ex;}
+ if(ex){var old=ex.state;ex.state=state;ex.kind=kind;ex.replaced=true;ex.loads=(ex.loads||1)+1;cuSources.forEach(function(s){s.active=(s===ex);});cuSourceReplaced(ex,old);return ex;}
  var s={id:"s"+(++cuSeq),name:name,kind:kind,state:state,active:true};
  cuSources.forEach(function(x){x.active=false;});cuSources.push(s);return s;
 }
+/* 1.39.2: the same file name dropped again (an edited file) - every Points tool that used it re-reads it; none keeps a result from the old copy.
+   Height check: re-reads the points (its cache is keyed on the shelf state, not the name) and keeps the drawing, units and ground layers.
+   Design vs Field, Monitoring, Match points: re-run with the same settings if they had a result from that file. */
+function cuSourceReplaced(ex,old){var msg="\u201c"+ex.name+"\u201d was dropped again \u2014 results updated from the new copy.";
+ var m=typeof cuMatch!=="undefined"&&cuMatch,g=m&&m.gen||{};
+ if(m&&window.CU_MATCHPREV&&(m.planSrc===ex.id||m.localSrc===ex.id||(g.A&&g.A.src===ex.id)||(g.B&&g.B.src===ex.id))){m.redo=msg;m.autoDone=true;}
+ window.CU_MATCHPREV=null;
+ if(typeof cuDvf!=="undefined"&&cuDvf&&cuDvf.res&&(cuDvf.dSrc===ex.id||cuDvf.fSrc===ex.id))cuDvf.redo=msg;
+ if(typeof cuMon!=="undefined"&&cuMon&&cuMon.res&&!cuMon.res.err&&(cuMon.tSrc===ex.id||cuMon.bSrc===ex.id))cuMon.redo=msg;
+ window.CU_REPLACED={id:ex.id,name:ex.name,loads:ex.loads};}
+function cuRedoHtml(X,res){return X&&X.note&&res&&X.noteRes===res?"<div class='cu-sfhit cu-redo'>"+esc(X.note)+"</div>":"";}
 function cuActive(){return cuSources.find(function(s){return s.active;})||null;}
 function cuStateOf(id){var s=cuSources.find(function(x){return x.id===id;});return s?s.state:null;}
 function cuActivate(id){var s=cuSources.find(function(x){return x.id===id;});if(!s)return;cuSources.forEach(function(x){x.active=(x===s);});cu=s.state;cuRender();}
@@ -4080,7 +4125,7 @@ function cuParse(text,name){
  });
  cu.lines=lines;cu.name=name;cu.delim=delim;cu.ticks={};cu.manual=[];cu.unitAns="m";
  cu.scale={base:null,mode:"ft",custom:"",elev:true,ptInput:"",mN:"",mE:"",mZ:"0",sfPt:null};
- if(!cuMatch)cuMatch=cuMatchNew();cu.match=cuMatch;cuMatch.result=null;cuMatch.autoDone=false;
+ if(!cuMatch)cuMatch=cuMatchNew();cu.match=cuMatch;window.CU_MATCHPREV=cuMatch.result;cuMatch.result=null;cuMatch.autoDone=false;
  var scpt=lines.find(function(r){return r.point&&/^(SCPT|SCALE\s*(PT|POINT))(\s|$)/i.test(r.desc.trim());});
  if(scpt)cu.scale.ptInput=scpt.pt;
  lines.some(function(r){
@@ -4594,6 +4639,7 @@ function cuGenAutoPropose(){
 function cuRenderMatch(){
  var host=document.getElementById("cu-match");if(!host||!cu.lines)return;
  var m=cu.match;
+ if(m&&m.redo){var rm=m.redo;m.redo=null;m.autoDone=true;cuMatchRun();m.note=rm;m.noteRes=m.result;cuRenderMatch();return;}
  if(!m.gen)m.gen={A:{carried:null,file:null,blocks:{},ctrlOnly:false},B:{carried:null,file:null,blocks:{},ctrlOnly:false}};
  if(!m.stages)m.stages=[];
  if(m.mode==="general")cuGenAutoPropose();
@@ -4632,7 +4678,7 @@ function cuRenderMatch(){
   }
  }
  h+="</div></details>";
- host.innerHTML=h;
+ h=cuRedoHtml(m,m.result)+h;host.innerHTML=h;
  document.getElementById("cu-mtfold").addEventListener("toggle",function(){m.open=this.open;});
  host.querySelectorAll(".cu-mtmode button").forEach(function(b){b.onclick=function(){m.mode=b.dataset.m;m.result=null;cuRenderMatch();};});
  host.querySelectorAll(".cu-mtcodes .cu-chip").forEach(function(b){b.onclick=function(){var c=b.dataset.code;if(m.excl[c])delete m.excl[c];else m.excl[c]=1;cuRenderMatch();};});
@@ -4809,6 +4855,7 @@ function cuDvfCopy(){
 function cuRenderDvf(){
  var host=document.getElementById("cu-dvf");if(!host||!cu.lines)return;
  if(!cuDvf)cuDvf=cuDvfNew();var V=cuDvf;cuDvfDefaults();
+ if(V.redo){var rm=V.redo;V.redo=null;cuDvfRun();V.note=rm;V.noteRes=V.res;cuRenderDvf();return;}
  function srcSel(side,cur){return "<select class='cu-dvfsrc' data-side='"+side+"'>"+cuSources.map(function(s){return "<option value='"+s.id+"'"+(s.id===cur?" selected":"")+">"+esc(s.name)+"</option>";}).join("")+"</select>";}
  function chips(side,src,sel){var bl=cuBlocks(cuDvfPts(cuSrcState(src)));
   return "<div class='cu-chips cu-dvfblocks' data-side='"+side+"'>"+bl.map(function(b){var cs={};b.pts.forEach(function(p){var c=(p.desc.split(/\s+/)[0]||"").toUpperCase();if(c)cs[c]=1;});var ck=Object.keys(cs);
@@ -4837,7 +4884,7 @@ function cuRenderDvf(){
   }
  }
  h+="</div></details>";
- host.innerHTML=h;
+ h=cuRedoHtml(V,V.res)+h;host.innerHTML=h;
  document.getElementById("cu-dvffold").addEventListener("toggle",function(){V.open=this.open;});
  host.querySelectorAll(".cu-dvfsrc").forEach(function(sel){sel.onchange=function(){if(sel.dataset.side==="d")V.dSrc=sel.value;else V.fSrc=sel.value;V.auto=false;V.res=null;cuRenderDvf();};});
  host.querySelectorAll(".cu-dvfblocks .cu-chip").forEach(function(b){b.onclick=function(){var S=b.parentNode.dataset.side==="d"?V.dBlocks:V.fBlocks;S[b.dataset.b]=!S[b.dataset.b];V.res=null;cuRenderDvf();};});
@@ -4855,15 +4902,15 @@ function cuMonNew(){return {open:false,baseMode:"paste",paste:"",bSrc:null,bRang
 function cuMonKey(s){return String(s||"").replace(/^\s*(gauge|guage|gage)\s*#?\s*/i,"").replace(/\s+/g," ").trim().toUpperCase();}
 /* a block copied from the monitoring spreadsheet: the header decides Elevation only vs N / E / Elevation */
 function cuMonParse(txt){
- var pts=[],kind=null,skipped=0,num=/^-?\d+(\.\d+)?$/;
+ var pts=[],kind=null,hdr=null,skipped=0,num=/^-?\d+(\.\d+)?$/;
  String(txt||"").split(/\r?\n/).forEach(function(line){
   if(!line.trim())return;
   var cells=line.split(/\t|\s{2,}|,(?=\S)/).map(function(c){return c.trim();}).filter(function(c){return c!=="";});
   var nums=cells.filter(function(c){return num.test(c.replace(/,/g,""));});
   if(!nums.length){/* title / header / note */
    var low=cells.map(function(c){return c.toLowerCase();});
-   if(low.some(function(c){return /^(n|northing|north)$/.test(c);})&&low.some(function(c){return /^(e|easting|east)$/.test(c);}))kind=kind||"NEZ";
-   else if(low.some(function(c){return /^(ele|elev|elevation|el|z)\.?$/.test(c);}))kind=kind||"Z";
+   if(low.some(function(c){return /^(n|northing|north)$/.test(c);})&&low.some(function(c){return /^(e|easting|east)$/.test(c);})){kind=kind||"NEZ";hdr=hdr||cells.slice();}
+   else if(low.some(function(c){return /^(ele|elev|elevation|el|z)\.?$/.test(c);})){kind=kind||"Z";hdr=hdr||cells.slice();}
    skipped++;return;}
   var i=0;while(i<cells.length&&num.test(cells[i].replace(/,/g,""))&&i<cells.length-1&&!num.test((cells[i+1]||"").replace(/,/g,"")))i++;
   var id=cells[0],v=[];
@@ -4873,7 +4920,7 @@ function cuMonParse(txt){
   if(k==="NEZ"&&v.length>=3){p.N=v[0];p.E=v[1];p.Z=v[2];}else{p.Z=v[0];}
   pts.push(p);});
  if(!kind)kind=pts.length&&pts.every(function(p){return p.N!==undefined;})?"NEZ":"Z";
- return {pts:pts,kind:kind,skipped:skipped};
+ return {pts:pts,kind:kind,skipped:skipped,hdr:hdr};
 }
 function cuMonAvg(list){var n=0,e=0,z=0;list.forEach(function(p){n+=p.N;e+=p.E;z+=p.Z;});var c=list.length;
  var sp=0;if(c>1){var mx=function(k){return Math.max.apply(null,list.map(function(p){return p[k];}))-Math.min.apply(null,list.map(function(p){return p[k];}));};sp=Math.max(mx("N"),mx("E"),mx("Z"));}
@@ -4888,7 +4935,7 @@ function cuMonBaseFromRange(src,range,rad){
  return out;
 }
 function cuMonBase(){var M=cuMon,rad=parseFloat(M.radius);if(!(rad>0))rad=0.10;
- if(M.baseMode==="paste"){var r=cuMonParse(M.paste);return {pts:r.pts,kind:r.kind,from:"pasted"};}
+ if(M.baseMode==="paste"){var r=cuMonParse(M.paste);return {pts:r.pts,kind:r.kind,from:"pasted",hdr:r.hdr};}
  if(!M.bSrc||!M.bRange.trim())return {pts:[],kind:"NEZ",from:"range"};
  return {pts:cuMonBaseFromRange(M.bSrc,M.bRange,rad),kind:"NEZ",from:"range"};}
 /* newest block of shots that sit on the base points (suggestion only; the user confirms the trip range) */
@@ -4920,7 +4967,7 @@ function cuMonRun(){
    if(shots.length>1){var far=0;shots.forEach(function(a){shots.forEach(function(c){far=Math.max(far,Math.hypot(a.N-c.N,a.E-c.E));});});
     if(far>rad){row.flag=b.id+" shot "+shots.length+"× ("+shots.map(function(s){return s.pt;}).join(", ")+") "+far.toFixed(2)+" m apart — check the coding; not averaged";row.shots=shots;rows.push(row);shots.forEach(function(s){usedT[s.pt]=1;});return;}}}
   if(!shots.length){row.missing=true;rows.push(row);return;}
-  shots.forEach(function(s){usedT[s.pt]=1;});
+  shots.forEach(function(s){usedT[s.pt]=1;});row.shots0=shots;
   /* office method: averages and base rounded to the mm first, then differenced (matches the spreadsheets) */
   var a=cuMonAvg(shots),m3=function(v){return Math.round(v*1000)/1000;};a.N=m3(a.N);a.E=m3(a.E);a.Z=m3(a.Z);
   var bN=b.N!==undefined?m3(b.N):undefined,bE=b.E!==undefined?m3(b.E):undefined,bZ=m3(b.Z);
@@ -4928,7 +4975,7 @@ function cuMonRun(){
   if(hasPos){row.dN=a.N-bN;row.dE=a.E-bE;row.dT=Math.sqrt(row.dN*row.dN+row.dE*row.dE+row.dZ*row.dZ);}
   rows.push(row);});
  var unused=T.filter(function(t){return !usedT[t.pt];});
- M.res={rows:rows,kind:B.kind,hasPos:hasPos,unused:unused,nT:T.length,rad:rad,from:B.from,tName:(cuSources.find(function(s){return s.id===M.tSrc;})||{}).name};
+ M.res={rows:rows,kind:B.kind,hasPos:hasPos,unused:unused,nT:T.length,rad:rad,from:B.from,hdr:B.hdr||null,T:T,tName:(cuSources.find(function(s){return s.id===M.tSrc;})||{}).name};
  if(!M.show)M.show=B.kind;
  cuRenderMon();
 }
@@ -4943,10 +4990,28 @@ function cuMonCopyText(){var M=cuMon,R=M.res;if(!R||!R.rows)return "";var c=cuMo
  var L=M.head?[["Desc."].concat(c.map(function(x){return x[0];})).join("\t")]:[];
  R.rows.forEach(function(r){L.push([r.b.label].concat(c.map(function(x){return x[1](r);})).join("\t"));});
  return L.join("\r\n");}
+/* 1.39.2: copies laid out like the job's own sheet. The pasted header row decides the columns and their order (Desc. / N / E / Ele / Location / Point …). */
+function cuMonLoc(r){var s=r.o&&r.shots0&&r.shots0[0]?r.shots0[0].desc:"";return String(s||"").replace(/\s*-\s*CHK\s*$/i,"").trim();}
+function cuMonColOf(h){var c=String(h||"").trim().toLowerCase().replace(/[.:#]/g,"").trim();
+ if(/^(n|northing|north)$/.test(c))return "N";if(/^(e|easting|east)$/.test(c))return "E";if(/^(ele|elev|elevation|el|z)$/.test(c))return "Z";
+ if(/^(pt|pts|point|points|pnt|point no|pt no|point number)$/.test(c))return "P";if(/^(location|loc|description|descr)$/.test(c))return "L";
+ if(/^(desc|id|gauge|guage|gage|mon|monitoring point|name|label)$/.test(c))return "ID";return "";}
+function cuMonAvgHead(){var R=cuMon.res,nez=R.hasPos;if(R.hdr&&R.hdr.length)return R.hdr.slice();return nez?["Desc.","Northing","Easting","Elevation"]:["Desc.","Elevation"];}
+function cuMonAvgText(){var M=cuMon,R=M.res;if(!R||!R.rows)return "";var H=cuMonAvgHead(),K=H.map(cuMonColOf);if(K.indexOf("ID")<0)K[0]="ID";
+ var val=function(r,k){if(k==="ID")return r.b.label;if(!r.o)return "";if(k==="N")return r.o.N.toFixed(3);if(k==="E")return r.o.E.toFixed(3);if(k==="Z")return r.o.Z.toFixed(3);if(k==="P")return r.o.pts.join("+");if(k==="L")return cuMonLoc(r);return "";};
+ var L=M.head?[H.join("\t")]:[];R.rows.forEach(function(r){L.push(K.map(function(k){return val(r,k);}).join("\t"));});return L.join("\r\n");}
+function cuMonShotsText(){var M=cuMon,R=M.res;if(!R||!R.rows)return "";var nez=R.hasPos,S=[];
+ R.rows.forEach(function(r){(r.shots0||[]).forEach(function(t){S.push({t:t,id:r.b.label});});});S.sort(function(a,b){return (parseFloat(a.t.pt)||0)-(parseFloat(b.t.pt)||0);});
+ var L=[(nez?["Point","Northing","Easting","Elevation","Location","Desc."]:["Point","Elevation","Location","Desc."]).join("\t")];
+ S.forEach(function(x){var t=x.t;L.push((nez?[t.pt,t.N.toFixed(3),t.E.toFixed(3),t.Z.toFixed(3),t.desc||"",x.id]:[t.pt,t.Z.toFixed(3),t.desc||"",x.id]).join("\t"));});
+ L.push("","Average Coordinates"+(M.tDate?" ("+M.tDate+")":""));var keep=M.head;M.head=true;L.push(cuMonAvgText());M.head=keep;return L.join("\r\n");}
+function cuMonCopyAs(which){var t=which==="avg"?cuMonAvgText():which==="shots"?cuMonShotsText():cuMonCopyText();if(!t)return;
+ (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){var e=document.getElementById("cu-monmsg");if(e)e.textContent=which==="avg"?"Averaged coordinates copied — in your sheet\u2019s column order.":which==="shots"?"Shots copied — paste into the field-day sheet.":"Copied — paste into the monitoring spreadsheet.";}).catch(function(){});}
 function cuMonCopy(){var t=cuMonCopyText();if(!t)return;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){var e=document.getElementById("cu-monmsg");if(e)e.textContent="Copied — paste into the monitoring spreadsheet.";}).catch(function(){});}
 function cuRenderMon(){
  var host=document.getElementById("cu-mon");if(!host||!cu.lines)return;
  if(!cuMon)cuMon=cuMonNew();var M=cuMon,ids=cuSources.map(function(s){return s.id;});
+ if(M.redo){var rm=M.redo;M.redo=null;cuMonRun();M.note=rm;M.noteRes=M.res;cuRenderMon();return;}
  /* until a file is chosen by hand, both sides follow the file in use */
  if(!M.tPick||ids.indexOf(M.tSrc)<0)M.tSrc=(cuActive()||cuSources[0]||{}).id||null;
  if(!M.bPick||ids.indexOf(M.bSrc)<0)M.bSrc=M.tSrc;
@@ -4973,6 +5038,7 @@ function cuRenderMon(){
   var ok=R.rows.filter(function(r){return r.o;}).length,miss=R.rows.filter(function(r){return r.missing;}),fl=R.rows.filter(function(r){return r.flag;});
   h+="<div class='cu-mtsum'>"+ok+" of "+R.rows.length+" base points found in "+esc(R.tName||"")+" "+esc(M.tRange)+(R.rows.some(function(r){return r.o&&r.o.count>1;})?" · repeat shots averaged":"")+(miss.length?" · not found: "+esc(miss.map(function(r){return r.b.label;}).join(", ")):"")+(R.unused.length?" · "+R.unused.length+" other shot"+(R.unused.length===1?"":"s")+" in the range not on a base point":"")+"</div>";
   fl.forEach(function(r){h+="<div class='cu-idwarn'>"+esc(r.flag)+"</div>";});
+  if(R.unused.length)h+="<div class='cu-idwarn cu-monnew'>"+R.unused.length+" shot"+(R.unused.length===1?"":"s")+" in "+esc(M.tRange)+" not near any base point: "+esc(R.unused.slice(0,12).map(function(t){return t.pt+(t.desc?" ("+t.desc+")":"");}).join(", "))+(R.unused.length>12?" \u2026":"")+" \u2014 new monitoring points, or other shots? If they\u2019re new points, add them to the base (this trip can be their baseline).</div>";
   var nez=R.hasPos;
   h+="<div style='overflow-x:auto'><table class='cu-mtt'><tr><th>Point</th><th>Shots</th>"+(nez?"<th>Northing</th><th>Easting</th>":"")+"<th>Elevation</th>"+(nez?"<th>∆N</th><th>∆E</th>":"")+"<th>∆Ele</th>"+(nez?"<th>∆Total</th>":"")+"<th></th></tr>";
   R.rows.forEach(function(r){
@@ -4980,10 +5046,11 @@ function cuRenderMon(){
    h+="<tr><td>"+esc(r.b.label)+"</td><td>"+r.o.count+" <span class='cu-mtcode'>("+esc(r.o.pts.join("+"))+")</span></td>"+(nez?"<td>"+r.o.N.toFixed(3)+"</td><td>"+r.o.E.toFixed(3)+"</td>":"")+"<td>"+r.o.Z.toFixed(3)+"</td>"+(nez?"<td>"+cuMonF(r.dN)+"</td><td>"+cuMonF(r.dE)+"</td>":"")+"<td>"+cuMonF(r.dZ)+"</td>"+(nez?"<td>"+cuMonF(r.dT)+"</td>":"")+"<td class='cu-mtcode'>"+(r.o.count>1?"spread "+r.o.spread.toFixed(3):"")+"</td></tr>";});
   h+="</table></div>";
   h+="<div class='row' style='margin-top:6px'><label style='margin-right:10px'>Copy</label>"+(nez?"<span class='seg'><button data-s='Z' class='cu-monshow"+(M.show==="Z"?" on":"")+"'>Elevation only</button><button data-s='NEZ' class='cu-monshow"+(M.show!=="Z"?" on":"")+"'>N, E, Elevation</button></span> <label class='cu-cb' style='margin-left:10px'><input type='checkbox' id='cu-montot' "+(M.total?"checked":"")+"> ∆Total</label>":"<span class='hint' style='margin:0'>Elevation only</span>")+" <label class='cu-cb' style='margin-left:10px'><input type='checkbox' id='cu-monobs' "+(M.obs?"checked":"")+"> observed values</label> <label class='cu-cb' style='margin-left:10px'><input type='checkbox' id='cu-monhead' "+(M.head?"checked":"")+"> header row</label></div>";
-  h+="<div class='cu-dl'><button class='btn pri' onclick='cuMonCopy()'>Copy for the spreadsheet</button><span class='hint' id='cu-monmsg' style='margin:0'>rows in the same order as the base</span></div>";
+  h+="<div class='cu-dl'><button class='btn pri' onclick='cuMonCopy()'>Copy changes</button><button class='btn' onclick='cuMonCopyAs(\"avg\")' title='the averaged coordinates of each point, in the columns of the header you pasted'>Copy averaged coordinates</button><button class='btn' onclick='cuMonCopyAs(\"shots\")' title='every shot used (point #, N, E, Ele, description, ID), then the averages — for a field-day sheet'>Copy shots</button><span class='hint' id='cu-monmsg' style='margin:0'>rows in the same order as the base</span></div>";
+  h+="<div class='hint' style='margin:2px 0 0'>Changes are <b>observed \u2212 base</b> (this trip minus the base). Some workbooks work them out as base \u2212 reading (22-1740) \u2014 there, paste the averaged coordinates and let the sheet\u2019s formulas do the changes."+(R.hdr?" Averaged coordinates follow your pasted header: "+esc(R.hdr.join(" | "))+".":"")+"</div>";
  }
  h+="</div></details>";
- host.innerHTML=h;
+ h=cuRedoHtml(M,M.res)+h;host.innerHTML=h;
  document.getElementById("cu-monfold").addEventListener("toggle",function(){M.open=this.open;});
  host.querySelectorAll(".cu-monbm").forEach(function(b){b.onclick=function(){M.baseMode=b.dataset.m;M.res=null;M.show=null;cuRenderMon();};});
  host.querySelectorAll(".cu-monsrc").forEach(function(sel){sel.onchange=function(){if(sel.dataset.side==="b"){M.bSrc=sel.value;M.bPick=true;}else{M.tSrc=sel.value;M.tPick=true;}M.res=null;cuRenderMon();};});
@@ -4995,7 +5062,7 @@ function cuRenderMon(){
  host.querySelectorAll(".cu-monshow").forEach(function(b){b.onclick=function(){M.show=b.dataset.s;cuRenderMon();};});
  [["cu-montot","total"],["cu-monobs","obs"],["cu-monhead","head"]].forEach(function(p){var el=document.getElementById(p[0]);if(el)el.onchange=function(){M[p[1]]=el.checked;cuRenderMon();};});
 }
-window.cuMonRun=cuMonRun;window.cuMonCopy=cuMonCopy;window.cuMonCopyText=cuMonCopyText;window.cuMonParse=cuMonParse;window.cuRenderMon=cuRenderMon;window.cuMonSuggest=cuMonSuggest;
+window.cuMonRun=cuMonRun;window.cuMonCopy=cuMonCopy;window.cuMonCopyAs=cuMonCopyAs;window.cuMonAvgText=cuMonAvgText;window.cuMonShotsText=cuMonShotsText;window.cuMonCopyText=cuMonCopyText;window.cuMonParse=cuMonParse;window.cuRenderMon=cuRenderMon;window.cuMonSuggest=cuMonSuggest;
 window.cuMonState=function(){if(!cuMon)cuMon=cuMonNew();return cuMon;};
 
 /* ---------- tree table (1.30): point # + the AutoMap's tree description, for sites with too many trees to label ---------- */
@@ -5579,15 +5646,24 @@ function hcCopy(){var r=HC.res;if(!r)return;var t="Pt\tDesc\tElev ("+hcU().lab+"
  try{navigator.clipboard.writeText(t);}catch(e){}var m=document.getElementById("hc-copied");if(m){m.textContent="Copied "+r.flags.length+" rows.";setTimeout(function(){m.textContent="";},3000);}}
 /* points from the current Points file when no package is loaded (no layers, handles or raw shots) */
 function hcFromCurrent(){var out=[];try{cu.lines.forEach(function(r){if(!r.point)return;var co=cuCoordOf(r);if(!co||isNaN(co.n)||isNaN(co.e))return;out.push({num:String(r.pt),N:co.n,E:co.e,Z:isNaN(co.z)?0:co.z,desc:r.desc.trim(),h:"",eh:"",layer:"(no drawing)"});});}catch(e){}return out;}
-function hcEnsure(){/* (re)load points when the Points tab file changed */
- var key=(cu&&cu.name)||"";if(HC.src===key&&HC.pts)return Promise.resolve();HC.src=key;HC.dwg=null;HC.raw=null;HC.res=null;HC.view=null;HC.sel=null;HC.msg="";HC.unitSet=false;HC.unitSrc="";
- var L=window.CU_LASTPKG;if(L&&cu.pkg&&cu.pkg.file===L.name){HC.busy="Reading "+L.name+" …";return hcFromPackage(L.buf,L.name).then(function(r){HC.pts=r.pts;HC.raw=r.raw;HC.pkg={file:r.file,rawFiles:r.rawFiles};HC.busy="";}).catch(function(e){HC.busy="";HC.msg=e.message;HC.pts=hcFromCurrent();HC.pkg=null;});}
- HC.pts=hcFromCurrent();HC.pkg=null;return Promise.resolve();}
+function hcEnsure(){/* (re)load the points whenever the Points tab file changed — keyed on the loaded file itself, never just its name (1.39.2:
+   an edited .msz dropped again under the same name used to keep the old points until the page was reloaded) */
+ if(HC.srcState===cu&&HC.pts)return Promise.resolve();
+ var name=(cu&&cu.name)||"",keep=HC.pts&&HC.srcState&&HC.srcName===name?{ents:HC.dwgEnts,file:HC.dwg&&HC.dwg.file,unit:HC.unit,unitSrc:HC.unitSrc,unitSet:HC.unitSet,lim:HC.lim,ci:HC.ci,showAll:HC.showAll}:null;
+ HC.srcState=cu;HC.srcName=name;HC.src=name;HC.dwg=null;HC.raw=null;HC.res=null;HC.sel=null;HC.msg="";HC.note="";
+ if(!keep){HC.view=null;HC.unitSet=false;HC.unitSrc="";HC.dwgEnts=null;}
+ var after=function(){if(!keep)return;HC.unit=keep.unit;HC.unitSrc=keep.unitSrc;HC.unitSet=keep.unitSet;HC.lim=keep.lim;HC.ci=keep.ci;HC.showAll=keep.showAll;
+  if(keep.ents&&HC.pts.some(function(x){return x.h;})){HC.dwgEnts=keep.ents;hcApplyDrawing(keep.ents,keep.file);}
+  HC.note="\u201c"+((cu.pkg&&cu.pkg.file)||name)+"\u201d was dropped again \u2014 points re-read"+(HC.dwg?"; drawing "+HC.dwg.file+" kept":"")+".";};
+ var buf=cu&&cu.pkg&&cu.pkg.buf,L=window.CU_LASTPKG;if(!buf&&L&&cu.pkg&&cu.pkg.file===L.name)buf=L.buf;
+ if(buf){var fn=cu.pkg.file;HC.busy="Reading "+fn+" …";return hcFromPackage(buf,fn).then(function(r){HC.pts=r.pts;HC.raw=r.raw;HC.pkg={file:r.file,rawFiles:r.rawFiles};HC.busy="";after();}).catch(function(e){HC.busy="";HC.msg=e.message;HC.pts=hcFromCurrent();HC.pkg=null;after();});}
+ HC.pts=hcFromCurrent();HC.pkg=null;after();return Promise.resolve();}
 function cuRenderHc(){var host=document.getElementById("cu-hc");if(!host)return;
  hcEnsure().then(function(){if(HC.pts&&!HC.res){if(!HC.unitSet&&!HC.unitSrc){var g=hcGuessUnit(null,HC.pts);if(g)hcSetUnit(g.u,g.src);else hcSetUnit("m","check: units not known — metres assumed");}hcRun();}hcPaint();});hcPaint();}
 function hcPaint(){var host=document.getElementById("cu-hc");if(!host)return;var E=esc,P=HC.pts||[],r=HC.res;
  var h="<div class='cu-manual'><h3>Height check</h3><p class='hint' style='margin:0 0 6px'>Finds ground heights that are out of line with the points around them, trees above the ground, reflectorless shots not at target height 99, and the same spot shot twice at different heights — to catch before the drawing goes out. The flags are <b>worth a look</b>, not verdicts: a real pit, mound or wall can also stand out.</p>";
  if(HC.busy)h+="<div class='hint'>"+E(HC.busy)+"</div>";
+ if(HC.note)h+="<div class='cu-sfhit cu-redo'>"+E(HC.note)+"</div>";
  h+="<div class='hc-src'>Points: <b>"+E(HC.pkg?HC.pkg.file:((cu&&cu.name)||"—"))+"</b> ("+P.length+")"+(HC.pkg?(HC.pkg.rawFiles?" · raw shots read from "+HC.pkg.rawFiles+" raw file"+(HC.pkg.rawFiles>1?"s":"")+" (reflectorless check on)":" · <span class='hint' style='margin:0'>no raw shots in this package — reflectorless check off</span>"):" · <span class='hint' style='margin:0'>load the .msz in the Points tab for handles and raw shots</span>")+"</div>";
  h+="<div class='hc-src'>Drawing: "+(HC.dwg?"<b>"+E(HC.dwg.file)+"</b> — "+HC.dwg.matched+" of "+P.length+" points matched to the drawing"+(HC.dwg.missing.length?" <span class='cu-pkgwarn'>"+HC.dwg.missing.length+" not in the drawing (e.g. "+E(HC.dwg.missing.slice(0,6).join(", "))+")</span>":""):"<span class='hint' style='margin:0'>none — add the layered drawing so walls, roofs, inverts and HIDE are left out</span>")+" <label class='btn'>"+(HC.dwg?"Change drawing…":"Add drawing (.dwg / .dxf)…")+"<input type='file' id='hc-dwg' accept='.dwg,.dxf' style='display:none'></label></div>";
  if(HC.msg)h+="<div class='cu-err' style='display:block'>"+E(HC.msg)+"</div>";
@@ -5615,7 +5691,7 @@ function hcPaint(){var host=document.getElementById("cu-hc");if(!host)return;var
 function hcLoadDrawing(file){HC.msg="";HC.busy="Reading "+file.name+(/\.dwg$/i.test(file.name)?" (the first DWG takes a few seconds to load the reader) …":" …");hcPaint();
  var p=/\.dxf$/i.test(file.name)?file.text().then(function(t){var e=hcDxfEntities(t);e.hdr=hcDxfHeader(t);return e;}):file.arrayBuffer().then(function(ab){return hcDwgEntities(new Uint8Array(ab));});
  return p.then(function(ents){if(!HC.pts||!HC.pts.length)throw new Error("Load the points (.msz) in the Points tab first.");if(!HC.pts.some(function(x){return x.h;}))throw new Error("These points have no drawing handles — load the MicroSurvey package (.msz) in the Points tab, not a points file, to match them to the drawing.");
-  hcApplyDrawing(ents,file.name);if(!HC.unitSet){var g=hcGuessUnit(ents.hdr,HC.pts);if(g)hcSetUnit(g.u,g.src);}HC.busy="";HC.view=null;HC.layOpen=false;hcRun();hcPaint();}).catch(function(e){HC.busy="";HC.msg=(e&&e.message)||String(e);hcPaint();});}
+  HC.dwgEnts=ents;HC.note="";hcApplyDrawing(ents,file.name);if(!HC.unitSet){var g=hcGuessUnit(ents.hdr,HC.pts);if(g)hcSetUnit(g.u,g.src);}HC.busy="";HC.view=null;HC.layOpen=false;hcRun();hcPaint();}).catch(function(e){HC.busy="";HC.msg=(e&&e.message)||String(e);hcPaint();});}
 window.cuRenderHc=cuRenderHc;
 
 /* HC-END */
@@ -5663,7 +5739,7 @@ function cuLoadPackage(buf,name){
  return cuZipRead(buf,prim).then(function(u8){
   var dbf=cuParseDbf(u8),text=cuDbfToPnezd(dbf);window.CU_LASTPKG={buf:buf,name:name};
   var proj=(prim.name.split("/")[0]||name).replace(/\.msj$/i,"");
-  cuPendingPkg={file:name,project:proj,date:cuDosDate(prim),count:text?text.trim().split("\n").length:0,conflicts:conflicts.length,backup:isMbz,kind:isMbz?"mbz":"msz"};
+  cuPendingPkg={file:name,project:proj,date:cuDosDate(prim),count:text?text.trim().split("\n").length:0,conflicts:conflicts.length,backup:isMbz,kind:isMbz?"mbz":"msz",buf:buf};
   cuParse(text,proj+"-pts.txt");
  }).catch(function(err){host.innerHTML="<div class='cu-err'>Couldn't read the package: "+esc(String(err.message||err))+"</div>";});
 }

@@ -1,5 +1,28 @@
 # Elevate Office — changelog
 
+## Build 1.39.2 — 2026-11-05
+- **Points › re-dropping an edited file now refreshes every tool (fix).** Dropping a corrected file again under the same name (e.g. 26-3670-SITE.msz after fixing the tree shots) used to leave the Height check showing the old points until the page was reloaded.
+  - **Height check:** re-reads the points straight away and keeps the drawing you picked, the units, the limit and the ground layers. A line says the file was dropped again and re-read.
+  - **Design vs Field, Monitoring, Match points:** re-run by themselves with the same ranges, base and settings when they had a result from that file, and say so.
+  - **Clean-up, Tree table, Scale, Transform:** already read the new copy; checked.
+  - Switching between packages on the shelf: the Height check now reads each package's own points (with its drawing handles), not just the last one dropped.
+- **PM › Disbursements:** more than one *Other*.
+  - **+ Add another** adds a row; ✕ removes one; empty rows are ignored.
+  - Every Other counts in the totals. Each is listed with its amount on the Word quote and in the job details file (one entry each), and read back from it.
+  - An older quote's single Other becomes the first row. Quotes saved here still open in older builds (they see all Others joined as one).
+  - Sub-quotes and *Start from a past quote* start with none.
+- **PM › Services: drag to reorder.**
+  - Grab a service by its **⋮⋮** handle (left of its number) and drag it up or down. A line shows where it will land and the page scrolls near the edges.
+  - Esc, or letting go away from the list, cancels.
+  - The ↑ ↓ arrows still work. Either way the whole service, with its wording and hours, moves.
+- **Points › Monitoring follows the job's own spreadsheet.**
+  - **New points:** shots in the trip's point range that don't sit near any base point are listed by number and description — *new monitoring points, or other shots?* (On 22-1740, J and K were shot for weeks before anyone noticed.)
+  - **Three copy buttons:**
+    - *Copy changes* — as before (ID + ∆N ∆E ∆Ele, ∆Total if ticked).
+    - *Copy averaged coordinates* — each point's averaged N / E / Ele in the columns of the header you pasted (e.g. Desc. | N | E | Ele | Location). Point numbers are included if your header has a Point column; Location is the shot's description without "-CHK". For sheets whose own formulas work out the changes.
+    - *Copy shots* — every shot used (Point, N, E, Ele, description, ID) in point order, then "Average Coordinates" and the averages — for a field-day sheet.
+  - A note says the changes are observed − base; some workbooks (e.g. 22-1740) use base − reading, so there you'd paste the averaged coordinates.
+
 ## Build 1.39.1 — 2026-11-04
 - **PM › Previous quotes at this address:** when the address hasn't been quoted before, a faint line now says so, e.g. *✓ Checked: not quoted before (Elev_Quotes_Master, 4,955 quotes)*. You can tell the check ran.
 - **PM › Jobs › Approval date:** stays today's date. Before, it was set once when Jobs first opened, so a tab left open overnight still showed yesterday (and named the approval folder for yesterday). It now resets to today when Jobs is shown and again just before the folder is made. A date you pick yourself is kept; clearing it goes back to today.
