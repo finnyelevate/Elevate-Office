@@ -329,6 +329,14 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 .pmq-wrap.pv .pm-sec{max-width:none}
 .pmq-prev{position:sticky;top:64px;max-height:calc(100vh - 72px);overflow:auto;min-width:0}
 @media (max-width:1340px){.pmq-wrap.pv{grid-template-columns:1fr;width:auto;margin-left:0}.pmq-prev{position:static;max-height:none}}
+.cd-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px}.cd-bar .btn{padding:5px 10px;font-size:12px}.cd-bar .seg button:disabled{opacity:.4;cursor:default}
+.cd-cv{cursor:crosshair}.cd-side{max-height:560px;overflow-y:auto}.cd-card{border-bottom:1px solid var(--hair);padding-bottom:8px;margin-bottom:8px}.cd-card .btn{padding:4px 9px;font-size:12px}
+.cd-h{font:600 11px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:2px 0 4px}.cd-line{padding:4px 0;border-bottom:1px dotted var(--hair);font-size:12.5px}.cd-line.on{background:#f3f6fc}
+.cd-sw{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:middle}.cd-mini{border:1px solid var(--hair);background:var(--panel);font-size:11px;padding:2px 6px;margin:3px 4px 0 0;cursor:pointer}.cd-mini:hover{border-color:var(--blue);color:var(--blue)}
+.cd-leg{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11px;color:var(--faint);margin-top:10px}.cd-leg i{display:inline-block;width:9px;height:9px;border:2px solid;border-radius:50%;margin-right:4px;vertical-align:middle}
+.cd-tbl tr[data-cdb]{cursor:pointer}.cd-tbl tr.on td{background:#eef3fb}.cd-tbl tr.amb td{background:#fff8e6}.cd-ok{color:#2a8a3a}.cd-drop{color:#b91c1c}.cd-amb{color:#a86400}.cd-pend{color:var(--faint)}
+.cd-okb{border:1px solid var(--hair);background:var(--panel);cursor:pointer;padding:1px 6px;margin-right:3px}.cd-okb:hover{border-color:#2a8a3a;color:#2a8a3a}.cd-dropsel{font-size:11px;max-width:44px}
+.cd-opts input{font:inherit}.cd-dvfline{border-top:1px dotted var(--hair);padding-top:6px;margin-top:6px}.cd-msg{white-space:pre-wrap}
 .hc-src{font-size:13px;margin:3px 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.hc-layers{margin:6px 0;font-size:13px}.hc-lay{display:flex;flex-wrap:wrap;gap:4px 16px;margin:6px 0}
 .hc-wrap{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:10px;margin:8px 0}.hc-cv{width:100%;height:560px;border:1px solid var(--hair);background:#fff;cursor:grab;display:block}.hc-info{font-size:13px;border:1px solid var(--hair);background:var(--panel);padding:8px;align-self:start}
 @media (max-width:900px){.hc-wrap{grid-template-columns:1fr}}.hc-tbl tr[data-hcp]{cursor:pointer}.hc-tbl tr.on td{background:#fdf6e7}.hc-tbl td{vertical-align:top;font-size:12.5px}
@@ -754,7 +762,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 <div class="view" id="v-cleanup">
   <h1 class="pg">Points — cleanup &amp; extraction</h1>
   <div class="warnline" style="max-width:760px">Descriptions only — point numbers, coordinates, and elevations are never touched, and the raw RW5 is never the input. Output files preserve the original delimiter, spacing, and line endings byte for byte outside the accepted changes. Extraction splits the cleaned file into a control + calc file and a client file (check shots drop from both).</div>
-  <div id="cu-drop" class="cu-drop">Drop points files (.txt / .csv / .asc), MicroSurvey drawing packages (.msz / .mbz) or raw data (.rw5) here — each one is added to the shelf; re-dropping the same file name replaces it<br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="cu-file" accept=".txt,.csv,.asc,.dat,.msz,.mbz,.dbf,.rw5,text/plain" style="display:none"></label></div>
+  <div id="cu-drop" class="cu-drop">Drop points files (.txt / .csv / .asc), MicroSurvey drawing packages (.msz / .mbz) or raw data (.rw5) here — each one is added to the shelf; an engineer’s design drawing (.dxf / .dwg / .pdf) opens in Coordinate design; re-dropping the same file name replaces it<br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="cu-file" accept=".txt,.csv,.asc,.dat,.msz,.mbz,.dbf,.rw5,.dxf,.dwg,.pdf,text/plain" style="display:none"></label></div>
   <div id="cu-body"></div>
 </div>
 
@@ -818,8 +826,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.39.2";
-const NEWS=["Points: an edited file dropped again under the same name now refreshes every tool \u2014 the Height check re-reads the points (keeping your drawing), and Design vs Field, Monitoring and Match points re-run.", "PM: more than one \u201cOther\u201d disbursement (+ Add another); drag a service by its \u22ee\u22ee handle to reorder.", "Points \u203a Monitoring: shots that don\u2019t sit on any base point are listed (new monitoring points?), and the averaged coordinates and the shots can be copied in your sheet\u2019s own columns."];
+const BUILD="1.40";
+const NEWS=["Points \u203a Coordinate design (new): drop the engineer\u2019s grading plan (.dxf, .dwg or a vector PDF), pick the gutter / centreline / swale, check the elevation bubbles and save the design points \u2014 with BC / MC / EC curve points interpolated where a curve has none.", "Design vs Field \u203a Stakes to line: offset stakes and stakes between design points get their offset and cut / fill to the line (e.g. 2.00R C0.12).", "Coordinate design \u2192 Send to Design vs Field takes the design points and the lines straight across.", "Design vs Field: a Description choice \u2014 add the result to the existing description (as before), replace it with the result only, or with the design point\u2019s description + the result \u2014 and a switch to put the design point number in it (STK 100 CUT0.05)."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -4278,7 +4286,7 @@ function cuUnknowns(comp){
 }
 function cuRender(){
  var host=document.getElementById("cu-body");
- if(!cu.lines){host.innerHTML="";return;}
+ if(!cu.lines){if(typeof cdS!=="undefined"&&cdS&&cdS.file){host.innerHTML="<div class='hint' style='margin:0 0 6px'>Coordinate design — drop the job’s points file too if you want numbering above its points, placement by point number, or Design vs Field.</div><div class='cu-tv' data-t='cd'><div id='cu-cd'></div></div>";cdRender();setTimeout(cdDraw,0);}else host.innerHTML="";return;}
  var pts=cu.lines.filter(function(r){return r.point;}).length;
  var blanks=cu.lines.filter(function(r){return r.point&&r.desc.trim()==="";}).length;
  var h=cuShelfHtml();
@@ -4296,7 +4304,7 @@ function cuRender(){
  }
  h+="<div class='cu-manual'><h3>Add your own fix</h3><div class='row'><input type='text' id='cu-mf' placeholder='find' style='width:130px'> <span>\u2192</span> <input type='text' id='cu-mr' placeholder='replace' style='width:130px'> <label class='cu-cb'><input type='checkbox' id='cu-mw' checked> whole token</label> <input type='text' id='cu-mrange' placeholder='point range (optional)' style='width:150px'> <button class='btn' onclick='cuManAdd()'>Add rule</button></div><div id='cu-mprev' class='hint'></div></div>";
  h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div></div>";
- [["scale","cu-scale"],["match","cu-match"],["dvf","cu-dvf"],["mon","cu-mon"],["tree","cu-tree"],["hc","cu-hc"],["tf","cu-tf"]].forEach(function(p){h+="<div class='cu-tv' data-t='"+p[0]+"'><div class='cu-vids' data-v='"+p[0]+"'></div><div id='"+p[1]+"'></div></div>";});
+ [["scale","cu-scale"],["match","cu-match"],["cd","cu-cd"],["dvf","cu-dvf"],["mon","cu-mon"],["tree","cu-tree"],["hc","cu-hc"],["tf","cu-tf"]].forEach(function(p){h+="<div class='cu-tv' data-t='"+p[0]+"'><div class='cu-vids' data-v='"+p[0]+"'></div><div id='"+p[1]+"'></div></div>";});
  host.innerHTML=h;
  host.querySelectorAll(".cu-src").forEach(function(el){el.onclick=function(e){if(e.target.classList.contains("cu-srcx"))return;cuActivate(el.dataset.id);};});
  host.querySelectorAll(".cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();cuShelfRemove(b.dataset.id);};});
@@ -4317,12 +4325,12 @@ function cuRender(){
  }
  mf.oninput=mprev;mr.oninput=mprev;
  document.getElementById("cu-mw").onchange=mprev;document.getElementById("cu-mrange").oninput=mprev;
- cuRenderReview();cuRenderScale();cuRenderMatch();cuRenderDvf();cuRenderMon();cuRenderTree();cuRenderTf();cuRenderHc();
+ cuRenderReview();cuRenderScale();cuRenderMatch();cdRender();cuRenderDvf();cuRenderMon();cuRenderTree();cuRenderTf();cuRenderHc();
  host.querySelectorAll(".cu-tools button").forEach(function(b){b.onclick=function(){cuToolSet(b.dataset.t);};});
  cuToolsApply();
 }
 /* ---------- Points tab tool buttons (1.31): one tool shown at a time; the file shelf stays on top ---------- */
-var CU_TOOLS=[["clean","Clean-up"],["scale","Scale"],["match","Match points"],["dvf","Design vs Field"],["mon","Monitoring"],["tree","Tree table"],["hc","Height check"],["tf","Transform"]];
+var CU_TOOLS=[["clean","Clean-up"],["scale","Scale"],["match","Match points"],["cd","Coordinate design"],["dvf","Design vs Field"],["mon","Monitoring"],["tree","Tree table"],["hc","Height check"],["tf","Transform"]];
 var CU_TOOL_VIDS={clean:["Fixing tree sizes to imperial (Points tab)","Points upload for crew \u2014 example","RW5 file to points for a topo in feet (Points tab)"],match:["Points matching (Match points tab)","Points matching \u2014 PL sample"],dvf:["Design vs Field \u2014 comparing cut / fills (Points tab)","Design vs Field \u2014 comparing residuals (Points tab)"],tree:["Tree table (Points tab)"],hc:["Height check (Points tab)"]};
 var cuTool=(function(){try{var t=localStorage.getItem("eo:cutool");return CU_TOOLS.some(function(x){return x[0]===t;})?t:"clean";}catch(e){return "clean";}})();
 function cuHasTrees(){try{return cuTreeRows().length>0;}catch(e){return false;}}
@@ -4337,6 +4345,7 @@ function cuToolsApply(){
  document.querySelectorAll("#cu-body .cu-tv").forEach(function(d){var on=d.dataset.t===t;d.style.display=on?"":"none";
   if(on){d.querySelectorAll("details.cu-fold").forEach(function(f){if(!f.open)f.open=true;});var vv=d.querySelector(".cu-vids");if(vv&&!vv.innerHTML)vv.innerHTML=cuVidsHtml(t);}});
  if(t==="hc"&&typeof hcDraw==="function")setTimeout(hcDraw,0);
+ if(t==="cd"&&typeof cdDraw==="function")setTimeout(cdDraw,0);
 }
 function cuToolSet(t){cuTool=t;try{localStorage.setItem("eo:cutool",t);}catch(e){}cuToolsApply();}
 window.cuToolSet=cuToolSet;window.cuToolsApply=cuToolsApply;
@@ -4719,7 +4728,7 @@ window.cuMatchRun=cuMatchRun;window.cuMatchCopy=cuMatchCopy;window.cuMatchClear=
 
 /* ---------- design vs field (1.30): residuals only — no pass / fail words; the CAD tech or surveyor judges tolerance ---------- */
 var cuDvf=null;
-function cuDvfNew(){return {open:false,dSrc:null,fSrc:null,dBlocks:{},fBlocks:{},dRange:"",fRange:"",auto:false,radius:"0.30",hz:true,cf:true,hd:false,th:"1.0",res:null};}
+function cuDvfNew(){return {open:false,dSrc:null,fSrc:null,dBlocks:{},fBlocks:{},dRange:"",fRange:"",auto:false,radius:"0.30",hz:true,cf:true,hd:false,th:"1.0",dmode:"add",res:null,line:{on:false,src:"cd",ranges:"",maxOff:"3.00"}};}
 /* typed point ranges, e.g. "625-663, 700-750, 812" (non-numeric IDs listed by name) */
 function cuPtInRange(pt,range){if(/^\d+$/.test(pt))return cuInRange(pt,range);return range.split(",").some(function(x){return x.trim()!==""&&x.trim().toUpperCase()===String(pt).toUpperCase();});}
 function cuDvfPts(state){
@@ -4775,10 +4784,15 @@ function cuDvfRun(){
  var pick={};Object.keys(by).forEach(function(k){var l=by[k].slice().sort(function(a,b){return (b.hasZ-a.hasZ)||(a.h-b.h);});pick[k]=l[0];
   if(l.length>1)l.forEach(function(r){r.note="field pt also nearest to design "+l.filter(function(o){return o!==r;}).map(function(o){return o.d.pt;}).join(", ")+(r===l[0]?" (this one goes in its description)":"");});});
  rows.forEach(function(r){if(r.also)r.note=(r.note?r.note+"; ":"")+"also within "+rad.toFixed(2)+" m: "+r.also.join(", ");});
- V.res={rows:rows,pick:pick,rad:rad,nD:D.length,nOut:nOut,nF:F.length,dName:(cuSources.find(function(s){return s.id===V.dSrc;})||{}).name,fName:(cuSources.find(function(s){return s.id===V.fSrc;})||{}).name,date:new Date().toISOString().slice(0,10)};
+ var lrows=V.line&&V.line.on?cuDvfToLine(V,F,pick,rad):null;
+ V.res={rows:rows,pick:pick,rad:rad,nD:D.length,nOut:nOut,nF:F.length,lrows:lrows?lrows.rows:[],lmsg:lrows?lrows.msg:"",lines:lrows?lrows.lines:[],dName:(cuSources.find(function(s){return s.id===V.dSrc;})||{}).name,fName:(cuSources.find(function(s){return s.id===V.fSrc;})||{}).name,date:new Date().toISOString().slice(0,10)};
  cuRenderDvf();
 }
 function cuDvfAdd(r){var V=cuDvf,p=[];
+ /* 1.40: the design point the stake was worked to, first — e.g. STK 100 CUT0.05 (a stake to a line has no single design point) */
+ if(V.ref&&r.kind!=="line"&&r.d)p.push("STK "+r.d.pt);
+ /* a stake set to the line (offset or in between design points): offset with its side, then C / F to the design elevation on the line, e.g. 2.00R C0.12 */
+ if(r.kind==="line"){if(V.hz)p.push(r.off.toFixed(2)+r.side);if(V.cf&&r.hasZ)p.push((r.dz>0?"F":"C")+Math.abs(r.dz).toFixed(2));return p.join(" ");}
  if(V.cf&&r.hasZ)p.push(cuDvfCF(r.dz));
  if(V.hz)p.push(cuDvfComp(r.dN,"N","S")+" "+cuDvfComp(r.dE,"E","W"));
  return p.join(" ");}
@@ -4803,11 +4817,21 @@ function cuDvfLine(rec,add){
  if(rec.cf&&desc.indexOf(",")>=0){var i=desc.indexOf(","),first=desc.slice(0,i);return st+(first.trim()?first.replace(/\s+$/,"")+" ":first)+add+desc.slice(i);}
  return st+(desc.trim()?desc.replace(/\s+$/,"")+" ":desc)+add;
 }
+/* 1.40: the description written for a stake — added to what's there (default), the result alone, or the design point's description + the result */
+function cuDvfNewDesc(rec,r,add){var m=(cuDvf&&cuDvf.dmode)||"add";if(!add)return null;
+ if(m==="replace")return add;
+ if(m==="design"){var dd=r.kind==="line"?String(r.line||""):String((r.d&&r.d.desc)||"").trim();return (dd?dd+" ":"")+add;}
+ return null;}
+function cuDvfReplLine(rec,nd){var s=rec.raw,st=s.slice(0,rec.descStart),desc=rec.desc;
+ if(rec.descStart>=s.length&&!desc)return s+(rec.cf?(/,$/.test(s)?"":","):(/\s$/.test(s)?"":" "))+nd;
+ if(rec.cf&&desc.indexOf(",")>=0)return st+nd+desc.slice(desc.indexOf(","));
+ return st+nd;}
 function cuDvfFile(onlyChanged){
  var V=cuDvf,R=V.res,st=cuSrcState(V.fSrc);if(!R||!st||!st.lines)return null;
  var out=[];
  st.lines.forEach(function(rec){var r=rec.point?R.pick[rec.pt]:null,add=r?cuDvfAdd(r):"";
-  if(r&&add)out.push(cuDvfLine(rec,add)+(rec.eol||"\r\n"));else if(!onlyChanged)out.push(rec.raw+rec.eol);});
+  var nd=r&&add?cuDvfNewDesc(rec,r,add):null;
+  if(r&&add)out.push((nd!==null?cuDvfReplLine(rec,nd):cuDvfLine(rec,add))+(rec.eol||"\r\n"));else if(!onlyChanged)out.push(rec.raw+rec.eol);});
  return out.join("");
 }
 /* shared .dxf table writer (R12): sets = [{head:[...], rows:[[...]]}] placed side by side */
@@ -4832,7 +4856,10 @@ function cuDvfDxf(){
  var V=cuDvf,R=V.res;if(!R)return "";var th=parseFloat(V.th);if(!(th>0))th=1;
  var cols=cuDvfOutCols(),g={};cols.forEach(function(c){if(c.g)g[c.g]=1;});
  var foot="Residuals only: field minus design."+(g.hz||g.hd?" dN/dE"+(g.hd?"/HORIZ":"")+" to the mm.":"")+(g.cf?" Cut/fill to the cm (design elev - field elev, both to the cm); elevation blank = design point has no elevation.":"");
- return cuDxfTable("DESIGN vs FIELD  -  design: "+(R.dName||"")+"  field: "+(R.fName||"")+"  -  "+R.date,[{head:cols.map(function(c){return c.x;}),rows:cuDvfOutRows().map(function(r){return cols.map(function(c){return c.v(r);});})}],th,"ELV-DESIGN-FIELD",foot);
+ var sets=[{head:cols.map(function(c){return c.x;}),rows:cuDvfOutRows().map(function(r){return cols.map(function(c){return c.v(r);});})}];
+ var lc=cuDvfLineCols(),lr=cuDvfLineOut();if(lr.length){sets.push({head:lc.map(function(c){return c.x;}),rows:lr.map(function(r){return lc.map(function(c){return c.v(r);});})});foot+=" Stakes to line: offset from the line (L/R looking along it), C/F to the design elevation on the line at that station; * = interpolated between design points.";}
+ if(!sets[0].rows.length&&sets.length>1)sets.shift();
+ return cuDxfTable("DESIGN vs FIELD  -  design: "+(R.dName||"")+"  field: "+(R.fName||"")+"  -  "+R.date,sets,th,"ELV-DESIGN-FIELD",foot);
 }
 function cuDvfBase(){var n=(cuSources.find(function(s){return s.id===cuDvf.fSrc;})||{}).name||"points.txt";return n.replace(/\.[^.]+$/,"");}
 function cuSaveText(txt,fn,type){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:type||"text/plain"}));a.download=fn;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);}
@@ -4846,15 +4873,72 @@ function cuDvfSave(which){
 }
 function cuDvfCopyText(){
  var R=cuDvf.res;if(!R)return "";var cols=cuDvfOutCols();
- return [cols.map(function(c){return c.x==="dN"?"dN":c.x==="dE"?"dE":c.h;}).concat(["Field desc","Note"]).join("\t")].concat(cuDvfOutRows().map(function(r){return cols.map(function(c){return c.v(r);}).concat([r.f.desc,r.note||""]).join("\t");})).join("\r\n");
+ var out=[cols.map(function(c){return c.x==="dN"?"dN":c.x==="dE"?"dE":c.h;}).concat(["Field desc","Note"]).join("\t")].concat(cuDvfOutRows().map(function(r){return cols.map(function(c){return c.v(r);}).concat([r.f.desc,r.note||""]).join("\t");}));
+ var lc=cuDvfLineCols(),lr=cuDvfLineOut();if(lr.length){out.push("");out.push("Stakes to line");out.push(lc.map(function(c){return c.h;}).concat(["Field desc","Note"]).join("\t"));lr.forEach(function(r){out.push(lc.map(function(c){return c.v(r);}).concat([r.f.desc,r.note||""]).join("\t"));});}
+ return out.join("\r\n");
 }
 function cuDvfCopy(){
  var txt=cuDvfCopyText();if(!txt)return;
  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){var e=document.getElementById("cu-dvfmsg");if(e){e.textContent="Copied — pastes into Excel as columns.";}}).catch(function(){});
 }
+/* ---------- Design vs Field — stake-to-line (1.40): offset stakes and stakes between design points ---------- */
+/* lines come from Coordinate design (with their true shape) or from design point ranges joined in number order */
+function cuDvfLineDefs(V){var src=cuSources.find(function(s){return s.id===V.dSrc;}),out=[],msg="";
+ if(V.line.src==="cd"&&src&&src.cdLines&&src.cdLines.length)return {lines:src.cdLines.map(function(L){return {name:L.name,P:L.P,st:L.st,zs:L.zs,closed:L.closed};}),msg:""};
+ var pts=cuDvfPts(cuSrcState(V.dSrc)),parts=String(V.line.ranges||"").split(/;|\n/).map(function(x){return x.trim();}).filter(Boolean);
+ if(!parts.length)return {lines:[],msg:"Type the design point range(s) that make each line, e.g. 7001-7026; 7027-7110 (one line per range, in point-number order)."};
+ parts.forEach(function(rg,i){var ps=pts.filter(function(p){return cuPtInRange(p.pt,rg);}).sort(function(a,b){var x=cuDvfNum(a),y=cuDvfNum(b);return (x===null?1e15:x)-(y===null?1e15:y);});
+  if(ps.length<2){msg+="Range "+rg+" has fewer than two design points. ";return;}
+  var P=ps.map(function(p){return [p.E,p.N];}),st=[0];for(var j=1;j<P.length;j++)st.push(st[j-1]+Math.hypot(P[j][0]-P[j-1][0],P[j][1]-P[j-1][1]));
+  var zs=[];ps.forEach(function(p,j){if(Math.abs(p.Z)>1e-9)zs.push({s:st[j],z:p.Z,pt:p.pt});});
+  out.push({name:"LINE "+rg,P:P,st:st,zs:zs,closed:false});});
+ return {lines:out,msg:msg};}
+function cuDvfLineZ(L,s){var zs=L.zs||[];if(!zs.length)return null;var a=null,b=null,LL=L.st[L.st.length-1];
+ zs.forEach(function(q){if(q.s<=s+1e-9&&(!a||q.s>a.s))a=q;if(q.s>=s-1e-9&&(!b||q.s<b.s))b=q;});
+ if(L.closed){if(!a)a={s:zs[zs.length-1].s-LL,z:zs[zs.length-1].z};if(!b)b={s:zs[0].s+LL,z:zs[0].z};}
+ if(!a||!b)return null;var on=Math.abs(a.s-s)<0.005?a:Math.abs(b.s-s)<0.005?b:null;
+ return {z:b.s>a.s?a.z+(b.z-a.z)*(s-a.s)/(b.s-a.s):a.z,interp:!on,z0:a.z,z1:b.z,pt:on&&on.pt};}
+function cuDvfToLine(V,F,pick,rad){var D=cuDvfLineDefs(V),lines=D.lines,rows=[],max=parseFloat(V.line.maxOff);if(!(max>0))max=3;
+ if(!lines.length)return {rows:rows,msg:D.msg,lines:lines};
+ F.forEach(function(f){if(pick[f.pt])return;var q=[f.E,f.N],best=null,second=null;
+  lines.forEach(function(L){for(var i=0;i+1<L.P.length;i++){var a=L.P[i],b=L.P[i+1],dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy;if(!(l2>0))continue;var t=((q[0]-a[0])*dx+(q[1]-a[1])*dy)/l2,tc=Math.max(0,Math.min(1,t)),px=a[0]+dx*tc,py=a[1]+dy*tc,d=Math.hypot(q[0]-px,q[1]-py);
+   /* past the end of an open line: not on it */
+   if(!L.closed&&((i===0&&t<-1e-6)||(i===L.P.length-2&&t>1+1e-6)))continue;
+   var side=(dx*(q[1]-a[1])-dy*(q[0]-a[0]))>0?"L":"R",c={L:L,d:d,s:L.st[i]+tc*Math.sqrt(l2),side:side};
+   if(!best||d<best.d){if(best&&best.L===L&&Math.abs(best.s-c.s)>0.5)second=best;best=c;}else if(L===best.L&&Math.abs(d-best.d)<0.02&&Math.abs(c.s-best.s)>0.5)second=c;}});
+  if(!best||best.d>max)return;
+  var z=cuDvfLineZ(best.L,best.s),hasZ=!!z&&Math.abs(f.Z)>1e-9,row={kind:"line",f:f,line:best.L.name,s:best.s,off:best.d,side:best.side,hasZ:hasZ,zDes:z?z.z:null,interp:z?z.interp:false};
+  if(hasZ)row.dz=cuDvfR(cuDvfR(z.z,2)-cuDvfR(f.Z,2),2);
+  var notes=[];if(z&&z.interp)notes.push("design elev interpolated "+z.z0+" → "+z.z1);if(!z)notes.push("no design elevation on both sides along the line");
+  if(second&&Math.abs(second.d-best.d)<0.02)notes.push("two places on the line are equally near (a corner) — check");
+  if(best.d<0.005)notes.push("on the line");row.note=notes.join("; ");
+  rows.push(row);pick[f.pt]=row;});
+ rows.sort(function(a,b){var x=cuDvfNum(a.f),y=cuDvfNum(b.f);if(x!==null&&y!==null)return x-y;return a.f.pt<b.f.pt?-1:1;});
+ return {rows:rows,msg:rows.length?"":"No other field points within "+max.toFixed(2)+" m of the line"+(lines.length===1?"":"s")+".",lines:lines};}
+var CU_DVF_LCOLS=[
+ {h:"Field pt",x:"FIELD PT",v:function(r){return r.f.pt;}},
+ {h:"Line",x:"LINE",v:function(r){return r.line;}},
+ {h:"Station",x:"STATION",g:"hz",v:function(r){return r.s.toFixed(2);}},
+ {h:"Offset",x:"OFFSET",g:"hz",v:function(r){return r.off.toFixed(2)+r.side;}},
+ {h:"Design elev",x:"DESIGN ELEV",g:"cf",v:function(r){return r.hasZ?r.zDes.toFixed(3)+(r.interp?"*":""):"";}},
+ {h:"Field elev",x:"FIELD ELEV",g:"cf",v:function(r){return r.hasZ?r.f.Z.toFixed(3):"";}},
+ {h:"Cut/Fill",x:"C/F",g:"cf",v:function(r){return r.hasZ?((r.dz>0?"F":"C")+Math.abs(r.dz).toFixed(2)):"";}}];
+function cuDvfLineCols(){var V=cuDvf;return CU_DVF_LCOLS.filter(function(c){return !c.g||(c.g==="cf"&&V.cf)||(c.g==="hz"&&(V.hz||V.hd));});}
+function cuDvfLineOut(){var V=cuDvf,R=V.res;if(!R||!R.lrows)return [];if(V.hz||V.hd)return R.lrows;if(V.cf)return R.lrows.filter(function(r){return r.hasZ;});return R.lrows;}
+function cuDvfLineUi(V){var E=esc,src=cuSources.find(function(s){return s.id===V.dSrc;}),hasCd=!!(src&&src.cdLines&&src.cdLines.length),L=V.line;
+ var h="<div class='cu-side cd-dvfline'><label class='cu-cb'><input type='checkbox' id='cu-dvfl-on' "+(L.on?"checked":"")+"> <b>Stakes to line</b> — offset stakes and stakes between design points</label>";
+ if(L.on){h+="<div class='hint' style='margin:4px 0'>Field points not paired with a design point are measured to the line: offset (L / R looking along it) and cut / fill to the design elevation on the line at that spot, interpolated between design points.</div>";
+  if(hasCd)h+="<div class='seg' style='margin:2px 0 6px'><button data-dl='cd' class='"+(L.src==="cd"?"on":"")+"'>Lines from Coordinate design ("+src.cdLines.map(function(x){return E(x.name);}).join(", ")+")</button><button data-dl='ranges' class='"+(L.src!=="cd"?"on":"")+"'>Point ranges</button></div>";
+  if(!hasCd||L.src!=="cd")h+="<div class='row'><label>Line point ranges</label><input type='text' id='cu-dvfl-rng' style='width:260px;margin-left:8px' value='"+E(L.ranges||"")+"' placeholder='e.g. 7001-7026; 7027-7110'> <span class='hint' style='margin:0 0 0 8px'>one line per range, joined in point-number order</span></div>";
+  h+="<div class='row'><label>Max offset</label><input type='text' id='cu-dvfl-max' style='width:60px;margin-left:8px' value='"+E(L.maxOff)+"'> m</div>";}
+ return h+"</div>";}
+function cuDvfLineWire(host,V){var on=document.getElementById("cu-dvfl-on");if(!on)return;on.onchange=function(){V.line.on=on.checked;if(V.res)cuDvfRun();else cuRenderDvf();};
+ host.querySelectorAll("[data-dl]").forEach(function(b){b.onclick=function(){V.line.src=b.dataset.dl;if(V.res)cuDvfRun();else cuRenderDvf();};});
+ var rg=document.getElementById("cu-dvfl-rng");if(rg)rg.onchange=function(){V.line.ranges=rg.value;if(V.res)cuDvfRun();};
+ var mx=document.getElementById("cu-dvfl-max");if(mx)mx.onchange=function(){V.line.maxOff=mx.value.trim();if(V.res)cuDvfRun();};}
 function cuRenderDvf(){
  var host=document.getElementById("cu-dvf");if(!host||!cu.lines)return;
- if(!cuDvf)cuDvf=cuDvfNew();var V=cuDvf;cuDvfDefaults();
+ if(!cuDvf)cuDvf=cuDvfNew();var V=cuDvf;if(!V.line)V.line={on:false,src:"cd",ranges:"",maxOff:"3.00"};cuDvfDefaults();
  if(V.redo){var rm=V.redo;V.redo=null;cuDvfRun();V.note=rm;V.noteRes=V.res;cuRenderDvf();return;}
  function srcSel(side,cur){return "<select class='cu-dvfsrc' data-side='"+side+"'>"+cuSources.map(function(s){return "<option value='"+s.id+"'"+(s.id===cur?" selected":"")+">"+esc(s.name)+"</option>";}).join("")+"</select>";}
  function chips(side,src,sel){var bl=cuBlocks(cuDvfPts(cuSrcState(src)));
@@ -4866,6 +4950,7 @@ function cuRenderDvf(){
  h+="<div class='cu-side'><div class='row'><label>Design</label>"+srcSel("d",V.dSrc)+"</div>"+chips("d",V.dSrc,V.dBlocks)+rbox("d",V.dRange)+"</div>";
  h+="<div class='cu-side'><div class='row'><label>Field</label>"+srcSel("f",V.fSrc)+"</div>"+chips("f",V.fSrc,V.fBlocks)+rbox("f",V.fRange)+"<div class='hint'>Tap blocks to choose each set (no block selected = all points). Pick the stake-out shots for Field — pins or ground shots at the same spot would otherwise be used.</div></div>";
  h+="<div class='row'><label>Search limit</label><input type='text' id='cu-dvfrad' style='width:70px;margin-left:8px' value='"+esc(String(V.radius))+"'> m <span class='hint' style='margin:0 0 0 8px'>design points with no field point this close are left out</span></div>";
+ h+=cuDvfLineUi(V);
  h+="<div class='cu-dl'><button class='btn pri' onclick='cuDvfRun()'>Compare</button></div>";
  var R=V.res;
  if(R){
@@ -4875,11 +4960,17 @@ function cuRenderDvf(){
    h+="<div style='overflow-x:auto'><table class='cu-mtt'><tr>"+CU_DVF_COLS.map(function(c){return "<th>"+c.h+"</th>";}).join("")+"<th>Field desc</th><th></th></tr>";
    R.rows.forEach(function(r){h+="<tr>"+CU_DVF_COLS.map(function(c){return "<td>"+esc(c.v(r))+"</td>";}).join("")+"<td class='cu-mtcode'>"+esc(r.f.desc)+"</td><td class='cu-mtcode'>"+esc(r.note||"")+"</td></tr>";});
    h+="</table></div>";
-   h+="<div class='row' style='margin-top:6px'><label style='margin-right:10px'>Include</label><label class='cu-cb' style='margin-right:10px'><input type='checkbox' id='cu-dvfhz' "+(V.hz?"checked":"")+"> Horizontal ΔN / ΔE (e.g. 0.003N 0.012W)</label> <label class='cu-cb' style='margin-right:10px'><input type='checkbox' id='cu-dvfcf' "+(V.cf?"checked":"")+"> Cut / fill (e.g. FILL0.34)</label> <label class='cu-cb'><input type='checkbox' id='cu-dvfhd' "+(V.hd?"checked":"")+"> Horizontal distance (table only)</label></div>";
+  }
+  if(R.lrows&&R.lrows.length){h+="<div class='cu-mtsum' style='margin-top:8px'>Stakes to line — "+R.lrows.length+" field point"+(R.lrows.length===1?"":"s")+" set off or between design points</div><div style='overflow-x:auto'><table class='cu-mtt'><tr>"+CU_DVF_LCOLS.map(function(c){return "<th>"+c.h+"</th>";}).join("")+"<th>Field desc</th><th></th></tr>";
+   R.lrows.forEach(function(r){h+="<tr>"+CU_DVF_LCOLS.map(function(c){return "<td>"+esc(c.v(r))+"</td>";}).join("")+"<td class='cu-mtcode'>"+esc(r.f.desc)+"</td><td class='cu-mtcode'>"+esc(r.note||"")+"</td></tr>";});h+="</table></div>";}
+  if(R.lmsg)h+="<div class='hint'>"+esc(R.lmsg)+"</div>";
+  if(R.rows.length||(R.lrows&&R.lrows.length)){
+   h+="<div class='row' style='margin-top:6px'><label style='margin-right:10px'>Include</label><label class='cu-cb' style='margin-right:10px'><input type='checkbox' id='cu-dvfhz' "+(V.hz?"checked":"")+"> Horizontal ΔN / ΔE (e.g. 0.003N 0.012W)</label> <label class='cu-cb' style='margin-right:10px'><input type='checkbox' id='cu-dvfcf' "+(V.cf?"checked":"")+"> Cut / fill (e.g. FILL0.34)</label> <label class='cu-cb' style='margin-right:10px'><input type='checkbox' id='cu-dvfhd' "+(V.hd?"checked":"")+"> Horizontal distance (table only)</label> <label class='cu-cb'><input type='checkbox' id='cu-dvfref' "+(V.ref?"checked":"")+"> Design point number (e.g. STK 100)</label></div>";
+   var dm=V.dmode||"add";h+="<div class='row' style='margin-top:2px'><label style='margin-right:10px'>Description</label><span class='seg cu-dvfdm'>"+[["add","Add to existing"],["replace","Replace with the result only"],["design","Replace with design description + result"]].map(function(x){return "<button data-dm='"+x[0]+"' class='"+(dm===x[0]?"on":"")+"'>"+x[1]+"</button>";}).join("")+"</span></div>";
    var ex=R.rows.find(function(r){return R.pick[r.f.pt]===r;});
-   h+="<div class='hint'>These choose what goes into the stakes' descriptions and the columns of the .dxf / copied table; with only Cut / fill ticked, points without a design elevation are left out of them (the table above always shows everything). "+(ex&&cuDvfAdd(ex)?"Example: field point "+esc(ex.f.pt)+" “"+esc(ex.f.desc)+"” becomes “"+esc(((ex.f.desc?ex.f.desc+" ":"")+cuDvfAdd(ex)))+"”. ":"Tick Horizontal or Cut / fill to amend descriptions. ")+"Point numbers, coordinates and every other line stay exactly as they are.</div>";
+   h+="<div class='hint'>These choose what goes into the stakes' descriptions and the columns of the .dxf / copied table; with only Cut / fill ticked, points without a design elevation are left out of them (the table above always shows everything). "+(ex&&cuDvfAdd(ex)?"Example: field point "+esc(ex.f.pt)+" “"+esc(ex.f.desc)+"” becomes “"+esc((function(){var nd=cuDvfNewDesc(ex.f.rec,ex,cuDvfAdd(ex));return nd!==null?nd:((ex.f.desc?ex.f.desc+" ":"")+cuDvfAdd(ex));})())+"”. ":"Tick Horizontal, Cut / fill or Design point number to amend descriptions. ")+"Point numbers, coordinates and every other line stay exactly as they are.</div>";
    h+="<div class='row'><label>Table text height</label><input type='text' id='cu-dvfth' style='width:60px;margin-left:8px' value='"+esc(String(V.th))+"'> <span class='hint' style='margin:0 0 0 8px'>drawing units, for the .dxf table</span></div>";
-   h+="<div class='cu-dl'><button class='btn pri' onclick='cuDvfSave(\"pts\")'"+(V.hz||V.cf?"":" disabled")+">Points file with amended descriptions (.txt)</button><button class='btn' onclick='cuDvfSave(\"chg\")'"+(V.hz||V.cf?"":" disabled")+">Changed points only (.txt)</button><button class='btn' onclick='cuDvfSave(\"dxf\")'>Table for the drawing (.dxf)</button><button class='btn' onclick='cuDvfCopy()'>Copy table</button><span class='hint' id='cu-dvfmsg' style='margin:0'></span></div>";
+   h+="<div class='cu-dl'><button class='btn pri' onclick='cuDvfSave(\"pts\")'"+(V.hz||V.cf||V.ref?"":" disabled")+">Points file with amended descriptions (.txt)</button><button class='btn' onclick='cuDvfSave(\"chg\")'"+(V.hz||V.cf||V.ref?"":" disabled")+">Changed points only (.txt)</button><button class='btn' onclick='cuDvfSave(\"dxf\")'>Table for the drawing (.dxf)</button><button class='btn' onclick='cuDvfCopy()'>Copy table</button><span class='hint' id='cu-dvfmsg' style='margin:0'></span></div>";
    h+="<div class='hint'>Import the points file into MicroSurvey over the existing points so the descriptions show the results; insert the .dxf as a block beside the plan.</div>";
   }
  }
@@ -4890,10 +4981,12 @@ function cuRenderDvf(){
  host.querySelectorAll(".cu-dvfblocks .cu-chip").forEach(function(b){b.onclick=function(){var S=b.parentNode.dataset.side==="d"?V.dBlocks:V.fBlocks;S[b.dataset.b]=!S[b.dataset.b];V.res=null;cuRenderDvf();};});
  var ri=document.getElementById("cu-dvfrad");ri.onchange=function(){V.radius=ri.value.trim();if(V.res)cuDvfRun();};
  host.querySelectorAll(".cu-dvfrng").forEach(function(el){el.onchange=function(){if(el.dataset.side==="d")V.dRange=el.value;else V.fRange=el.value;V.res=null;cuRenderDvf();};});
- [["cu-dvfhz","hz"],["cu-dvfcf","cf"],["cu-dvfhd","hd"]].forEach(function(p){var el=document.getElementById(p[0]);if(el)el.onchange=function(){V[p[1]]=el.checked;cuRenderDvf();};});
+ [["cu-dvfhz","hz"],["cu-dvfcf","cf"],["cu-dvfhd","hd"],["cu-dvfref","ref"]].forEach(function(p){var el=document.getElementById(p[0]);if(el)el.onchange=function(){V[p[1]]=el.checked;cuRenderDvf();};});
  var ti=document.getElementById("cu-dvfth");if(ti)ti.onchange=function(){V.th=ti.value.trim();};
+ cuDvfLineWire(host,V);
+ host.querySelectorAll(".cu-dvfdm button").forEach(function(b){b.onclick=function(){V.dmode=b.dataset.dm;cuRenderDvf();};});
 }
-window.cuDvfRun=cuDvfRun;window.cuDvfSave=cuDvfSave;window.cuDvfCopy=cuDvfCopy;window.cuRenderDvf=cuRenderDvf;window.cuDvfFile=cuDvfFile;window.cuDvfDxf=cuDvfDxf;window.cuDvfLine=cuDvfLine;window.cuDvfCopyText=cuDvfCopyText;window.cuDvfOutCols=cuDvfOutCols;
+window.cuDvfRun=cuDvfRun;window.cuDvfNewDesc=cuDvfNewDesc;window.cuDvfSave=cuDvfSave;window.cuDvfCopy=cuDvfCopy;window.cuRenderDvf=cuRenderDvf;window.cuDvfFile=cuDvfFile;window.cuDvfDxf=cuDvfDxf;window.cuDvfLine=cuDvfLine;window.cuDvfCopyText=cuDvfCopyText;window.cuDvfOutCols=cuDvfOutCols;
 window.cuDvfState=function(){if(!cuDvf)cuDvf=cuDvfNew();return cuDvf;};
 
 /* ---------- monitoring (1.31): base (true) vs this trip (observed); residual = observed − base; copy-paste output ---------- */
@@ -5744,6 +5837,7 @@ function cuLoadPackage(buf,name){
  }).catch(function(err){host.innerHTML="<div class='cu-err'>Couldn't read the package: "+esc(String(err.message||err))+"</div>";});
 }
 function cuLoadFile(file){
+ if(/\.(dxf|dwg|pdf)$/i.test(file.name)){var dz=document.getElementById("cu-drop");if(dz)dz.classList.add("has");cdLoadFile(file);cuRender();return;}
  if(/\.msd$/i.test(file.name)){
   document.getElementById("cu-body").innerHTML="<div class='cu-err'>That's a legacy .msd project (pre-2008 format). Open it once in MicroSurvey CAD and it converts to .msz, which this tool reads.</div>";return;
  }
@@ -5847,6 +5941,734 @@ function cuRw5Out(which){
 window.cuRw5=cuRw5;window.cuRw5Out=cuRw5Out;window.cuRw5Show=cuRw5Show;window.cuRw5Text=cuRw5Text;
 window.cuParse=cuParse;window.cuLoadFile=cuLoadFile;window.cuManAdd=cuManAdd;window.cuDownload=cuDownload;window.cuCompute=cuCompute;window.cuRenderReview=cuRenderReview;
 document.getElementById("cu-file").addEventListener("change",function(e){if(e.target.files[0])cuLoadFile(e.target.files[0]);});
+/* ---------- Coordinate design (1.40): design elevation bubbles from the engineer's CAD (DXF/DWG) or a vector PDF ---------- */
+/* Core: drawing readers, bubble finder, stroke-digit reader, line tracing, curves, interpolation, outputs. No DOM here. */
+var CD_VALRE=/^\(?\s*-?\d{1,4}\.\d{1,3}\s*\)?$/;
+function cdHyp(a,b){return Math.hypot(a[0]-b[0],a[1]-b[1]);}
+function cdSub(a,b){return [a[0]-b[0],a[1]-b[1]];}
+function cdDot(a,b){return a[0]*b[0]+a[1]*b[1];}
+function cdCross(a,b){return a[0]*b[1]-a[1]*b[0];}
+/* ---- DXF reader: header, layer table, blocks, entities (geometry kept) ---- */
+function cdDxfParse(text){
+ var L=String(text).split(/\r\n|\r|\n/),n=L.length-1,i=0,hdr={},layers={},blocks={},ents=[],sec=null,blk=null,cur=null,inTbl=null,lay=null;
+ function flush(){if(!cur)return;var e=cur;cur=null;
+  if(sec==="ENTITIES"||sec==="BLOCKS"){if(e.t==="BLOCK"){blk={name:e.g[2]||e.g[3]||"",base:[+e.g[10]||0,+e.g[20]||0],ents:[]};blocks[blk.name.toUpperCase()]=blk;return;}
+   if(e.t==="ENDBLK"){blk=null;return;}
+   var tgt=sec==="BLOCKS"?(blk?blk.ents:null):ents;if(!tgt)return;
+   if(e.t==="VERTEX"||e.t==="SEQEND"||e.t==="ATTRIB"){var last=tgt[tgt.length-1];
+    if(e.t==="VERTEX"&&last&&last.t==="POLYLINE"&&!last.done){last.v.push(e);return;}
+    if(e.t==="ATTRIB"&&last&&last.t==="INSERT"&&!last.done){last.att.push(e);return;}
+    if(e.t==="SEQEND"&&last){last.done=true;return;}return;}
+   if(e.t==="POLYLINE")e.v=[];if(e.t==="INSERT")e.att=[];
+   tgt.push(e);}
+  else if(sec==="TABLES"&&e.t==="LAYER"){var nm=e.g[2];if(nm!==undefined)layers[String(nm).toUpperCase()]={frozen:((+e.g[70]||0)&1)===1,off:(+e.g[62]||0)<0};}}
+ for(;i<n;i+=2){var c=parseInt(L[i],10),v=L[i+1];if(isNaN(c))continue;
+  if(c===0){var t=v.trim();flush();
+   if(t==="SECTION"){sec="?";continue;}if(t==="ENDSEC"){sec=null;continue;}if(t==="EOF")break;
+   if(sec&&sec!=="?"&&sec!=="HEADER")cur={t:t,g:{},m:[]};continue;}
+  if(sec==="?"&&c===2){sec=v.trim();continue;}
+  if(sec==="HEADER"){if(c===9)hdr._k=v.trim();else if(hdr._k){if(!(hdr._k in hdr))hdr[hdr._k]=v.trim();}continue;}
+  if(!cur)continue;
+  /* multi-valued codes (polyline vertices, mtext chunks) kept in order */
+  cur.m.push([c,v]);if(!(c in cur.g))cur.g[c]=c===1||c===3||c===2||c===8||c===7?v:v.trim();}
+ flush();delete hdr._k;
+ return {hdr:hdr,layers:layers,blocks:blocks,ents:ents};}
+function cdMtextPlain(s){return String(s||"").replace(/\\P/g,"\n").replace(/\\[ACFHQTWfcpL][^;\\{}]*;?/g,"").replace(/\\[LlOoKk]/g,"").replace(/[{}]/g,"").replace(/\\S([^;]*)\^([^;]*);/g,"$1/$2").replace(/%%[cC]/g,"Ø").replace(/%%[dD]/g,"°").replace(/%%[pP]/g,"±").trim();}
+function cdTextPlain(s){return String(s||"").replace(/%%[uUoO]/g,"").replace(/%%[cC]/g,"Ø").replace(/%%[dD]/g,"°").replace(/%%[pP]/g,"±").trim();}
+/* 2D affine: [a,b,c,d,e,f] => x'=a x + c y + e, y'=b x + d y + f */
+function cdMat(a,b,c,d,e,f){return [a,b,c,d,e,f];}
+function cdMul(m,n){return [m[0]*n[0]+m[2]*n[1],m[1]*n[0]+m[3]*n[1],m[0]*n[2]+m[2]*n[3],m[1]*n[2]+m[3]*n[3],m[0]*n[4]+m[2]*n[5]+m[4],m[1]*n[4]+m[3]*n[5]+m[5]];}
+function cdApp(m,p){return [m[0]*p[0]+m[2]*p[1]+m[4],m[1]*p[0]+m[3]*p[1]+m[5]];}
+function cdVec(m,p){return [m[0]*p[0]+m[2]*p[1],m[1]*p[0]+m[3]*p[1]];}
+function cdMScale(m){return Math.sqrt(Math.abs(m[0]*m[3]-m[1]*m[2]));}
+/* flatten: every entity into world-coordinate primitives. paths: {p:[[x,y]..], am:[arc meta per segment|null], lay}; ells; texts */
+function cdDxfFlatten(D){
+ var out={paths:[],ells:[],texts:[],nEnt:0,nIns:0,skipped:{}},LY=D.layers||{};
+ function hidden(l){var x=LY[String(l||"0").toUpperCase()];return !!(x&&(x.frozen||x.off));}
+ function num(e,c,d){var v=parseFloat(e.g[c]);return isNaN(v)?(d===undefined?0:d):v;}
+ function ocs(e){return num(e,230,1)<0;}/* extrusion (0,0,-1): mirrored about Y */
+ function arcPts(cx,cy,r,a0,a1,mir){var out=[],sw=a1-a0;while(sw<=1e-12)sw+=Math.PI*2;var k=Math.max(2,Math.ceil(sw/(Math.PI/36)));
+  for(var j=0;j<=k;j++){var a=a0+sw*j/k,x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);out.push([mir?-x:x,y]);}return out;}
+ function addPath(m,pts,am,l){if(pts.length<2)return;var P=pts.map(function(p){return cdApp(m,p);}),s=cdMScale(m);
+  var AM=am.map(function(x){return x?{c:cdApp(m,x.c),r:x.r*s,k:x.k}:null;});out.paths.push({p:P,am:AM,lay:l});}
+ var aid=0;
+ function bulgeSeg(p0,p1,b,mir){/* returns tessellated points (excluding p0) and arc meta */
+  if(!b||Math.abs(b)<1e-9)return {pts:[p1],m:null};
+  var th=4*Math.atan(b),dx=p1[0]-p0[0],dy=p1[1]-p0[1],ch=Math.hypot(dx,dy);if(ch<1e-12)return {pts:[p1],m:null};
+  var r=ch/(2*Math.sin(Math.abs(th)/2)),mx=(p0[0]+p1[0])/2,my=(p0[1]+p1[1])/2,hgt=r*Math.cos(Math.abs(th)/2),nx=-dy/ch,ny=dx/ch,sg=b>0?1:-1;
+  var cx=mx+sg*nx*hgt,cy=my+sg*ny*hgt,a0=Math.atan2(p0[1]-cy,p0[0]-cx),k=Math.max(2,Math.ceil(Math.abs(th)/(Math.PI/36))),pts=[];
+  for(var j=1;j<=k;j++){var a=a0+th*j/k;pts.push(j===k?p1:[cx+r*Math.cos(a),cy+r*Math.sin(a)]);}
+  return {pts:pts,m:{c:[cx,cy],r:r,k:++aid}};}
+ function textOf(e,l,m,isM){
+  var s=isM?cdMtextPlain(e.m.filter(function(x){return x[0]===3;}).map(function(x){return x[1];}).join("")+(e.g[1]||"")):cdTextPlain(e.g[1]);if(!s)return;
+  var h=num(e,40,1),rot,anchor,cx,cy,w;
+  if(isM){var ins=[num(e,10),num(e,20)];rot=(e.g[50]!==undefined)?num(e,50)*Math.PI/180:(e.g[11]!==undefined?Math.atan2(num(e,21),num(e,11)):0);
+   var lines=s.split("\n"),wmax=Math.max.apply(null,lines.map(function(t){return cdTextW(t);}))*h,hh=h*(1+(lines.length-1)*1.67),ap=Math.round(num(e,71,1));
+   var col=(ap-1)%3,row=Math.floor((ap-1)/3),lx=col===0?wmax/2:col===1?0:-wmax/2,ly=row===0?-hh/2:row===1?0:hh/2;
+   var cs=Math.cos(rot),sn=Math.sin(rot);cx=ins[0]+lx*cs-ly*sn;cy=ins[1]+lx*sn+ly*cs;w=wmax;}
+  else{var mir=ocs(e);rot=num(e,50)*Math.PI/180;var wf=num(e,41,1)||1;w=cdTextW(s)*h*wf;
+   var ha=Math.round(num(e,72,0)),va=Math.round(num(e,e.t==="ATTRIB"||e.t==="ATTDEF"?74:73,0));
+   var p10=[num(e,10),num(e,20)],p11=e.g[11]!==undefined?[num(e,11),num(e,21)]:p10;
+   if(mir){p10=[-p10[0],p10[1]];p11=[-p11[0],p11[1]];rot=Math.PI-rot;}
+   var a,lx2,ly2;
+   if(ha===0&&va===0){a=p10;lx2=w/2;ly2=h/2;}
+   else if(ha===3||ha===5){a=[(p10[0]+p11[0])/2,(p10[1]+p11[1])/2];lx2=0;ly2=h/2;}
+   else{a=p11;lx2=ha===0?w/2:ha===2?-w/2:0;ly2=ha===4?0:(va===3?-h/2:va===2?0:h/2);}
+   var c2=Math.cos(rot),s2=Math.sin(rot);cx=a[0]+lx2*c2-ly2*s2;cy=a[1]+lx2*s2+ly2*c2;}
+  var C=cdApp(m,[cx,cy]),sc=cdMScale(m),dv=cdVec(m,[Math.cos(rot),Math.sin(rot)]);
+  out.texts.push({s:s,c:C,h:h*sc,w:w*sc,rot:Math.atan2(dv[1],dv[0]),lay:l});}
+ function walk(list,m,depth,parentLay){
+  list.forEach(function(e){var l=e.g[8]||"0";if(l==="0"&&parentLay)l=parentLay;if(hidden(l))return;out.nEnt++;var t=e.t,mir=ocs(e);
+   if(t==="LINE"){addPath(m,[[num(e,10),num(e,20)],[num(e,11),num(e,21)]],[null],l);}
+   else if(t==="LWPOLYLINE"){var pts=[],bl=[],cl=(Math.round(num(e,70,0))&1)===1;
+    e.m.forEach(function(x){if(x[0]===10)pts.push([+x[1],0]);else if(x[0]===20&&pts.length)pts[pts.length-1][1]=+x[1];else if(x[0]===42&&pts.length)bl[pts.length-1]=+x[1];});
+    if(mir)pts=pts.map(function(p){return [-p[0],p[1]];});
+    polyAdd(pts,bl,cl,mir,m,l);}
+   else if(t==="POLYLINE"){var fl=Math.round(num(e,70,0));if(fl&(16|64))return;var pts2=[],bl2=[];
+    (e.v||[]).forEach(function(v){var vf=Math.round(parseFloat(v.g[70])||0);if(vf&16)return;pts2.push([parseFloat(v.g[10])||0,parseFloat(v.g[20])||0]);bl2[pts2.length-1]=parseFloat(v.g[42])||0;});
+    if(mir&&!(fl&8))pts2=pts2.map(function(p){return [-p[0],p[1]];});
+    polyAdd(pts2,bl2,(fl&1)===1,mir&&!(fl&8),m,l);}
+   else if(t==="ARC"){var cx=num(e,10),cy=num(e,20),r=num(e,40),a0=num(e,50)*Math.PI/180,a1=num(e,51)*Math.PI/180;
+    var P=arcPts(cx,cy,r,a0,a1,mir),key=++aid,am=[];for(var j=1;j<P.length;j++)am.push({c:[mir?-cx:cx,cy],r:r,k:key});addPath(m,P,am,l);}
+   else if(t==="CIRCLE"){var cx2=num(e,10),cy2=num(e,20),r2=num(e,40),C=cdApp(m,[mir?-cx2:cx2,cy2]),s=cdMScale(m);
+    out.ells.push({c:C,u:[1,0],a:r2*s,b:r2*s,lay:l,circ:true});
+    var P2=arcPts(cx2,cy2,r2,0,Math.PI*2,mir),k2=++aid,am2=[];for(var j2=1;j2<P2.length;j2++)am2.push({c:[mir?-cx2:cx2,cy2],r:r2,k:k2});addPath(m,P2,am2,l).circle=true;}
+   else if(t==="ELLIPSE"){var c=[num(e,10),num(e,20)],mj=[num(e,11),num(e,21)],ra=num(e,40,1),p0=num(e,41,0),p1=num(e,42,Math.PI*2);
+    var Cw=cdApp(m,c),Mw=cdVec(m,mj),mn=cdVec(m,[-mj[1]*ra,mj[0]*ra]),aa=Math.hypot(Mw[0],Mw[1]),bb=Math.hypot(mn[0],mn[1]);
+    var full=Math.abs((p1-p0)-Math.PI*2)<1e-3||Math.abs(p1-p0)<1e-9;
+    if(full&&aa>0)out.ells.push({c:Cw,u:[Mw[0]/aa,Mw[1]/aa],a:aa,b:bb,lay:l});
+    var sw=p1-p0;while(sw<=1e-9)sw+=Math.PI*2;var k3=Math.max(8,Math.ceil(sw/(Math.PI/36))),P3=[];
+    for(var j3=0;j3<=k3;j3++){var q=p0+sw*j3/k3;P3.push([c[0]+mj[0]*Math.cos(q)-mj[1]*ra*Math.sin(q),c[1]+mj[1]*Math.cos(q)+mj[0]*ra*Math.sin(q)]);}
+    var pe=addPath(m,P3,P3.slice(1).map(function(){return null;}),l);if(pe)pe.ell=true;}
+   else if(t==="TEXT"||t==="ATTRIB")textOf(e,l,m,false);
+   else if(t==="MTEXT")textOf(e,l,m,true);
+   else if(t==="INSERT"){if(depth>8)return;var B=D.blocks[String(e.g[2]||"").toUpperCase()];out.nIns++;
+    var sx=num(e,41,1),sy=num(e,42,1),rr=num(e,50)*Math.PI/180,ip=[num(e,10),num(e,20)];if(mir){ip=[-ip[0],ip[1]];rr=Math.PI-rr;sx=-sx;}
+    var cs=Math.cos(rr),sn=Math.sin(rr),nc=Math.max(1,Math.round(num(e,70,1))),nr=Math.max(1,Math.round(num(e,71,1))),dxc=num(e,44,0),dyr=num(e,45,0);
+    if(B){for(var ci=0;ci<nc;ci++)for(var ri=0;ri<nr;ri++){var ox=ci*dxc,oy=ri*dyr;
+     var M2=cdMul(m,cdMat(cs*sx,sn*sx,-sn*sy,cs*sy,ip[0]+ox*cs-oy*sn,ip[1]+ox*sn+oy*cs));M2=cdMul(M2,cdMat(1,0,0,1,-B.base[0],-B.base[1]));walk(B.ents,M2,depth+1,l);}}
+    (e.att||[]).forEach(function(a){var al=a.g[8]||l;if(!hidden(al))textOf(a,al,m,false);});}
+   else{out.skipped[t]=(out.skipped[t]||0)+1;}});}
+ function polyAdd(pts,bl,closed,mir,m,l){if(pts.length<2)return;var P=[pts[0]],am=[],N=pts.length,last=closed?N:N-1;
+  for(var j=0;j<last;j++){var p0=pts[j],p1=pts[(j+1)%N],b=bl[j]||0;if(mir)b=-b;var r=bulgeSeg(p0,p1,b,mir);r.pts.forEach(function(q){P.push(q);am.push(r.m);});}
+  addPath(m,P,am,l);if(closed&&out.paths.length)out.paths[out.paths.length-1].closed=true;}
+ var _add=addPath;addPath=function(m,pts,am,l){_add(m,pts,am,l);return out.paths[out.paths.length-1];};
+ walk(D.ents,cdMat(1,0,0,1,0,0),0,null);
+ return out;}
+/* approximate text width in text heights (romans/simplex-like proportions) */
+function cdTextW(s){var w=0;for(var i=0;i<s.length;i++){var ch=s[i];w+=ch==="."||ch===","?0.45:ch==="1"?0.6:ch===" "?0.6:/[MW]/.test(ch)?1.0:/[()]/.test(ch)?0.5:0.85;}return w;}
+/* ---- ellipse helpers ---- */
+function cdEllR(E,p){var d=cdSub(p,E.c),x=cdDot(d,E.u),y=cdCross(E.u,d);return Math.sqrt((x/E.a)*(x/E.a)+(y/E.b)*(y/E.b));}
+/* fit an ellipse to a closed loop of points (PDF bubbles): PCA axes, then extents along them; returns null when it isn't elliptical */
+function cdFitEll(P){var n=P.length;if(n<10)return null;var cx=0,cy=0;P.forEach(function(p){cx+=p[0];cy+=p[1];});
+ /* centre from the axis-aligned extents in the PCA frame (sampling density along the loop is uneven) */
+ cx/=n;cy/=n;var sxx=0,syy=0,sxy=0;P.forEach(function(p){var x=p[0]-cx,y=p[1]-cy;sxx+=x*x;syy+=y*y;sxy+=x*y;});
+ var th=0.5*Math.atan2(2*sxy,sxx-syy),u=[Math.cos(th),Math.sin(th)];
+ var smin=1e18,smax=-1e18,tmin=1e18,tmax=-1e18;P.forEach(function(p){var d=[p[0]-cx,p[1]-cy],s=cdDot(d,u),t=cdCross(u,d);if(s<smin)smin=s;if(s>smax)smax=s;if(t<tmin)tmin=t;if(t>tmax)tmax=t;});
+ var a=(smax-smin)/2,b=(tmax-tmin)/2;if(!(a>0&&b>0))return null;var cs=(smax+smin)/2,ct=(tmax+tmin)/2;
+ var C=[cx+u[0]*cs-u[1]*ct,cy+u[1]*cs+u[0]*ct];if(b>a){var t2=a;a=b;b=t2;u=[-u[1],u[0]];}
+ var E={c:C,u:u,a:a,b:b},bad=0;P.forEach(function(p){if(Math.abs(cdEllR(E,p)-1)>0.06)bad++;});
+ return bad<=n*0.05?E:null;}
+/* point-to-segment */
+function cdSegDist(p,a,b){var ab=cdSub(b,a),L2=cdDot(ab,ab),t=L2>0?Math.max(0,Math.min(1,cdDot(cdSub(p,a),ab)/L2)):0,q=[a[0]+ab[0]*t,a[1]+ab[1]*t];return {d:cdHyp(p,q),t:t,q:q};}
+function cdSegX(a,b,c,d){/* intersection of segments ab, cd (inclusive, small tolerance) */
+ var r=cdSub(b,a),s=cdSub(d,c),den=cdCross(r,s);if(Math.abs(den)<1e-12)return null;var q=cdSub(c,a),t=cdCross(q,s)/den,u=cdCross(q,r)/den;
+ if(t<-0.02||t>1.02||u<-0.02||u>1.02)return null;return [a[0]+r[0]*t,a[1]+r[1]*t];}
+/* ---- grid index over path segments ---- */
+function cdIndex(paths,cell){var G={},segs=[];paths.forEach(function(P,pi){if(P.skip)return;for(var j=0;j+1<P.p.length;j++){var a=P.p[j],b=P.p[j+1],id=segs.length;segs.push([pi,j]);
+  var x0=Math.floor(Math.min(a[0],b[0])/cell),x1=Math.floor(Math.max(a[0],b[0])/cell),y0=Math.floor(Math.min(a[1],b[1])/cell),y1=Math.floor(Math.max(a[1],b[1])/cell);
+  if((x1-x0+1)*(y1-y0+1)>400){x1=Math.min(x1,x0+19);y1=Math.min(y1,y0+19);}
+  for(var x=x0;x<=x1;x++)for(var y=y0;y<=y1;y++){var k=x+","+y;(G[k]||(G[k]=[])).push(id);}}});
+ return {G:G,segs:segs,cell:cell,paths:paths,
+  near:function(p,r){var c=this.cell,x0=Math.floor((p[0]-r)/c),x1=Math.floor((p[0]+r)/c),y0=Math.floor((p[1]-r)/c),y1=Math.floor((p[1]+r)/c),seen={},res=[];
+   for(var x=x0;x<=x1;x++)for(var y=y0;y<=y1;y++){var l=this.G[x+","+y];if(!l)continue;for(var i=0;i<l.length;i++){var id=l[i];if(seen[id])continue;seen[id]=1;var s=this.segs[id],P=this.paths[s[0]],a=P.p[s[1]],b=P.p[s[1]+1],q=cdSegDist(p,a,b);if(q.d<=r)res.push({id:id,pi:s[0],j:s[1],d:q.d,t:q.t,q:q.q});}}
+   return res;}};}
+/* ---- bubbles: an oval holding one value (or MEET) with a leader to the point ---- */
+/* opts: {texts:[{s,c,...}], read:function(E)->{s,conf,glyphs} (PDF)}. Returns [{id,E,s,val,meet,paren,tip,lead,flags[],conf}] */
+function cdFindBubbles(F,opts){opts=opts||{};var out=[],idx=opts.idx,texts=F.texts||[];
+ var tGrid={},tc=5;if(texts.length){var hs=texts.map(function(t){return t.h;}).sort(function(a,b){return a-b;});tc=Math.max(hs[Math.floor(hs.length/2)]*4,1e-6);}
+ texts.forEach(function(t,i){var k=Math.floor(t.c[0]/tc)+","+Math.floor(t.c[1]/tc);(tGrid[k]||(tGrid[k]=[])).push(i);});
+ function textsIn(E){var r=E.a*1.05,res=[],x0=Math.floor((E.c[0]-r)/tc),x1=Math.floor((E.c[0]+r)/tc),y0=Math.floor((E.c[1]-r)/tc),y1=Math.floor((E.c[1]+r)/tc);
+  for(var x=x0;x<=x1;x++)for(var y=y0;y<=y1;y++){var l=tGrid[x+","+y];if(l)l.forEach(function(i){if(cdEllR(E,texts[i].c)<=1.02)res.push(texts[i]);});}return res;}
+ (F.ells||[]).forEach(function(E){
+  if(!(E.a>0&&E.b>0))return;var s=null,conf=1,glyphs=null,amb=false;
+  if(opts.read){var rd=opts.read(E);if(!rd)return;s=rd.s;conf=rd.conf;glyphs=rd.glyphs;var rdo=rd;}
+  else{var tl=textsIn(E),vals=tl.filter(function(t){return CD_VALRE.test(t.s.replace(/\s+/g,""))||/^MEET$/i.test(t.s.trim());});
+   if(!vals.length)return;if(vals.length>1){vals.sort(function(a,b){return cdEllR(E,a.c)-cdEllR(E,b.c);});amb=cdEllR(E,vals[1].c)<0.6;}
+   /* the text should sit in the oval, sized to it */
+   var t0=vals[0];if(t0.h>E.b*2.2||t0.w>E.a*2.6)return;s=t0.s.replace(/\s+/g,"");}
+  if(s===null)return;
+  var meet=/^MEET$/i.test(s),paren=/^\(.*\)$/.test(s),val=meet?null:parseFloat(s.replace(/[()]/g,""));
+  var unread=!!(rdo&&rdo.unread);if(unread){val=null;}
+  if(!meet&&!unread&&!(isFinite(val)))return;
+  var B={id:out.length,E:E,s:s,val:val,meet:meet,paren:paren,conf:conf,glyphs:glyphs,flags:[],lay:E.lay||"",read:rdo||null};
+  if(amb)B.flags.push("two values in the oval");if(unread){B.unread=true;B.flags.push("couldn’t read the value — type it in (it learns the lettering)");}
+  cdLeader(B,F,idx,opts);if(unread&&!B.lead)return;
+  out.push(B);});
+ return out;}
+/* leader: a segment starting on the oval's edge and running outward; the tip is its far end, or the centre of an x / tick there */
+function cdLeader(B,F,idx,opts){var E=B.E,best=null;
+ var cands=idx.near(E.c,E.a*1.35);
+ cands.forEach(function(h){var P=idx.paths[h.pi];if(P.ell||P.glyph||P===E.path)return;var a=P.p[h.j],b=P.p[h.j+1];
+  var ra=cdEllR(E,a),rb=cdEllR(E,b),near=ra<rb?a:b,far=ra<rb?b:a,rn=Math.min(ra,rb),rf=Math.max(ra,rb);
+  if(rn<0.8||rn>1.3||rf<1.15)return;var L=cdHyp(a,b);if(L>E.a*4||L<E.b*0.1)return;
+  /* outward: the segment heads away from the centre */
+  var dir=cdSub(far,near),rad=cdSub(near,E.c),cosv=cdDot(dir,rad)/(Math.hypot(dir[0],dir[1])*Math.hypot(rad[0],rad[1])||1);if(cosv<0.35)return;
+  /* not part of a long line merely crossing the oval: the near end must be a path end */
+  var isEnd=(near===P.p[0]&&h.j===0)||(near===P.p[P.p.length-1]&&h.j+1===P.p.length-1)||(P.p.length===2);
+  if(!isEnd)return;
+  /* a bubble plotted twice: its own leader, not the hidden copy's */
+  var oth=E.twinOf||E.over;if(oth&&E.path&&P.ord!==undefined&&Math.abs(P.ord-E.path.ord)>Math.abs(P.ord-oth.path.ord))return;
+  var sc=Math.abs(rn-1)+(1-cosv)*0.5+(opts.penOf&&opts.penOf(P)!==opts.penOf(E.path||{})?0.5:0)+(P.lay&&E.lay&&P.lay!==E.lay?0.3:0);
+  if(!best||sc<best.sc)best={sc:sc,near:near,far:far,P:P,j:h.j};});
+ if(!best){B.tip=E.c.slice();B.lead=false;B.flags.push("no leader found — placed at the oval's centre");return;}
+ B.lead=true;B.leadSeg=[best.near,best.far];var e2=best.far,tip=e2,r=E.b*0.75;
+ /* marker: two short strokes crossing near the leader's end (x, + or a tick across the leader) */
+ var sh=idx.near(e2,r).filter(function(h){var P=idx.paths[h.pi];if(P===best.P&&h.j===best.j)return false;if(P.ell||P.glyph)return false;var a=P.p[h.j],b=P.p[h.j+1];return cdHyp(a,b)<=E.b*1.6;});
+ var bx=null,bd=1e18,segs=sh.map(function(h){var P=idx.paths[h.pi];return [P.p[h.j],P.p[h.j+1]];});segs.push([best.near,best.far]);
+ for(var i=0;i<segs.length;i++)for(var j=i+1;j<segs.length;j++){var x=cdSegX(segs[i][0],segs[i][1],segs[j][0],segs[j][1]);if(!x)continue;
+  /* skip the leader meeting its own neighbour end to end in a straight line */
+  var d=cdHyp(x,e2);if(d<bd&&d<=r){bd=d;bx=x;}}
+ if(bx){tip=bx;B.marker=true;}
+ B.tip=tip;}
+/* PDF vector extraction: operator list -> polylines in PDF user space (pt, y up). Shared by app + tests. */
+function cdPdfPaths(ol,OPS){
+ var M=[1,0,0,1,0,0],st=[],out=[],lw=1,lwSt=[];
+ function mul(a,b){return [a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]];}
+ function tp(x,y){return [M[0]*x+M[2]*y+M[4],M[1]*x+M[3]*y+M[5]];}
+ var cur=null,pend=[];/* subpaths of the current path until painted */
+ var F=ol.fnArray,A=ol.argsArray,n=F.length;
+ for(var i=0;i<n;i++){var f=F[i],a=A[i];
+  if(f===OPS.save){st.push(M.slice());lwSt.push(lw);}
+  else if(f===OPS.restore){if(st.length){M=st.pop();lw=lwSt.pop();}}
+  else if(f===OPS.transform){M=mul(M,a);}
+  else if(f===OPS.setLineWidth){lw=a[0];}
+  else if(f===OPS.constructPath){var ops=a[0],c=a[1],k=0;
+   for(var j=0;j<ops.length;j++){var o=ops[j];
+    if(o===OPS.moveTo){cur={p:[tp(c[k],c[k+1])],cv:[],closed:false};pend.push(cur);k+=2;}
+    else if(o===OPS.lineTo){if(!cur){cur={p:[tp(c[k],c[k+1])],cv:[],closed:false};pend.push(cur);}else cur.p.push(tp(c[k],c[k+1]));k+=2;}
+    else if(o===OPS.curveTo||o===OPS.curveTo2||o===OPS.curveTo3){if(!cur){k+=(o===OPS.curveTo?6:4);continue;}var p0=cur.p[cur.p.length-1],c1,c2,p3;
+     if(o===OPS.curveTo){c1=tp(c[k],c[k+1]);c2=tp(c[k+2],c[k+3]);p3=tp(c[k+4],c[k+5]);k+=6;}
+     else if(o===OPS.curveTo2){c1=p0;c2=tp(c[k],c[k+1]);p3=tp(c[k+2],c[k+3]);k+=4;}
+     else{c1=tp(c[k],c[k+1]);c2=p3=tp(c[k+2],c[k+3]);k+=4;}
+     for(var t=1;t<=8;t++){var u=t/8,v=1-u;cur.p.push([v*v*v*p0[0]+3*v*v*u*c1[0]+3*v*u*u*c2[0]+u*u*u*p3[0],v*v*v*p0[1]+3*v*v*u*c1[1]+3*v*u*u*c2[1]+u*u*u*p3[1]]);}
+     cur.cv.push(cur.p.length-1);}
+    else if(o===OPS.closePath){if(cur){cur.closed=true;}}
+    else if(o===OPS.rectangle){var x=c[k],y=c[k+1],w=c[k+2],h=c[k+3];k+=4;cur={p:[tp(x,y),tp(x+w,y),tp(x+w,y+h),tp(x,y+h)],cv:[],closed:true,rect:true};pend.push(cur);}
+   }}
+  else if(f===OPS.stroke||f===OPS.closeStroke||f===OPS.fill||f===OPS.eoFill||f===OPS.fillStroke||f===OPS.eoFillStroke||f===OPS.closeFillStroke||f===OPS.closeEOFillStroke){
+   var fill=!(f===OPS.stroke||f===OPS.closeStroke);var w=lw*Math.sqrt(Math.abs(M[0]*M[3]-M[1]*M[2]));
+   cur=null;pend.forEach(function(s){if(f===OPS.closeStroke||f===OPS.closeFillStroke||f===OPS.closeEOFillStroke)s.closed=true;if(s.p.length>1||s.rect){s.w=w;s.fill=fill;out.push(s);}});pend=[];}
+  else if(f===OPS.endPath){pend=[];cur=null;}
+ }
+ return out;}
+
+
+/* PDF page -> primitives in sheet points (y up). Ovals = closed loops that fit an ellipse; everything else is linework. */
+function cdPdfPrims(subs){var paths=[],ells=[];
+ subs.forEach(function(s){if(s.fill&&!s.w)return;var p=s.p;if(s.closed&&cdHyp(p[0],p[p.length-1])>1e-6)p=p.concat([p[0]]);
+  var P={p:p,am:p.slice(1).map(function(){return null;}),w:Math.round((s.w||0)*100)/100,fill:!!s.fill,cv:s.cv.length,ord:paths.length};
+  if(p.length>=12&&cdHyp(p[0],p[p.length-1])<0.3){var E=cdFitEll(p);if(E&&E.a<200&&E.a>1){E.path=P;E.w=P.w;P.ell=true;ells.push(E);}}
+  if(!s.fill)paths.push(P);});
+ /* ovals inside bigger ovals (a 0 or an o in the text) aren't bubbles; a bubble drawn twice is one bubble */
+ /* the same stroke plotted twice (common in engineers' sets): keep one */
+ var seen={};paths=paths.filter(function(P){var k=P.w+"|"+P.p.length+"|"+P.p.map(function(q){return Math.round(q[0]*20)+","+Math.round(q[1]*20);}).join(";");if(seen[k]&&!P.ell)return false;seen[k]=1;return true;});
+ paths.forEach(function(P,i){P.ord=i;});
+ ells.sort(function(a,b){return b.a-a.a;});var keep=[];
+ ells.forEach(function(E){if(keep.some(function(K){return K.a>E.a*1.6&&cdEllR(K,E.c)<0.95;}))return;
+  var tw=keep.find(function(K){return Math.abs(K.a-E.a)<0.06*E.a&&Math.abs(K.b-E.b)<0.06*E.b&&cdHyp(K.c,E.c)<0.35*E.b;});
+  if(tw){/* the copy drawn last is the one on top (visible) */if(E.path.ord>tw.path.ord){keep[keep.indexOf(tw)]=E;E.twinOf=tw;tw.twinOf=null;tw.over=E;}else{tw.twinOf=E;E.over=tw;}return;}keep.push(E);});
+ return {paths:paths,ells:keep,texts:[]};}
+/* ---- stroke text in PDF ovals: split into characters, read them against learned shapes ---- */
+/* strokes inside the oval (same pen as the oval when possible) -> characters along the oval's long axis */
+function cdGlyphRun(E,idx){var cand=idx.near(E.c,E.a),seen={},paths=[];
+ cand.forEach(function(h){if(seen[h.pi])return;seen[h.pi]=1;var P=idx.paths[h.pi];if(P===E.path||(E.twinOf&&P===E.twinOf.path)||(E.over&&P===E.over.path))return;
+  if(!P.p.every(function(q){return cdEllR(E,q)<1.03;}))return;var x0=1e18,x1=-1e18,y0=1e18,y1=-1e18;P.p.forEach(function(q){if(q[0]<x0)x0=q[0];if(q[0]>x1)x1=q[0];if(q[1]<y0)y0=q[1];if(q[1]>y1)y1=q[1];});if(Math.max(x1-x0,y1-y0)>E.b*1.5)return;paths.push(P);});
+ if(!paths.length)return null;
+ var same=paths.filter(function(P){return Math.abs(P.w-E.w)<0.02;});if(same.length)paths=same;
+ /* a bubble plotted twice, slightly offset: keep this copy's strokes only */
+ var oth=E.twinOf||E.over;if(oth){var o1=E.path.ord,o2=oth.path.ord;paths=paths.filter(function(P){return Math.abs(P.ord-o1)<=Math.abs(P.ord-o2);});}
+ var run=cdChars(paths,E.u,E.c);if(!run||run.H<E.b*0.25||run.H>E.b*1.6||run.chars.length>12)return null;return run;}
+function cdChars(paths,u,c0){/* in the text frame: s along u, t across (up = u rotated +90°) */
+ var items=paths.map(function(P){var pts=P.p.map(function(q){var d=cdSub(q,c0);return [cdDot(d,u),cdCross(u,d)];});
+  var s0=1e18,s1=-1e18,t0=1e18,t1=-1e18,L=0;pts.forEach(function(q,i){if(q[0]<s0)s0=q[0];if(q[0]>s1)s1=q[0];if(q[1]<t0)t0=q[1];if(q[1]>t1)t1=q[1];if(i)L+=cdHyp(q,pts[i-1]);});return {P:P,pts:pts,s0:s0,s1:s1,t0:t0,t1:t1,L:L};});
+ items.sort(function(a,b){return a.s0-b.s0;});
+ function group(list,H){var chars=[],cur=null;list.forEach(function(it){var tiny=(it.s1-it.s0)<0.3*H&&(it.t1-it.t0)<0.3*H;
+   if(cur&&!tiny&&!cur.tiny&&it.s0<cur.s1-0.08*H){cur.items.push(it);cur.s1=Math.max(cur.s1,it.s1);cur.t0=Math.min(cur.t0,it.t0);cur.t1=Math.max(cur.t1,it.t1);}
+   else{cur={items:[it],s0:it.s0,s1:it.s1,t0:it.t0,t1:it.t1,tiny:tiny};chars.push(cur);}});return chars;}
+ /* text height from the tall characters (stray strokes inside the oval don't count) */
+ var hs=items.map(function(i){return i.t1-i.t0;}).sort(function(a,b){return b-a;}),H0=hs[Math.min(hs.length-1,Math.floor(hs.length/3))];if(!(H0>0))return null;
+ var tall=group(items,H0).filter(function(c){return (c.t1-c.t0)>0.6*H0;});if(!tall.length)return null;
+ function med(a){a=a.slice().sort(function(x,y){return x-y;});return a[Math.floor(a.length/2)];}
+ var T0=med(tall.map(function(c){return c.t0;})),T1=med(tall.map(function(c){return c.t1;})),H=T1-T0;if(!(H>0))return null;
+ var noise=0;items=items.filter(function(it){var ok=it.t0>T0-0.25*H&&it.t1<T1+0.25*H;if(!ok)noise++;return ok;});
+ var chars=group(items,H).filter(function(c){if(c.tiny&&c.t0>T0+0.3*H){noise++;return false;}return true;});
+ return {H:H,T0:T0,T1:T1,chars:chars,u:u,c:c0,noise:noise};}
+/* normalised sample points of a character (x from its own left edge, y from the run's baseline; both in run heights) */
+function cdCharPts(ch,run,flip){var H=run.H,out=[],s0=flip?-ch.s1:ch.s0;
+ ch.items.forEach(function(it){var p=it.pts.map(function(q){return flip?[(-q[0]-s0)/H,(run.T1-q[1])/H]:[(q[0]-s0)/H,(q[1]-run.T0)/H];});
+  for(var i=0;i+1<p.length;i++){var a=p[i],b=p[i+1],L=cdHyp(a,b),k=Math.min(60,Math.max(1,Math.ceil(L/0.04)));for(var j=0;j<k;j++)out.push([a[0]+(b[0]-a[0])*j/k,a[1]+(b[1]-a[1])*j/k]);}
+  out.push(p[p.length-1]);});
+ return out;}
+function cdChamfer(A,B){function one(X,Y){var s=0;for(var i=0;i<X.length;i++){var m=1e9;for(var j=0;j<Y.length;j++){var dx=X[i][0]-Y[j][0],dy=X[i][1]-Y[j][1],d=dx*dx+dy*dy;if(d<m)m=d;}s+=Math.sqrt(m);}return s/X.length;}
+ return Math.max(one(A,B),one(B,A));}
+
+var CD_GLYPH_BASE={".":[[0.05,0.11],[0.02,0.08],[0,0.06],[0.02,0.04],[0.05,0.01],[0.07,0.04],[0.1,0.06]],"1":[[0,0.81],[0.03,0.83],[0.06,0.84],[0.1,0.86],[0.12,0.88],[0.14,0.9],[0.17,0.93],[0.19,0.95],[0.21,0.98],[0.24,1.0],[0.24,0.96],[0.24,0.92],[0.24,0.88],[0.24,0.84],[0.24,0.8],[0.24,0.76],[0.24,0.72],[0.24,0.68],[0.24,0.64],[0.24,0.6],[0.24,0.56],[0.24,0.52],[0.24,0.48],[0.24,0.44],[0.24,0.4],[0.24,0.36],[0.24,0.32],[0.24,0.28],[0.24,0.24],[0.24,0.2],[0.24,0.16],[0.24,0.12],[0.24,0.08],[0.24,0.04],[0.24,0.0]],"2":[[0.05,0.76],[0.05,0.79],[0.05,0.81],[0.06,0.84],[0.08,0.87],[0.1,0.9],[0.12,0.93],[0.14,0.95],[0.17,0.97],[0.21,0.98],[0.24,1.0],[0.28,1.0],[0.31,1.0],[0.35,1.0],[0.39,1.0],[0.43,1.0],[0.46,0.98],[0.49,0.97],[0.52,0.95],[0.55,0.93],[0.57,0.9],[0.59,0.87],[0.6,0.84],[0.62,0.81],[0.62,0.78],[0.62,0.75],[0.62,0.71],[0.6,0.68],[0.59,0.65],[0.57,0.62],[0.55,0.59],[0.53,0.56],[0.51,0.53],[0.5,0.5],[0.48,0.48],[0.45,0.45],[0.42,0.42],[0.39,0.39],[0.36,0.36],[0.34,0.34],[0.31,0.31],[0.28,0.28],[0.25,0.25],[0.22,0.22],[0.2,0.2],[0.17,0.17],[0.14,0.14],[0.11,0.11],[0.08,0.08],[0.06,0.06],[0.03,0.03],[0,0.0],[0.04,0.0],[0.08,0.0],[0.12,0.0],[0.16,0.0],[0.2,0.0],[0.24,0.0],[0.27,0.0],[0.31,0.0],[0.35,0.0],[0.39,0.0],[0.43,0.0],[0.47,0.0],[0.51,0.0],[0.55,0.0],[0.59,0.0],[0.63,0.0],[0.67,0]],"0":[[0.29,1.0],[0.25,0.99],[0.21,0.98],[0.18,0.96],[0.14,0.95],[0.12,0.92],[0.1,0.9],[0.09,0.87],[0.07,0.84],[0.05,0.81],[0.04,0.78],[0.03,0.74],[0.03,0.71],[0.02,0.67],[0.01,0.64],[0.01,0.61],[0,0.57],[0.0,0.54],[0.0,0.5],[0.0,0.46],[0.0,0.43],[0.01,0.39],[0.01,0.36],[0.02,0.33],[0.03,0.29],[0.03,0.26],[0.04,0.22],[0.05,0.19],[0.07,0.16],[0.09,0.13],[0.1,0.1],[0.12,0.08],[0.14,0.05],[0.18,0.04],[0.21,0.02],[0.25,0.01],[0.29,0],[0.32,0.0],[0.35,0.0],[0.38,0.0],[0.42,0.01],[0.45,0.02],[0.49,0.04],[0.52,0.05],[0.54,0.08],[0.56,0.1],[0.58,0.13],[0.6,0.16],[0.62,0.19],[0.63,0.22],[0.63,0.26],[0.64,0.29],[0.65,0.33],[0.65,0.36],[0.66,0.39],[0.67,0.43],[0.67,0.46],[0.67,0.5],[0.67,0.54],[0.67,0.57],[0.66,0.61],[0.65,0.64],[0.65,0.67],[0.64,0.71],[0.63,0.74],[0.63,0.78],[0.62,0.81],[0.6,0.84],[0.58,0.87],[0.56,0.9],[0.54,0.92],[0.52,0.95],[0.49,0.96],[0.45,0.98],[0.42,0.99],[0.38,1],[0.35,1.0],[0.32,1.0],[0.29,1.0]],"5":[[0.57,1.0],[0.53,1.0],[0.49,1.0],[0.45,1.0],[0.41,1.0],[0.37,1.0],[0.33,1.0],[0.29,1.0],[0.25,1.0],[0.21,1.0],[0.17,1.0],[0.13,1.0],[0.1,1.0],[0.09,0.96],[0.09,0.92],[0.08,0.88],[0.08,0.84],[0.07,0.81],[0.07,0.77],[0.06,0.73],[0.06,0.69],[0.06,0.65],[0.05,0.61],[0.05,0.57],[0.07,0.6],[0.1,0.62],[0.13,0.63],[0.17,0.64],[0.2,0.65],[0.24,0.67],[0.27,0.67],[0.31,0.67],[0.35,0.67],[0.38,0.67],[0.42,0.65],[0.45,0.64],[0.49,0.63],[0.52,0.62],[0.55,0.6],[0.57,0.57],[0.6,0.55],[0.62,0.52],[0.63,0.49],[0.64,0.45],[0.65,0.42],[0.67,0.38],[0.67,0.35],[0.67,0.32],[0.67,0.29],[0.65,0.25],[0.64,0.21],[0.63,0.18],[0.62,0.14],[0.6,0.12],[0.57,0.1],[0.55,0.07],[0.52,0.05],[0.49,0.04],[0.45,0.02],[0.42,0.01],[0.38,0.0],[0.35,0.0],[0.31,0.0],[0.27,0.0],[0.24,0.0],[0.2,0.01],[0.17,0.02],[0.13,0.04],[0.1,0.05],[0.07,0.07],[0.05,0.1],[0.03,0.13],[0.02,0.16],[0,0.19]],"4":[[0.48,0],[0.48,0.04],[0.48,0.08],[0.48,0.12],[0.48,0.16],[0.48,0.2],[0.48,0.24],[0.48,0.28],[0.48,0.32],[0.48,0.36],[0.48,0.4],[0.48,0.44],[0.48,0.48],[0.48,0.52],[0.48,0.56],[0.48,0.6],[0.48,0.64],[0.48,0.68],[0.48,0.72],[0.48,0.76],[0.48,0.8],[0.48,0.84],[0.48,0.88],[0.48,0.92],[0.48,0.96],[0.48,1.0],[0.45,0.97],[0.43,0.94],[0.41,0.9],[0.39,0.87],[0.36,0.84],[0.34,0.81],[0.32,0.78],[0.29,0.75],[0.27,0.71],[0.25,0.68],[0.23,0.65],[0.2,0.62],[0.18,0.59],[0.16,0.56],[0.14,0.52],[0.11,0.49],[0.09,0.46],[0.07,0.43],[0.05,0.4],[0.02,0.37],[0,0.33],[0.04,0.33],[0.08,0.33],[0.12,0.33],[0.16,0.33],[0.2,0.33],[0.24,0.33],[0.28,0.33],[0.32,0.33],[0.36,0.33],[0.4,0.33],[0.44,0.33],[0.48,0.33],[0.52,0.33],[0.56,0.33],[0.6,0.33],[0.63,0.33],[0.67,0.33],[0.71,0.33]],"7":[[0,1.0],[0.04,1.0],[0.08,1.0],[0.12,1.0],[0.16,1.0],[0.2,1.0],[0.24,1.0],[0.27,1.0],[0.31,1.0],[0.35,1.0],[0.39,1.0],[0.43,1.0],[0.47,1.0],[0.51,1.0],[0.55,1.0],[0.59,1.0],[0.63,1.0],[0.67,1.0],[0.65,0.96],[0.63,0.93],[0.62,0.89],[0.6,0.86],[0.58,0.82],[0.56,0.79],[0.55,0.75],[0.53,0.71],[0.51,0.68],[0.5,0.64],[0.48,0.61],[0.46,0.57],[0.45,0.54],[0.43,0.5],[0.41,0.46],[0.39,0.43],[0.38,0.39],[0.36,0.36],[0.34,0.32],[0.33,0.29],[0.31,0.25],[0.29,0.21],[0.28,0.18],[0.26,0.14],[0.24,0.11],[0.22,0.07],[0.21,0.04],[0.19,0]],"6":[[0.57,0.86],[0.56,0.89],[0.54,0.92],[0.52,0.95],[0.49,0.96],[0.45,0.98],[0.42,0.99],[0.38,1.0],[0.35,1.0],[0.32,1.0],[0.29,1.0],[0.25,0.99],[0.21,0.98],[0.18,0.96],[0.14,0.95],[0.12,0.92],[0.1,0.9],[0.09,0.87],[0.07,0.84],[0.05,0.81],[0.04,0.78],[0.03,0.74],[0.03,0.71],[0.02,0.67],[0.01,0.64],[0.01,0.61],[0,0.57],[0.0,0.53],[0.0,0.49],[0.0,0.45],[0.0,0.41],[0.0,0.37],[0.0,0.33],[0.01,0.3],[0.02,0.26],[0.03,0.22],[0.04,0.18],[0.05,0.14],[0.07,0.12],[0.1,0.1],[0.12,0.07],[0.14,0.05],[0.18,0.04],[0.21,0.02],[0.25,0.01],[0.29,0.0],[0.31,0.0],[0.33,0.0],[0.37,0.01],[0.4,0.02],[0.44,0.04],[0.48,0.05],[0.5,0.07],[0.52,0.1],[0.55,0.12],[0.57,0.14],[0.58,0.18],[0.6,0.21],[0.61,0.25],[0.62,0.29],[0.62,0.31],[0.62,0.33],[0.61,0.37],[0.6,0.4],[0.58,0.44],[0.57,0.48],[0.55,0.5],[0.52,0.52],[0.5,0.55],[0.48,0.57],[0.44,0.58],[0.4,0.6],[0.37,0.61],[0.33,0.62],[0.31,0.62],[0.29,0.62],[0.25,0.61],[0.21,0.6],[0.18,0.58],[0.14,0.57],[0.12,0.55],[0.1,0.52],[0.07,0.5],[0.05,0.48],[0.04,0.44],[0.02,0.4],[0.01,0.37],[0.0,0.33]],"8":[[0.24,1],[0.17,0.98],[0.1,0.95],[0.06,0.89],[0.05,0.83],[0.05,0.76],[0.08,0.7],[0.13,0.65],[0.19,0.62],[0.27,0.6],[0.34,0.58],[0.42,0.56],[0.49,0.54],[0.55,0.5],[0.6,0.45],[0.63,0.4],[0.67,0.33],[0.67,0.26],[0.67,0.19],[0.63,0.13],[0.6,0.07],[0.54,0.04],[0.46,0.01],[0.39,0.0],[0.31,0.0],[0.24,0.0],[0.17,0.02],[0.1,0.05],[0.05,0.1],[0.02,0.16],[0.0,0.23],[0.0,0.3],[0.02,0.37],[0.05,0.43],[0.1,0.48],[0.14,0.52],[0.21,0.55],[0.29,0.57],[0.36,0.59],[0.44,0.61],[0.51,0.63],[0.57,0.67],[0.6,0.73],[0.62,0.79],[0.62,0.86],[0.59,0.92],[0.54,0.96],[0.46,0.99],[0.39,1.0],[0.31,1.0],[0.24,1]],"3":[[0.09,1],[0.13,1.0],[0.17,1.0],[0.21,1.0],[0.25,1.0],[0.28,1.0],[0.32,1.0],[0.36,1.0],[0.4,0.99],[0.44,0.99],[0.47,0.99],[0.51,0.99],[0.55,0.99],[0.59,0.99],[0.63,0.99],[0.6,0.96],[0.58,0.93],[0.55,0.9],[0.53,0.86],[0.5,0.83],[0.48,0.8],[0.45,0.77],[0.43,0.74],[0.41,0.71],[0.38,0.67],[0.36,0.64],[0.33,0.61],[0.37,0.61],[0.4,0.61],[0.44,0.62],[0.48,0.62],[0.51,0.6],[0.54,0.58],[0.57,0.57],[0.59,0.55],[0.62,0.53],[0.63,0.5],[0.64,0.46],[0.65,0.42],[0.66,0.39],[0.66,0.36],[0.67,0.33],[0.67,0.3],[0.65,0.26],[0.64,0.22],[0.63,0.19],[0.62,0.15],[0.59,0.13],[0.57,0.1],[0.54,0.08],[0.52,0.05],[0.48,0.04],[0.45,0.03],[0.42,0.02],[0.39,0.02],[0.35,0.01],[0.32,0.01],[0.28,0.01],[0.24,0.01],[0.21,0.02],[0.17,0.03],[0.13,0.04],[0.1,0.06],[0.08,0.08],[0.05,0.11],[0.04,0.14],[0.02,0.17],[0,0.2]],"9":[[0.61,0.65],[0.59,0.62],[0.58,0.59],[0.56,0.56],[0.55,0.52],[0.52,0.5],[0.5,0.48],[0.48,0.45],[0.45,0.43],[0.42,0.42],[0.39,0.4],[0.36,0.39],[0.33,0.38],[0.31,0.38],[0.29,0.38],[0.25,0.39],[0.21,0.4],[0.18,0.42],[0.14,0.43],[0.12,0.45],[0.1,0.48],[0.07,0.5],[0.05,0.52],[0.04,0.56],[0.02,0.6],[0.01,0.63],[0.0,0.67],[0.0,0.69],[0,0.71],[0.01,0.75],[0.02,0.78],[0.03,0.81],[0.04,0.85],[0.06,0.87],[0.08,0.89],[0.11,0.92],[0.13,0.94],[0.17,0.95],[0.2,0.96],[0.24,0.98],[0.27,0.99],[0.3,0.99],[0.32,0.99],[0.36,0.98],[0.39,0.96],[0.43,0.95],[0.46,0.94],[0.49,0.92],[0.51,0.89],[0.54,0.87],[0.56,0.85],[0.57,0.81],[0.58,0.77],[0.59,0.73],[0.6,0.69],[0.61,0.65],[0.61,0.62],[0.6,0.58],[0.6,0.54],[0.6,0.5],[0.6,0.47],[0.6,0.43],[0.59,0.39],[0.58,0.35],[0.58,0.32],[0.57,0.28],[0.57,0.24],[0.56,0.2],[0.54,0.17],[0.52,0.15],[0.5,0.12],[0.48,0.09],[0.46,0.06],[0.43,0.05],[0.39,0.04],[0.36,0.02],[0.32,0.01],[0.29,0.01],[0.26,0.01],[0.23,0.01],[0.19,0.02],[0.15,0.04],[0.12,0.05],[0.08,0.06],[0.07,0.09],[0.06,0.12],[0.05,0.14]]};
+function cdGlyphSet(){var T=[];Object.keys(CD_GLYPH_BASE).forEach(function(k){T.push({ch:k,pts:CD_GLYPH_BASE[k],base:true});});
+ try{var U=JSON.parse(localStorage.getItem("eo:cdglyphs")||"[]");U.forEach(function(x){if(x&&x.ch&&x.pts)T.push(x);});}catch(e){}return T;}
+function cdLearn(glyphs,value){/* the user's confirmed value teaches the reader the drawing's own character shapes */
+ if(!glyphs||!value)return 0;var s=String(value).replace(/\s+/g,"");if(s.length!==glyphs.length)return 0;var U=[];try{U=JSON.parse(localStorage.getItem("eo:cdglyphs")||"[]");}catch(e){}
+ var n=0;glyphs.forEach(function(g,i){var ch=s[i];if(!/[0-9.()A-Z]/i.test(ch))return;
+  var same=U.filter(function(x){return x.ch===ch;});if(same.some(function(x){return cdChamfer(x.pts,g)<0.02;}))return;
+  U.push({ch:ch.toUpperCase(),pts:g.filter(function(_,j){return j%Math.max(1,Math.floor(g.length/48))===0;}).map(function(p){return [Math.round(p[0]*100)/100,Math.round(p[1]*100)/100];})});n++;});
+ var by={};U=U.reverse().filter(function(x){by[x.ch]=(by[x.ch]||0)+1;return by[x.ch]<=8;}).reverse();
+ try{localStorage.setItem("eo:cdglyphs",JSON.stringify(U));}catch(e){}return n;}
+function cdBestGlyph(pts,T){var b=null,b2=null;T.forEach(function(t){if(!t.pts)return;var d=cdChamfer(pts,t.pts);if(!b||d<b.d){if(b&&b.ch!==t.ch)b2=b;b={ch:t.ch,d:d};}else if((!b2||d<b2.d)&&t.ch!==b.ch)b2={ch:t.ch,d:d};});return {b:b,b2:b2};}
+/* read the characters of one oval: both reading directions tried, the better fit wins */
+function cdReadRun(run,T){if(!run||!run.chars.length)return null;T=T||cdGlyphSet();var best=null;
+ [false,true].forEach(function(flip){var chs=flip?run.chars.slice().reverse():run.chars,s="",worst=0,amb=false,gl=[],sum=0;
+  chs.forEach(function(ch){var pts=cdCharPts(ch,run,flip);gl.push(pts);
+   if(ch.tiny){var atBase=flip?(ch.t1>run.T1-0.3*run.H):(ch.t0<run.T0+0.3*run.H);s+=atBase?".":"?";if(!atBase)worst=Math.max(worst,0.2);return;}
+   var r=cdBestGlyph(pts,T.filter(function(t){return t.ch!==".";}));if(!r.b){s+="?";worst=1;return;}s+=r.b.ch;sum+=r.b.d;worst=Math.max(worst,r.b.d);if(r.b2&&r.b2.d-r.b.d<0.015)amb=true;});
+  var sc=sum+(/\?/.test(s)?5:0);if(!best||sc<best.sc)best={s:s,worst:worst,amb:amb,glyphs:gl,sc:sc,flip:flip};});
+ return best;}
+/* PDF: find bubbles by reading each oval's strokes */
+function cdPdfBubbles(F,idx){var T=cdGlyphSet(),dec={};
+ var B=cdFindBubbles(F,{idx:idx,read:function(E){if(E.b/E.a>0.92&&E.a<4)return null;var run=cdGlyphRun(E,idx);if(!run)return null;var r=cdReadRun(run,T);if(!r)return null;
+  if(!(CD_VALRE.test(r.s)||/^MEET$/i.test(r.s))){/* an oval with writing and a leader that the reader can't make out (another engineer's lettering): listed for you to type */
+   if(run.chars.length>=3&&E.b/E.a<0.8)return {s:"?",conf:0,glyphs:r.glyphs,unread:true,guess:r.s};return null;}
+  var conf=r.worst<=0.04&&!r.amb?1:r.worst<=0.08?0.6:0.3;var o={s:r.s,conf:conf,glyphs:r.glyphs,amb:r.amb,worst:r.worst};
+  if(E.twinOf){var r2=cdReadRun(cdGlyphRun(E.twinOf,idx),T);o.under=r2?r2.s:"?";var B2={E:E.twinOf,flags:[]};cdLeader(B2,F,idx,{});o.underTip=B2.lead?B2.tip:null;}return o;}});
+ B.forEach(function(b){var m=/\.(\d+)/.exec(b.s);if(m)dec[m[1].length]=(dec[m[1].length]||0)+1;});
+ var nd=Object.keys(dec).sort(function(a,b){return dec[b]-dec[a];})[0];
+ B.forEach(function(b){if(b.conf<1&&!b.unread)b.flags.push(b.conf<0.5?"hard to read — check the value":"read with some doubt — check the value");
+  var m=/\.(\d+)/.exec(b.s);if(m&&nd&&String(m[1].length)!==nd)b.flags.push("unusual number of decimals");
+  if(b.read&&b.read.under){var far=b.read.underTip&&cdHyp(b.read.underTip,b.tip)>b.E.b;b.underTip=far?b.read.underTip:null;
+   b.flags.push((CD_VALRE.test(b.read.under)&&b.read.under!==b.s?"another bubble drawn underneath reads "+b.read.under:"another bubble is drawn underneath")+(far?", and its leader points somewhere else":"")+" — check which is right");}});
+ return B;}
+/* ---- tie-in: source (drawing / sheet) -> job coordinates ---- */
+/* PDF underlay as placed in MicroSurvey: insert point = sheet's lower-left, scale = metres per sheet mm, rotation in degrees */
+function cdUnderlayT(view,E0,N0,s,rotDeg){var r=(rotDeg||0)*Math.PI/180,c=Math.cos(r),sn=Math.sin(r),k=25.4/72;
+ return {kind:"underlay",k:s*k,f:function(p){var x=(p[0]-view[0])*k,y=(p[1]-view[1])*k;return [E0+s*(x*c-y*sn),N0+s*(x*sn+y*c)];}};}
+/* least-squares fit from pairs [{src:[x,y],dst:[E,N]}]: similarity (scale+rotation+shift) or rigid (scale held at 1) */
+function cdFitPairs(pairs,rigid){var n=pairs.length;if(n<2)return null;var sx=0,sy=0,dx=0,dy=0;pairs.forEach(function(q){sx+=q.src[0];sy+=q.src[1];dx+=q.dst[0];dy+=q.dst[1];});sx/=n;sy/=n;dx/=n;dy/=n;
+ var A=0,B=0,S=0;pairs.forEach(function(q){var x=q.src[0]-sx,y=q.src[1]-sy,X=q.dst[0]-dx,Y=q.dst[1]-dy;A+=x*X+y*Y;B+=x*Y-y*X;S+=x*x+y*y;});if(!(S>0))return null;
+ var a=A/S,b=B/S;if(rigid){var m=Math.hypot(a,b);a/=m;b/=m;}
+ var f=function(p){var x=p[0]-sx,y=p[1]-sy;return [dx+a*x-b*y,dy+b*x+a*y];};
+ var res=pairs.map(function(q){var w=f(q.src);return {dE:q.dst[0]-w[0],dN:q.dst[1]-w[1],d:Math.hypot(q.dst[0]-w[0],q.dst[1]-w[1])};});
+ return {kind:rigid?"rigid":"pairs",k:Math.hypot(a,b),rot:Math.atan2(b,a)*180/Math.PI,f:f,res:res};}
+/* ---- lines: follow connected linework from a picked stroke ---- */
+function cdEndIndex(paths,eps){var G={},c=eps*4;paths.forEach(function(P,pi){if(P.skip||P.ell||P.glyph)return;[0,P.p.length-1].forEach(function(j){var q=P.p[j],k=Math.floor(q[0]/c)+","+Math.floor(q[1]/c);(G[k]||(G[k]=[])).push([pi,j]);});});
+ return {at:function(q,r){var x0=Math.floor((q[0]-r)/c),x1=Math.floor((q[0]+r)/c),y0=Math.floor((q[1]-r)/c),y1=Math.floor((q[1]+r)/c),res=[];
+  for(var x=x0;x<=x1;x++)for(var y=y0;y<=y1;y++){var l=G[x+","+y];if(l)l.forEach(function(e){var P=paths[e[0]];if(cdHyp(P.p[e[1]],q)<=r)res.push(e);});}return res;},paths:paths};}
+/* trace: {pts:[[x,y]..], am:[meta|null per segment], gap:[bool per segment], pis:[path ids]} in source units.
+   o: {eps, gap (max jump across a dash gap), sameOf(P,Q) -> bool (same pen / layer)} */
+function cdTrace(paths,EI,pi0,o){var used={},P0=paths[pi0];used[pi0]=1;
+ var pts=P0.p.slice(),am=(P0.am||[]).slice(),gp=P0.p.slice(1).map(function(){return false;}),pis=[pi0],lim=6000;
+ function dirAt(atEnd){var n=pts.length;if(n<2)return [1,0];var a=atEnd?pts[n-2]:pts[1],b=atEnd?pts[n-1]:pts[0];var d=cdSub(b,a),L=Math.hypot(d[0],d[1])||1;return [d[0]/L,d[1]/L];}
+ function grow(atEnd){for(var g=0;g<lim;g++){var e=atEnd?pts[pts.length-1]:pts[0],dv=dirAt(atEnd);
+   var cand=EI.at(e,o.eps).filter(function(x){return !used[x[0]]&&o.sameOf(P0,paths[x[0]]);});
+   var pick=null,jump=false;
+   function contDir(x){var Q=paths[x[0]],a=Q.p[x[1]],b=x[1]===0?Q.p[1]:Q.p[Q.p.length-2],d=cdSub(b,a),L=Math.hypot(d[0],d[1])||1;return cdDot(dv,[d[0]/L,d[1]/L]);}
+   if(cand.length===1)pick=cand[0];
+   else if(cand.length>1){var sc=cand.map(function(x){return {x:x,c:contDir(x)};}).sort(function(a,b){return b.c-a.c;});
+    /* a junction: carry on only when one branch is clearly straight ahead */
+    if(sc[0].c>0.97&&(sc.length<2||sc[1].c<0.8))pick=sc[0].x;}
+   else if(o.gap>0){/* a dash gap or a plotter break: the next piece straight ahead */
+    var far=EI.at(e,o.gap).filter(function(x){if(used[x[0]]||!o.sameOf(P0,paths[x[0]]))return false;var Q=paths[x[0]],q=Q.p[x[1]],v=cdSub(q,e),L=Math.hypot(v[0],v[1]);if(L<o.eps)return false;
+     var al=cdDot(v,dv),lat=Math.abs(cdCross(dv,v));return al>0&&lat<Math.max(o.eps*3,L*0.08)&&contDir(x)>0.9;});
+    far.sort(function(a,b){return cdHyp(paths[a[0]].p[a[1]],e)-cdHyp(paths[b[0]].p[b[1]],e);});if(far.length){pick=far[0];jump=true;}}
+   if(!pick)return;used[pick[0]]=1;pis.push(pick[0]);var Q=paths[pick[0]],qp=Q.p.slice(),qa=(Q.am||qp.slice(1).map(function(){return null;})).slice();
+   if(pick[1]!==0){qp.reverse();qa.reverse();}/* qp now starts at the joint */
+   if(atEnd){if(jump){gp.push(true);am.push(null);pts.push(qp[0]);}for(var i=1;i<qp.length;i++){pts.push(qp[i]);am.push(qa[i-1]);gp.push(false);}}
+   else{if(jump){gp.unshift(true);am.unshift(null);pts.unshift(qp[0]);}for(var j=1;j<qp.length;j++){pts.unshift(qp[j]);am.unshift(qa[j-1]);gp.unshift(false);}}
+   if(pts.length>200000)return;}}
+ grow(true);grow(false);
+ return {pts:pts,am:am,gap:gp,pis:pis};}
+/* chain helpers in job coordinates */
+function cdChainW(tr,T){var P0=tr.pts.map(T),P=[P0[0]],am=[],gp=[],st=[0],src=[0];
+ for(var i=1;i<P0.length;i++){var d=cdHyp(P0[i],P[P.length-1]);if(d<1e-5){if(tr.gap&&tr.gap[i-1]&&gp.length)gp[gp.length-1]=gp[gp.length-1];continue;}P.push(P0[i]);src.push(i);am.push(tr.am?tr.am[i-1]:null);gp.push(tr.gap?!!tr.gap[i-1]:false);st.push(st[st.length-1]+d);}
+ return {P:P,st:st,am:am,gap:gp,L:st[st.length-1],src:src};}
+function cdProject(C,q){var best=null;for(var i=0;i+1<C.P.length;i++){var r=cdSegDist(q,C.P[i],C.P[i+1]);if(!best||r.d<best.d){var sL=cdHyp(C.P[i],C.P[i+1]);best={d:r.d,s:C.st[i]+r.t*sL,i:i,t:r.t,q:r.q,side:cdCross(cdSub(C.P[i+1],C.P[i]),cdSub(q,C.P[i]))};}}return best;}
+function cdAtSta(C,s){for(var i=0;i+1<C.P.length;i++){if(s<=C.st[i+1]||i+2===C.P.length){var L=C.st[i+1]-C.st[i],t=L>0?(s-C.st[i])/L:0;t=Math.max(0,Math.min(1,t));return [C.P[i][0]+(C.P[i+1][0]-C.P[i][0])*t,C.P[i][1]+(C.P[i+1][1]-C.P[i][1])*t];}}return C.P[C.P.length-1];}
+/* circle through points (algebraic fit) */
+function cdCircle(Q){var n=Q.length,mx=0,my=0;Q.forEach(function(q){mx+=q[0];my+=q[1];});mx/=n;my/=n;var Suu=0,Svv=0,Suv=0,Suuu=0,Svvv=0,Suvv=0,Svuu=0;
+ Q.forEach(function(q){var u=q[0]-mx,v=q[1]-my;Suu+=u*u;Svv+=v*v;Suv+=u*v;Suuu+=u*u*u;Svvv+=v*v*v;Suvv+=u*v*v;Svuu+=v*u*u;});
+ var det=Suu*Svv-Suv*Suv;if(Math.abs(det)<1e-12)return null;var b1=(Suuu+Suvv)/2,b2=(Svvv+Svuu)/2,uc=(b1*Svv-b2*Suv)/det,vc=(Suu*b2-Suv*b1)/det;
+ var c=[mx+uc,my+vc],r=Math.sqrt(uc*uc+vc*vc+(Suu+Svv)/n),e=0;Q.forEach(function(q){e=Math.max(e,Math.abs(cdHyp(q,c)-r));});return {c:c,r:r,e:e};}
+/* curves along a chain: CAD arcs from their own geometry; plotted curves (PDF, dashed, segmented) from a sliding circle fit,
+   with BC / EC where the fitted circle meets the straights either side (tangent points) */
+function cdCurves(C){var out=[];
+ if(C.am&&C.am.some(function(m){return !!m;})){var P=C.P,n=P.length,i=0;
+  while(i<n-1){var m=C.am[i];if(!m){i++;continue;}var j=i;while(j<n-1&&C.am[j]&&(C.am[j].k===m.k||(cdHyp(C.am[j].c,m.c)<1e-3*Math.max(1,m.r)&&Math.abs(C.am[j].r-m.r)<1e-3*Math.max(1,m.r))))j++;
+   var sw=0;for(var q=i;q<j;q++){var x=Math.atan2(P[q+1][1]-m.c[1],P[q+1][0]-m.c[0])-Math.atan2(P[q][1]-m.c[1],P[q][0]-m.c[0]);while(x>Math.PI)x-=2*Math.PI;while(x<-Math.PI)x+=2*Math.PI;sw+=x;}
+   if(Math.abs(sw)>=2*Math.PI/180&&C.st[j]-C.st[i]>=0.3)out.push({s0:C.st[i],s1:C.st[j],c:m.c,r:m.r,sweep:sw,exact:true});i=j;}
+  if(out.length)return out;}
+ if(C.gap&&C.gap.some(function(g){return g;}))return cdCurvesSlide(C);
+ return cdCurvesRun(C);}
+function cdCurvesSlide(C){var out=[];
+ var L=C.L;if(!(L>1))return out;var ds=Math.max(0.1,Math.min(0.5,L/2000)),w=1.2,S=[],K=[];
+ for(var s=0;s<=L+1e-9;s+=ds)S.push({s:s,p:cdAtSta(C,Math.min(s,L))});
+ var hw=Math.max(2,Math.round(w/ds));
+ for(var i2=0;i2<S.length;i2++){var a0=Math.max(0,i2-hw),a1=Math.min(S.length-1,i2+hw);if(a1-a0<4){K.push(0);continue;}
+  var Q=S.slice(a0,a1+1).map(function(x){return x.p;}),f=cdCircle(Q);
+  if(!f||f.r>400||f.e>Math.max(0.02,f.r*0.004)){K.push(0);continue;}
+  var d1=cdSub(Q[Math.floor(Q.length/2)],Q[0]),d2=cdSub(Q[Q.length-1],Q[Math.floor(Q.length/2)]),sg=cdCross(d1,d2)>0?1:-1;
+  /* too flat to call a curve: sagitta over the window under 1 cm */
+  var span=cdHyp(Q[0],Q[Q.length-1]);if(span*span/(8*f.r)<0.01){K.push(0);continue;}
+  K.push(sg/f.r);}
+ /* groups of steady curvature */
+ var g=[],cur=null;K.forEach(function(k,i){if(k!==0&&cur&&Math.sign(k)===Math.sign(cur.k)&&Math.abs(1/k-1/cur.k)<Math.max(0.5,0.3/Math.abs(cur.k))){cur.i1=i;cur.ks.push(k);}
+  else if(k!==0){cur={i0:i,i1:i,k:k,ks:[k]};g.push(cur);}else cur=null;});
+ function lineFit(i0,i1){if(i1-i0<3)return null;var Q=S.slice(i0,i1+1).map(function(x){return x.p;}),mx=0,my=0;Q.forEach(function(q){mx+=q[0];my+=q[1];});mx/=Q.length;my/=Q.length;
+  var sxx=0,syy=0,sxy=0;Q.forEach(function(q){var x=q[0]-mx,y=q[1]-my;sxx+=x*x;syy+=y*y;sxy+=x*y;});var th=0.5*Math.atan2(2*sxy,sxx-syy),u=[Math.cos(th),Math.sin(th)],e=0;
+  Q.forEach(function(q){e=Math.max(e,Math.abs(cdCross(u,cdSub(q,[mx,my]))));});return e<0.03?{p:[mx,my],u:u}:null;}
+ g.forEach(function(G,gi){var s0=S[G.i0].s,s1=S[G.i1].s;if(s1-s0<0.3)return;
+  /* the circle from the chain's own points well inside the curve */
+  var inn=[];for(var i=G.i0;i<=G.i1;i++){if(S[i].s>=s0+w*0.5-1e-9&&S[i].s<=s1-w*0.5+1e-9)inn.push(S[i].p);}
+  if(inn.length<5)for(var i3=G.i0;i3<=G.i1;i3++)inn.push(S[i3].p);
+  var f=cdCircle(inn);if(!f||f.r>400)return;
+  /* tangent points with the straights either side; else where the curve starts / ends */
+  var off=Math.round(1.5*w/ds),prev=lineFit(Math.max(0,G.i0-off-Math.round(8/ds)),Math.max(0,G.i0-off)),next=lineFit(Math.min(S.length-1,G.i1+off),Math.min(S.length-1,G.i1+off+Math.round(8/ds)));
+  function foot(Lf,fallback){if(!Lf)return fallback;var t=cdDot(cdSub(f.c,Lf.p),Lf.u),q=[Lf.p[0]+Lf.u[0]*t,Lf.p[1]+Lf.u[1]*t];return Math.abs(cdHyp(q,f.c)-f.r)<Math.max(0.05,f.r*0.02)?q:fallback;}
+  function onC(p){var d=cdSub(p,f.c),L2=Math.hypot(d[0],d[1])||1;return [f.c[0]+d[0]/L2*f.r,f.c[1]+d[1]/L2*f.r];}
+  var bc=foot(prev,onC(S[G.i0].p)),ec=foot(next,onC(S[G.i1].p)),pb=cdProject(C,bc),pe=cdProject(C,ec);
+  var a0=Math.atan2(bc[1]-f.c[1],bc[0]-f.c[0]),a1=Math.atan2(ec[1]-f.c[1],ec[0]-f.c[0]),sw=a1-a0;while(sw>Math.PI)sw-=2*Math.PI;while(sw<-Math.PI)sw+=2*Math.PI;
+  if(Math.sign(sw)!==Math.sign(G.k)&&Math.abs(sw)>1e-6)sw+=Math.sign(G.k)*2*Math.PI;
+  if(Math.abs(sw)<10*Math.PI/180||pe.s-pb.s<Math.max(1.5,0.1*f.r))return;
+  out.push({s0:pb.s,s1:pe.s,c:f.c,r:f.r,sweep:sw,bc:bc,ec:ec});});
+ return out;}
+/* solid plotted lines: runs of steadily turning vertices; BC / EC at the drawing's own joints */
+function cdCurvesRun(C){var out=[],P=C.P,n=P.length;
+ function add(i0,i1,fit){var sw=0;for(var i=i0;i<i1;i++){var x=Math.atan2(P[i+1][1]-fit.c[1],P[i+1][0]-fit.c[0])-Math.atan2(P[i][1]-fit.c[1],P[i][0]-fit.c[0]);while(x>Math.PI)x-=2*Math.PI;while(x<-Math.PI)x+=2*Math.PI;sw+=x;}
+  var len=C.st[i1]-C.st[i0];if(Math.abs(sw)<4*Math.PI/180||len<0.5)return;out.push({i0:i0,i1:i1,s0:C.st[i0],s1:C.st[i1],c:fit.c,r:fit.r,sweep:sw});}
+ var i=0;while(i<n-1){var j2=i,sg=0;
+  while(j2+2<n){var d1=cdSub(P[j2+1],P[j2]),d2=cdSub(P[j2+2],P[j2+1]),L1=Math.hypot(d1[0],d1[1]),L2=Math.hypot(d2[0],d2[1]);if(L1<1e-9||L2<1e-9)break;
+   var tn=Math.asin(Math.max(-1,Math.min(1,cdCross(d1,d2)/(L1*L2))));if(Math.abs(tn)<0.02*Math.PI/180||Math.abs(tn)>25*Math.PI/180)break;var s2=tn>0?1:-1;if(sg&&s2!==sg)break;sg=s2;
+   if(L2>L1*1.8||L1>L2*1.8)break;j2++;}
+  if(j2-i>=2){var Q=P.slice(i,j2+2),fit=cdCircle(Q);if(fit&&fit.r>0.3&&fit.r<3000&&fit.e<Math.max(0.03,fit.r*0.004))add(i,j2+1,fit);i=j2+1;}else i++;}
+ var M=[];out.forEach(function(c){var L=M[M.length-1];if(L&&L.i1===c.i0&&cdHyp(L.c,c.c)<Math.max(0.05,0.01*c.r)&&Math.abs(L.r-c.r)<Math.max(0.05,0.01*c.r)){L.i1=c.i1;L.s1=c.s1;L.sweep+=c.sweep;}else M.push(c);});
+ return M;}
+/* ---- the run: bubbles on lines, design points, curve points, long gaps, numbering ---- */
+/* S: {B:[bubbles], T:{f,k}, lines:[{name,C,curves,rev}], sel:{id:1}, st:{id:{s:'ok'|'fix'|'drop',v,why,tag}}, o:{tol,near,meet,interp,gap,start,istart,skip}} */
+function cdCompute(S){var o=S.o,T=S.T,res={rows:[],interp:[],gaps:[],notes:[],per:{},counts:{}};
+ var lines=(S.lines||[]).map(function(L,li){var C=L.C;return {L:L,li:li,C:C,cv:L.curves||[]};});
+ S.B.forEach(function(b){var W=T.f(b.tip),best=null;
+  lines.forEach(function(x){var pr=cdProject(x.C,W);if(pr&&(!best||pr.d<best.d))best={li:x.li,d:pr.d,s:pr.s,side:pr.side};});
+  var st=S.st[b.id]||{},on=best&&best.d<=o.tol,near=best&&!on&&best.d<=o.near,inSet=!!S.sel[b.id];
+  var fl=b.flags.slice();if(near)fl.push((best.d).toFixed(2)+" m off "+lines[best.li].L.name+" — not on the line");if(b.paren)fl.push("in brackets — a spot grade, not a design value?");
+  res.per[b.id]={W:W,line:on||near?best:null,on:on,inSet:inSet,flags:fl,amber:inSet&&!b.meet&&fl.length>0,st:st.s||"",v:st.s==="fix"?st.v:b.val};});
+ /* design points: selected, confirmed (or corrected), not dropped */
+ var des=[];S.B.forEach(function(b){var p=res.per[b.id];if(!p.inSet||p.st==="drop")return;
+  var stx=S.st[b.id]||{};if(b.meet||stx.meetFix){if(o.meet)des.push({b:b,p:p,meet:true,z:0});return;}
+  if(b.unread&&p.st!=="fix")return;
+  if(p.st==="ok"||p.st==="fix")des.push({b:b,p:p,z:p.v,tag:(S.st[b.id]||{}).tag||""});});
+ var pend=S.B.filter(function(b){var p=res.per[b.id];return p.inSet&&!b.meet&&((p.st!=="ok"&&p.st!=="fix"&&p.st!=="drop")||(b.unread&&p.st==="ok"));});
+ res.pending=pend.length;res.amber=pend.filter(function(b){return res.per[b.id].amber;}).length;
+ /* per line: its design values in station order */
+ lines.forEach(function(x){var on=des.filter(function(d){return !d.meet&&d.p.on&&d.p.line.li===x.li;}).map(function(d){return {s:d.p.line.s,z:d.z,d:d};}).sort(function(a,b){return a.s-b.s;});x.on=on;
+  for(var i=0;i+1<on.length;i++){var g=on[i+1].s-on[i].s;if(g>o.gap)res.gaps.push({line:x.L.name,len:g,z0:on[i].z,z1:on[i+1].z,grade:(on[i+1].z-on[i].z)/g*100});}
+  if(!o.interp)return;
+  var closed=x.C.P.length>3&&cdHyp(x.C.P[0],x.C.P[x.C.P.length-1])<0.05,LL=x.C.L,sk=o.skip||0.5;
+  x.cv.forEach(function(cv,ci){
+   var label=cdCurveLabel(x.C,cv,ci);
+   [["BC",cv.s0],["MC",(cv.s0+cv.s1)/2],["EC",cv.s1]].forEach(function(k){var s=k[1],W=k[0]==="MC"?cdArcMid(cv,x.C):(k[0]==="BC"&&cv.bc?cv.bc:k[0]==="EC"&&cv.ec?cv.ec:cdAtSta(x.C,s));
+    if(des.some(function(d){return cdHyp(d.p.W,W)<(o.skip||0.5);})){res.notes.push(x.L.name+" "+k[0]+" at "+label+" skipped — within "+(o.skip||0.5)+" m of a design point");return;}
+    var a=null,b2=null;on.forEach(function(q){if(q.s<=s&&(!a||q.s>a.s))a=q;if(q.s>=s&&(!b2||q.s<b2.s))b2=q;});
+    /* a closed line (an island) wraps round */
+    if(closed&&on.length){if(!a){a=on[on.length-1];a={s:a.s-LL,z:a.z};}if(!b2){b2=on[0];b2={s:b2.s+LL,z:b2.z};}}
+    if(res.interp.some(function(q){return cdHyp(q.W,W)<0.05;}))return;
+    if(!a||!b2){res.notes.push(x.L.name+" "+k[0]+" at "+label+" skipped — no design value on "+(a?"the far":"the near")+" side along the line");return;}
+    var z=b2.s>a.s?a.z+(b2.z-a.z)*(s-a.s)/(b2.s-a.s):a.z;
+    res.interp.push({line:x.L.name,li:x.li,k:k[0],W:W,s:s,z:z,r:cv.r,label:label,z0:a.z,z1:b2.z,grade:b2.s>a.s?(b2.z-a.z)/(b2.s-a.s)*100:0});});});});
+ /* numbering: lines in order (by station), then bubbles off the lines (north to south) */
+ var ordered=[];lines.forEach(function(x){des.filter(function(d){return d.p.on&&d.p.line.li===x.li;}).sort(function(a,b){return a.p.line.s-b.p.line.s;}).forEach(function(d){ordered.push(d);});});
+ des.filter(function(d){return ordered.indexOf(d)<0;}).sort(function(a,b){return (b.p.W[1]-a.p.W[1])||(a.p.W[0]-b.p.W[0]);}).forEach(function(d){ordered.push(d);});
+ var n=o.start;ordered.forEach(function(d){var nm=d.p.on?lines[d.p.line.li].L.name:"";var desc=d.meet?"MEET":(d.tag?d.tag:(nm||"DESIGN"));
+  res.rows.push({pt:n++,N:d.p.W[1],E:d.p.W[0],Z:d.z,desc:desc,b:d.b,dec:d.meet?0:cdDecs(d.b.s,d.z)});});
+ var m=o.istart;res.interp.sort(function(a,b){return (a.li-b.li)||(a.s-b.s);}).forEach(function(q){q.pt=m;res.rows.push({pt:m++,N:q.W[1],E:q.W[0],Z:q.z,desc:q.line+" "+q.k+" INTERP",interp:q,dec:3});});
+ res.counts={des:ordered.length,interp:res.interp.length,meet:ordered.filter(function(d){return d.meet;}).length};
+ return res;}
+function cdDecs(s,z){var m=/\.(\d+)/.exec(String(s||""));return m?m[1].length:2;}
+function cdArcMid(cv,C){var P=cv.bc||cdAtSta(C,cv.s0),Q=cv.ec||cdAtSta(C,cv.s1),a0=Math.atan2(P[1]-cv.c[1],P[0]-cv.c[0]),a=a0+cv.sweep/2;return [cv.c[0]+cv.r*Math.cos(a),cv.c[1]+cv.r*Math.sin(a)];}
+function cdCurveLabel(C,cv,ci){return "curve "+(ci+1)+" (R "+cv.r.toFixed(2)+")";}
+/* outputs */
+function cdPnezd(rows){return rows.map(function(r){return [r.pt,r.N.toFixed(3),r.E.toFixed(3),r.Z.toFixed(r.dec===undefined?3:Math.max(2,r.dec)),r.desc].join(",");}).join("\r\n")+"\r\n";}
+function cdPointsDxf(rows,layer,th){var L=layer,o=[],h=th||0.5;
+ rows.forEach(function(r){o.push("0","POINT","8",L,"10",r.E.toFixed(4),"20",r.N.toFixed(4),"30",r.Z.toFixed(4));
+  o.push("0","TEXT","8",L+"-LABELS","10",(r.E+h*0.6).toFixed(4),"20",(r.N+h*0.2).toFixed(4),"30","0.0","40",h.toFixed(4),"1",String(r.pt));
+  o.push("0","TEXT","8",L+"-LABELS","10",(r.E+h*0.6).toFixed(4),"20",(r.N-h*1.2).toFixed(4),"30","0.0","40",h.toFixed(4),"1",r.Z.toFixed(r.dec===undefined?3:Math.max(2,r.dec)));});
+ return ["0","SECTION","2","HEADER","9","$ACADVER","1","AC1009","9","$INSUNITS","70","6","0","ENDSEC","0","SECTION","2","TABLES","0","TABLE","2","LAYER","70","2",
+  "0","LAYER","2",L,"70","0","62","1","6","CONTINUOUS","0","LAYER","2",L+"-LABELS","70","0","62","7","6","CONTINUOUS","0","ENDTAB","0","ENDSEC","0","SECTION","2","ENTITIES"].concat(o).concat(["0","ENDSEC","0","EOF"]).join("\r\n")+"\r\n";}
+
+/* ---------- Coordinate design (1.40) — the Points-tab panel and viewer ---------- */
+var cdS=null;
+var CD_LINECOL=["#2456A6","#C2410C","#0F766E","#7C3AED","#B91C1C","#4D7C0F"];
+function cdNew(){return {file:null,busy:"",msg:"",src:null,B:[],T:null,tie:{mode:"",E0:"",N0:"",s:"",rot:"0",pairs:[],rigid:true,pend:null},lines:[],act:-1,sel:{},st:{},
+ o:{tol:"0.05",near:"0.50",meet:false,interp:true,gap:"30",start:"",istart:"",th:"0.5"},mode:"pan",view:null,focus:null,res:null,lay:{},tv:0,learned:0,open:{tie:true}};}
+function cdUnitsLabel(){return cdS&&cdS.src&&cdS.src.kind==="pdf"?"sheet":"drawing";}
+/* highest point number on the shelf -> the next clean thousand block (e.g. 6004 -> 7001) */
+function cdNextBlock(){var mx=0;(typeof cuSources!=="undefined"?cuSources:[]).forEach(function(s){(s.state.lines||[]).forEach(function(r){if(r.point&&/^\d+$/.test(r.pt))mx=Math.max(mx,parseInt(r.pt,10));});});
+ return mx?Math.floor(mx/1000)*1000+1001:7001;}
+function cdShelfPt(num){var hit=null;(typeof cuSources!=="undefined"?cuSources:[]).forEach(function(s){if(hit)return;(s.state.lines||[]).forEach(function(r){if(hit||!r.point||String(r.pt)!==String(num))return;var co=cuCoordOf(r);if(co&&!isNaN(co.n)&&!isNaN(co.e))hit={N:co.n,E:co.e,file:s.name};});});return hit;}
+/* ---- loading ---- */
+function cdLoadFile(file){if(!cdS)cdS=cdNew();var S=cdNew();S.open=cdS.open;cdS=S;S.file={name:file.name};S.busy="Reading "+file.name+(/\.dwg$/i.test(file.name)?" (the first DWG takes a few seconds to load the reader) …":/\.pdf$/i.test(file.name)?" (the first PDF takes a few seconds to load the reader) …":" …");
+ if(typeof cuToolSet==="function"&&typeof cuTool!=="undefined")cuTool="cd";try{localStorage.setItem("eo:cutool","cd");}catch(e){}cdRender();
+ var p;
+ if(/\.pdf$/i.test(file.name))p=file.arrayBuffer().then(function(ab){return pmscPdfLib().then(function(lib){return lib.getDocument({data:new Uint8Array(ab)}).promise.then(function(doc){S.pdf=doc;S.file.pages=doc.numPages;S.file.page=Math.min(S.file.page||1,doc.numPages);return cdPdfPage(S.file.page);});});});
+ else if(/\.dwg$/i.test(file.name))p=file.arrayBuffer().then(function(ab){return hcDwgLib().then(function(lib){var out=lib.dwg_write_dxf(ab);if(!out||!out.length)throw new Error("That DWG couldn’t be converted — save it as DXF from CAD and drop that.");return new TextDecoder("utf-8").decode(out);});}).then(cdFromDxfText);
+ else p=file.text().then(cdFromDxfText);
+ p.then(function(){S.busy="";cdAfterLoad();cdRender();}).catch(function(e){S.busy="";S.msg=(e&&e.message)||String(e);cdRender();});}
+function cdFromDxfText(t){var S=cdS,D=cdDxfParse(t),F=cdDxfFlatten(D);if(!F.paths.length&&!F.texts.length)throw new Error("No drawing found in that file — is it a DXF?");
+ var b=cdBounds(F.paths),ext=Math.max(b[2]-b[0],b[3]-b[1])||1,cell=Math.max(ext/300,0.5);
+ var idx=cdIndex(F.paths,cell),B=cdFindBubbles(F,{idx:idx});
+ var iu=+D.hdr.$INSUNITS;S.src={kind:"cad",F:F,idx:idx,EI:cdEndIndex(F.paths,Math.max(ext*2e-7,0.002)),eps:Math.max(ext*2e-7,0.002),gap:0,bounds:b,units:iu===2||iu===1?"ft":iu===6?"m":"",hdr:D.hdr};
+ S.B=B;S.T={kind:"asdrawn",k:1,f:function(p){return [p[0],p[1]];}};S.tie.mode="asdrawn";}
+function cdPdfPage(n){var S=cdS;S.busy="Reading page "+n+" …";cdRender();
+ return S.pdf.getPage(n).then(function(page){return page.getOperatorList().then(function(ol){var F=cdPdfPrims(cdPdfPaths(ol,window.pdfjsLib.OPS)),idx=cdIndex(F.paths,10);
+  var B=cdPdfBubbles(F,idx);B.forEach(function(b){if(b.E.path)b.E.path.ell=true;});
+  S.src={kind:"pdf",F:F,idx:idx,EI:cdEndIndex(F.paths,0.25),eps:0.25,gap:15,bounds:[page.view[0],page.view[1],page.view[2],page.view[3]],view:page.view,page:n};
+  S.file.page=n;S.B=B;S.sel={};S.st={};S.lines=[];S.act=-1;S.view=null;S.focus=null;S.res=null;if(S.tie.mode==="underlay"&&S.tie.ok)cdTieUnderlay(true);else if(S.tie.mode!=="underlay"){S.T=null;S.tie.pairs=[];}
+  if(!S.tie.mode)S.tie.mode="underlay";});});}
+function cdBounds(paths){var x0=1e18,y0=1e18,x1=-1e18,y1=-1e18;paths.forEach(function(P){P.p.forEach(function(q){if(q[0]<x0)x0=q[0];if(q[0]>x1)x1=q[0];if(q[1]<y0)y0=q[1];if(q[1]>y1)y1=q[1];});});return [x0,y0,x1,y1];}
+function cdAfterLoad(){var S=cdS;if(!S.o.start)S.o.start=String(cdNextBlock());if(!S.o.istart)S.o.istart=String(parseInt(S.o.start,10)+200);
+ var L={};S.B.forEach(function(b){L[b.lay||"(sheet)"]=(L[b.lay||"(sheet)"]||0)+1;});S.layers=L;cdRun();}
+/* ---- tie-in ---- */
+function cdTieUnderlay(quiet){var S=cdS,t=S.tie,E0=parseFloat(t.E0),N0=parseFloat(t.N0),sc=String(t.s).trim(),r=parseFloat(t.rot)||0,s;
+ var m=/^1\s*:\s*([\d.]+)$/.exec(sc);s=m?parseFloat(m[1])/1000:parseFloat(sc);
+ if(!(isFinite(E0)&&isFinite(N0)&&s>0)){if(!quiet)S.msg="Enter the underlay's insertion easting, northing and scale (metres per sheet mm, e.g. 0.25 or 1:250).";cdRender();return;}
+ S.T=cdUnderlayT(S.src.view,E0,N0,s,r);S.T.label="underlay at E "+E0.toFixed(3)+", N "+N0.toFixed(3)+", "+s+" m per sheet mm"+(r?", rotated "+r+"°":"");t.ok=true;S.msg="";S.tv++;cdRun();if(!quiet)cdRender();}
+function cdTiePairs(){var S=cdS,t=S.tie,pr=t.pairs.filter(function(q){return q.dst;});var f=cdFitPairs(pr,S.src.kind==="cad"&&t.rigid);
+ if(!f){S.msg="Pick at least two points on the "+cdUnitsLabel()+" and give each its point number or N, E.";cdRender();return;}
+ S.T=f;S.T.label=(S.src.kind==="pdf"?"fitted to "+pr.length+" points (1:"+Math.round(1000*f.k*72/25.4)+", rotation "+f.rot.toFixed(3)+"°)":"fitted to "+pr.length+" points (rotation "+f.rot.toFixed(4)+"°"+(t.rigid?"":", scale "+f.k.toFixed(6))+")");
+ pr.forEach(function(q,i){q.res=f.res[i];});t.ok=true;S.msg="";S.tv++;cdRun();cdRender();}
+function cdTieAsDrawn(){var S=cdS;S.T={kind:"asdrawn",k:1,f:function(p){return [p[0],p[1]];}};S.tie.mode="asdrawn";S.tv++;cdRun();cdRender();}
+/* ---- lines ---- */
+function cdSame(S){return S.src.kind==="pdf"?function(a,b){return Math.abs((a.w||0)-(b.w||0))<0.02;}:function(a,b){return (a.lay||"")===(b.lay||"");};}
+function cdPickLine(q,tol){var S=cdS,src=S.src,h=src.idx.near(q,tol).filter(function(x){var P=src.F.paths[x.pi];return !P.ell&&!P.glyph;}).sort(function(a,b){return a.d-b.d;})[0];if(!h)return false;
+ var tr=cdTrace(src.F.paths,src.EI,h.pi,{eps:src.eps,gap:src.kind==="pdf"?src.gap:(parseFloat(S.cadGap)||0),sameOf:cdSame(S)});
+ if(S.act>=0&&S.lines[S.act]){var L=S.lines[S.act];L.pieces.push(tr);cdJoin(L);}
+ else{var n=S.lines.length,nm=n===0?"GUTTER":n===1?"CL":"LINE "+(n+1);S.lines.push({name:nm,pieces:[tr],rev:false,col:CD_LINECOL[n%CD_LINECOL.length]});S.act=S.lines.length-1;cdJoin(S.lines[S.act]);}
+ cdRun();return true;}
+/* pieces of one line joined end to end in pick order (nearest ends) */
+function cdJoin(L){var P=L.pieces,tr={pts:P[0].pts.slice(),am:P[0].am.slice(),gap:P[0].gap.slice()};
+ for(var i=1;i<P.length;i++){var q=P[i],a=tr.pts[0],b=tr.pts[tr.pts.length-1],c=q.pts[0],d=q.pts[q.pts.length-1],opts=[[cdHyp(b,c),"bc"],[cdHyp(b,d),"bd"],[cdHyp(a,d),"ad"],[cdHyp(a,c),"ac"]].sort(function(x,y){return x[0]-y[0];})[0][1];
+  var qp=q.pts.slice(),qa=q.am.slice(),qg=q.gap.slice();if(opts==="bd"||opts==="ac"){qp.reverse();qa.reverse();qg.reverse();}
+  if(opts[0]==="b"){tr.am.push(null);tr.gap.push(true);tr.pts=tr.pts.concat(qp);tr.am=tr.am.concat(qa);tr.gap=tr.gap.concat(qg);}
+  else{qa.push(null);qg.push(true);tr.pts=qp.concat(tr.pts);tr.am=qa.concat(tr.am);tr.gap=qg.concat(tr.gap);}}
+ if(L.rev){tr.pts.reverse();tr.am.reverse();tr.gap.reverse();}L.tr=tr;L.tv=-1;}
+function cdLineW(L){var S=cdS;if(!S.T)return null;if(L.tv!==S.tv){L.C=cdChainW(L.tr,S.T.f);L.curves=cdCurves(L.C);L.tv=S.tv;}return L.C;}
+/* ---- the run ---- */
+function cdOpts(){var o=cdS.o,n=function(v,d){var x=parseFloat(v);return isFinite(x)?x:d;};
+ return {tol:n(o.tol,0.05),near:n(o.near,0.5),meet:!!o.meet,interp:!!o.interp,gap:n(o.gap,30),start:Math.max(1,Math.round(n(o.start,7001))),istart:Math.max(1,Math.round(n(o.istart,7201))),skip:0.5};}
+function cdRun(){var S=cdS;if(!S||!S.src)return;if(!S.T){S.res=null;return;}
+ var lines=S.lines.map(function(L){cdLineW(L);return {name:String(L.name||"LINE").toUpperCase().trim()||"LINE",C:L.C,curves:L.curves};});
+ S.res=cdCompute({B:S.B,T:S.T,lines:lines,sel:S.sel,st:S.st,o:cdOpts()});}
+/* ---- actions ---- */
+function cdSetSt(id,s,extra){var S=cdS,b=S.B[id];if(!b)return;var cur=S.st[id]||{};
+ if(s==="ok"&&b.unread&&cur.s!=="fix"){S.msg="Type this bubble’s value first — it couldn’t be read.";S.focus=id;cdRender();return;}
+ if(s==="ok"&&cur.s==="ok"){delete S.st[id];}
+ else{S.st[id]=Object.assign({},cur,{s:s},extra||{});if(s==="ok"&&b.glyphs&&b.conf<1)S.learned+=cdLearn(b.glyphs,b.s);}
+ S.sel[id]=1;cdRun();cdRender();}
+function cdFix(id,v){var S=cdS,b=S.B[id];if(!b)return;v=String(v).trim();if(!v){delete S.st[id];cdRun();cdRender();return;}
+ if(/^meet$/i.test(v)){S.st[id]={s:"fix",v:null,meetFix:true};}
+ else{var x=parseFloat(v.replace(/[()]/g,""));if(!isFinite(x)){S.msg="“"+v+"” isn’t an elevation.";cdRender();return;}S.st[id]={s:"fix",v:x,txt:v};if(b.glyphs)S.learned+=cdLearn(b.glyphs,v.replace(/[()]/g,""));}
+ S.sel[id]=1;cdRun();cdRender();}
+function cdDrop(id,why){var S=cdS;S.st[id]={s:"drop",why:why||"not needed"};S.sel[id]=1;cdRun();cdRender();}
+function cdTag(id,tag){var S=cdS;var cur=S.st[id]||{};cur.tag=tag;S.st[id]=cur;cdRun();cdRender();}
+function cdSelAlong(){var S=cdS;if(!S.res)return;var n=0;S.B.forEach(function(b){var p=S.res.per[b.id];if(p&&p.line){if(!S.sel[b.id])n++;S.sel[b.id]=1;}});S.msg=n?n+" bubble"+(n===1?"":"s")+" on or near the picked lines added.":"No more bubbles on or near the picked lines.";cdRun();cdRender();}
+function cdSelAll(on){var S=cdS;if(on)S.B.forEach(function(b){S.sel[b.id]=1;});else{S.sel={};}cdRun();cdRender();}
+function cdConfirmClean(){var S=cdS;if(!S.res)return;var n=0;S.B.forEach(function(b){var p=S.res.per[b.id];if(p&&p.inSet&&!b.meet&&!p.st&&!p.amber){S.st[b.id]={s:"ok"};n++;}});S.msg=n?"Confirmed "+n+" bubble"+(n===1?"":"s")+" with nothing flagged — the flagged ones still need a look.":"Nothing unflagged left to confirm.";cdRun();cdRender();}
+function cdReread(){var S=cdS;if(!S.src||S.src.kind!=="pdf")return;var T=cdGlyphSet(),n=0;
+ S.B.forEach(function(b){var st=S.st[b.id];if(st&&(st.s==="ok"||st.s==="fix"))return;var run=cdGlyphRun(b.E,S.src.idx),r=cdReadRun(run,T);if(!r||!CD_VALRE.test(r.s)&&!/^MEET$/i.test(r.s))return;b.unread=false;
+  var conf=r.worst<=0.04&&!r.amb?1:r.worst<=0.08?0.6:0.3;if(r.s!==b.s||conf!==b.conf){n++;b.s=r.s;b.meet=/^MEET$/i.test(r.s);b.val=b.meet?null:parseFloat(r.s.replace(/[()]/g,""));b.paren=/^\(.*\)$/.test(r.s);b.conf=conf;b.glyphs=r.glyphs;
+   b.flags=b.flags.filter(function(f){return !/read|hard to read|couldn/.test(f);});if(conf<1)b.flags.push(conf<0.5?"hard to read — check the value":"read with some doubt — check the value");}});
+ S.msg="Re-read with the shapes learned from your checks — "+n+" value"+(n===1?"":"s")+" changed.";cdRun();cdRender();}
+/* ---- outputs ---- */
+function cdBase(){var n=(cdS.file&&cdS.file.name)||"design";return n.replace(/\.[^.]+$/,"")+(cdS.src&&cdS.src.kind==="pdf"?"-p"+cdS.src.page:"");}
+function cdBlocked(){var S=cdS,R=S.res;if(!S.T)return "Place the "+cdUnitsLabel()+" first (above).";if(!R)return "Nothing to save yet.";if(!R.rows.length)return "No confirmed design points yet — select bubbles and confirm them.";
+ if(R.pending)return R.pending+" selected bubble"+(R.pending===1?" still needs":"s still need")+" confirming or dropping"+(R.amber?" ("+R.amber+" flagged)":"")+".";return "";}
+function cdSave(which){var S=cdS,R=S.res;if(cdBlocked())return;var B=cdBase()+"-DESIGN-PTS",txt,fn,type="text/plain";
+ if(which==="txt"){txt=cdPnezd(R.rows);fn=B+".txt";}
+ else if(which==="dxf"){txt=cdPointsDxf(R.rows,"CALC "+new Date().toISOString().slice(2,10).replace(/-/g,"")+" DESIGN PTS",parseFloat(S.o.th)||0.5);fn=B+".dxf";type="application/dxf";}
+ else{txt=cdSummary();fn=B+"-SUMMARY.txt";}
+ cuSaveText(txt,fn,type);S.msg="Saved "+fn+".";cdRender();}
+function cdSummary(){var S=cdS,R=S.res;if(!R)return "";var L=[],st=S.st,cnt={ok:0,fix:0,drop:0};Object.keys(S.sel).forEach(function(id){var x=st[id];if(x&&cnt[x.s]!==undefined)cnt[x.s]++;});
+ L.push("Coordinate design — "+(S.file?S.file.name:"")+(S.src.kind==="pdf"?" (page "+S.src.page+")":"")+" — "+new Date().toISOString().slice(0,10));
+ L.push("Placement: "+(S.T.label||"as drawn"));
+ if(S.tie.pairs&&S.tie.pairs.some(function(q){return q.res;}))S.tie.pairs.forEach(function(q){if(q.res)L.push("  pair "+(q.label||"")+": residual "+q.res.d.toFixed(3)+" m");});
+ L.push("Lines: "+(S.lines.length?S.lines.map(function(x){return (x.name||"LINE")+" ("+(x.C?x.C.L.toFixed(1):"?")+" m, "+(x.curves?x.curves.length:0)+" curve"+((x.curves||[]).length===1?"":"s")+")";}).join("; "):"none"));
+ L.push("Bubbles: "+Object.keys(S.sel).length+" selected — "+cnt.ok+" confirmed, "+cnt.fix+" corrected, "+cnt.drop+" dropped"+(S.o.meet?"; MEET included horizontal-only":"; MEET left out"));
+ L.push("Points: "+R.counts.des+" design ("+S.o.start+"…)"+(R.counts.interp?", "+R.counts.interp+" interpolated curve points ("+S.o.istart+"…, INTERP)":""));
+ var cor=S.B.filter(function(b){var x=st[b.id];return S.sel[b.id]&&x&&x.s==="fix";});if(cor.length){L.push("Corrected:");cor.forEach(function(b){var row=R.rows.find(function(r){return r.b===b;});L.push("  "+(row?row.pt:"-")+"  read "+b.s+" -> "+(st[b.id].txt||st[b.id].v));});}
+ var sw=S.B.filter(function(b){return S.sel[b.id]&&b.swapped;});if(sw.length){L.push("Leader switched to the bubble drawn underneath:");sw.forEach(function(b){L.push("  "+b.s);});}
+ var dr=S.B.filter(function(b){var x=st[b.id];return S.sel[b.id]&&x&&x.s==="drop";});if(dr.length){L.push("Dropped:");dr.forEach(function(b){var p=R.per[b.id];L.push("  "+b.s+"  at E "+p.W[0].toFixed(3)+" N "+p.W[1].toFixed(3)+" — "+(st[b.id].why||""));});}
+ if(R.interp.length){L.push("Interpolated curve points (linear by distance along the line):");R.interp.forEach(function(q){L.push("  "+q.pt+"  "+q.line+" "+q.k+"  R "+q.r.toFixed(2)+"  N "+q.W[1].toFixed(3)+" E "+q.W[0].toFixed(3)+"  "+q.z.toFixed(3)+"  between "+q.z0+" and "+q.z1+" ("+(q.grade>=0?"+":"")+q.grade.toFixed(2)+"%)");});}
+ if(R.gaps.length){L.push("Long stretches without design points (check before staking):");R.gaps.forEach(function(g){L.push("  "+g.line+": "+g.len.toFixed(1)+" m from "+g.z0+" to "+g.z1+" ("+(g.grade>=0?"+":"")+g.grade.toFixed(2)+"%)");});}
+ if(R.notes.length){L.push("Notes:");R.notes.forEach(function(n){L.push("  "+n);});}
+ return L.join("\r\n")+"\r\n";}
+/* hand the result to Design vs Field: a shelf file plus the lines (for stake-to-line) */
+function cdToDvf(){var S=cdS,R=S.res;if(cdBlocked())return;var nm=cdBase()+"-DESIGN-PTS.txt",txt=cdPnezd(R.rows);
+ var lines=S.lines.map(function(L){var C=L.C,zs=[];R.rows.forEach(function(r){var pr=cdProject(C,[r.E,r.N]);if(pr&&pr.d<=cdOpts().tol+1e-9&&!/^MEET/.test(r.desc)&&!(r.interp&&r.interp.line!==String(L.name||"").toUpperCase().trim()))zs.push({s:pr.s,z:r.Z,pt:r.pt});});
+  zs.sort(function(a,b){return a.s-b.s;});return {name:String(L.name||"LINE").toUpperCase(),P:C.P,st:C.st,zs:zs,closed:cdHyp(C.P[0],C.P[C.P.length-1])<0.05};});
+ cuParse(txt,nm);var src=cuSources.find(function(s){return s.name===nm;});if(src)src.cdLines=lines;
+ if(!cuDvf)cuDvf=cuDvfNew();cuDvf.dSrc=src?src.id:null;cuDvf.dBlocks={};cuDvf.dRange="";cuDvf.auto=true;cuDvf.res=null;cuDvf.open=true;
+ if(cuSources.length>1){var other=cuSources.filter(function(s){return s!==src;});cuDvf.fSrc=other[other.length-1].id;cuDvf.fBlocks={};}
+ cuDvf.line={on:lines.length>0,src:"cd",ranges:(cuDvf.line&&cuDvf.line.ranges)||"",maxOff:(cuDvf.line&&cuDvf.line.maxOff)||"3.00"};cuToolSet("dvf");cuRender();}
+window.cdLoadFile=cdLoadFile;window.cdSave=cdSave;window.cdToDvf=cdToDvf;window.cdSelAlong=cdSelAlong;window.cdSelAll=cdSelAll;window.cdConfirmClean=cdConfirmClean;window.cdReread=cdReread;window.cdTieUnderlay=cdTieUnderlay;window.cdTiePairs=cdTiePairs;window.cdTieAsDrawn=cdTieAsDrawn;
+window.cdState=function(){return cdS;};window.cdPickLine=cdPickLine;window.cdSetSt=cdSetSt;window.cdFix=cdFix;window.cdDrop=cdDrop;window.cdSummary=cdSummary;window.cdRun=cdRun;
+
+/* ---- panel ---- */
+function cdRender(){var host=document.getElementById("cu-cd");if(!host)return;if(!cdS)cdS=cdNew();var S=cdS,E=esc,R=S.res;
+ var h="<div class='hint' style='margin:0 0 8px'>Coordinates the engineer’s design elevation bubbles — from their CAD file (.dxf / .dwg) or a vector PDF. Each bubble’s point is the end of its leader. Pick the line(s) the bubbles sit on (gutter, centreline, swale), confirm the values, and save a points file — or send it straight to Design vs Field for cut / fills. MEET bubbles are left out unless you include them (horizontal only).</div>";
+ h+="<div class='row'><label class='btn' style='margin-right:8px'>Engineer’s drawing (.dxf / .dwg / .pdf)<input type='file' id='cd-file' accept='.dxf,.dwg,.pdf' style='display:none'></label>";
+ if(S.file)h+="<b>"+E(S.file.name)+"</b>"+(S.src&&S.src.kind==="pdf"?" — page <input type='text' id='cd-page' value='"+E(String(S.file.page||1))+"' style='width:44px'> of "+(S.file.pages||"?"):"");
+ h+="</div>";
+ if(S.busy)h+="<div class='cu-sfhit'>"+E(S.busy)+"</div>";
+ if(S.msg)h+="<div class='cu-sfhit cd-msg'>"+E(S.msg)+"</div>";
+ if(!S.src){host.innerHTML=h;cdWire(host);return;}
+ var nB=S.B.length,nM=S.B.filter(function(b){return b.meet;}).length;
+ h+="<div class='cu-mtsum'>"+nB+" bubble"+(nB===1?"":"s")+" found"+(nM?" ("+nM+" MEET)":"")+(S.src.kind==="cad"?" · "+S.src.F.paths.length+" lines"+(S.src.units?" · drawing units "+S.src.units:""):" · read from the PDF’s strokes")+(S.layers&&S.src.kind==="cad"?" · bubble layers: "+Object.keys(S.layers).map(function(l){return E(l)+" ("+S.layers[l]+")";}).join(", "):"")+"</div>";
+ if(S.src.kind==="pdf"&&!nB)h+="<div class='cu-pkgwarn'>No design bubbles on page "+S.src.page+" — type the grading plan’s page number above.</div>";
+ if(S.src.kind==="cad"&&S.src.units==="ft")h+="<div class='cu-pkgwarn'>This drawing says it’s in feet — the points come out in the drawing’s units.</div>";
+ /* placement */
+ var t=S.tie,pdf=S.src.kind==="pdf";
+ h+="<details class='cu-fold cd-tie' id='cd-tiefold'"+(S.open.tie?" open":"")+"><summary>Placement — "+(S.T?E(S.T.kind==="asdrawn"?"as drawn (the drawing’s own coordinates)":S.T.label||""):"<span class='cu-pkgwarn'>not placed yet</span>")+"</summary><div class='cu-manual cu-mt'>";
+ if(pdf){h+="<div class='seg' style='margin-bottom:8px'><button data-tm='underlay' class='"+(t.mode==="underlay"?"on":"")+"'>Underlay values</button><button data-tm='pairs' class='"+(t.mode==="pairs"?"on":"")+"'>Pick matching points</button></div>";}
+ else{h+="<div class='seg' style='margin-bottom:8px'><button data-tm='asdrawn' class='"+(t.mode==="asdrawn"?"on":"")+"'>As drawn</button><button data-tm='pairs' class='"+(t.mode==="pairs"?"on":"")+"'>Pick matching points</button></div>";}
+ if(pdf&&t.mode==="underlay"){h+="<div class='hint' style='margin:0 0 6px'>The PDF placed as an underlay in MicroSurvey: its insertion point (the sheet’s lower-left corner), scale and rotation.</div><div class='row'><label>Insert E</label><input type='text' id='cd-e0' style='width:130px;margin:0 10px 0 6px' value='"+E(t.E0)+"'><label>N</label><input type='text' id='cd-n0' style='width:130px;margin:0 10px 0 6px' value='"+E(t.N0)+"'><label>Scale</label><input type='text' id='cd-sc' style='width:110px;margin:0 4px 0 6px' value='"+E(t.s)+"' placeholder='0.25 or 1:250'><span class='hint' style='margin:0 10px 0 0'>m per sheet mm</span><label>Rotation</label><input type='text' id='cd-rot' style='width:60px;margin:0 4px 0 6px' value='"+E(t.rot)+"'>° <button class='btn pri' style='margin-left:10px' onclick='cdTieUnderlay()'>Place</button></div>";}
+ if(t.mode==="pairs"){h+="<div class='hint' style='margin:0 0 6px'>Tap <b>Pick point</b> above the drawing, click a corner on it (it snaps to line ends and crossings), then type its point number from a file on the shelf, or N, E. "+(pdf?"Two points fix the placement; three or more show residuals.":"Rotation and shift only"+(t.rigid?"":" + scale")+".")+"</div>";
+  if(!pdf)h+="<label class='cu-cb'><input type='checkbox' id='cd-rigid' "+(t.rigid?"checked":"")+"> keep the drawing’s scale (rotation + shift only)</label>";
+  if(t.pairs.length){h+="<table class='cu-mtt'><tr><th>#</th><th>On the "+cdUnitsLabel()+"</th><th>Point # or N, E</th><th>Residual</th><th></th></tr>";t.pairs.forEach(function(q,i){h+="<tr><td>"+(i+1)+"</td><td>"+q.src.map(function(v){return v.toFixed(pdf?2:3);}).join(", ")+"</td><td><input type='text' class='cd-pdst' data-i='"+i+"' style='width:200px' value='"+E(q.txt||"")+"' placeholder='e.g. 105  or  5434361.88, 552423.91'>"+(q.dst&&q.label?" <span class='cu-mtcode'>"+E(q.label)+"</span>":"")+"</td><td>"+(q.res?q.res.d.toFixed(3)+" m":"")+"</td><td><button class='cu-srcx cd-pdel' data-i='"+i+"'>✕</button></td></tr>";});h+="</table>";}
+  h+="<div class='cu-dl'><button class='btn pri' onclick='cdTiePairs()'"+(t.pairs.filter(function(q){return q.dst;}).length>=2?"":" disabled")+">Fit</button>"+(!pdf?"<button class='btn' onclick='cdTieAsDrawn()'>Back to as drawn</button>":"")+"</div>";}
+ h+="</div></details>";
+ /* viewer */
+ h+="<div class='cd-bar'><span class='seg'>"+[["pan","Move"],["box","Select bubbles"],["line","Pick line"],["pair","Pick point"]].map(function(m){return "<button data-cm='"+m[0]+"' class='"+(S.mode===m[0]?"on":"")+"'"+((m[0]==="line"&&!S.T)||(m[0]==="pair"&&t.mode!=="pairs")?" disabled":"")+">"+m[1]+"</button>";}).join("")+"</span>";
+ h+=" <button class='btn ghost' onclick='cdZoomAll()'>Whole drawing</button> <button class='btn ghost' onclick='cdSelAlong()'"+(S.lines.length&&S.T?"":" disabled")+">Select bubbles on the lines</button> <button class='btn ghost' onclick='cdSelAll(true)'>Select all</button> <button class='btn ghost' onclick='cdSelAll(false)'>Clear selection</button></div>";
+ h+="<div class='hint' style='margin:2px 0 4px'>"+({pan:"Drag to move, scroll to zoom; click a bubble to check it.",box:"Drag a box round bubbles to add them (Shift-drag removes); click one to add / remove it.",line:"Click a line on the drawing — it’s followed to its ends. "+(S.act>=0&&S.lines[S.act]?"Clicks add to <b>"+E(S.lines[S.act].name)+"</b>; tap + New line for another.":""),pair:"Click a corner on the "+cdUnitsLabel()+" — then type its point number or N, E in the list above."})[S.mode]+"</div>";
+ h+="<div class='hc-wrap'><canvas id='cd-cv' class='hc-cv cd-cv'></canvas><div class='hc-info cd-side'>"+cdFocusHtml()+cdLinesHtml()+cdLegendHtml()+"</div></div>";
+ /* options */
+ var o=S.o;
+ h+="<div class='row cd-opts'><label>On-line tolerance</label><input type='text' id='cd-tol' value='"+E(o.tol)+"' style='width:50px;margin:0 4px 0 6px'>m <label class='cu-cb' style='margin-left:12px'><input type='checkbox' id='cd-meet' "+(o.meet?"checked":"")+"> Include MEET (horizontal only)</label> <label class='cu-cb' style='margin-left:12px'><input type='checkbox' id='cd-interp' "+(o.interp?"checked":"")+"> Interpolate BC / MC / EC on curves</label> <label style='margin-left:12px'>Flag stretches over</label><input type='text' id='cd-gap' value='"+E(o.gap)+"' style='width:44px;margin:0 4px 0 6px'>m</div>";
+ h+="<div class='row cd-opts'><label>Design points from</label><input type='text' id='cd-start' value='"+E(o.start)+"' style='width:70px;margin:0 12px 0 6px'><label>Curve points from</label><input type='text' id='cd-istart' value='"+E(o.istart)+"' style='width:70px;margin:0 12px 0 6px'><label>Label height</label><input type='text' id='cd-th' value='"+E(o.th)+"' style='width:44px;margin:0 4px 0 6px'><span class='hint' style='margin:0'>(.dxf)</span></div>";
+ /* selected bubbles */
+ var selIds=S.B.filter(function(b){return S.sel[b.id];});
+ if(selIds.length&&R){var rowOf={};R.rows.forEach(function(r){if(r.b)rowOf[r.b.id]=r;});
+  var ord=selIds.slice().sort(function(a,b){var pa=R.per[a.id],pb=R.per[b.id],la=pa.line?pa.line.li:99,lb=pb.line?pb.line.li:99;return (la-lb)||((pa.line?pa.line.s:0)-(pb.line?pb.line.s:0))||(pb.W[1]-pa.W[1]);});
+  h+="<div class='cu-mtsum' style='margin-top:10px'>"+selIds.length+" selected · "+R.counts.des+" design point"+(R.counts.des===1?"":"s")+(R.counts.interp?" · "+R.counts.interp+" curve point"+(R.counts.interp===1?"":"s"):"")+(R.pending?" · <b>"+R.pending+" to check</b>"+(R.amber?" ("+R.amber+" flagged)":""):"")+"</div>";
+  h+="<div class='cu-dl' style='margin:4px 0'><button class='btn' onclick='cdConfirmClean()'>Confirm all with nothing flagged</button>"+(S.src.kind==="pdf"?"<button class='btn ghost' onclick='cdReread()' title='reads the unconfirmed bubbles again using the character shapes learned from your checks'>Re-read with what it’s learned"+(S.learned?" ("+S.learned+")":"")+"</button>":"")+"</div>";
+  h+="<div style='overflow-x:auto;max-height:420px;overflow-y:auto'><table class='cu-mtt cd-tbl'><tr><th>Pt</th><th>Value</th><th>Status</th><th>Line</th><th>Off</th><th>Note</th><th></th></tr>";
+  ord.forEach(function(b){var p=R.per[b.id],st=S.st[b.id]||{},r=rowOf[b.id],ln=p.line?S.lines[p.line.li]:null;
+   var stat=b.meet&&!st.s?(S.o.meet?"MEET — horizontal only":"MEET — left out"):st.s==="ok"?"<span class='cd-ok'>✓ confirmed</span>":st.s==="fix"?"<span class='cd-ok'>✓ corrected</span>":st.s==="drop"?"<span class='cd-drop'>✕ "+E(st.why||"dropped")+"</span>":"<span class='"+(p.amber?"cd-amb":"cd-pend")+"'>to check</span>";
+   h+="<tr data-cdb='"+b.id+"' class='"+(S.focus===b.id?"on":"")+(p.amber&&!st.s?" amb":"")+"'><td>"+(r?r.pt:"")+"</td><td>"+(b.meet&&!st.s?"MEET":"<input type='text' class='cd-val' data-id='"+b.id+"' value='"+E(st.s==="fix"?(st.txt||(st.meetFix?"MEET":String(st.v))):(b.unread?"":b.s))+"' placeholder='"+(b.unread?"type it":"")+"' style='width:64px'>")+"</td><td>"+stat+"</td><td>"+(ln?"<span style='color:"+ln.col+"'>"+E(ln.name)+"</span>":"")+"</td><td>"+(p.line?p.line.d.toFixed(2):"")+"</td><td class='cu-mtcode'>"+E(p.flags.join("; "))+(st.tag?" "+E(st.tag):"")+"</td><td style='white-space:nowrap'>"+(b.meet?"":"<button class='cd-okb' data-id='"+b.id+"' title='confirm'>✓</button>")+"<select class='cd-dropsel' data-id='"+b.id+"' title='drop with a reason'><option value=''>✕</option><option>lot / building corner</option><option>off the line</option><option>duplicate</option><option>not needed</option><option>wrong value on the drawing</option></select></td></tr>";});
+  h+="</table></div>";}
+ else if(S.T)h+="<div class='hint'>Select the bubbles you want: pick the line(s) and tap <b>Select bubbles on the lines</b>, or drag a box with <b>Select bubbles</b>.</div>";
+ /* results */
+ if(R&&(R.gaps.length||R.notes.length||R.interp.length)){h+="<details class='cu-fold' style='margin-top:8px'"+(R.gaps.length?" open":"")+"><summary>Curve points, long stretches and notes</summary><div class='cu-manual cu-mt'>";
+  if(R.gaps.length)h+="<div class='cu-pkgwarn' style='display:block;margin-bottom:6px'>Long stretches without a design point — check before staking: "+R.gaps.map(function(g){return E(g.line)+" "+g.len.toFixed(1)+" m from "+g.z0+" to "+g.z1+" ("+(g.grade>=0?"+":"")+g.grade.toFixed(2)+"%)";}).join("; ")+"</div>";
+  if(R.interp.length){h+="<table class='cu-mtt'><tr><th>Pt</th><th>Line</th><th>Point</th><th>R</th><th>N</th><th>E</th><th>Elev</th><th>Between</th></tr>"+R.interp.map(function(q){return "<tr><td>"+q.pt+"</td><td>"+E(q.line)+"</td><td>"+q.k+"</td><td>"+q.r.toFixed(2)+"</td><td>"+q.W[1].toFixed(3)+"</td><td>"+q.W[0].toFixed(3)+"</td><td>"+q.z.toFixed(3)+"</td><td>"+q.z0+" → "+q.z1+" ("+(q.grade>=0?"+":"")+q.grade.toFixed(2)+"%)</td></tr>";}).join("")+"</table>";}
+  if(R.notes.length)h+="<div class='hint'>"+R.notes.map(E).join("<br>")+"</div>";h+="</div></details>";}
+ var bl=cdBlocked();
+ h+="<div class='cu-dl' style='margin-top:10px'><button class='btn pri' onclick='cdSave(\"txt\")'"+(bl?" disabled":"")+">Points file (.txt)</button><button class='btn' onclick='cdSave(\"dxf\")'"+(bl?" disabled":"")+">Points for the drawing (.dxf)</button><button class='btn' onclick='cdSave(\"sum\")'"+(bl?" disabled":"")+">Summary (.txt)</button><button class='btn' onclick='cdToDvf()'"+(bl?" disabled":"")+">Send to Design vs Field</button>"+(bl?"<span class='hint' style='margin:0'>"+E(bl)+"</span>":"")+"</div>";
+ host.innerHTML=h;cdWire(host);}
+function cdFocusHtml(){var S=cdS,E=esc,id=S.focus,b=id!==null&&id!==undefined?S.B[id]:null;if(!b||!S.res)return "<div class='hint' style='margin:0 0 8px'>Click a bubble on the drawing, or a row below.</div>";
+ var p=S.res.per[b.id],st=S.st[b.id]||{},h="<div class='cd-card'><div><b>"+E(b.meet?"MEET":b.unread?"(couldn’t read)":b.s)+"</b>"+(b.conf<1?" <span class='cd-amb'>(read from the PDF — check)</span>":"")+"</div>";
+ h+="<div class='hint' style='margin:2px 0'>"+(p.W?"E "+p.W[0].toFixed(3)+"  N "+p.W[1].toFixed(3):"")+(b.lay?" · "+E(b.lay):"")+(p.line?" · "+E(S.lines[p.line.li].name)+" "+p.line.d.toFixed(3)+" m":"")+"</div>";
+ if(p.flags.length)h+="<div class='cd-amb' style='font-size:12.5px'>"+E(p.flags.join("; "))+"</div>";
+ if(b.underTip)h+="<div style='margin-top:4px'><button class='btn ghost cd-swap' data-id='"+b.id+"'>"+(b.swapped?"Back to the top bubble’s leader":"Use the leader underneath")+"</button></div>";
+ h+="<div style='margin-top:6px'>"+(S.sel[b.id]?"<button class='btn ghost cd-unsel' data-id='"+b.id+"'>Leave out</button>":"<button class='btn ghost cd-addsel' data-id='"+b.id+"'>Select</button>")+(b.meet?"":" <button class='btn"+(st.s==="ok"?" pri":"")+" cd-okb' data-id='"+b.id+"'>✓ Confirm</button>")+"</div>";
+ if(!b.meet)h+="<div style='margin-top:6px'><label class='hint' style='margin:0'>Description</label> <select class='cd-tag' data-id='"+b.id+"'><option value=''"+(!st.tag?" selected":"")+">line name / DESIGN</option><option"+(st.tag==="SWALE INV"?" selected":"")+">SWALE INV</option><option"+(st.tag==="TW"?" selected":"")+">TW</option><option"+(st.tag==="BW"?" selected":"")+">BW</option></select></div>";
+ return h+"</div>";}
+function cdLinesHtml(){var S=cdS,E=esc,h="<div class='cd-lines'><div class='cd-h'>Lines</div>";
+ if(!S.lines.length)h+="<div class='hint' style='margin:0'>"+(S.T?"Use <b>Pick line</b> and click the gutter, centreline or swale.":"Place the "+cdUnitsLabel()+" first.")+"</div>";
+ S.lines.forEach(function(L,i){h+="<div class='cd-line"+(S.act===i?" on":"")+"' data-li='"+i+"'><span class='cd-sw' style='background:"+L.col+"'></span><input type='text' class='cd-lname' data-li='"+i+"' value='"+E(L.name)+"' style='width:86px'> <span class='hint' style='margin:0'>"+(L.C?L.C.L.toFixed(1)+" m · "+(L.curves||[]).length+" curve"+((L.curves||[]).length===1?"":"s"):"")+"</span><br><button class='cd-mini cd-lrev' data-li='"+i+"' title='numbering and BC / EC run the other way'>⇄ reverse</button><button class='cd-mini cd-lact' data-li='"+i+"'>"+(S.act===i?"adding to this":"add to this")+"</button><button class='cd-mini cd-ldel' data-li='"+i+"'>remove</button></div>";});
+ if(S.lines.length)h+="<button class='cd-mini' id='cd-lnew'>+ New line</button>";
+ return h+"</div>";}
+function cdLegendHtml(){return "<div class='cd-leg'><span><i style='border-color:#9aa0a6'></i>found</span><span><i style='border-color:#2456A6'></i>selected</span><span><i style='border-color:#d48806;background:#fff3d6'></i>flagged</span><span><i style='border-color:#2a8a3a;background:#2a8a3a'></i>confirmed</span><span><i style='border-color:#b91c1c'></i>dropped</span><span><i style='border-color:#a07bb7'></i>MEET</span><span><i style='border-color:#111;border-style:dotted'></i>curve point</span></div>";}
+function cdWire(host){var S=cdS;
+ var fi=document.getElementById("cd-file");if(fi)fi.onchange=function(){var f=fi.files[0];fi.value="";if(f)cdLoadFile(f);};
+ var pg=document.getElementById("cd-page");if(pg)pg.onchange=function(){var n=parseInt(pg.value,10);if(!(n>=1&&n<=S.file.pages))return;cdPdfPage(n).then(function(){S.busy="";cdAfterLoad();cdRender();}).catch(function(e){S.busy="";S.msg=e.message;cdRender();});};
+ var tf=document.getElementById("cd-tiefold");if(tf)tf.addEventListener("toggle",function(){S.open.tie=tf.open;});
+ host.querySelectorAll("[data-tm]").forEach(function(b){b.onclick=function(){S.tie.mode=b.dataset.tm;if(b.dataset.tm==="asdrawn")cdTieAsDrawn();else{if(b.dataset.tm==="pairs")S.mode="pair";cdRender();}};});
+ [["cd-e0","E0"],["cd-n0","N0"],["cd-sc","s"],["cd-rot","rot"]].forEach(function(x){var el=document.getElementById(x[0]);if(el)el.onchange=function(){S.tie[x[1]]=el.value.trim();};});
+ var rg=document.getElementById("cd-rigid");if(rg)rg.onchange=function(){S.tie.rigid=rg.checked;cdRender();};
+ host.querySelectorAll(".cd-pdst").forEach(function(el){el.onchange=function(){var q=S.tie.pairs[+el.dataset.i],v=el.value.trim();q.txt=v;q.dst=null;q.label="";
+  var m=v.split(/[,\s]+/).filter(Boolean).map(parseFloat);if(m.length>=2&&m.every(isFinite)&&Math.abs(m[0])>1000){q.dst=m[0]>m[1]?[m[1],m[0]]:[m[0],m[1]];q.label="N "+Math.max(m[0],m[1])+", E "+Math.min(m[0],m[1]);}
+  else{var sp=cdShelfPt(v);if(sp){q.dst=[sp.E,sp.N];q.label=sp.file+": N "+sp.N.toFixed(3)+", E "+sp.E.toFixed(3);}else S.msg="Point "+v+" isn’t in any file on the shelf — drop the points file, or type N, E.";}
+  cdRender();};});
+ host.querySelectorAll(".cd-pdel").forEach(function(b){b.onclick=function(){S.tie.pairs.splice(+b.dataset.i,1);cdRender();};});
+ host.querySelectorAll("[data-cm]").forEach(function(b){b.onclick=function(){S.mode=b.dataset.cm;cdRender();};});
+ [["cd-tol","tol"],["cd-gap","gap"],["cd-start","start"],["cd-istart","istart"],["cd-th","th"]].forEach(function(x){var el=document.getElementById(x[0]);if(el)el.onchange=function(){S.o[x[1]]=el.value.trim();cdRun();cdRender();};});
+ [["cd-meet","meet"],["cd-interp","interp"]].forEach(function(x){var el=document.getElementById(x[0]);if(el)el.onchange=function(){S.o[x[1]]=el.checked;cdRun();cdRender();};});
+ host.querySelectorAll(".cd-val").forEach(function(el){el.onchange=function(){var b=S.B[+el.dataset.id],v=el.value.trim();if(!v&&b.unread){delete S.st[b.id];cdRun();cdRender();return;}if(v===b.s&&!(S.st[b.id]&&S.st[b.id].s==="fix")){return;}if(v===b.s){delete S.st[b.id];cdRun();cdRender();return;}cdFix(+el.dataset.id,v);};});
+ host.querySelectorAll(".cd-okb").forEach(function(el){el.onclick=function(e){e.stopPropagation();cdSetSt(+el.dataset.id,"ok");};});
+ host.querySelectorAll(".cd-dropsel").forEach(function(el){el.onclick=function(e){e.stopPropagation();};el.onchange=function(){if(el.value)cdDrop(+el.dataset.id,el.value);};});
+ host.querySelectorAll(".cd-tag").forEach(function(el){el.onchange=function(){cdTag(+el.dataset.id,el.value);};});
+ host.querySelectorAll(".cd-swap").forEach(function(el){el.onclick=function(){var b=S.B[+el.dataset.id],t=b.tip;b.tip=b.underTip;b.underTip=t;b.swapped=!b.swapped;cdRun();cdRender();};});
+ host.querySelectorAll(".cd-unsel").forEach(function(el){el.onclick=function(){delete S.sel[+el.dataset.id];cdRun();cdRender();};});
+ host.querySelectorAll(".cd-addsel").forEach(function(el){el.onclick=function(){S.sel[+el.dataset.id]=1;cdRun();cdRender();};});
+ host.querySelectorAll("tr[data-cdb]").forEach(function(tr){tr.onclick=function(e){if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT"||e.target.tagName==="BUTTON")return;cdFocus(+tr.dataset.cdb,true);};});
+ host.querySelectorAll(".cd-lname").forEach(function(el){el.onchange=function(){S.lines[+el.dataset.li].name=el.value.trim()||"LINE";cdRun();cdRender();};});
+ host.querySelectorAll(".cd-lrev").forEach(function(el){el.onclick=function(){var L=S.lines[+el.dataset.li];L.rev=!L.rev;cdJoin(L);cdRun();cdRender();};});
+ host.querySelectorAll(".cd-lact").forEach(function(el){el.onclick=function(){S.act=+el.dataset.li;S.mode="line";cdRender();};});
+ host.querySelectorAll(".cd-ldel").forEach(function(el){el.onclick=function(){S.lines.splice(+el.dataset.li,1);S.act=-1;cdRun();cdRender();};});
+ var ln=document.getElementById("cd-lnew");if(ln)ln.onclick=function(){S.act=-1;S.mode="line";cdRender();};
+ cdCanvas();}
+function cdFocus(id,zoom){var S=cdS;S.focus=id;var b=S.B[id];if(zoom&&b&&S.view){S.view.cx=b.tip[0];S.view.cy=b.tip[1];var a=b.E.a;S.view.s=Math.max(S.view.s,60/Math.max(a,1e-9));}cdRender();}
+function cdZoomAll(){if(!cdS)return;cdS.view=null;cdDraw();}
+window.cdZoomAll=cdZoomAll;window.cdRender=cdRender;window.cdFocus=cdFocus;
+/* ---- canvas ---- */
+function cdView(W,H){var S=cdS;if(S.view)return S.view;var b=S.src.bounds;if(S.B.length){/* frame the bubbles (the site), not the title block */var xs=S.B.map(function(q){return q.tip[0];}).sort(function(a,c){return a-c;}),ys=S.B.map(function(q){return q.tip[1];}).sort(function(a,c){return a-c;});
+  var q=function(a,f){return a[Math.min(a.length-1,Math.max(0,Math.floor(a.length*f)))];};if(xs.length>3)b=[q(xs,0.02),q(ys,0.02),q(xs,0.98),q(ys,0.98)];}
+ var s=Math.min((W-40)/Math.max(1e-9,b[2]-b[0]),(H-40)/Math.max(1e-9,b[3]-b[1]));S.view={s:s,cx:(b[0]+b[2])/2,cy:(b[1]+b[3])/2};return S.view;}
+function cdDraw(){var S=cdS,cv=document.getElementById("cd-cv");if(!cv||!S||!S.src||!cv.offsetParent)return;var g=cv.getContext&&cv.getContext("2d");if(!g)return;
+ var W=cv.clientWidth||900,H=cv.clientHeight||560,dpr=window.devicePixelRatio||1;cv.width=W*dpr;cv.height=H*dpr;g.setTransform(dpr,0,0,dpr,0,0);g.fillStyle="#fff";g.fillRect(0,0,W,H);
+ var V=cdView(W,H),X=function(x){return W/2+(x-V.cx)*V.s;},Y=function(y){return H/2-(y-V.cy)*V.s;},F=S.src.F;
+ /* linework: built once as one path in drawing units, drawn through the view transform */
+ if(typeof Path2D!=="undefined"){if(!S.src.p2d){var p2=new Path2D();F.paths.forEach(function(P){if(P.ell)return;p2.moveTo(P.p[0][0],P.p[0][1]);for(var i=1;i<P.p.length;i++)p2.lineTo(P.p[i][0],P.p[i][1]);});S.src.p2d=p2;
+   var p3=new Path2D();F.paths.forEach(function(P){if(!P.ell)return;p3.moveTo(P.p[0][0],P.p[0][1]);for(var i=1;i<P.p.length;i++)p3.lineTo(P.p[i][0],P.p[i][1]);});S.src.p3d=p3;}
+  g.save();g.setTransform(dpr*V.s,0,0,-dpr*V.s,dpr*(W/2-V.cx*V.s),dpr*(H/2+V.cy*V.s));g.lineWidth=1/V.s;g.strokeStyle="rgba(110,110,110,.55)";g.stroke(S.src.p2d);g.strokeStyle="rgba(60,60,60,.8)";g.stroke(S.src.p3d);g.restore();}
+ /* picked lines */
+ S.lines.forEach(function(L,li){if(!L.tr)return;g.strokeStyle=L.col;g.globalAlpha=S.act===li?0.9:0.7;g.lineWidth=S.act===li?4:3;g.beginPath();L.tr.pts.forEach(function(q,i){if(i&&L.tr.gap[i-1])g.moveTo(X(q[0]),Y(q[1]));else if(i)g.lineTo(X(q[0]),Y(q[1]));else g.moveTo(X(q[0]),Y(q[1]));});g.stroke();g.globalAlpha=1;
+  var a=L.tr.pts[L.tr.pts.length-1],b=L.tr.pts[Math.max(0,L.tr.pts.length-2)],ang=Math.atan2(-(a[1]-b[1]),a[0]-b[0]);g.fillStyle=L.col;g.beginPath();g.moveTo(X(a[0])+9*Math.cos(ang),Y(a[1])+9*Math.sin(ang));g.lineTo(X(a[0])+9*Math.cos(ang+2.5),Y(a[1])+9*Math.sin(ang+2.5));g.lineTo(X(a[0])+9*Math.cos(ang-2.5),Y(a[1])+9*Math.sin(ang-2.5));g.fill();});
+ /* curve points (job coordinates back to the drawing: shown at their place along the picked line) */
+ if(S.res&&S.T){S.res.interp.forEach(function(q){var L=S.lines[q.li];if(!L||!L.tr)return;var C=L.C,idx=0;for(var i=0;i+1<C.st.length;i++){if(C.st[i+1]>=q.s){idx=i;break;}}var t=C.st[idx+1]>C.st[idx]?(q.s-C.st[idx])/(C.st[idx+1]-C.st[idx]):0;
+   var a=L.tr.pts[C.src[idx]],b=L.tr.pts[C.src[Math.min(idx+1,C.src.length-1)]];if(!a||!b)return;var x=X(a[0]+(b[0]-a[0])*t),y=Y(a[1]+(b[1]-a[1])*t);g.setLineDash([2,2]);g.strokeStyle="#111";g.lineWidth=1.5;g.beginPath();g.arc(x,y,5,0,7);g.stroke();g.setLineDash([]);
+   if(V.s*(S.src.kind==="pdf"?1:1)>0)g.fillStyle="#111",g.font="10px sans-serif",g.fillText(q.k,x+6,y+10);});}
+ /* bubbles */
+ S.B.forEach(function(b){var x=X(b.tip[0]),y=Y(b.tip[1]);if(x<-20||y<-20||x>W+20||y>H+20)return;var p=S.res?S.res.per[b.id]:null,st=S.st[b.id]||{},sel=!!S.sel[b.id];
+  var col=b.meet?"#a07bb7":st.s==="drop"?"#b91c1c":(st.s==="ok"||st.s==="fix")?"#2a8a3a":sel&&p&&p.amber?"#d48806":sel?"#2456A6":(b.flags.length?"#d48806":"#9aa0a6"),fill=(st.s==="ok"||st.s==="fix")?"#2a8a3a":sel&&p&&p.amber?"#fff3d6":null;
+  g.lineWidth=S.focus===b.id?3:2;g.strokeStyle=col;g.beginPath();g.arc(x,y,S.focus===b.id?7:5,0,7);if(fill){g.fillStyle=fill;g.fill();}g.stroke();
+  if(b.underTip&&(sel||S.focus===b.id)){var ux=X(b.underTip[0]),uy=Y(b.underTip[1]);g.setLineDash([3,3]);g.beginPath();g.moveTo(x,y);g.lineTo(ux,uy);g.stroke();g.setLineDash([]);g.beginPath();g.arc(ux,uy,3,0,7);g.stroke();}
+  if(st.s==="drop"){g.beginPath();g.moveTo(x-5,y-5);g.lineTo(x+5,y+5);g.moveTo(x+5,y-5);g.lineTo(x-5,y+5);g.stroke();}
+  var ex=b.E.c,big=b.E.a*V.s>18;if(big||sel||S.focus===b.id){g.fillStyle=col;g.font=(S.focus===b.id?"bold ":"")+"11px sans-serif";g.fillText(st.s==="fix"?String(st.txt||st.v):(b.meet?"MEET":b.s),x+7,y-6);}});
+ /* pair picks */
+ (S.tie.pairs||[]).forEach(function(q,i){var x=X(q.src[0]),y=Y(q.src[1]);g.strokeStyle="#C2410C";g.lineWidth=2;g.beginPath();g.moveTo(x-7,y);g.lineTo(x+7,y);g.moveTo(x,y-7);g.lineTo(x,y+7);g.stroke();g.fillStyle="#C2410C";g.font="bold 11px sans-serif";g.fillText(String(i+1),x+8,y-8);});
+ if(S.box){g.strokeStyle="#2456A6";g.setLineDash([4,3]);g.lineWidth=1;g.strokeRect(Math.min(S.box.x0,S.box.x1),Math.min(S.box.y0,S.box.y1),Math.abs(S.box.x1-S.box.x0),Math.abs(S.box.y1-S.box.y0));g.setLineDash([]);}}
+function cdToSrc(mx,my){var S=cdS,cv=document.getElementById("cd-cv"),V=S.view,W=cv.clientWidth,H=cv.clientHeight;return [V.cx+(mx-W/2)/V.s,V.cy-(my-H/2)/V.s];}
+function cdHitBubble(mx,my){var S=cdS,V=S.view,cv=document.getElementById("cd-cv"),W=cv.clientWidth,H=cv.clientHeight,best=null,bd=9;S.B.forEach(function(b){var x=W/2+(b.tip[0]-V.cx)*V.s,y=H/2-(b.tip[1]-V.cy)*V.s,d=Math.hypot(x-mx,y-my);if(d<bd){bd=d;best=b;}
+  /* or anywhere inside its oval */
+  if(!best){var q=cdToSrc(mx,my);if(cdEllR(b.E,q)<1&&bd>8){best=b;bd=8;}}});return best;}
+function cdSnap(q,tolSrc){var S=cdS,hits=S.src.idx.near(q,tolSrc),best=null,bd=1e18;
+ hits.forEach(function(h){var P=S.src.F.paths[h.pi];[P.p[h.j],P.p[h.j+1]].forEach(function(v){var d=cdHyp(v,q);if(d<bd){bd=d;best=v;}});});
+ for(var i=0;i<hits.length&&i<60;i++)for(var j=i+1;j<hits.length&&j<60;j++){var A=S.src.F.paths[hits[i].pi],Bp=S.src.F.paths[hits[j].pi],x=cdSegX(A.p[hits[i].j],A.p[hits[i].j+1],Bp.p[hits[j].j],Bp.p[hits[j].j+1]);if(x){var d=cdHyp(x,q);if(d<bd*0.8){bd=d;best=x;}}}
+ return best&&bd<=tolSrc?best.slice():q;}
+function cdCanvas(){var S=cdS,cv=document.getElementById("cd-cv");if(!cv||!S.src)return;cdDraw();var drag=null;
+ cv.onwheel=function(e){e.preventDefault();var V=S.view;if(!V)return;var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,W=cv.clientWidth,H=cv.clientHeight,ex=V.cx+(mx-W/2)/V.s,ny=V.cy-(my-H/2)/V.s,k=e.deltaY<0?1.25:0.8;V.s*=k;V.cx=ex-(mx-W/2)/V.s;V.cy=ny+(my-H/2)/V.s;cdDraw();};
+ cv.onmousedown=function(e){var b=cv.getBoundingClientRect();drag={x:e.clientX,y:e.clientY,mx:e.clientX-b.left,my:e.clientY-b.top,moved:false,shift:e.shiftKey};};
+ cv.onmousemove=function(e){if(!drag||!S.view)return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(e.clientX-drag.x0||0)>0){}
+  if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;if(!drag.moved)return;
+  if(S.mode==="box"){var b=cv.getBoundingClientRect();S.box={x0:drag.mx,y0:drag.my,x1:e.clientX-b.left,y1:e.clientY-b.top};cdDraw();return;}
+  S.view.cx-=dx/S.view.s;S.view.cy+=dy/S.view.s;drag.x=e.clientX;drag.y=e.clientY;cdDraw();};
+ cv.onmouseup=function(e){var was=drag;drag=null;var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top;
+  if(S.mode==="box"&&S.box){var a=cdToSrc(Math.min(S.box.x0,S.box.x1),Math.max(S.box.y0,S.box.y1)),c=cdToSrc(Math.max(S.box.x0,S.box.x1),Math.min(S.box.y0,S.box.y1)),n=0;
+   S.B.forEach(function(q){if(q.tip[0]>=a[0]&&q.tip[0]<=c[0]&&q.tip[1]>=a[1]&&q.tip[1]<=c[1]){if(was&&was.shift)delete S.sel[q.id];else S.sel[q.id]=1;n++;}});S.box=null;S.msg=n?(was&&was.shift?"Removed ":"Added ")+n+" bubble"+(n===1?"":"s")+".":"";cdRun();cdRender();return;}
+  if(was&&was.moved)return;
+  if(S.mode==="line"){if(!cdPickLine(cdToSrc(mx,my),8/S.view.s)){S.msg="No line there — zoom in and click right on it.";}else S.msg="";cdRender();return;}
+  if(S.mode==="pair"){var q=cdSnap(cdToSrc(mx,my),10/S.view.s);S.tie.pairs.push({src:q,txt:"",dst:null});S.open.tie=true;cdRender();var ins=document.querySelectorAll(".cd-pdst");if(ins.length&&ins[ins.length-1].focus)ins[ins.length-1].focus();return;}
+  var hb=cdHitBubble(mx,my);if(!hb)return;if(S.mode==="box"){if(S.sel[hb.id])delete S.sel[hb.id];else S.sel[hb.id]=1;cdRun();}S.focus=hb.id;cdRender();};
+ cv.onmouseleave=function(){drag=null;if(S.box){S.box=null;cdDraw();}};}
+
 var cuDrop=document.getElementById("cu-drop");
 cuDrop.addEventListener("dragover",function(e){e.preventDefault();cuDrop.classList.add("over");});
 cuDrop.addEventListener("dragleave",function(){cuDrop.classList.remove("over");});

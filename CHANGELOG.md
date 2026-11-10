@@ -1,5 +1,32 @@
 # Elevate Office — changelog
 
+## Build 1.40 — 2026-11-10
+- **Points › Coordinate design (new tool).** Coordinates the engineer’s design elevation bubbles so the crew can stake cut / fills. Drop the drawing on the Points tab (or use the button in the tool). A points file isn’t needed, but one on the shelf sets the numbering and lets you place a PDF by point number.
+  - **Drawings it reads:** the engineer’s CAD file (.dxf, or .dwg, which is converted on the fly) or a **vector PDF** plotted from CAD. Scanned PDFs can’t be used.
+  - **Bubbles are found by their shape:** an oval holding an elevation (or MEET) with a leader. The point is the **end of the leader**, or the centre of the x / tick / + there. Layer and block names don’t matter, so any engineer’s drawing works. The layers they were found on are listed.
+  - **PDFs:** the numbers in a plotted PDF are pen strokes, not text, so the tool reads them itself. Anything it isn’t sure of is flagged for you to check; nothing is guessed silently. When you correct a value it **learns that engineer’s lettering**, and *Re-read with what it’s learned* fixes the rest.
+  - **Bubbles drawn twice:** a bubble drawn twice on top of itself is spotted. The one on top is used, and it's flagged when the copy underneath reads differently or its leader points somewhere else (*Use the leader underneath* swaps them).
+  - **Placement:** CAD files are used as drawn (or pick matching points, rotation + shift). A PDF is placed with the **underlay values** from MicroSurvey (insert E / N, metres per sheet mm, rotation) or by **picking matching points** and typing their point number or N, E. Residuals are shown.
+  - **Viewer:** move / zoom, *Select bubbles* (drag a box; Shift removes), *Pick line* (click the gutter, centreline or swale and it’s followed to its ends, across dash gaps), *Pick point*. Colours: found, selected, flagged, confirmed, dropped, MEET, curve point.
+  - **Checking:** *Select bubbles on the lines*, then confirm one by one (✓) or *Confirm all with nothing flagged*. Type over a value to correct it. ✕ drops one with a reason (lot / building corner, off the line, duplicate…). Each bubble shows its distance from the line. Anything beyond the on-line tolerance (default 0.05 m), up to 0.5 m, is flagged *not on the line*.
+  - **MEET** bubbles are left out by default. A tick includes them horizontal-only (elevation 0, never a cut / fill).
+  - **Curves:** on each picked line the curves are found from the linework (CAD arcs exactly; plotted curves from the drawing’s own joints, dashed lines from a fitted circle). BC, MC and EC get interpolated elevations, linear by distance along the line between the design values either side. A curve point within 0.5 m of a design point is skipped. A closed island wraps round. Tick off *Interpolate* to leave them out.
+  - **Long stretches** with no design point (default over 30 m) are listed with their grade, to check before staking.
+  - **Numbering:** design points from the next clean thousand above the shelf’s points (e.g. 6004 → 7001), in line order along each line (⇄ reverses a line). Curve points come from their own block (7201…) with *INTERP* in the description. Descriptions are the line name (GUTTER, CL…), or SWALE INV / TW / BW where you tag one.
+  - **Outputs:** points file (.txt, PNEZD), points for the drawing (.dxf, POINTs plus number / elevation labels on their own layer), a summary (.txt: placement, lines, what was confirmed, corrected and dropped and why, curve points with the values they came from, long stretches). All stay locked until every selected bubble is confirmed or dropped. *Send to Design vs Field* puts the points on the shelf and passes the lines across.
+- **Points › Design vs Field › Stakes to line (new).** Offset stakes and stakes between design points.
+  - Field points that aren’t paired with a design point are measured to the line: station, **offset (L / R looking along the line)**, and **cut / fill to the design elevation on the line** at that spot (interpolated between design points, marked *). It’s never the grade at the stake itself.
+  - The lines come from Coordinate design (with their true curves) or from design point ranges (*7001-7026; 7027-7110*, joined in point-number order). Max offset defaults to 3.00 m.
+  - Stakes get descriptions like **2.00R C0.12** (the existing switches still choose horizontal / cut-fill). They have their own table on screen, in the .dxf (beside the paired table) and in Copy table. A field point at a corner, where two places on the line are equally near, is noted.
+  - Paired stakes are unchanged (e.g. *FILL0.10 0.004N 0.006W*).
+- Points tab: the drop zone and *Choose file* also take .dxf / .dwg / .pdf, which open in Coordinate design.
+- **Points › Design vs Field › Description (new choice).** What the stakes' descriptions become in the amended points file:
+  - **Add to existing**, as before (the default): `GUTTER --Replaced point ID Stkd7034 FILL1.31`.
+  - **Replace with the result only:** `FILL1.31`. Use it when the existing description is no longer relevant, e.g. MicroSurvey's *--Replaced point ID…* note.
+  - **Replace with design description + result:** `GUTTER FILL1.31`. This takes the paired design point's description; a stake set to a line takes the line's name.
+  - Point numbers, coordinates and every other line are untouched, as before. The example line under the switches shows the result.
+- **Points › Design vs Field › Include › Design point number (new switch).** Puts the design point the stake was compared to at the front of the result, e.g. **STK 100 CUT0.05**. It works with any Description choice; with *Replace with the result only* the description becomes exactly `STK 100 CUT0.05`. Stakes to a line (between design points) have no single design point, so they keep the offset and C/F only. The design point number was already the first column of the .dxf table.
+
 ## Build 1.39.2 — 2026-11-05
 - **Points › re-dropping an edited file now refreshes every tool (fix).** Dropping a corrected file again under the same name (e.g. 26-3670-SITE.msz after fixing the tree shots) used to leave the Height check showing the old points until the page was reloaded.
   - **Height check:** re-reads the points straight away and keeps the drawing you picked, the units, the limit and the ground layers. A line says the file was dropped again and re-read.
