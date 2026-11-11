@@ -840,7 +840,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.41";
+const BUILD="1.41.1";
 const NEWS=["Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
@@ -4300,7 +4300,10 @@ function cuUnknowns(comp){
 }
 function cuRender(){
  var host=document.getElementById("cu-body");
- if(!cu.lines){if(cuTool==="bc"&&typeof bcS!=="undefined"&&bcS&&bcS.file){host.innerHTML="<div class='hint' style='margin:0 0 6px'>Building calc — drop the job’s points file too to number the lot corners and the new points above the job’s.</div><div class='cu-tv' data-t='bc'><div id='cu-bc'></div></div>";bcRender();setTimeout(bcDraw,0);}else if(typeof cdS!=="undefined"&&cdS&&cdS.file){host.innerHTML="<div class='hint' style='margin:0 0 6px'>Coordinate design — drop the job’s points file too if you want numbering above its points, placement by point number, or Design vs Field.</div><div class='cu-tv' data-t='cd'><div id='cu-cd'></div></div>";cdRender();setTimeout(cdDraw,0);}else host.innerHTML="";return;}
+ if(!cu.lines){if(cuDrawFile){var bcOn=cuTool==="bc",bar="<div class='cu-tools' style='margin-top:8px'><button data-t='cd' class='"+(bcOn?"":"on")+"'>Coordinate design</button><button data-t='bc' class='"+(bcOn?"on":"")+"'>Building calc</button></div><div class='cu-tooldesc'>"+esc(CU_TOOL_DESC[bcOn?"bc":"cd"])+"</div>";
+  if(bcOn){host.innerHTML=bar+"<div class='hint' style='margin:0 0 6px'>Drop the job’s points file too to number the lot corners and the new points above the job’s.</div><div class='cu-tv' data-t='bc'><div id='cu-bc'></div></div>";bcRender();setTimeout(bcDraw,0);}
+  else{host.innerHTML=bar+"<div class='hint' style='margin:0 0 6px'>Drop the job’s points file too if you want numbering above its points, placement by point number, or Design vs Field.</div><div class='cu-tv' data-t='cd'><div id='cu-cd'></div></div>";cdRender();setTimeout(cdDraw,0);}
+  host.querySelectorAll(".cu-tools button").forEach(function(b){b.onclick=function(){cuToolSet(b.dataset.t);cuRender();};});}else host.innerHTML="";return;}
  var pts=cu.lines.filter(function(r){return r.point;}).length;
  var blanks=cu.lines.filter(function(r){return r.point&&r.desc.trim()==="";}).length;
  var h=cuShelfHtml();
@@ -4380,7 +4383,10 @@ function cuToolsApply(){
 function cuGroupSet(g){var G=CU_GROUPS.find(function(x){return x.id===g;});if(!G)return;var last=null;try{last=localStorage.getItem("eo:cutool:"+g);}catch(e){}
  var t=G.tools.indexOf(last)>=0?last:G.tools[0];if(t==="tree"&&!cuHasTrees())t=G.tools[1];cuToolSet(t);}
 window.cuGroupSet=cuGroupSet;
-function cuToolSet(t){cuTool=t;try{localStorage.setItem("eo:cutool",t);localStorage.setItem("eo:cutool:"+cuGroupOf(t),t);}catch(e){}cuToolsApply();}
+var cuDrawFile=null;
+function cuToolSet(t){if(cuDrawFile&&t==="bc"&&!(bcS&&bcS.file&&bcS.file.name===cuDrawFile.name))bcLoadFile(cuDrawFile,"plan");
+ if(cuDrawFile&&t==="cd"&&!(cdS&&cdS.file&&cdS.file.name===cuDrawFile.name))cdLoadFile(cuDrawFile);
+ cuTool=t;try{localStorage.setItem("eo:cutool",t);localStorage.setItem("eo:cutool:"+cuGroupOf(t),t);}catch(e){}cuToolsApply();}
 window.cuToolSet=cuToolSet;window.cuToolsApply=cuToolsApply;
 function cuTickAll(on){
  /* on=true restores defaults (fixes + manual rules ticked, suggestions unticked); on=false clears every tick */
@@ -5870,7 +5876,7 @@ function cuLoadPackage(buf,name){
  }).catch(function(err){host.innerHTML="<div class='cu-err'>Couldn't read the package: "+esc(String(err.message||err))+"</div>";});
 }
 function cuLoadFile(file){
- if(/\.(dxf|dwg|pdf)$/i.test(file.name)){var dz=document.getElementById("cu-drop");if(dz)dz.classList.add("has");
+ if(/\.(dxf|dwg|pdf)$/i.test(file.name)){var dz=document.getElementById("cu-drop");if(dz)dz.classList.add("has");if(!(cuTool==="bc"&&typeof bcS!=="undefined"&&bcS&&bcS.src&&bcStepOk(2)&&bcStepOk(3)&&/\.(dxf|dwg)$/i.test(file.name)))cuDrawFile=file;
   if(cuTool==="bc"){var lotNext=typeof bcS!=="undefined"&&bcS&&bcS.src&&bcStepOk(2)&&bcStepOk(3)&&/\.(dxf|dwg)$/i.test(file.name);bcLoadFile(file,lotNext?"lot":"plan");cuRender();return;}
   cdLoadFile(file);cuRender();return;}
  if(/\.msd$/i.test(file.name)){
@@ -6751,11 +6757,16 @@ function bcLoadFile(file,which){if(!bcS)bcS=bcNew();var S=bcS;which=which||"plan
  bcRender();
  var p;
  if(/\.pdf$/i.test(file.name)){if(which!=="plan"){S.busy="";S.msg="The lot has to come from our own CAD file (.dxf / .dwg) — the lot lines are read in job coordinates.";bcRender();return;}
-  p=file.arrayBuffer().then(function(ab){return pmscPdfLib().then(function(lib){return lib.getDocument({data:new Uint8Array(ab)}).promise.then(function(doc){S.pdf=doc;S.file.pages=doc.numPages;return bcPdfPage(bcPdfGuessPage(doc));});});});}
+  p=file.arrayBuffer().then(function(ab){return pmscPdfLib().then(function(lib){return lib.getDocument({data:new Uint8Array(ab)}).promise.then(function(doc){S.pdf=doc;S.file.pages=doc.numPages;return bcPdfGuessPage(doc).then(bcPdfPage);});});});}
  else if(/\.dwg$/i.test(file.name))p=file.arrayBuffer().then(function(ab){return hcDwgLib().then(function(lib){var out=lib.dwg_write_dxf(ab);if(!out||!out.length)throw new Error("That DWG couldn’t be converted — save it as DXF from CAD and drop that.");return new TextDecoder("utf-8").decode(out);});}).then(function(t){bcFromDxf(t,which);});
  else p=file.text().then(function(t){bcFromDxf(t,which);});
  p.then(function(){S.busy="";bcRender();setTimeout(bcDraw,0);}).catch(function(e){S.busy="";S.msg=(e&&e.message)||String(e);bcRender();});}
-function bcPdfGuessPage(doc){return 1;}
+function bcPdfGuessPage(doc){var n=Math.min(doc.numPages,60),hit={f:0,b:0},i=1;
+ function next(){if(i>n||hit.f)return Promise.resolve(hit.f||hit.b||1);var k=i++;return doc.getPage(k).then(function(pg){return pg.getTextContent();}).then(function(tc){var t=tc.items.map(function(x){return x.str;}).join(" ").toUpperCase();
+  if(/FOUNDATION\s+PLAN/.test(t))hit.f=k;else if(!hit.b&&/BASEMENT\s+(FLOOR\s+)?PLAN/.test(t))hit.b=k;return next();},function(){return next();});}
+ return next();}
+/* a scanned page: a picture, no linework to follow */
+function bcIsScan(ol,F){var O=window.pdfjsLib.OPS,img=0;ol.fnArray.forEach(function(f){if(f===O.paintImageXObject||f===O.paintInlineImageXObject||f===O.paintJpegXObject)img++;});return img>0&&F.paths.filter(function(p){return !p.glyph;}).length<30;}
 function bcFromDxf(t,which){var S=bcS,D=cdDxfParse(t),F=cdDxfFlatten(D,{hatch:true});if(!F.paths.length)throw new Error("No drawing found in that file — is it a DXF?");
  var b=cdBounds(F.paths),ext=Math.max(b[2]-b[0],b[3]-b[1])||1,idx=cdIndex(F.paths,Math.max(ext/300,0.05));
  var src={kind:"cad",F:F,idx:idx,D:D,bounds:b,ext:ext,iu:+D.hdr.$INSUNITS||0};
@@ -6763,7 +6774,7 @@ function bcFromDxf(t,which){var S=bcS,D=cdDxfParse(t),F=cdDxfFlatten(D,{hatch:tr
  else{S.lotSrc=src;S.scene="site";S.view.site=null;S.lot=null;S.place=null;S.exc.res=null;S.mode="lot";S.msg="Click inside the subject lot (not inside the house).";}}
 function bcPdfPage(n){var S=bcS;S.busy="Reading page "+n+" …";bcRender();
  return S.pdf.getPage(n).then(function(page){return Promise.all([page.getOperatorList(),page.getTextContent()]).then(function(r){var F=cdPdfPrims(cdPdfPaths(r[0],window.pdfjsLib.OPS),{fills:true}),idx=cdIndex(F.paths,10);
-  S.src={kind:"pdf",F:F,idx:idx,bounds:[page.view[0],page.view[1],page.view[2],page.view[3]],ext:Math.max(page.view[2],page.view[3]),page:n,text:r[1].items.map(function(i){return {s:i.str,t:i.transform,w:i.width};})};
+  S.scan=bcIsScan(r[0],F);S.src={kind:"pdf",F:F,idx:idx,bounds:[page.view[0],page.view[1],page.view[2],page.view[3]],ext:Math.max(page.view[2],page.view[3]),page:n,text:r[1].items.map(function(i){return {s:i.str,t:i.transform,w:i.width};})};
   S.file.page=n;S.kGuess=null;S.k=null;S.dims=null;S.out=null;S.posts=bcNew().posts;S.place=null;S.exc.res=null;S.step=1;S.view.plan=null;S.scene="plan";S.dimsAll=null;S.busy="";});});}
 /* ---- helpers ---- */
 function bcShelfPts(){var out=[];(typeof cuSources!=="undefined"?cuSources:[]).forEach(function(s){(s.state.lines||[]).forEach(function(r){if(!r.point)return;var co=cuCoordOf(r);if(co&&!isNaN(co.n)&&!isNaN(co.e))out.push({pt:String(r.pt),N:co.n,E:co.e});});});return out;}
@@ -6887,6 +6898,7 @@ function bcRender(){var host=document.getElementById("cu-bc");if(!host)return;if
  if(S.busy)h+="<div class='cu-sfhit'>"+E(S.busy)+"</div>";
  if(S.msg)h+="<div class='cu-sfhit cd-msg'>"+E(S.msg)+"</div>";
  if(!S.src){host.innerHTML=h;bcWire(host);return;}
+ if(S.scan)h+="<div class='cu-pkgwarn' style='display:block;margin:4px 0 8px'>Page "+S.src.page+" is a <b>scanned image</b> — there are no lines on it to follow, so the outline can’t be picked from it. Try another page, or ask for the architect’s CAD file (.dwg / .dxf) or a PDF printed straight from CAD.</div>";
  /* tools over the viewer change with the step you're on */
  var m=S.mode,btn=function(id,t,dis){return "<button data-bm='"+id+"' class='"+(m===id?"on":"")+"'"+(dis?" disabled":"")+">"+t+"</button>";};
  h+="<div class='cd-bar'><span class='seg'>"+btn("pan","Move")+(S.scene==="plan"?btn("scale","Measure",!!S.k&&false)+btn("outline","Pick outline",!S.k)+btn("drop","Drop corner",!S.out)+btn("across","Straight across",!S.out)+btn("post","Pick post",!bcStepOk(2))+btn("pline","Draw post line",!bcStepOk(2)):btn("lot","Click inside lot",!S.lotSrc))+"</span>";
@@ -7064,7 +7076,7 @@ function cdFromDxfText(t){var S=cdS,D=cdDxfParse(t),F=cdDxfFlatten(D);if(!F.path
  var iu=+D.hdr.$INSUNITS;S.src={kind:"cad",F:F,idx:idx,EI:cdEndIndex(F.paths,Math.max(ext*2e-7,0.002)),eps:Math.max(ext*2e-7,0.002),gap:0,bounds:b,units:iu===2||iu===1?"ft":iu===6?"m":"",hdr:D.hdr};
  S.B=B;S.T={kind:"asdrawn",k:1,f:function(p){return [p[0],p[1]];}};S.tie.mode="asdrawn";}
 function cdPdfPage(n){var S=cdS;S.busy="Reading page "+n+" …";cdRender();
- return S.pdf.getPage(n).then(function(page){return page.getOperatorList().then(function(ol){var F=cdPdfPrims(cdPdfPaths(ol,window.pdfjsLib.OPS)),idx=cdIndex(F.paths,10);
+ return S.pdf.getPage(n).then(function(page){return page.getOperatorList().then(function(ol){var F=cdPdfPrims(cdPdfPaths(ol,window.pdfjsLib.OPS)),idx=cdIndex(F.paths,10);S.scan=bcIsScan(ol,F);
   var B=cdPdfBubbles(F,idx);B.forEach(function(b){if(b.E.path)b.E.path.ell=true;});
   S.src={kind:"pdf",F:F,idx:idx,EI:cdEndIndex(F.paths,0.25),eps:0.25,gap:15,bounds:[page.view[0],page.view[1],page.view[2],page.view[3]],view:page.view,page:n};
   S.file.page=n;S.B=B;S.sel={};S.st={};S.lines=[];S.act=-1;S.view=null;S.focus=null;S.res=null;if(S.tie.mode==="underlay"&&S.tie.ok)cdTieUnderlay(true);else if(S.tie.mode!=="underlay"){S.T=null;S.tie.pairs=[];}
@@ -7169,7 +7181,7 @@ function cdRender(){var host=document.getElementById("cu-cd");if(!host)return;if
  if(!S.src){host.innerHTML=h;cdWire(host);return;}
  var nB=S.B.length,nM=S.B.filter(function(b){return b.meet;}).length;
  h+="<div class='cu-mtsum'>"+nB+" bubble"+(nB===1?"":"s")+" found"+(nM?" ("+nM+" MEET)":"")+(S.src.kind==="cad"?" · "+S.src.F.paths.length+" lines"+(S.src.units?" · drawing units "+S.src.units:""):" · read from the PDF’s strokes")+(S.layers&&S.src.kind==="cad"?" · bubble layers: "+Object.keys(S.layers).map(function(l){return E(l)+" ("+S.layers[l]+")";}).join(", "):"")+"</div>";
- if(S.src.kind==="pdf"&&!nB)h+="<div class='cu-pkgwarn'>No design bubbles on page "+S.src.page+" — type the grading plan’s page number above.</div>";
+ if(S.src.kind==="pdf"&&!nB)h+=S.scan?"<div class='cu-pkgwarn'>Page "+S.src.page+" is a <b>scanned image</b> — there’s nothing on it to read. Ask for the CAD file or a PDF printed straight from CAD.</div>":"<div class='cu-pkgwarn'>No design bubbles on page "+S.src.page+" — type the grading plan’s page number above.</div>";
  if(S.src.kind==="cad"&&S.src.units==="ft")h+="<div class='cu-pkgwarn'>This drawing says it’s in feet — the points come out in the drawing’s units.</div>";
  /* placement */
  var t=S.tie,pdf=S.src.kind==="pdf";

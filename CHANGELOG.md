@@ -1,5 +1,11 @@
 # Elevate Office — changelog
 
+## Build 1.41.1 — 2026-11-11
+- **Points › Coordinate design / Building calc without a points file (fix).** A drawing dropped on the Points tab with no points file on the shelf opened in Coordinate design with no way to reach Building calc. The two tools now show as tabs there too.
+- **The dropped drawing goes with you.** Switching between Coordinate design and Building calc loads the drawing you dropped into the one you switch to (unless it already has it). This works with or without a points file.
+- **Scanned PDFs are said plainly.** A page that's a scanned image has no lines or text to read. Both tools now say so and ask for the CAD file or a PDF printed straight from CAD, instead of *No design bubbles on page …*. Example: *Duplex Arch+Str.pdf* is 18 scanned pages.
+- **Building calc opens a PDF on its foundation plan page** when the sheet titles are text (otherwise the basement plan, otherwise page 1).
+
 ## Build 1.41 — 2026-11-11
 - **Points › Building calc (new tool).** Works out a new building from the architect’s plan, one step at a time. Each step opens once the one before it is confirmed. Plans in feet and inches are fine; **everything that comes out is metric** (ft-in shown alongside). If the set has both a foundation plan and a basement plan, use the foundation plan.
   - **Drawings:** the architect’s .dxf, .dwg or vector PDF (with a page box for the sheet). Drop it on the Points tab while you’re in Building calc, or use the button.
