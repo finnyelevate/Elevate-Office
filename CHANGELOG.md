@@ -1,5 +1,13 @@
 # Elevate Office — changelog
 
+## Build 1.41.10 — 2026-11-11
+- **Building calc reads the point numbers in our own lot drawing.**
+  - **Where they come from:** MicroSurvey stores each point's number on the point itself, and the app now reads it. Drawings without that fall back to the point-number label beside the point.
+  - **Lot corners named:** corners now carry their real point numbers without a points file on the shelf. On *26-3657-House-test*: 2, 1, 6, 10, instead of L1–L4.
+  - **No clashes:** new house, post and excavation points are numbered clear of the job's points file *and* the lot drawing's points. 26-3657 starts at 1100: the drawing already uses 1–15, 50, 100–114, 210–215, 250–254 and 1000–1004.
+  - **Check in step 7:** it says how many points were checked (shelf + lot drawing). If a start number you type would reuse a number, it lists the clashes and offers *Use … and up*.
+- An MSZ or points file on the shelf still counts as well.
+
 ## Build 1.41.9 — 2026-11-11
 - **Building calc › See the house's corner numbers while you enter setbacks.** The Site view now shows a small **plan of the house, as on the architect's plan, with every corner numbered**, top-right. The numbers in the row you're working on are highlighted.
 - **Fill setbacks by clicking.**

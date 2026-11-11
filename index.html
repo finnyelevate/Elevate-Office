@@ -840,7 +840,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.41.9";
+const BUILD="1.41.10";
 const NEWS=["Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
@@ -6784,12 +6784,21 @@ function bcFromDxf(t,which){var S=bcS,D=cdDxfParse(t),F=cdDxfFlatten(D,{hatch:tr
  var b=bcRobustBox(F.paths)||cdBounds(F.paths),ext=Math.max(b[2]-b[0],b[3]-b[1])||1,idx=cdIndex(F.paths,Math.max(ext/300,0.05));
  var src={kind:"cad",F:F,idx:idx,D:D,bounds:b,ext:ext,iu:+D.hdr.$INSUNITS||0};
  if(which==="plan"){S.src=src;S.scene="plan";S.view.plan=null;var g={1:BC_IN,2:BC_FT,4:0.001,5:0.01,6:1}[src.iu];S.kGuess=g||null;S.dimsAll=bcCadDims(D);}
- else{S.lotSrc=src;S.scene="site";S.view.site=null;S.lot=null;S.place=null;S.exc.res=null;S.mode="lot";S.msg="Click inside the subject lot (not inside the house).";}}
+ else{src.pts=bcDwgPts(D);S.lotSrc=src;S.scene="site";S.view.site=null;S.lot=null;S.place=null;S.exc.res=null;S.mode="lot";S.msg="Click inside the subject lot (not inside the house).";}}
 function bcPdfPage(n){var S=bcS;S.busy="Reading page "+n+" …";bcRender();
  return S.pdf.getPage(n).then(function(page){return Promise.all([page.getOperatorList(),page.getTextContent()]).then(function(r){var F=cdPdfPrims(cdPdfPaths(r[0],window.pdfjsLib.OPS),{fills:true}),idx=cdIndex(F.paths,10);
   S.scan=bcIsScan(r[0],F);S.bg=null;if(S.scan)bcRenderBg(page);S.src={kind:"pdf",F:F,idx:idx,bounds:[page.view[0],page.view[1],page.view[2],page.view[3]],ext:Math.max(page.view[2],page.view[3]),page:n,text:r[1].items.map(function(i){return {s:i.str,t:i.transform,w:i.width};})};
   S.file.page=n;S.kGuess=null;S.k=null;S.dims=null;S.out=null;S.posts=bcNew().posts;S.place=null;S.exc.res=null;S.step=1;S.view.plan=null;S.scene="plan";S.dimsAll=null;S.busy="";});});}
 /* ---- helpers ---- */
+/* points stored in our own drawing: MicroSurvey keeps description, number and elevation on each POINT (xdata MSCAD_PRO_MSI); otherwise a number label beside the point */
+function bcDwgPts(D){var out=[],bare=[];(D.ents||[]).forEach(function(e){if(e.t!=="POINT")return;var x=+e.g[10],y=+e.g[20];if(!isFinite(x)||!isFinite(y))return;var m=e.m||[],i=-1;
+  for(var j=0;j<m.length;j++)if(m[j][0]===1001&&/^MSCAD/i.test(String(m[j][1]))){i=j;break;}
+  if(i>=0){var s1=[];for(var j2=i+1;j2<m.length&&m[j2][0]!==1001;j2++)if(m[j2][0]===1000)s1.push(String(m[j2][1]));var num=(s1[1]||"").trim();if(num){out.push({pt:num,N:y,E:x,desc:s1[0]||"",src:"drawing"});return;}}
+  bare.push([x,y]);});
+ if(bare.length){var T=(D.ents||[]).filter(function(e){return (e.t==="TEXT"||e.t==="MTEXT")&&/PNT|POINT.?N(O|UM)|PT.?NO/i.test(e.g[8]||"")&&/^\s*[A-Z]?\d+\s*$/i.test(String(e.g[1]||""));});
+  bare.forEach(function(p){var best=null;T.forEach(function(t){var d=Math.hypot(+t.g[10]-p[0],+t.g[20]-p[1]),h=+t.g[40]||0.3;if(d<=Math.max(1,h*4)&&(!best||d<best.d))best={d:d,s:String(t.g[1]).trim()};});if(best)out.push({pt:best.s,N:p[1],E:p[0],desc:"",src:"drawing"});});}
+ return out;}
+function bcKnownPts(){var a=bcShelfPts(),seen={};a.forEach(function(p){seen[p.pt]=1;});if(bcS&&bcS.lotSrc&&bcS.lotSrc.pts)bcS.lotSrc.pts.forEach(function(p){if(!seen[p.pt]){seen[p.pt]=1;a.push(p);}});return a;}
 function bcShelfPts(){var out=[];(typeof cuSources!=="undefined"?cuSources:[]).forEach(function(s){(s.state.lines||[]).forEach(function(r){if(!r.point)return;var co=cuCoordOf(r);if(co&&!isNaN(co.n)&&!isNaN(co.e))out.push({pt:String(r.pt),N:co.n,E:co.e});});});return out;}
 function bcM(v){return v.toFixed(3)+" m";}
 function bcMF(v){return v.toFixed(3)+" m <span class='bc-ft'>("+bcFtIn(v)+")</span>";}
@@ -6881,7 +6890,7 @@ function bcLotAt(q){var S=bcS,L=S.lotSrc;if(!L)return;var lay=S.lotLay;
  if(!R||!R.P||R.P.length<3){S.msg="No closed lot round that click on layer "+(lay||"?")+" — pick the lot-line layer below and click inside the lot again.";bcRender();return;}
  var P=R.P.slice();if(bcPolyArea(P)<0)P.reverse();
  /* corners named by the job's point numbers when they're on the shelf */
- var sp=bcShelfPts(),labels=P.map(function(p,i){var hit=null;sp.forEach(function(s){var d=Math.hypot(s.E-p[0],s.N-p[1]);if(d<0.02&&(!hit||d<hit.d))hit={d:d,pt:s.pt};});return hit?hit.pt:"L"+(i+1);});
+ var sp=bcKnownPts(),labels=P.map(function(p,i){var hit=null;sp.forEach(function(s){var d=Math.hypot(s.E-p[0],s.N-p[1]);if(d<0.02&&(!hit||d<hit.d))hit={d:d,pt:s.pt};});return hit?hit.pt:"L"+(i+1);});
  var sides=bcLotSides(P,R.arcs,labels);sides.forEach(function(s){if(s.arc){var rp=null;sp.forEach(function(x){if(Math.hypot(x.E-s.arc.c[0],x.N-s.arc.c[1])<0.02)rp=x.pt;});s.rp=rp;}});
  S.lot={q:q,lay:lay,P:P,arcs:R.arcs,labels:labels,sides:sides,ring:bcLotRing(sides),ok:false,named:labels.some(function(x){return !/^L\d+$/.test(x);})};S.lotLay=lay;S.mode="pan";S.place=null;S.exc.res=null;S.msg="";bcRender();setTimeout(bcDraw,0);}
 /* ---- step 5: setbacks ---- */
@@ -6901,12 +6910,13 @@ function bcExcRun(){var S=bcS,f=bcJobF(),off=bcParseLen(S.exc.off),po=bcParseLen
  var H=bcHm().map(f),k=S.k,posts=S.posts.none?[]:S.posts.list.map(function(p){return {c:f([p.c[0]*k,p.c[1]*k]),half:Math.max(p.w,p.h)*k/2};});
  var X=bcExcavation(H,posts,S.lot&&S.lot.ok&&!S.local.on?S.lot.ring:null,bcAxis(H),off,po);S.exc.res={P:bcOrder(X.P),notes:X.notes,off:off,po:po};S.msg="";bcRender();setTimeout(bcDraw,0);}
 /* ---- step 7: output ---- */
-function bcStartDefault(){var mx=0,low=false;bcShelfPts().forEach(function(s){if(/^\d+$/.test(s.pt)){var v=+s.pt;mx=Math.max(mx,v);if(v>=1&&v<=99)low=true;}});return bcStart(mx,low);}
+function bcStartDefault(){var mx=0,low=false;bcKnownPts().forEach(function(s){if(/^\d+$/.test(s.pt)){var v=+s.pt;mx=Math.max(mx,v);if(v>=1&&v<=99)low=true;}});return bcStart(mx,low);}
 function bcRows(){var S=bcS,f=bcJobF(),k=S.k,n=parseInt(S.o.start,10);if(!(n>0))n=bcStartDefault();var rows=[],add=function(p,d,set){rows.push({pt:n++,E:p[0],N:p[1],Z:0,desc:d,set:set});};
  bcHm().map(f).forEach(function(p){add(p,"CALC HOUSE","pts");});
  if(!S.posts.none)S.posts.list.forEach(function(p){var c=f([p.c[0]*k,p.c[1]*k]);add(c,"CALC POST","posts");
   if(S.posts.corners){bcPostCorners(p).forEach(function(q){add(f([q[0]*k,q[1]*k]),"CALC POST COR","posts");});}});
  if(S.exc.res)S.exc.res.P.forEach(function(p){add(p,"CALC EXC","excpts");});return rows;}
+function bcClashes(){var used={};bcKnownPts().forEach(function(p){used[String(p.pt)]=p;});return bcRows().filter(function(r){return used[String(r.pt)];}).map(function(r){return r.pt;});}
 function bcBase(){var n=(bcS.file&&bcS.file.name)||"building";return n.replace(/\.[^.]+$/,"")+(bcS.src&&bcS.src.kind==="pdf"?"-p"+bcS.src.page:"");}
 function bcSave(which){var S=bcS;if(!bcUnlocked(7)){S.msg="Finish the steps above first.";bcRender();return;}var rows=bcRows(),f=bcJobF(),k=S.k,L=S.lays,B=bcBase()+"-CALC",txt,fn,type="text/plain";
  if(which==="txt"){txt=rows.map(function(r){return [r.pt,r.N.toFixed(3),r.E.toFixed(3),"",r.desc].join(",");}).join("\r\n")+"\r\n";fn=B+"-PTS.txt";}
@@ -7013,7 +7023,8 @@ function bcStepsHtml(){var S=bcS,E=esc,k=S.k,h="";
  var Ls=S.lays,li=function(key,lab){return "<tr><td>"+lab+"</td><td><input type='text' class='bc-lname' data-k='"+key+"' value='"+E(Ls[key])+"' style='width:200px'></td></tr>";};
  b="<div class='row'>Points from <input type='text' id='bc-start' value='"+E(S.o.start)+"' style='width:70px'> <span class='hint'>1–99 when the job’s file leaves them free, else the next clean hundred above it</span></div>";
  b+="<table class='cu-mtt'><tr><th>DXF layer</th><th>name ({date} = "+bcDate()+")</th></tr>"+li("house","Building outline")+li("pts","Building points")+li("posts","Posts")+li("plines","Post lines (dashed)")+li("exc","Excavation")+li("excpts","Excavation points")+"</table><button class='cd-mini' onclick='bcLaysReset()'>Default names</button>";
- if(bcUnlocked(7)){var rows=bcRows();b+="<div class='hint'>"+rows.length+" points: "+rows[0].pt+"–"+rows[rows.length-1].pt+"</div>";}
+ if(bcUnlocked(7)){var rows=bcRows(),kp=bcKnownPts(),nd=kp.filter(function(p){return p.src==="drawing";}).length;b+="<div class='hint'>"+rows.length+" points: "+rows[0].pt+"–"+rows[rows.length-1].pt+" · checked against "+(kp.length-nd)+" point"+(kp.length-nd===1?"":"s")+" on the shelf"+(S.lotSrc?" and "+nd+" in our lot drawing":"")+"</div>";
+  var cl=bcClashes();if(cl.length)b+="<div class='cu-pkgwarn' style='display:block'>"+cl.length+" of these numbers are already used ("+cl.slice(0,10).join(", ")+(cl.length>10?" …":"")+"). <button class='cd-mini' onclick='bcS.o.start=String(bcStartDefault());bcRender()'>Use "+bcStartDefault()+" and up</button></div>";}
  b+="<div class='bc-act'><button class='btn pri' onclick='bcSave(\"txt\")'>Points (.txt)</button> <button class='btn pri' onclick='bcSave(\"dxf\")'>DXF</button> <button class='btn' onclick='bcSave(\"sum\")'>Summary</button></div>";
  h+=bcCard(7,"Output",b,"");
  return h;}
