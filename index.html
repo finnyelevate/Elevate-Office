@@ -840,7 +840,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.41.5";
+const BUILD="1.41.8";
 const NEWS=["Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
@@ -6774,8 +6774,14 @@ function bcRenderBg(page){try{var v0=page.getViewport({scale:1}),sc=Math.min(3,4
  page.render({canvasContext:g,viewport:vp}).promise.then(function(){if(bcS)bcS.bg={cv:c,view:page.view};bcDraw();}).catch(function(){});}catch(e){}}
 /* a scanned page: a picture, no linework to follow */
 function bcIsScan(ol,F){var O=window.pdfjsLib.OPS,img=0;ol.fnArray.forEach(function(f){if(f===O.paintImageXObject||f===O.paintInlineImageXObject||f===O.paintJpegXObject)img++;});return img>0&&F.paths.filter(function(p){return !p.glyph;}).length<30;}
+function bcRobustBox(paths){var xs=[],ys=[];paths.forEach(function(P){if(P.glyph)return;var st=Math.max(1,Math.floor(P.p.length/8));for(var i=0;i<P.p.length;i+=st){xs.push(P.p[i][0]);ys.push(P.p[i][1]);}});if(!xs.length)return null;
+ xs.sort(function(a,b){return a-b;});ys.sort(function(a,b){return a-b;});var q=function(A,f){return A[Math.min(A.length-1,Math.max(0,Math.floor(f*(A.length-1))))];};
+ var b=[q(xs,0.02),q(ys,0.02),q(xs,0.98),q(ys,0.98)],w=Math.max(b[2]-b[0],b[3]-b[1])||1;
+ /* widen to everything that isn't far off (within the core's own size) */
+ var lo=[b[0]-w,b[1]-w],hi=[b[2]+w,b[3]+w],r=[1e18,1e18,-1e18,-1e18];paths.forEach(function(P){P.p.forEach(function(p){if(p[0]<lo[0]||p[1]<lo[1]||p[0]>hi[0]||p[1]>hi[1])return;if(p[0]<r[0])r[0]=p[0];if(p[1]<r[1])r[1]=p[1];if(p[0]>r[2])r[2]=p[0];if(p[1]>r[3])r[3]=p[1];});});
+ return r[0]<r[2]?r:b;}
 function bcFromDxf(t,which){var S=bcS,D=cdDxfParse(t),F=cdDxfFlatten(D,{hatch:true});if(!F.paths.length)throw new Error("No drawing found in that file — is it a DXF?");
- var b=cdBounds(F.paths),ext=Math.max(b[2]-b[0],b[3]-b[1])||1,idx=cdIndex(F.paths,Math.max(ext/300,0.05));
+ var b=bcRobustBox(F.paths)||cdBounds(F.paths),ext=Math.max(b[2]-b[0],b[3]-b[1])||1,idx=cdIndex(F.paths,Math.max(ext/300,0.05));
  var src={kind:"cad",F:F,idx:idx,D:D,bounds:b,ext:ext,iu:+D.hdr.$INSUNITS||0};
  if(which==="plan"){S.src=src;S.scene="plan";S.view.plan=null;var g={1:BC_IN,2:BC_FT,4:0.001,5:0.01,6:1}[src.iu];S.kGuess=g||null;S.dimsAll=bcCadDims(D);}
  else{S.lotSrc=src;S.scene="site";S.view.site=null;S.lot=null;S.place=null;S.exc.res=null;S.mode="lot";S.msg="Click inside the subject lot (not inside the house).";}}
@@ -6826,11 +6832,15 @@ function bcTraceFinish(){var S=bcS,t=S.trace||[];if(t.length<3){S.msg="Click at 
  var round=S.out?S.out.round:(Math.abs(S.k/BC_IN-1)<0.01||Math.abs(S.k/BC_FT-1)<0.01||S.src.kind==="pdf");
  S.out={q:null,lays:[],gapTxt:"1.0",raw:t.slice(),traced:true,bridged:[],round:round,edits:[],ok:false,near:[]};S.trace=null;bcSquareNow();S.mode="pan";S.msg="";bcRender();setTimeout(bcDraw,0);}
 function bcTraceUndo(){var S=bcS;if(S.trace&&S.trace.length)S.trace.pop();bcRender();}
-function bcSquareNow(){var S=bcS,O=S.out,P=O.base||O.raw,ax=bcAxis(P),Q=bcSquare(P,ax,2);var R=Q.P;
+/* largest gap between two outlines, both ways, corner to side (drawing units) */
+function bcDev(A,B){var sd=function(p,R){var m=1e18;for(var i=0;i<R.length;i++){var a=R[i],b=R[(i+1)%R.length],v=cdSub(b,a),L2=cdDot(v,v),t=L2?Math.max(0,Math.min(1,cdDot(cdSub(p,a),v)/L2)):0,d=cdHyp(p,[a[0]+v[0]*t,a[1]+v[1]*t]);if(d<m)m=d;}return m;};
+ var m=0;A.forEach(function(p){m=Math.max(m,sd(p,B));});B.forEach(function(p){m=Math.max(m,sd(p,A));});return m;}
+function bcSquareNow(){var S=bcS,O=S.out,P=O.base||O.raw,ax=bcAxis(P),Q=bcSquare(P,ax,2);var R=Q.P;if(O.tidy===undefined)O.tidy=false;var dev={sq:bcDev(P,R)*S.k,jog:0,round:0};
  /* drafting jogs under 20 mm aren't the building: taken out */
- var jog=0.02/S.k,nj=0;for(var g=0;g<200&&R.length>4;g++){var ix=-1;for(var i=0;i<R.length;i++)if(cdHyp(R[i],R[(i+1)%R.length])<jog){ix=(i+1)%R.length;break;}if(ix<0)break;var T=R.slice();T.splice(ix,1);var Q2=bcSquare(T,ax,2);R=Q2.P;nj++;}
- O.jogs=nj;
- if(O.round){var g=(0.25*BC_IN)/S.k;R=bcClean(bcRound(R,ax,g));}
+ var jog=0.02/S.k,nj=0,R0=R;for(var g=0;g<200&&R.length>4&&O.tidy;g++){var ix=-1;for(var i=0;i<R.length;i++)if(cdHyp(R[i],R[(i+1)%R.length])<jog){ix=(i+1)%R.length;break;}if(ix<0)break;var T=R.slice();T.splice(ix,1);var Q2=bcSquare(T,ax,2);R=Q2.P;nj++;}
+ O.jogs=nj;if(nj)dev.jog=bcDev(R0,R)*S.k;
+ if(O.round){var g=(BC_IN/16)/S.k,R1=R;R=bcClean(bcRound(R,ax,g));dev.round=bcDev(R1,R)*S.k;}
+ dev.total=bcDev(P,R)*S.k;O.dev=dev;
  O.axis=ax;O.P=bcOrder(R);O.moved=Q.maxMove*S.k;O.odd=Q.odd.length;O.s45=Q.s45.length;if(O.ok&&O.edits.length&&typeof bcOutlineEdited==="function")bcOutlineEdited();else O.ok=false;S.place=null;S.exc.res=null;}
 function bcDropCorner(i){var S=bcS,O=S.out;if(!O||O.P.length<=3)return;var P=O.P.slice();P.splice(i,1);O.base=P;O.edits.push("dropped corner "+(i+1));bcSquareNow();bcRender();setTimeout(bcDraw,0);}
 function bcAcross(i,j){var S=bcS,O=S.out,n=O.P.length;if(i===j)return;/* keep the longer way round: the corners between i and j on the shorter way go */
@@ -6882,7 +6892,10 @@ function bcCalc(){var S=bcS,H=bcHm(),sides=S.lot.sides,cons=[],bad=[];
   else cons.push({kind:"pt",i:i,side:+r.side,d:d,row:ri});});
  if(bad.length){S.msg="Check "+bad.join(", ")+".";bcRender();return;}
  if(!cons.length){S.msg="Add at least two setbacks (a point and a pair parallel to a side fixes the house).";bcRender();return;}
- var R=bcPlace(H,sides,cons);S.place=R;S.place.cons=cons;S.exc.res=null;S.msg="";S.scene="site";bcRender();setTimeout(bcDraw,0);}
+ var R=bcPlace(H,sides,cons);S.place=R;S.place.cons=cons;S.exc.res=null;S.msg="";
+ /* corners that land outside the lot: usually a setback on the wrong side or the wrong lot side picked */
+ if(R.f&&S.lot.ring){var out=[];H.forEach(function(p,i){var q=R.f(p);if(!bcInPoly(S.lot.ring,q)){var d=Math.min.apply(null,S.lot.ring.map(function(a,j){var b=S.lot.ring[(j+1)%S.lot.ring.length],v=cdSub(b,a),t=Math.max(0,Math.min(1,cdDot(cdSub(q,a),v)/(cdDot(v,v)||1)));return cdHyp(q,[a[0]+v[0]*t,a[1]+v[1]*t]);}));if(d>0.005)out.push(i+1);}});
+  R.outside=out;}S.scene="site";bcRender();setTimeout(bcDraw,0);}
 /* ---- step 6: excavation ---- */
 function bcExcRun(){var S=bcS,f=bcJobF(),off=bcParseLen(S.exc.off),po=bcParseLen(S.exc.post);if(!f)return;if(off===null||po===null){S.msg="Check the two excavation distances.";bcRender();return;}
  var H=bcHm().map(f),k=S.k,posts=S.posts.none?[]:S.posts.list.map(function(p){return {c:f([p.c[0]*k,p.c[1]*k]),half:Math.max(p.w,p.h)*k/2};});
@@ -6938,7 +6951,7 @@ function bcRender(){var host=document.getElementById("cu-bc");if(!host)return;if
  if(S.scene==="plan"&&S.out)h+=" <button class='btn ghost' onclick='bcZoomOutline()'>Zoom to outline</button>";h+="</div>";
  var tip={pan:S.out&&S.scene==="plan"?"Drag a <b>corner</b> or the <b>middle of a side</b> of the orange outline to adjust it (it snaps to line corners; sides stay square). Drag elsewhere to move the view, scroll to zoom.":"Drag to move, scroll to zoom.",scale:(!S.scl.a?"Click the <b>first end ①</b> of a dimension you trust.":!S.scl.b?"<b>① is placed.</b> Now click the <b>second end ②</b>.":"<b>① and ② are placed</b> — type the length in step 1 and Set scale. Drag either end to adjust; click elsewhere to start again.")+" A green square means you’re on a corner / line end (✕ = a crossing).",outline:"Click the foundation wall, or inside the foundation — the outline is followed round automatically.",trace:"Click each outside corner of the foundation in turn (snaps to line corners); click the first corner again or Finish to close.",
   drop:"Click a corner to take it out (the outline is squared again).",across:"Click two corners — the corners between them (the shorter way round) are taken out and the side runs straight across.",
-  post:"Click inside a post (or on its outline) to add it; click it again to take it off. Then “Select similar” in step 3 finds the rest.",postc:(S.posts.c1?"First corner placed — click the <b>opposite corner</b> of the post.":"Click one corner of the post, then the <b>opposite corner</b> (snaps to line corners). The post is squared to the building.")+"",pperp:"Click a post — a dashed post line is drawn from it square back to the nearest wall of the house.",pline:"Click two points for a dashed post line — it snaps to post centres and outline corners.",lot:"Click inside the subject lot, clear of the house."}[m]||"";
+  post:"Click inside a post (or on its outline) to add it; click it again to take it off. Then “Select similar” in step 3 finds the rest.",postc:(S.posts.c1?"First corner placed — click the <b>opposite corner</b> of the post.":"Click one corner of the post, then the <b>opposite corner</b> (snaps to line corners). The post is squared to the building.")+"",pperp:"Click a post — a dashed post line is drawn from it square back to the nearest wall of the house.",pline:"Click two points for a dashed post line. Green square = snapped: post centre / corner, house corner, line end, crossing — or <b>perpendicular</b> onto a house wall for the second end.",lot:"Click inside the subject lot, clear of the house."}[m]||"";
  if(m==="across"&&S.acrossA!==undefined&&S.acrossA!==null)tip="Corner "+(S.acrossA+1)+" picked — now click the other corner.";
  if(m==="pline"&&S.posts.pend)tip="First end picked — click the second.";
  if(m==="trace"&&S.trace&&S.trace.length)tip=S.trace.length+" corner"+(S.trace.length===1?"":"s")+" — keep clicking round; click corner 1 again or <button class='cd-mini' onclick='bcTraceFinish()'>Finish</button> <button class='cd-mini' onclick='bcTraceUndo()'>Undo last</button>";
@@ -6959,10 +6972,10 @@ function bcStepsHtml(){var S=bcS,E=esc,k=S.k,h="";
  b="";var O=S.out;
  if(!O)b+="<div>Tap <b>Pick outline</b> and click the foundation wall (or inside it) — or <b>Trace outline</b> and click the corners yourself.</div>";
  else{var H=bcHm(),A=Math.abs(bcPolyArea(H));
-  b+="<div class='bc-res'><b>"+H.length+" corners</b>, area "+A.toFixed(2)+" m² ("+(A/0.09290304).toFixed(0)+" sq ft). Squared to the building axis — largest move "+(O.moved*1000).toFixed(0)+" mm"+(O.s45?", "+O.s45+" side"+(O.s45===1?"":"s")+" at 45°":"")+(O.odd?"<span class='cu-pkgwarn'>"+O.odd+" side"+(O.odd===1?" is":"s are")+" at another angle — left as drawn.</span>":"")+(O.jogs?"<br>"+O.jogs+" drafting jog"+(O.jogs===1?"":"s")+" under 20 mm taken out.":"")+(O.bridged&&O.bridged.length?"<br>Joined across "+O.bridged.length+" gap"+(O.bridged.length===1?"":"s")+" (openings).":"")+(O.traced?"<br>Traced by hand.":"")+(O.edits.length?"<br>Edits: "+E(O.edits.join("; ")):"")+"</div>";
+  b+="<div class='bc-res'><b>"+H.length+" corners</b>, area "+A.toFixed(2)+" m² ("+(A/0.09290304).toFixed(0)+" sq ft). Squared to the building axis — largest move "+(O.moved*1000).toFixed(0)+" mm"+(O.s45?", "+O.s45+" side"+(O.s45===1?"":"s")+" at 45°":"")+(O.odd?"<span class='cu-pkgwarn'>"+O.odd+" side"+(O.odd===1?" is":"s are")+" at another angle — left as drawn.</span>":"")+(O.dev?"<br><span class='"+(O.dev.total>0.002?"cd-amb":"cd-ok")+"'>Largest difference from the drawing’s lines: <b>"+(O.dev.total*1000).toFixed(1)+" mm</b></span>"+(O.dev.total>0.0005?" (squaring "+(O.dev.sq*1000).toFixed(1)+" · jogs taken out "+(O.dev.jog*1000).toFixed(1)+" · 1/16″ rounding "+(O.dev.round*1000).toFixed(1)+" mm)":"")+(O.edits.length?" — your edits aren’t counted":""):"")+(O.jogs?"<br>"+O.jogs+" drafting jog"+(O.jogs===1?"":"s")+" under 20 mm taken out.":"")+(O.bridged&&O.bridged.length?"<br>Joined across "+O.bridged.length+" gap"+(O.bridged.length===1?"":"s")+" (openings).":"")+(O.traced?"<br>Traced by hand.":"")+(O.edits.length?"<br>Edits: "+E(O.edits.join("; ")):"")+"</div>";
   b+="<table class='cu-mtt bc-sides'><tr><th>Side</th><th>m</th><th>ft-in</th></tr>"+H.map(function(p,i){var d=cdHyp(p,H[(i+1)%H.length]);return "<tr><td>"+(i+1)+"–"+((i+1)%H.length+1)+"</td><td>"+d.toFixed(3)+"</td><td>"+bcFtIn(d)+"</td></tr>";}).join("")+"</table>";
   if(!O.traced)b+="<div class='bc-lays'>Layers followed: "+(O.near||[]).map(function(l){return "<label class='cu-cb'><input type='checkbox' class='bc-lay' value='"+E(l)+"'"+(O.lays.indexOf(l)>=0?" checked":"")+"> "+E(l)+"</label>";}).join(" ")+"</div>";
-  b+="<div class='row' style='margin:4px 0'>Join gaps up to <input type='text' id='bc-gap' value='"+E(O.gapTxt)+"' style='width:46px'> m <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-round'"+(O.round?" checked":"")+"> round corners to ¼″</label> "+(O.traced?"<button class='cd-mini' onclick='bcS.mode=\"trace\";bcS.trace=[];bcRender()'>Trace again</button>":"<button class='cd-mini' onclick='bcOutlineAgain()'>Pick again</button>")+"</div>";
+  b+="<div class='row' style='margin:4px 0'>Join gaps up to <input type='text' id='bc-gap' value='"+E(O.gapTxt)+"' style='width:46px'> m <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-round'"+(O.round?" checked":"")+"> round corners to 1/16″</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-tidy'"+(O.tidy?" checked":"")+"> take out jogs under 20 mm</label> "+(O.traced?"<button class='cd-mini' onclick='bcS.mode=\"trace\";bcS.trace=[];bcRender()'>Trace again</button>":"<button class='cd-mini' onclick='bcOutlineAgain()'>Pick again</button>")+"</div>";
   b+="<div class='bc-act'>"+(O.ok?"<button class='btn' onclick='bcOutlineOk(false)'>Change it</button>":"<button class='btn pri' onclick='bcOutlineOk(true)'>Confirm outline</button>")+"</div>";}
  h+=bcCard(2,"Outline",b,O&&O.ok?bcHm().length+" corners, "+Math.abs(bcPolyArea(bcHm())).toFixed(1)+" m²":"");
  /* 3 posts */
@@ -6989,7 +7002,7 @@ function bcStepsHtml(){var S=bcS,E=esc,k=S.k,h="";
    b+="<tr><td><select class='bc-sbk' data-r='"+ri+"'><option value='pt'"+(r.kind==="pt"?" selected":"")+">point</option><option value='face'"+(r.kind==="face"?" selected":"")+">pair ∥</option></select></td><td>"+hs(r.h,"bc-sbh",ri)+(r.kind==="face"?"–"+hs(r.h2,"bc-sbh2",ri):"")+"</td><td>"+ss(r.side,ri)+"</td><td><input type='text' class='bc-sbd' data-r='"+ri+"' value='"+E(r.d)+"' style='width:70px'></td><td>"+(rep?"<span class='"+(rep.err>0.002?"cd-amb":"cd-ok")+"'>"+rep.got.map(function(g){return g.toFixed(3);}).join(" / ")+"</span>":"")+"</td><td><button class='cd-mini' data-sbx='"+ri+"'>×</button></td></tr>";});
   b+="</table><button class='cd-mini' onclick='bcSbAdd()'>+ Setback</button>";
   b+="<div class='bc-act'><button class='btn pri' onclick='bcCalc()'>Calculate</button></div>";
-  if(S.place){var R=S.place;b+="<div class='bc-res'>"+(R.under?"<span class='cu-pkgwarn'>Not fixed yet — the house can still slide"+(R.free?" along "+bcBrg(R.free):"")+". Add a setback across that direction.</span>":"Fitted: "+(R.nEq>3?"best fit of "+R.nEq+" conditions, rms "+(R.rms*1000).toFixed(1)+" mm":"exact")+" · rotation "+(((R.th*180/Math.PI)%360+360)%360).toFixed(4)+"°")+"</div>";}
+  if(S.place){var R=S.place;if(R.outside&&R.outside.length)b+="<div class='cu-pkgwarn' style='display:block'>House corner"+(R.outside.length===1?" ":"s ")+R.outside.slice(0,8).join(", ")+(R.outside.length>8?" …":"")+" land"+(R.outside.length===1?"s":"")+" outside the lot — check each row’s lot side and house points (a setback measured from the wrong side puts the house over the line).</div>";b+="<div class='bc-res'>"+(R.under?"<span class='cu-pkgwarn'>Not fixed yet — the house can still slide"+(R.free?" along "+bcBrg(R.free):"")+". Add a setback across that direction.</span>":"Fitted: "+(R.nEq>3?"best fit of "+R.nEq+" conditions, rms "+(R.rms*1000).toFixed(1)+" mm":"exact")+" · rotation "+(((R.th*180/Math.PI)%360+360)%360).toFixed(4)+"°")+"</div>";}
   h+=bcCard(5,"Setbacks",b,S.place&&!S.place.under?"fitted":"");}
  /* 6 excavation */
  b="<div class='row'>Off the foundation <input type='text' id='bc-xo' value='"+E(S.exc.off)+"' style='width:60px'> · clear of posts at least <input type='text' id='bc-xp' value='"+E(S.exc.post)+"' style='width:60px'></div><div class='hint'>Measured from the outline confirmed in step 2"+(S.local.on?"":"; never past the lot line")+". If the office measures from the footing, add the footing’s projection here.</div><div class='bc-act'><button class='btn pri' onclick='bcExcRun()'>Work out the excavation</button></div>";
@@ -7014,6 +7027,7 @@ function bcWire(host){var S=bcS,g=function(id){return document.getElementById(id
  var sn0=g("bc-snap");if(sn0)sn0.onchange=function(){try{localStorage.setItem("eo:bcsnap",sn0.checked?"1":"0");}catch(e){}};
  var st=g("bc-sclt");if(st)st.oninput=function(){S.scl.txt=st.value;};
  var gp=g("bc-gap");if(gp)gp.onchange=function(){S.out.gapTxt=gp.value;};
+ var td=g("bc-tidy");if(td)td.onchange=function(){S.out.tidy=td.checked;bcSquareNow();bcRender();setTimeout(bcDraw,0);};
  var rd=g("bc-round");if(rd)rd.onchange=function(){S.out.round=rd.checked;bcSquareNow();bcRender();setTimeout(bcDraw,0);};
  host.querySelectorAll(".bc-pc button").forEach(function(b){b.onclick=function(){S.posts.corners=b.dataset.pc==="1";bcRender();};});
  var ll=g("bc-lotlay");if(ll)ll.onchange=function(){S.lotLay=ll.value||null;if(S.lot)bcLotAt(S.lot.q);};
@@ -7043,7 +7057,7 @@ function bcZoomOutline(){var S=bcS;if(!S.out)return;var b=bcBox(S.out.P),cv=docu
 /* ---- canvas ---- */
 function bcSceneSrc(){var S=bcS;return S.scene==="site"?S.lotSrc:S.src;}
 function bcView(W,H){var S=bcS,sc=S.scene;if(S.view[sc])return S.view[sc];var b;
- if(sc==="site"){var f=bcJobF();if(S.lot)b=bcBox(S.lot.ring);else if(f&&bcHm())b=bcBox(bcHm().map(f));else if(S.lotSrc){var q=S.lotSrc.bounds;b=q;}else b=[0,0,10,10];
+ if(sc==="site"){var f=bcJobF();if(S.lot)b=bcBox(S.lot.ring);else if(f&&bcHm())b=bcBox(bcHm().map(f));else if(S.lotSrc){var lp=S.lotSrc.F.paths.filter(function(P){return S.lotLay?P.lay===S.lotLay:/LOT|PROP|BOUND|PL\b|LEGAL/i.test(P.lay||"");});b=(lp.length&&bcRobustBox(lp))||S.lotSrc.bounds;}else b=[0,0,10,10];
   var pad=Math.max(b[2]-b[0],b[3]-b[1])*0.35;b=[b[0]-pad,b[1]-pad,b[2]+pad,b[3]+pad];}
  else b=S.out?(function(){var x=bcBox(S.out.P),p=Math.max(x[2]-x[0],x[3]-x[1])*0.15;return [x[0]-p,x[1]-p,x[2]+p,x[3]+p];})():S.src.bounds;
  var s=Math.min((W-40)/Math.max(1e-9,b[2]-b[0]),(H-40)/Math.max(1e-9,b[3]-b[1]));S.view[sc]={s:s,cx:(b[0]+b[2])/2,cy:(b[1]+b[3])/2};return S.view[sc];}
@@ -7066,12 +7080,13 @@ function bcDraw(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S||!S.s
   var hv=S.hover;
   if(S.mode==="scale"&&S.scl.a&&!S.scl.b&&hv){g.strokeStyle="#2456A6";g.lineWidth=1.5;g.setLineDash([5,4]);g.beginPath();g.moveTo(X(S.scl.a[0]),Y(S.scl.a[1]));g.lineTo(X(hv.p[0]),Y(hv.p[1]));g.stroke();g.setLineDash([]);
    if(S.k){var dl=cdHyp(S.scl.a,hv.p)*S.k;g.fillStyle="#2456A6";g.font="bold 12px sans-serif";g.fillText(dl.toFixed(3)+" m  "+bcFtIn(dl),(X(S.scl.a[0])+X(hv.p[0]))/2+8,(Y(S.scl.a[1])+Y(hv.p[1]))/2-8);}}
+  if(S.mode==="pline"&&S.posts.pend&&hv){var pe=S.posts.pend;g.strokeStyle="#7C3AED";g.lineWidth=1.5;g.setLineDash([6,4]);g.beginPath();g.moveTo(X(pe[0]),Y(pe[1]));g.lineTo(X(hv.p[0]),Y(hv.p[1]));g.stroke();g.setLineDash([]);if(S.k){var dl2=cdHyp(pe,hv.p)*S.k;g.fillStyle="#7C3AED";g.font="bold 12px sans-serif";g.fillText(dl2.toFixed(3)+" m",(X(pe[0])+X(hv.p[0]))/2+8,(Y(pe[1])+Y(hv.p[1]))/2-8);}}
   if(S.mode==="trace"&&S.trace&&S.trace.length&&hv){var lt=S.trace[S.trace.length-1];g.strokeStyle="#2456A6";g.lineWidth=1.5;g.setLineDash([5,4]);g.beginPath();g.moveTo(X(lt[0]),Y(lt[1]));g.lineTo(X(hv.p[0]),Y(hv.p[1]));g.stroke();g.setLineDash([]);}
   if(S.scl.a&&S.scl.b){g.strokeStyle="#2456A6";g.lineWidth=2;g.setLineDash([3,3]);g.beginPath();g.moveTo(X(S.scl.a[0]),Y(S.scl.a[1]));g.lineTo(X(S.scl.b[0]),Y(S.scl.b[1]));g.stroke();g.setLineDash([]);}
   [["a","1"],["b","2"]].forEach(function(x){var q=S.scl[x[0]];if(!q)return;var cx=X(q[0]),cy=Y(q[1]);g.strokeStyle="#2456A6";g.lineWidth=2;g.beginPath();g.moveTo(cx-8,cy);g.lineTo(cx+8,cy);g.moveTo(cx,cy-8);g.lineTo(cx,cy+8);g.stroke();
    g.fillStyle="#2456A6";g.beginPath();g.arc(cx+12,cy-12,8,0,7);g.fill();g.fillStyle="#fff";g.font="bold 11px sans-serif";g.fillText(x[1],cx+9,cy-8);});
-  if(hv&&S.mode!=="pline"){var hx=X(hv.p[0]),hy=Y(hv.p[1]);if(hv.k){g.strokeStyle="#16a34a";g.lineWidth=2;g.strokeRect(hx-6,hy-6,12,12);if(hv.k==="crossing"){g.beginPath();g.moveTo(hx-6,hy-6);g.lineTo(hx+6,hy+6);g.moveTo(hx+6,hy-6);g.lineTo(hx-6,hy+6);g.stroke();}
-    g.fillStyle="#16a34a";g.font="bold 11px sans-serif";g.fillText(hv.k==="end"?"corner / end":"crossing",hx+10,hy+16);}
+  if(hv){var hx=X(hv.p[0]),hy=Y(hv.p[1]);if(hv.k){g.strokeStyle="#16a34a";g.lineWidth=2;g.strokeRect(hx-6,hy-6,12,12);if(hv.k==="crossing"){g.beginPath();g.moveTo(hx-6,hy-6);g.lineTo(hx+6,hy+6);g.moveTo(hx+6,hy-6);g.lineTo(hx-6,hy+6);g.stroke();}
+    g.fillStyle="#16a34a";g.font="bold 11px sans-serif";g.fillText(hv.k==="end"?"corner / end":hv.k,hx+10,hy+16);}
    else{g.strokeStyle="rgba(80,80,80,.7)";g.lineWidth=1;g.beginPath();g.moveTo(hx-5,hy);g.lineTo(hx+5,hy);g.moveTo(hx,hy-5);g.lineTo(hx,hy+5);g.stroke();}}}
  else{
   if(S.lot){ring(S.lot.ring,"#2456A6",2.5);g.fillStyle="#2456A6";g.font="bold 11px sans-serif";S.lot.P.forEach(function(p,i){g.beginPath();g.arc(X(p[0]),Y(p[1]),3,0,7);g.fill();g.fillText(S.lot.labels[i],X(p[0])+5,Y(p[1])-5);});
@@ -7101,6 +7116,13 @@ function bcSnapFind(q,px){var S=bcS;if(!bcSnapOn()||S.scan||!S.view.plan)return 
  hits.forEach(function(h){var P=S.src.F.paths[h.pi];[P.p[h.j],P.p[h.j+1]].forEach(function(v){var d=cdHyp(v,q);if(d<=bd){bd=d;best={p:v.slice(),k:"end"};}});});
  var hs=hits.slice(0,80);for(var i=0;i<hs.length;i++)for(var j=i+1;j<hs.length;j++){var A=S.src.F.paths[hs[i].pi],B=S.src.F.paths[hs[j].pi],x=cdSegX(A.p[hs[i].j],A.p[hs[i].j+1],B.p[hs[j].j],B.p[hs[j].j+1]);if(x){var d=cdHyp(x,q);if(d<bd*0.8){bd=d;best={p:x,k:"crossing"};}}}
  return best;}
+/* post lines: post centres/corners and house corners first, then the drawing's ends / crossings, then square onto a house wall from the first end */
+function bcPlineSnap(q){var S=bcS,V=S.view.plan;if(!V)return null;var tol=12/V.s,best=null,bd=tol,try1=function(p,k){var d=cdHyp(p,q);if(d<=bd){bd=d;best={p:p.slice(),k:k};}};
+ if(bcSnapOn()){S.posts.list.forEach(function(p){try1(p.c,"post centre");bcPostCorners(p).forEach(function(c){try1(c,"post corner");});});if(S.out)S.out.P.forEach(function(c){try1(c,"house corner");});}
+ if(best)return best;var f=bcSnapFind(q,10);if(f)return f;
+ if(bcSnapOn()&&S.posts.pend&&S.out){var a0=S.posts.pend,bp=null,bpd=10/V.s;S.out.P.forEach(function(a,i){var b=S.out.P[(i+1)%S.out.P.length],v=cdSub(b,a),L2=cdDot(v,v);if(!L2)return;var t=cdDot(cdSub(a0,a),v)/L2;if(t<0||t>1)return;var ft=[a[0]+v[0]*t,a[1]+v[1]*t];
+   /* the cursor near that wall: snap to the foot of the perpendicular */var tq=cdDot(cdSub(q,a),v)/L2,fq=[a[0]+v[0]*Math.max(0,Math.min(1,tq)),a[1]+v[1]*Math.max(0,Math.min(1,tq))],dq=cdHyp(fq,q);if(dq<=bpd){bpd=dq;bp=ft;}});if(bp)return {p:bp,k:"perpendicular"};}
+ return null;}
 function bcSnapPlan(q,px){var f=bcSnapFind(q,px);return f?f.p:q;}
 function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src)return;bcDraw();var drag=null;
  cv.onwheel=function(e){e.preventDefault();var V=S.view[S.scene];if(!V)return;var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,W=cv.clientWidth,H=cv.clientHeight,ex=V.cx+(mx-W/2)/V.s,ny=V.cy-(my-H/2)/V.s,kk=e.deltaY<0?1.25:0.8;V.s*=kk;V.cx=ex-(mx-W/2)/V.s;V.cy=ny+(my-H/2)/V.s;bcDraw();};
@@ -7110,7 +7132,7 @@ function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src
    ["a","b"].forEach(function(k){var q=S.scl[k];if(!q||!V||drag.end)return;var x=W/2+(q[0]-V.cx)*V.s,y=H/2-(q[1]-V.cy)*V.s;if(Math.hypot(x-mx,y-my)<=10)drag.end=k;});}
   if(S.scene==="plan"&&S.mode==="pan"&&S.out){var b2=cv.getBoundingClientRect(),oh=bcOutlineHit(e.clientX-b2.left,e.clientY-b2.top);if(oh){drag.oh=oh;drag.P0=S.out.P.map(function(p){return p.slice();});drag.q0=bcToSrc(e.clientX-b2.left,e.clientY-b2.top);}}};
  cv.onmousemove=function(e){if(!drag){var bb=cv.getBoundingClientRect(),hq=bcToSrc(e.clientX-bb.left,e.clientY-bb.top);
-   if(S.scene==="plan"&&/^(scale|trace|pline|postc)$/.test(S.mode)){var sf=S.mode==="pline"?null:bcSnapFind(hq,10);S.hover={p:sf?sf.p:hq,k:sf?sf.k:null};if(!S.hoverRaf){S.hoverRaf=1;(window.requestAnimationFrame||setTimeout)(function(){S.hoverRaf=0;bcDraw();});}}else if(S.hover){S.hover=null;bcDraw();}
+   if(S.scene==="plan"&&/^(scale|trace|pline|postc)$/.test(S.mode)){var sf=S.mode==="pline"?bcPlineSnap(hq):bcSnapFind(hq,10);S.hover={p:sf?sf.p:hq,k:sf?sf.k:null};if(!S.hoverRaf){S.hoverRaf=1;(window.requestAnimationFrame||setTimeout)(function(){S.hoverRaf=0;bcDraw();});}}else if(S.hover){S.hover=null;bcDraw();}
    var on=false;if(S.scene==="plan"&&S.mode==="scale"&&S.view.plan){var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,V=S.view.plan,W=cv.clientWidth,H=cv.clientHeight;["a","b"].forEach(function(k){var q=S.scl[k];if(q&&Math.hypot(W/2+(q[0]-V.cx)*V.s-mx,H/2-(q[1]-V.cy)*V.s-my)<=10)on=true;});}if(!on&&S.scene==="plan"&&S.mode==="pan"&&S.out){var oh2=bcOutlineHit(e.clientX-bb.left,e.clientY-bb.top);if(oh2)on=true;}cv.style.cursor=on?"move":"";return;}var V=S.view[S.scene],dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;if(!drag.moved||!V)return;
   if(drag.oh){var b3=cv.getBoundingClientRect(),rq3=bcToSrc(e.clientX-b3.left,e.clientY-b3.top),sf3=bcSnapFind(rq3,10),q3=sf3?sf3.p:rq3;S.hover=sf3?{p:sf3.p,k:sf3.k}:null;
    S.out.P=drag.oh.kind==="corner"?bcMoveCorner(drag.P0,drag.oh.i,q3):bcMoveSide(drag.P0,drag.oh.i,q3,drag.q0);bcDraw();return;}
@@ -7130,7 +7152,7 @@ function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src
   if(m==="post"){bcPostAt(q);return;}
   if(m==="postc"){bcPostByCorner(S.hover&&S.hover.k?S.hover.p.slice():q);return;}
   if(m==="pperp"){bcPerpAt(q);return;}
-  if(m==="pline"){var p=bcPostSnap(q);if(!S.posts.pend){S.posts.pend=p;bcRender();}else{S.posts.lines.push([S.posts.pend,p]);S.posts.pend=null;bcRender();}return;}};}
+  if(m==="pline"){var p=S.hover&&S.hover.k?S.hover.p.slice():(function(){var f=bcPlineSnap(q);return f?f.p:q;})();if(!S.posts.pend){S.posts.pend=p;bcRender();}else{S.posts.lines.push([S.posts.pend,p]);S.posts.pend=null;bcRender();}return;}};}
 
 
 /* ---------- Coordinate design (1.40) — the Points-tab panel and viewer ---------- */

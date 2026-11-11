@@ -1,5 +1,23 @@
 # Elevate Office — changelog
 
+## Build 1.41.8 — 2026-11-11
+- **Building calc › The outline stays on the drawing's lines (accuracy).**
+  - **New readout:** step 2 now shows *Largest difference from the drawing's lines*: the furthest any corner or side of the outline is from the linework it was picked from. Green at 2 mm or under, amber over. A breakdown shows what caused it (squaring, jogs taken out, rounding); your own edits aren't counted.
+  - **Rounding:** corners now round to **1/16″** (at most about 1 mm), not ¼″, which could move a corner up to 3.2 mm where the plan is dimensioned in eighths. It's still a tick-box.
+  - **Jogs:** *take out jogs under 20 mm* is now a tick-box and **off by default**. On the A214 plan it had removed a real 13 mm jog, 12 mm off the drawing.
+  - **Result:** A214 DWG outline within **0.5 mm** of the drawing (was 12.2 mm); Kerfoot PDF page 2 within 0.0 mm. 25-3402 placement unchanged (setbacks 1.377 / 13.401 / 1.781 reproduced, rms 0.01 mm).
+
+## Build 1.41.7 — 2026-11-11
+- **Building calc › Draw post line snaps (fix).** It only snapped quietly to post centres and outline corners, with nothing on screen to show it. It now has the same green-square snap marker as Measure, labelled with what it found:
+  - **post centre**, **post corner**, **house corner**
+  - **corner / end** and **crossing** in the drawing
+  - **perpendicular:** once the first end is placed, bring the cursor near a house wall and the second end snaps to the point square to it. A post line from a post back to the house is therefore exactly perpendicular.
+  - A dashed line runs from the first end to the cursor with its length. The *Snap* switch turns it off.
+
+## Build 1.41.6 — 2026-11-11
+- **Building calc › Our lot drawing showed blank (fix).** A lot drawing with stray objects far from the lot opened zoomed out so far that the lot was a dot. Examples: a control point at real coordinates while the lots are local, or the sheet frame drawn elsewhere in model space. The Site view now fits the **lot-line layer** (EX_LOT_LINES or the one you pick), and *Whole drawing* skips far-off strays. Checked on *26-3657-House-test.dwg* with *1516 Kerfoot Road* page 2: the lots show, a click inside one picks it (22.43 × 39.72 m, 890.21 m²), and the fit and excavation run.
+- **Building calc › Setbacks warn when the house lands over the lot line.** If the fit puts any house corner outside the lot, step 5 names those corners and says to check each row's lot side and house points. A setback measured from the wrong side is the usual cause.
+
 ## Build 1.41.5 — 2026-11-11
 - **Building calc › Drag the outline to adjust it, before or after confirming.** In *Move* on the Plan view:
   - **Drag a corner:** both sides at that corner follow and keep their direction, so it stays square.
