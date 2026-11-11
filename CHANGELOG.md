@@ -1,5 +1,17 @@
 # Elevate Office — changelog
 
+## Build 1.41.5 — 2026-11-11
+- **Building calc › Drag the outline to adjust it, before or after confirming.** In *Move* on the Plan view:
+  - **Drag a corner:** both sides at that corner follow and keep their direction, so it stays square.
+  - **Drag the middle of a side:** the whole wall slides in or out, parallel. Use it to move a side onto the outer face of the wall, or back off a post it took in by mistake.
+  - Drags snap to line corners (green square), and the cursor changes over a corner or side. Each move is listed under *Edits* with how far it went.
+  - **On a confirmed outline,** a drag, *Drop corner* or *Straight across* asks you to confirm it again. Posts, the lot and your setback rows are kept. Check the corner numbers in the setback rows (Drop corner / Straight across can renumber), then Calculate and work out the excavation again.
+- **Building calc › Posts, by hand.**
+  - **Pick post:** click inside a post. This now works when it's drawn as four separate lines, not only as one closed shape (grid and annotation lines don't count). Click a post again to take it off.
+  - **Post by corners (new):** click one corner, then the opposite corner (both snap). The post is squared to the building, and a dashed box shows it as you go. It also works where the post isn't drawn as a closed shape.
+  - **Post line to house (new):** click a post and a dashed post line is drawn from its centre square back to the nearest wall of the outline. **Post lines from every post to the house** does them all at once. *Draw post line* (two clicks) is still there for anything else.
+  - Posts drawn by corners keep the building's angle in the DXF and in their corner points.
+
 ## Build 1.41.4 — 2026-11-11
 - **Building calc › Snap you can see.** In Measure and Trace outline, a **green square** follows the cursor when it's on a line end or corner (labelled *corner / end*), with an ✕ in it on a crossing of two lines. Off a corner, a small grey + shows where a click will land. A click lands exactly where the marker shows. **Snap** switch on the toolbar (on by default, remembered) to turn it off; there's nothing to snap to on a scanned page.
 - **Building calc › Measure shows where you are.** The first point gets a numbered **①** marker and the second **②**. Between clicks a dashed line runs from ① to the cursor with its length (m and ft-in once a scale is set). The hint above the drawing and step 1 say *① is placed — now click the second end ②*, then *① and ② are placed — type the length*. Dragging an end snaps as you move it. Trace outline also shows a dashed line from the last corner to the cursor.

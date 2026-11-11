@@ -840,7 +840,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.41.4";
+const BUILD="1.41.5";
 const NEWS=["Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
@@ -6831,17 +6831,34 @@ function bcSquareNow(){var S=bcS,O=S.out,P=O.base||O.raw,ax=bcAxis(P),Q=bcSquare
  var jog=0.02/S.k,nj=0;for(var g=0;g<200&&R.length>4;g++){var ix=-1;for(var i=0;i<R.length;i++)if(cdHyp(R[i],R[(i+1)%R.length])<jog){ix=(i+1)%R.length;break;}if(ix<0)break;var T=R.slice();T.splice(ix,1);var Q2=bcSquare(T,ax,2);R=Q2.P;nj++;}
  O.jogs=nj;
  if(O.round){var g=(0.25*BC_IN)/S.k;R=bcClean(bcRound(R,ax,g));}
- O.axis=ax;O.P=bcOrder(R);O.moved=Q.maxMove*S.k;O.odd=Q.odd.length;O.s45=Q.s45.length;O.ok=false;S.place=null;S.exc.res=null;}
+ O.axis=ax;O.P=bcOrder(R);O.moved=Q.maxMove*S.k;O.odd=Q.odd.length;O.s45=Q.s45.length;if(O.ok&&O.edits.length&&typeof bcOutlineEdited==="function")bcOutlineEdited();else O.ok=false;S.place=null;S.exc.res=null;}
 function bcDropCorner(i){var S=bcS,O=S.out;if(!O||O.P.length<=3)return;var P=O.P.slice();P.splice(i,1);O.base=P;O.edits.push("dropped corner "+(i+1));bcSquareNow();bcRender();setTimeout(bcDraw,0);}
 function bcAcross(i,j){var S=bcS,O=S.out,n=O.P.length;if(i===j)return;/* keep the longer way round: the corners between i and j on the shorter way go */
  var a=[],b=[];for(var x=(i+1)%n;x!==j;x=(x+1)%n)a.push(x);for(var y=(j+1)%n;y!==i;y=(y+1)%n)b.push(y);var drop=a.length<=b.length?a:b;if(!drop.length)return;
  var P=O.P.filter(function(p,ix){return drop.indexOf(ix)<0;});O.base=P;O.edits.push("straight across "+(i+1)+"–"+(j+1)+" ("+drop.length+" corner"+(drop.length===1?"":"s")+" taken out)");bcSquareNow();bcRender();setTimeout(bcDraw,0);}
 function bcCornerAt(q,pxTol){var S=bcS,O=S.out;if(!O)return -1;var best=-1,bd=pxTol/S.view.plan.s;O.P.forEach(function(p,i){var d=cdHyp(p,q);if(d<bd){bd=d;best=i;}});return best;}
 /* ---- step 3: posts ---- */
-function bcPostAt(q){var S=bcS,tol=6/S.view.plan.s,sh=bcShapeAt(S.src.F,S.src.idx,q,tol);if(!sh){S.msg="No small closed shape there — click on a post.";bcRender();return;}
+function bcPostAt(q){var S=bcS,tol=6/S.view.plan.s,sh=bcShapeAt(S.src.F,S.src.idx,q,tol);
+ var on=bcPostNear(q);if(on&&!sh){S.posts.list.splice(S.posts.list.indexOf(on),1);S.posts.ok=false;bcRender();setTimeout(bcDraw,0);return;}
+ if(!sh&&!S.scan){var R=bcPickRegion(S.src.F,S.src.idx,q,{tol:tol,eps:Math.max(0.002/S.k,S.src.ext*2e-7),reach:1.5/S.k,at:q,same:function(x,b){return !(b.lay&&/GRID|ANNO|DIM|TEXT|IDEN|TTLB|NPLT|SYMB|DEFPOINTS/i.test(b.lay));}});if(R&&R.P&&R.P.length>=3){var bb=bcBox(R.P);sh={c:[(bb[0]+bb[2])/2,(bb[1]+bb[3])/2],w:bb[2]-bb[0],h:bb[3]-bb[1]};}}
+ if(!sh){S.msg="No post outline round that click — zoom in and click inside the post, or use Post by corners.";bcRender();return;}
  var k=S.k;if(Math.max(sh.w,sh.h)*k>1.5){S.msg="That shape is "+(Math.max(sh.w,sh.h)*k).toFixed(2)+" m across — too big for a post. Zoom in and click the post itself.";bcRender();return;}
  var have=S.posts.list.findIndex(function(p){return cdHyp(p.c,sh.c)<Math.max(sh.w,sh.h)*0.3;});if(have>=0){S.posts.list.splice(have,1);}else S.posts.list.push({c:sh.c,w:sh.w,h:sh.h});
  S.posts.shape=sh;S.posts.ok=false;S.posts.none=false;S.place&&(S.exc.res=null);S.msg="";bcRender();setTimeout(bcDraw,0);}
+function bcPostCorners(p){var a=p.ang||0,c=Math.cos(a),s=Math.sin(a);return [[-1,-1],[1,-1],[1,1],[-1,1]].map(function(t){var x=t[0]*p.w/2,y=t[1]*p.h/2;return [p.c[0]+x*c-y*s,p.c[1]+x*s+y*c];});}
+/* a post from two opposite corners, square to the building */
+function bcPostByCorner(q){var S=bcS,sq=bcSnapPlan(q,10);if(!S.posts.c1){S.posts.c1=sq;S.msg="";bcRender();return;}
+ var a=S.posts.c1,ax=S.out?S.out.axis:0,c=Math.cos(-ax),s=Math.sin(-ax),d=cdSub(sq,a),x=d[0]*c-d[1]*s,y=d[0]*s+d[1]*c;S.posts.c1=null;
+ if(Math.abs(x)*S.k<0.02||Math.abs(y)*S.k<0.02){S.msg="Those two corners are in line — click opposite corners of the post.";bcRender();return;}
+ if(Math.max(Math.abs(x),Math.abs(y))*S.k>1.5){S.msg="That’s "+(Math.max(Math.abs(x),Math.abs(y))*S.k).toFixed(2)+" m across — too big for a post.";bcRender();return;}
+ S.posts.list.push({c:[(a[0]+sq[0])/2,(a[1]+sq[1])/2],w:Math.abs(x),h:Math.abs(y),ang:ax});S.posts.ok=false;S.posts.none=false;S.exc.res=null;S.msg="";bcRender();setTimeout(bcDraw,0);}
+/* a dashed post line from the post square back to the nearest wall of the house */
+function bcPerpLine(p){var S=bcS,O=S.out;if(!O)return null;var best=null;O.P.forEach(function(a,i){var b=O.P[(i+1)%O.P.length],v=cdSub(b,a),L2=cdDot(v,v);if(!L2)return;var t=cdDot(cdSub(p.c,a),v)/L2;if(t<0||t>1)return;var f=[a[0]+v[0]*t,a[1]+v[1]*t],d=cdHyp(f,p.c);if(d>1e-9&&(!best||d<best.d))best={d:d,f:f};});
+ return best?[p.c.slice(),best.f]:null;}
+function bcPostNear(q){var S=bcS,px=14/S.view.plan.s,best=null;S.posts.list.forEach(function(p,i){var d=cdHyp(p.c,q),inside=Math.abs(q[0]-p.c[0])<=p.w/2+px*0.3&&Math.abs(q[1]-p.c[1])<=p.h/2+px*0.3;if((d<=px||inside)&&(!best||d<best.d))best={d:d,i:i};});return best?S.posts.list[best.i]:null;}
+function bcPerpAt(q){var S=bcS,p=bcPostNear(q);if(!p){S.msg="Click on a post (pick it in step 3 first).";bcRender();return;}var l=bcPerpLine(p);if(!l){S.msg="No wall of the outline square to that post.";bcRender();return;}
+ if(!S.posts.lines.some(function(x){return cdHyp(x[0],l[0])<1e-9&&cdHyp(x[1],l[1])<1e-9;}))S.posts.lines.push(l);S.msg="";bcRender();setTimeout(bcDraw,0);}
+function bcPerpAll(){var S=bcS,n=0;S.posts.list.forEach(function(p){var l=bcPerpLine(p);if(l&&!S.posts.lines.some(function(x){return cdHyp(x[0],l[0])<1e-9;})){S.posts.lines.push(l);n++;}});S.msg=n+" post line"+(n===1?"":"s")+" added, each square back to the nearest wall.";bcRender();setTimeout(bcDraw,0);}
 function bcPostSimilar(){var S=bcS,sh=S.posts.shape;if(!sh)return;var L=bcSimilar(S.src.F,sh),n0=S.posts.list.length;
  L.forEach(function(x){if(!S.posts.list.some(function(p){return cdHyp(p.c,x.c)<Math.max(x.w,x.h)*0.3;}))S.posts.list.push({c:x.c,w:x.w,h:x.h});});
  S.msg=(S.posts.list.length-n0)+" more found like it — click any that aren’t posts to take them off.";S.posts.ok=false;bcRender();setTimeout(bcDraw,0);}
@@ -6875,14 +6892,14 @@ function bcStartDefault(){var mx=0,low=false;bcShelfPts().forEach(function(s){if
 function bcRows(){var S=bcS,f=bcJobF(),k=S.k,n=parseInt(S.o.start,10);if(!(n>0))n=bcStartDefault();var rows=[],add=function(p,d,set){rows.push({pt:n++,E:p[0],N:p[1],Z:0,desc:d,set:set});};
  bcHm().map(f).forEach(function(p){add(p,"CALC HOUSE","pts");});
  if(!S.posts.none)S.posts.list.forEach(function(p){var c=f([p.c[0]*k,p.c[1]*k]);add(c,"CALC POST","posts");
-  if(S.posts.corners){[[-1,-1],[1,-1],[1,1],[-1,1]].forEach(function(s){add(f([(p.c[0]+s[0]*p.w/2)*k,(p.c[1]+s[1]*p.h/2)*k]),"CALC POST COR","posts");});}});
+  if(S.posts.corners){bcPostCorners(p).forEach(function(q){add(f([q[0]*k,q[1]*k]),"CALC POST COR","posts");});}});
  if(S.exc.res)S.exc.res.P.forEach(function(p){add(p,"CALC EXC","excpts");});return rows;}
 function bcBase(){var n=(bcS.file&&bcS.file.name)||"building";return n.replace(/\.[^.]+$/,"")+(bcS.src&&bcS.src.kind==="pdf"?"-p"+bcS.src.page:"");}
 function bcSave(which){var S=bcS;if(!bcUnlocked(7)){S.msg="Finish the steps above first.";bcRender();return;}var rows=bcRows(),f=bcJobF(),k=S.k,L=S.lays,B=bcBase()+"-CALC",txt,fn,type="text/plain";
  if(which==="txt"){txt=rows.map(function(r){return [r.pt,r.N.toFixed(3),r.E.toFixed(3),"",r.desc].join(",");}).join("\r\n")+"\r\n";fn=B+"-PTS.txt";}
  else if(which==="dxf"){var sets=[{layer:bcLayName(L.house),kind:"poly",rings:[bcHm().map(f)]},{layer:bcLayName(L.pts),kind:"pts",pts:rows.filter(function(r){return r.set==="pts";})}];
   if(!S.posts.none&&S.posts.list.length){sets.push({layer:bcLayName(L.posts),kind:"pts",pts:rows.filter(function(r){return r.set==="posts";})});
-   sets.push({layer:bcLayName(L.posts),kind:"poly",rings:S.posts.list.map(function(p){return [[-1,-1],[1,-1],[1,1],[-1,1]].map(function(s){return f([(p.c[0]+s[0]*p.w/2)*k,(p.c[1]+s[1]*p.h/2)*k]);});})});}
+   sets.push({layer:bcLayName(L.posts),kind:"poly",rings:S.posts.list.map(function(p){return bcPostCorners(p).map(function(q){return f([q[0]*k,q[1]*k]);});})});}
   if(S.posts.lines.length)sets.push({layer:bcLayName(L.plines),kind:"line",dashed:true,rings:S.posts.lines.map(function(l){return [f([l[0][0]*k,l[0][1]*k]),f([l[1][0]*k,l[1][1]*k])];})});
   if(S.exc.res){sets.push({layer:bcLayName(L.exc),kind:"poly",rings:[S.exc.res.P]});sets.push({layer:bcLayName(L.excpts),kind:"pts",pts:rows.filter(function(r){return r.set==="excpts";})});}
   txt=bcDxf(sets,0.3);fn=B+".dxf";type="application/dxf";}
@@ -6916,12 +6933,12 @@ function bcRender(){var host=document.getElementById("cu-bc");if(!host)return;if
  if(S.scan)h+="<div class='cu-pkgwarn' style='display:block;margin:4px 0 8px'>Page "+S.src.page+" is a <b>scanned image</b> — nothing to follow or snap to. You can still Measure for the scale and <b>Trace outline</b> by clicking the corners on the picture (less precise than CAD; check a couple of dimensions). Better: the architect’s CAD file or a PDF printed straight from CAD.</div>";
  /* tools over the viewer change with the step you're on */
  var m=S.mode,btn=function(id,t,dis){return "<button data-bm='"+id+"' class='"+(m===id?"on":"")+"'"+(dis?" disabled":"")+">"+t+"</button>";};
- h+="<div class='cd-bar'><span class='seg'>"+btn("pan","Move")+(S.scene==="plan"?btn("scale","Measure",!!S.k&&false)+btn("outline","Pick outline",!S.k||S.scan)+btn("trace","Trace outline",!S.k)+btn("drop","Drop corner",!S.out)+btn("across","Straight across",!S.out)+btn("post","Pick post",!bcStepOk(2))+btn("pline","Draw post line",!bcStepOk(2)):btn("lot","Click inside lot",!S.lotSrc))+"</span> <label class='cu-cb' title='Snap clicks to line ends and crossings'><input type='checkbox' id='bc-snap'"+(bcSnapOn()?" checked":"")+(S.scan?" disabled":"")+"> Snap</label>";
+ h+="<div class='cd-bar'><span class='seg'>"+btn("pan","Move")+(S.scene==="plan"?btn("scale","Measure",!!S.k&&false)+btn("outline","Pick outline",!S.k||S.scan)+btn("trace","Trace outline",!S.k)+btn("drop","Drop corner",!S.out)+btn("across","Straight across",!S.out)+btn("post","Pick post",!bcStepOk(2))+btn("postc","Post by corners",!bcStepOk(2))+btn("pperp","Post line to house",!bcStepOk(2))+btn("pline","Draw post line",!bcStepOk(2)):btn("lot","Click inside lot",!S.lotSrc))+"</span> <label class='cu-cb' title='Snap clicks to line ends and crossings'><input type='checkbox' id='bc-snap'"+(bcSnapOn()?" checked":"")+(S.scan?" disabled":"")+"> Snap</label>";
  h+=" <span class='seg'><button data-sc='plan' class='"+(S.scene==="plan"?"on":"")+"'>Plan</button><button data-sc='site' class='"+(S.scene==="site"?"on":"")+"'"+(S.lotSrc||bcJobF()?"":" disabled")+">Site</button></span> <button class='btn ghost' onclick='bcZoomAll()'>Whole drawing</button>";
  if(S.scene==="plan"&&S.out)h+=" <button class='btn ghost' onclick='bcZoomOutline()'>Zoom to outline</button>";h+="</div>";
- var tip={pan:"Drag to move, scroll to zoom.",scale:(!S.scl.a?"Click the <b>first end ①</b> of a dimension you trust.":!S.scl.b?"<b>① is placed.</b> Now click the <b>second end ②</b>.":"<b>① and ② are placed</b> — type the length in step 1 and Set scale. Drag either end to adjust; click elsewhere to start again.")+" A green square means you’re on a corner / line end (✕ = a crossing).",outline:"Click the foundation wall, or inside the foundation — the outline is followed round automatically.",trace:"Click each outside corner of the foundation in turn (snaps to line corners); click the first corner again or Finish to close.",
+ var tip={pan:S.out&&S.scene==="plan"?"Drag a <b>corner</b> or the <b>middle of a side</b> of the orange outline to adjust it (it snaps to line corners; sides stay square). Drag elsewhere to move the view, scroll to zoom.":"Drag to move, scroll to zoom.",scale:(!S.scl.a?"Click the <b>first end ①</b> of a dimension you trust.":!S.scl.b?"<b>① is placed.</b> Now click the <b>second end ②</b>.":"<b>① and ② are placed</b> — type the length in step 1 and Set scale. Drag either end to adjust; click elsewhere to start again.")+" A green square means you’re on a corner / line end (✕ = a crossing).",outline:"Click the foundation wall, or inside the foundation — the outline is followed round automatically.",trace:"Click each outside corner of the foundation in turn (snaps to line corners); click the first corner again or Finish to close.",
   drop:"Click a corner to take it out (the outline is squared again).",across:"Click two corners — the corners between them (the shorter way round) are taken out and the side runs straight across.",
-  post:"Click a post to add it (click again to take it off). Then “Select similar” in step 3.",pline:"Click two points for a dashed post line — it snaps to post centres and outline corners.",lot:"Click inside the subject lot, clear of the house."}[m]||"";
+  post:"Click inside a post (or on its outline) to add it; click it again to take it off. Then “Select similar” in step 3 finds the rest.",postc:(S.posts.c1?"First corner placed — click the <b>opposite corner</b> of the post.":"Click one corner of the post, then the <b>opposite corner</b> (snaps to line corners). The post is squared to the building.")+"",pperp:"Click a post — a dashed post line is drawn from it square back to the nearest wall of the house.",pline:"Click two points for a dashed post line — it snaps to post centres and outline corners.",lot:"Click inside the subject lot, clear of the house."}[m]||"";
  if(m==="across"&&S.acrossA!==undefined&&S.acrossA!==null)tip="Corner "+(S.acrossA+1)+" picked — now click the other corner.";
  if(m==="pline"&&S.posts.pend)tip="First end picked — click the second.";
  if(m==="trace"&&S.trace&&S.trace.length)tip=S.trace.length+" corner"+(S.trace.length===1?"":"s")+" — keep clicking round; click corner 1 again or <button class='cd-mini' onclick='bcTraceFinish()'>Finish</button> <button class='cd-mini' onclick='bcTraceUndo()'>Undo last</button>";
@@ -6949,8 +6966,9 @@ function bcStepsHtml(){var S=bcS,E=esc,k=S.k,h="";
   b+="<div class='bc-act'>"+(O.ok?"<button class='btn' onclick='bcOutlineOk(false)'>Change it</button>":"<button class='btn pri' onclick='bcOutlineOk(true)'>Confirm outline</button>")+"</div>";}
  h+=bcCard(2,"Outline",b,O&&O.ok?bcHm().length+" corners, "+Math.abs(bcPolyArea(bcHm())).toFixed(1)+" m²":"");
  /* 3 posts */
- var P=S.posts;b="<div>Posts are their own set. Tap <b>Pick post</b> and click one; <button class='cd-mini' onclick='bcPostSimilar()'"+(P.shape?"":" disabled")+">Select similar</button> finds the rest. Click a post again to take it off.</div>";
+ var P=S.posts;b="<div>Posts are their own set. <b>Pick post</b> and click inside one, or <b>Post by corners</b> (two opposite corners); <button class='cd-mini' onclick='bcPostSimilar()'"+(P.shape?"":" disabled")+">Select similar</button> finds the rest. Click a post again to take it off.</div>";
  b+="<div style='margin-top:4px'>"+P.list.length+" post"+(P.list.length===1?"":"s")+(P.list.length&&k?" ("+(P.list[0].w*k).toFixed(3)+" × "+(P.list[0].h*k).toFixed(3)+" m)":"")+" · "+P.lines.length+" post line"+(P.lines.length===1?"":"s")+(P.lines.length?" <button class='cd-mini' onclick='bcPostLineUndo()'>Undo last line</button>":"")+"</div>";
+ b+="<div style='margin-top:4px'><button class='cd-mini' onclick='bcPerpAll()'"+(P.list.length&&S.out?"":" disabled")+">Post lines from every post to the house</button></div>";
  b+="<div style='margin-top:4px'>Points for each post: <span class='seg bc-pc'><button data-pc='0' class='"+(P.corners?"":"on")+"'>Centre</button><button data-pc='1' class='"+(P.corners?"on":"")+"'>Centre + corners</button></span></div>";
  b+="<div class='bc-act'>"+(P.ok||P.none?"<button class='btn' onclick='bcPostsOk(0)'>Change</button>":"<button class='btn pri' onclick='bcPostsOk(1)'"+(P.list.length?"":" disabled")+">Confirm posts</button> <button class='btn ghost' onclick='bcPostsOk(2)'>No posts</button>")+"</div>";
  h+=bcCard(3,"Posts",b,P.none?"none":P.ok?P.list.length+" posts":"");
@@ -6990,7 +7008,7 @@ function bcWire(host){var S=bcS,g=function(id){return document.getElementById(id
  var f=g("bc-file");if(f)f.onchange=function(){if(f.files[0])bcLoadFile(f.files[0],"plan");};
  var lf=g("bc-lotfile");if(lf)lf.onchange=function(){if(lf.files[0])bcLoadFile(lf.files[0],"lot");};
  var pg=g("bc-page");if(pg)pg.onchange=function(){var n=parseInt(pg.value,10);if(n>=1&&n<=(S.file.pages||1))bcPdfPage(n).then(function(){bcRender();setTimeout(bcDraw,0);});};
- host.querySelectorAll("[data-bm]").forEach(function(b){b.onclick=function(){S.mode=b.dataset.bm;if(S.mode==="trace"&&!S.trace)S.trace=[];S.acrossA=null;S.posts.pend=null;if(S.mode==="scale"){S.scl.a=null;S.scl.b=null;}bcRender();};});
+ host.querySelectorAll("[data-bm]").forEach(function(b){b.onclick=function(){S.mode=b.dataset.bm;S.posts.c1=null;if(S.mode==="trace"&&!S.trace)S.trace=[];S.acrossA=null;S.posts.pend=null;if(S.mode==="scale"){S.scl.a=null;S.scl.b=null;}bcRender();};});
  host.querySelectorAll("[data-sc]").forEach(function(b){b.onclick=function(){S.scene=b.dataset.sc;S.mode=S.scene==="site"?(S.lot?"pan":"lot"):"pan";bcRender();setTimeout(bcDraw,0);};});
  host.querySelectorAll("details.bc-step").forEach(function(d){d.addEventListener("toggle",function(){S.open[d.dataset.st]=d.open;});});
  var sn0=g("bc-snap");if(sn0)sn0.onchange=function(){try{localStorage.setItem("eo:bcsnap",sn0.checked?"1":"0");}catch(e){}};
@@ -7011,6 +7029,7 @@ function bcWire(host){var S=bcS,g=function(id){return document.getElementById(id
  var sn=g("bc-start");if(sn)sn.onchange=function(){S.o.start=sn.value.trim();bcRender();};
  host.querySelectorAll(".bc-lname").forEach(function(el){el.onchange=function(){S.lays[el.dataset.k]=el.value.trim()||BC_LAYDEF[el.dataset.k];bcLaysPut(S.lays);};});}
 function bcScaleClear(){var S=bcS;S.scl.a=null;S.scl.b=null;bcRender();setTimeout(bcDraw,0);}
+function bcOutlineEdited(){var S=bcS,O=S.out,was=O.ok;O.ok=false;S.place=null;S.exc.res=null;if(was){S.msg="Outline changed — confirm it again in step 2. Posts, lot and setback rows are kept — check the corner numbers in the setback rows, then Calculate and work out the excavation again.";S.open[2]=true;}}
 function bcOutlineAgain(){var S=bcS,O=S.out;if(!O)return;var lays=[];document.querySelectorAll(".bc-lay").forEach(function(c){if(c.checked)lays.push(c.value);});if(!lays.length){S.msg="Tick at least one layer.";bcRender();return;}var gp=document.getElementById("bc-gap");if(gp)O.gapTxt=gp.value;bcOutlineRun(O.q,lays);}
 function bcOutlineOk(on){var S=bcS;S.out.ok=on;if(!on){S.place=null;S.exc.res=null;}S.mode="pan";S.open={};bcRender();setTimeout(bcDraw,0);}
 function bcPostsOk(v){var S=bcS;S.posts.ok=v===1;S.posts.none=v===2;S.mode="pan";S.exc.res=null;S.open={};if(v&&S.lotSrc)S.scene="site";bcRender();setTimeout(bcDraw,0);}
@@ -7020,7 +7039,7 @@ function bcSbAdd(){bcS.sb.push({kind:"pt",h:"",h2:"",side:"",d:""});bcRender();}
 function bcLaysReset(){bcS.lays=JSON.parse(JSON.stringify(BC_LAYDEF));bcLaysPut(bcS.lays);bcRender();}
 function bcZoomAll(){if(!bcS)return;bcS.view[bcS.scene]=null;bcDraw();}
 function bcZoomOutline(){var S=bcS;if(!S.out)return;var b=bcBox(S.out.P),cv=document.getElementById("bc-cv");if(!cv)return;var W=cv.clientWidth,H=cv.clientHeight,s=Math.min((W-60)/Math.max(1e-9,b[2]-b[0]),(H-60)/Math.max(1e-9,b[3]-b[1]));S.view.plan={s:s,cx:(b[0]+b[2])/2,cy:(b[1]+b[3])/2};bcDraw();}
-["bcTraceFinish","bcTraceUndo","bcScaleClear","bcRender","bcZoomAll","bcZoomOutline","bcSetK","bcScaleClicks","bcPdfScale","bcOutlineAgain","bcOutlineOk","bcPostSimilar","bcPostsOk","bcPostLineUndo","bcLotOk","bcSbAdd","bcCalc","bcExcRun","bcSave","bcLaysReset","bcLoadFile"].forEach(function(n){window[n]=eval(n);});
+["bcPerpAll","bcTraceFinish","bcTraceUndo","bcScaleClear","bcRender","bcZoomAll","bcZoomOutline","bcSetK","bcScaleClicks","bcPdfScale","bcOutlineAgain","bcOutlineOk","bcPostSimilar","bcPostsOk","bcPostLineUndo","bcLotOk","bcSbAdd","bcCalc","bcExcRun","bcSave","bcLaysReset","bcLoadFile"].forEach(function(n){window[n]=eval(n);});
 /* ---- canvas ---- */
 function bcSceneSrc(){var S=bcS;return S.scene==="site"?S.lotSrc:S.src;}
 function bcView(W,H){var S=bcS,sc=S.scene;if(S.view[sc])return S.view[sc];var b;
@@ -7040,7 +7059,8 @@ function bcDraw(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S||!S.s
   if(S.out){ring(S.out.raw,"rgba(194,65,12,.45)",1.5,[4,3]);ring(S.out.P,S.out.ok?"#2a8a3a":"#C2410C",2.5,null,true,function(i){return String(i+1);});
    if(S.acrossA!==null&&S.acrossA!==undefined){var a=S.out.P[S.acrossA];g.strokeStyle="#2456A6";g.lineWidth=2;g.beginPath();g.arc(X(a[0]),Y(a[1]),8,0,7);g.stroke();}}
   if(S.trace&&S.trace.length){ring(S.trace,"#2456A6",2,null,false,function(i){return String(i+1);});}
-  S.posts.list.forEach(function(p,i){g.strokeStyle="#7C3AED";g.lineWidth=2;g.strokeRect(X(p.c[0]-p.w/2),Y(p.c[1]+p.h/2),p.w*V.s,p.h*V.s);g.beginPath();g.arc(X(p.c[0]),Y(p.c[1]),2.5,0,7);g.fillStyle="#7C3AED";g.fill();});
+  if(S.posts.c1){var c1=S.posts.c1;g.strokeStyle="#7C3AED";g.lineWidth=2;g.beginPath();g.moveTo(X(c1[0])-7,Y(c1[1]));g.lineTo(X(c1[0])+7,Y(c1[1]));g.moveTo(X(c1[0]),Y(c1[1])-7);g.lineTo(X(c1[0]),Y(c1[1])+7);g.stroke();if(S.hover){var h2=S.hover.p;g.setLineDash([4,3]);g.strokeRect(Math.min(X(c1[0]),X(h2[0])),Math.min(Y(c1[1]),Y(h2[1])),Math.abs(X(h2[0])-X(c1[0])),Math.abs(Y(h2[1])-Y(c1[1])));g.setLineDash([]);}}
+  S.posts.list.forEach(function(p,i){g.strokeStyle="#7C3AED";g.lineWidth=2;ring(bcPostCorners(p),"#7C3AED",2);g.beginPath();g.arc(X(p.c[0]),Y(p.c[1]),2.5,0,7);g.fillStyle="#7C3AED";g.fill();});
   S.posts.lines.forEach(function(l){ring(l,"#7C3AED",1.5,[6,4],false);});
   if(S.posts.pend){var q=S.posts.pend;g.strokeStyle="#7C3AED";g.beginPath();g.arc(X(q[0]),Y(q[1]),6,0,7);g.stroke();}
   var hv=S.hover;
@@ -7062,6 +7082,18 @@ function bcDraw(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S||!S.s
    if(S.place&&S.place.rep){S.place.rep.forEach(function(r){var c=r.c,sd=S.lot.sides[c.side],pts=c.kind==="face"?[c.i,c.j]:[c.i];pts.forEach(function(ix){var p=Hj[ix],q=bcFoot(sd,p);g.strokeStyle=r.err>0.002?"#a86400":"#2a8a3a";g.lineWidth=1;g.setLineDash([2,2]);g.beginPath();g.moveTo(X(p[0]),Y(p[1]));g.lineTo(X(q[0]),Y(q[1]));g.stroke();g.setLineDash([]);});});}}
   if(S.exc.res)ring(S.exc.res.P,"#0F766E",2,[8,4],true,function(i){return "";});}
  }
+function bcLinesOf(P){return P.map(function(a,k){var b=P[(k+1)%P.length],v=cdSub(b,a),L=Math.hypot(v[0],v[1])||1;return {p:a.slice(),d:[v[0]/L,v[1]/L]};});}
+function bcLX(L1,L2){var den=cdCross(L1.d,L2.d);if(Math.abs(den)<1e-12)return null;var t=cdCross(cdSub(L2.p,L1.p),L2.d)/den;return [L1.p[0]+L1.d[0]*t,L1.p[1]+L1.d[1]*t];}
+function bcMoveCorner(P,i,q){var n=P.length,L=bcLinesOf(P),R=P.map(function(p){return p.slice();});L[(i-1+n)%n].p=q.slice();L[i].p=q.slice();R[i]=q.slice();
+ [(i-1+n)%n,(i+1)%n].forEach(function(j){var x=bcLX(L[(j-1+n)%n],L[j]);if(x)R[j]=x;});return R;}
+function bcMoveSide(P,i,q,q0){var n=P.length,L=bcLinesOf(P),R=P.map(function(p){return p.slice();}),nv=[-L[i].d[1],L[i].d[0]],t=cdDot(cdSub(q,q0),nv);L[i].p=[P[i][0]+nv[0]*t,P[i][1]+nv[1]*t];
+ [i,(i+1)%n].forEach(function(j){var x=bcLX(L[(j-1+n)%n],L[j]);if(x)R[j]=x;});return R;}
+/* what's under the cursor on an unconfirmed outline: a corner first, else the middle of a side */
+function bcOutlineHit(mx,my){var S=bcS,O=S.out,V=S.view.plan,cv=document.getElementById("bc-cv");if(!O||!V||!cv)return null;var W=cv.clientWidth,H=cv.clientHeight,X=function(p){return [W/2+(p[0]-V.cx)*V.s,H/2-(p[1]-V.cy)*V.s];},n=O.P.length,best=null;
+ O.P.forEach(function(p,i){var a=X(p),d=Math.hypot(a[0]-mx,a[1]-my);if(d<=9&&(!best||d<best.d))best={kind:"corner",i:i,d:d};});if(best)return best;
+ for(var i=0;i<n;i++){var a=X(O.P[i]),b=X(O.P[(i+1)%n]),v=[b[0]-a[0],b[1]-a[1]],L2=v[0]*v[0]+v[1]*v[1];if(L2<400)continue;var t=((mx-a[0])*v[0]+(my-a[1])*v[1])/L2;if(t<0.15||t>0.85)continue;
+  var d2=Math.abs((mx-a[0])*v[1]-(my-a[1])*v[0])/Math.sqrt(L2);if(d2<=6&&(!best||d2<best.d))best={kind:"side",i:i,d:d2};}
+ return best;}
 function bcFoot(S,p){if(S.arc){var c=S.arc.c,v=cdSub(p,c),L=Math.hypot(v[0],v[1])||1;return [c[0]+v[0]/L*S.arc.r,c[1]+v[1]/L*S.arc.r];}var d=cdSub(S.b,S.a),t=cdDot(cdSub(p,S.a),d)/cdDot(d,d);return [S.a[0]+d[0]*t,S.a[1]+d[1]*t];}
 function bcToSrc(mx,my){var S=bcS,cv=document.getElementById("bc-cv"),V=S.view[S.scene],W=cv.clientWidth,H=cv.clientHeight;return [V.cx+(mx-W/2)/V.s,V.cy-(my-H/2)/V.s];}
 function bcSnapOn(){try{return localStorage.getItem("eo:bcsnap")!=="0";}catch(e){return true;}}
@@ -7075,13 +7107,18 @@ function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src
  cv.onmousedown=function(e){drag={x:e.clientX,y:e.clientY,moved:false};
   /* Measure: grab either end and drag it */
   if(S.scene==="plan"&&S.mode==="scale"){var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,V=S.view.plan,W=cv.clientWidth,H=cv.clientHeight;
-   ["a","b"].forEach(function(k){var q=S.scl[k];if(!q||!V||drag.end)return;var x=W/2+(q[0]-V.cx)*V.s,y=H/2-(q[1]-V.cy)*V.s;if(Math.hypot(x-mx,y-my)<=10)drag.end=k;});}};
+   ["a","b"].forEach(function(k){var q=S.scl[k];if(!q||!V||drag.end)return;var x=W/2+(q[0]-V.cx)*V.s,y=H/2-(q[1]-V.cy)*V.s;if(Math.hypot(x-mx,y-my)<=10)drag.end=k;});}
+  if(S.scene==="plan"&&S.mode==="pan"&&S.out){var b2=cv.getBoundingClientRect(),oh=bcOutlineHit(e.clientX-b2.left,e.clientY-b2.top);if(oh){drag.oh=oh;drag.P0=S.out.P.map(function(p){return p.slice();});drag.q0=bcToSrc(e.clientX-b2.left,e.clientY-b2.top);}}};
  cv.onmousemove=function(e){if(!drag){var bb=cv.getBoundingClientRect(),hq=bcToSrc(e.clientX-bb.left,e.clientY-bb.top);
-   if(S.scene==="plan"&&/^(scale|trace|pline)$/.test(S.mode)){var sf=S.mode==="pline"?null:bcSnapFind(hq,10);S.hover={p:sf?sf.p:hq,k:sf?sf.k:null};if(!S.hoverRaf){S.hoverRaf=1;(window.requestAnimationFrame||setTimeout)(function(){S.hoverRaf=0;bcDraw();});}}else if(S.hover){S.hover=null;bcDraw();}
-   var on=false;if(S.scene==="plan"&&S.mode==="scale"&&S.view.plan){var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,V=S.view.plan,W=cv.clientWidth,H=cv.clientHeight;["a","b"].forEach(function(k){var q=S.scl[k];if(q&&Math.hypot(W/2+(q[0]-V.cx)*V.s-mx,H/2-(q[1]-V.cy)*V.s-my)<=10)on=true;});}cv.style.cursor=on?"move":"";return;}var V=S.view[S.scene],dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;if(!drag.moved||!V)return;
+   if(S.scene==="plan"&&/^(scale|trace|pline|postc)$/.test(S.mode)){var sf=S.mode==="pline"?null:bcSnapFind(hq,10);S.hover={p:sf?sf.p:hq,k:sf?sf.k:null};if(!S.hoverRaf){S.hoverRaf=1;(window.requestAnimationFrame||setTimeout)(function(){S.hoverRaf=0;bcDraw();});}}else if(S.hover){S.hover=null;bcDraw();}
+   var on=false;if(S.scene==="plan"&&S.mode==="scale"&&S.view.plan){var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,V=S.view.plan,W=cv.clientWidth,H=cv.clientHeight;["a","b"].forEach(function(k){var q=S.scl[k];if(q&&Math.hypot(W/2+(q[0]-V.cx)*V.s-mx,H/2-(q[1]-V.cy)*V.s-my)<=10)on=true;});}if(!on&&S.scene==="plan"&&S.mode==="pan"&&S.out){var oh2=bcOutlineHit(e.clientX-bb.left,e.clientY-bb.top);if(oh2)on=true;}cv.style.cursor=on?"move":"";return;}var V=S.view[S.scene],dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;if(!drag.moved||!V)return;
+  if(drag.oh){var b3=cv.getBoundingClientRect(),rq3=bcToSrc(e.clientX-b3.left,e.clientY-b3.top),sf3=bcSnapFind(rq3,10),q3=sf3?sf3.p:rq3;S.hover=sf3?{p:sf3.p,k:sf3.k}:null;
+   S.out.P=drag.oh.kind==="corner"?bcMoveCorner(drag.P0,drag.oh.i,q3):bcMoveSide(drag.P0,drag.oh.i,q3,drag.q0);bcDraw();return;}
   if(drag.end){var b=cv.getBoundingClientRect(),rq=bcToSrc(e.clientX-b.left,e.clientY-b.top),sf=bcSnapFind(rq,10);S.scl[drag.end]=sf?sf.p:rq;S.hover={p:S.scl[drag.end],k:sf?sf.k:null};bcDraw();return;}V.cx-=dx/V.s;V.cy+=dy/V.s;drag.x=e.clientX;drag.y=e.clientY;bcDraw();};
  cv.onmouseleave=function(){drag=null;if(S.hover){S.hover=null;bcDraw();}};
  cv.onmouseup=function(e){var was=drag;drag=null;
+  if(was&&was.oh){S.hover=null;if(was.moved){var O=S.out,mv=Math.max.apply(null,O.P.map(function(p,i){return cdHyp(p,was.P0[i]);}))*S.k;
+    O.P=bcClean(O.P);O.base=O.P.map(function(p){return p.slice();});O.edits.push((was.oh.kind==="corner"?"moved corner "+(was.oh.i+1):"moved side "+(was.oh.i+1)+"–"+((was.oh.i+1)%was.P0.length+1))+" ("+mv.toFixed(3)+" m)");bcOutlineEdited();bcRender();}else bcDraw();return;}
   if(was&&was.end&&was.moved){var b0=cv.getBoundingClientRect();S.scl[was.end]=bcSnapPlan(bcToSrc(e.clientX-b0.left,e.clientY-b0.top),10);bcRender();return;}
   if(was&&was.moved)return;var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,q=bcToSrc(mx,my),m=S.mode;
   if(S.scene==="site"){if(m==="lot")bcLotAt(q);return;}
@@ -7091,6 +7128,8 @@ function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src
   if(m==="drop"){var i=bcCornerAt(q,12);if(i>=0)bcDropCorner(i);return;}
   if(m==="across"){var j=bcCornerAt(q,12);if(j<0)return;if(S.acrossA===null||S.acrossA===undefined){S.acrossA=j;bcRender();}else{var a=S.acrossA;S.acrossA=null;bcAcross(a,j);}return;}
   if(m==="post"){bcPostAt(q);return;}
+  if(m==="postc"){bcPostByCorner(S.hover&&S.hover.k?S.hover.p.slice():q);return;}
+  if(m==="pperp"){bcPerpAt(q);return;}
   if(m==="pline"){var p=bcPostSnap(q);if(!S.posts.pend){S.posts.pend=p;bcRender();}else{S.posts.lines.push([S.posts.pend,p]);S.posts.pend=null;bcRender();}return;}};}
 
 
