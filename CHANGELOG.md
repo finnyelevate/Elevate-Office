@@ -1,5 +1,13 @@
 # Elevate Office — changelog
 
+## Build 1.41.9 — 2026-11-11
+- **Building calc › See the house's corner numbers while you enter setbacks.** The Site view now shows a small **plan of the house, as on the architect's plan, with every corner numbered**, top-right. The numbers in the row you're working on are highlighted.
+- **Fill setbacks by clicking.**
+  - Click a numbered corner on the small plan to fill **House** (a *pair ∥* row takes two corners in turn).
+  - Click a lot side on the drawing to fill **Lot side**. Lot side labels are bolder once the lot is confirmed.
+  - The cursor then moves to the setback box for you to type the distance.
+  - Clicking into a box first fills that box; otherwise the next empty one is filled, and a new row is added when they're all full.
+
 ## Build 1.41.8 — 2026-11-11
 - **Building calc › The outline stays on the drawing's lines (accuracy).**
   - **New readout:** step 2 now shows *Largest difference from the drawing's lines*: the furthest any corner or side of the outline is from the linework it was picked from. Green at 2 mm or under, amber over. A breakdown shows what caused it (squaring, jogs taken out, rounding); your own edits aren't counted.
