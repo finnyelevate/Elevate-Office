@@ -1,5 +1,30 @@
 # Elevate Office — changelog
 
+## Build 1.41 — 2026-11-11
+- **Points › Building calc (new tool).** Works out a new building from the architect’s plan, one step at a time. Each step opens once the one before it is confirmed. Plans in feet and inches are fine; **everything that comes out is metric** (ft-in shown alongside). If the set has both a foundation plan and a basement plan, use the foundation plan.
+  - **Drawings:** the architect’s .dxf, .dwg or vector PDF (with a page box for the sheet). Drop it on the Points tab while you’re in Building calc, or use the button.
+  - **1 Scale.** CAD files offer their own units (*Use them*). PDFs offer the common sheet scales (1/8″, 3/16″, 1/4″, 3/8″, 1/2″ = 1′-0″, 1:50, 1:100, 1:200). Either way you can **Measure**: click the two ends of a dimension you trust and type its length (24′-6″ or 7.468). The scale is checked against the dimensions on the drawing (*52 of 52 agree*), and any that don’t agree are listed.
+  - **2 Outline.** *Pick outline*, then click the foundation wall or inside it. The outline is followed round on its own, including walls drawn as hatches (Revit) or grey fills (PDF), and joined across openings up to 1.0 m (editable). It is then **squared to the building axis**: 0 / 90°, 45° where drawn that way, and any other angle left as drawn and flagged. You’re told how far anything moved. Corners are rounded to ¼″ on imperial plans (a tick), and drafting jogs under 20 mm are taken out. Side lengths are listed in m and ft-in. Edits: **Drop corner**, and **Straight across** (click two corners; the ones between, the shorter way round, go). The layers it followed are ticked, so you can change them and *Pick again*. Corners are numbered 1… clockwise from the south-west corner of the plan.
+  - **3 Posts** (or *No posts*). *Pick post* (click one), then **Select similar** finds the rest; click one again to take it off. **Draw post line** adds dashed lines (snaps to post centres and outline corners). Points per post: centre, or centre + corners.
+  - **4 Lot.** Load **our own CAD file** with the calculated lot lines (.dxf / .dwg) and click inside the subject lot. Corners are named with the job’s point numbers when its points file is on the shelf (otherwise L1, L2 …). **Arcs are read** with their radius (and radius point number when it’s on the shelf). Or tick **No lot — local coordinates only**: corner 1 at a chosen E / N, plan orientation (or rotated).
+  - **5 Setbacks** (only once the lot is confirmed). Each row is a **house point to a lot side** (e.g. 1 → 2–3 at 1.500), or a **pair of house points parallel to a lot side**. Distances are in m or ft-in, and sides can be arcs. **Calculate** fits the house: exact with two or three rows, a best fit with more (rms shown). *Got* shows each setback achieved against what was asked. If the house can still slide, it says which way, so you know what setback to add.
+  - **6 Excavation.** 4′ off the outline (editable) and at least 2′ clear of any post (editable), **held to the lot line** (arcs followed). Notes say where it was held and where a post is left short. It’s measured from the outline you confirmed: if the office measures from the footing, add the footing’s projection.
+  - **7 Output.** Points numbered **1–99** when the job’s file leaves them free, otherwise from the next clean hundred above it (editable): house corners, posts, then excavation corners (*CALC HOUSE / CALC POST / CALC EXC*). Points file (.txt, PNEZD), DXF and summary. **DXF layer names are yours and remembered**: defaults `CALC {date} NEW HOUSE`, `CALC {date} HOUSE PTS`, `CALC {date} POSTS`, `CALC {date} POST LINES` (dashed), `CALC EXCAVATION`, `CALC EXCAVATION_PTS`, where {date} = YY-MM-DD.
+  - **Tested on 25-3402 (4144 Price Cres):**
+    - A214 foundation plan DWG: 52 of 52 dimensions agree and the outline is 221.1 m². On the PDF (page 6, 1/4″) it is 220.2 m².
+    - Fitted into lot 4 with the office calc’s setbacks (west face 1.377, lane 13.401): it lands on the office calc’s corners (median 0.6 mm). The east side comes out at 1.781 m, the same as the calc.
+    - The east stair-well notch and the stair walls on the west are drawn deeper on the plan than in the calc. Use *Straight across* / *Drop corner* to match how the office simplifies them.
+    - The office’s excavation ran about 0.17 m further out than 4′ from the calc outline (≈ 4′6½″, likely measured from the footing).
+- **Points tools grouped.** The row of tools is now three groups, each showing what’s inside:
+  - **Clean up a topo:** Clean-up · Tree table · Height check
+  - **Scale & move points:** Scale · Match points · Transform
+  - **Design & stakeout:** Coordinate design · Design vs Field · Building calc · Monitoring
+  - A line under the tools says what the open one does.
+  - The last group and the last tool in each group are remembered.
+  - A drawing dropped on the tab opens in Coordinate design, or in Building calc when you’re in it (the plan first, then our lot drawing).
+- **Coordinate design:** the DXF layer name is now an editable box under the outputs, remembered. Default `CALC {date} DESIGN PTS`, with the date now written YY-MM-DD like your other CALC layers (was YYMMDD). Nothing else about Coordinate design changed. Its outputs were checked identical to 1.40 on the 21-016 DXF and the 21-203 PDF.
+- **Training:** *Design vs Field — cut / fill example* (Elevate office app folder) is now linked in Training and on the Design vs Field tool. Building calc links *House calc for new subdivision (Delta)*. Every other video in the Training Videos library was already linked.
+
 ## Build 1.40 — 2026-11-10
 - **Points › Coordinate design (new tool).** Coordinates the engineer’s design elevation bubbles so the crew can stake cut / fills. Drop the drawing on the Points tab (or use the button in the tool). A points file isn’t needed, but one on the shelf sets the numbering and lets you place a PDF by point number.
   - **Drawings it reads:** the engineer’s CAD file (.dxf, or .dwg, which is converted on the fly) or a **vector PDF** plotted from CAD. Scanned PDFs can’t be used.
