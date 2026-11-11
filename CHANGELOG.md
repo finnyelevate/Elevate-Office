@@ -1,5 +1,19 @@
 # Elevate Office — changelog
 
+## Build 1.41.4 — 2026-11-11
+- **Building calc › Snap you can see.** In Measure and Trace outline, a **green square** follows the cursor when it's on a line end or corner (labelled *corner / end*), with an ✕ in it on a crossing of two lines. Off a corner, a small grey + shows where a click will land. A click lands exactly where the marker shows. **Snap** switch on the toolbar (on by default, remembered) to turn it off; there's nothing to snap to on a scanned page.
+- **Building calc › Measure shows where you are.** The first point gets a numbered **①** marker and the second **②**. Between clicks a dashed line runs from ① to the cursor with its length (m and ft-in once a scale is set). The hint above the drawing and step 1 say *① is placed — now click the second end ②*, then *① and ② are placed — type the length*. Dragging an end snaps as you move it. Trace outline also shows a dashed line from the last corner to the cursor.
+
+## Build 1.41.3 — 2026-11-11
+- **Building calc › Pick outline on PDFs drawn with plain lines (fix).** On plans where the walls are double lines with no fill, and the dimensions and lettering are in the same pen (e.g. *1516 Kerfoot Road*, page 2), the pick tried to follow the whole sheet and the page stopped responding. It now leaves out lettering and other bits under 0.3 m across, and only joins gaps between real pieces of wall. It never runs away: if a layer is too busy it stops and suggests Trace outline. *Following the outline …* shows while it works. Kerfoot page 2 now takes about 0.2 s and follows the exterior walls (18 corners). Tidy the window well and the patio slab drawn below with *Straight across* if they aren't part of the foundation.
+- **Building calc › Trace outline (new).** Click each outside corner in turn; on CAD and vector PDFs each click snaps to line corners. Click corner 1 again, or *Finish*, to close; *Undo last* takes a click back. The traced outline is squared and edited like a picked one.
+- **Scanned pages:** Building calc now shows the scanned page as a picture behind the viewer. You can Measure for the scale and Trace the outline on it (nothing to snap to, so check a couple of dimensions). Pick outline is greyed out on a scan.
+- **After the scale is set, the tool switches to Pick outline** (Trace on a scan), so clicks no longer keep measuring.
+- **PDF page guess:** goes to the page with the biggest *FOUNDATION PLAN* title, not the drawing list (D2609 now opens on page 6, not the sheet index on page 4).
+
+## Build 1.41.2 — 2026-11-11
+- **Building calc › Measure: move the markers (fix).** A + put down in the wrong place couldn't be moved. Hover over either end (the cursor changes to a move cursor) and drag it; it snaps to line ends when you let go. *Clear* in step 1 removes both. Clicking elsewhere still starts a new measurement.
+
 ## Build 1.41.1 — 2026-11-11
 - **Points › Coordinate design / Building calc without a points file (fix).** A drawing dropped on the Points tab with no points file on the shelf opened in Coordinate design with no way to reach Building calc. The two tools now show as tabs there too.
 - **The dropped drawing goes with you.** Switching between Coordinate design and Building calc loads the drawing you dropped into the one you switch to (unless it already has it). This works with or without a points file.
