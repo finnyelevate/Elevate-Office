@@ -840,7 +840,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.41.12";
+const BUILD="1.41.13";
 const NEWS=["Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
@@ -6574,7 +6574,7 @@ function bcAxis(P){var h={};for(var i=0;i<P.length;i++){var a=P[i],b=P[(i+1)%P.l
 /* squares a ring; returns {P, moved:[per vertex], odd:[side indexes left as drawn], snapped45:[...]} */
 /* door swings (leaf + arc) caught in a picked outline: a run of off-angle sides between square corners that has any angle other than 45° in it is cut straight across.
    Runs that are all 45° (bays, chamfers) stay. minLen: sides shorter than this don't decide anything (arc pieces, tiny jogs). */
-function bcCutSwings(P,axis,minLen,minSq){minSq=minSq||minLen*3;var n=P.length,tol=3*Math.PI/180,cls=[];
+function bcCutSwings(P,axis,minLen,minSq,maxSpan){minSq=minSq||minLen*3;maxSpan=maxSpan||minLen*40;var n=P.length,tol=3*Math.PI/180,cls=[];
  for(var i=0;i<n;i++){var a=P[i],b=P[(i+1)%n],L=cdHyp(a,b),ang=Math.atan2(b[1]-a[1],b[0]-a[0])-axis,m=((ang%(Math.PI/2))+Math.PI/2)%(Math.PI/2);
   var o=Math.min(m,Math.PI/2-m)<tol?"sq":Math.abs(m-Math.PI/4)<tol?"45":"odd";cls.push(o==="sq"?(L<minSq?"tiny":"sq"):(L<minLen?"tiny":o));}
  if(cls.every(function(c){return c!=="sq";}))return {P:P,cuts:[]};
@@ -6582,7 +6582,8 @@ function bcCutSwings(P,axis,minLen,minSq){minSq=minSq||minLen*3;var n=P.length,t
  /* walk once round from a square side; collect runs of non-square sides */
  for(var t=1;t<=n;t++){var i2=(s0+t)%n;if(cls[i2]==="sq")continue;var run=[];while(cls[i2]!=="sq"&&run.length<n){run.push(i2);t++;i2=(s0+t)%n;}
   var hasOdd=run.some(function(k){return cls[k]==="odd";}),allSmall=run.every(function(k){return cls[k]==="tiny";});
-  if(hasOdd&&!allSmall&&run.length>=2){/* vertices inside the run go: run sides are i..j, keep vertex run[0] and the end of the last side */for(var q=1;q<run.length;q++)keepV[run[q]]=false;cuts.push([run[0],(run[run.length-1]+1)%n,run.length]);}}
+  var span=cdHyp(P[run[0]],P[(run[run.length-1]+1)%n]);
+  if(hasOdd&&!allSmall&&run.length>=2&&span<=maxSpan){/* vertices inside the run go: run sides are i..j, keep vertex run[0] and the end of the last side */for(var q=1;q<run.length;q++)keepV[run[q]]=false;cuts.push([run[0],(run[run.length-1]+1)%n,run.length]);}}
  var Q=P.filter(function(p,i){return keepV[i];});return {P:Q.length>=3?Q:P,cuts:cuts};}
 function bcSquare(P,axis,tolDeg,keep){var tol=(tolDeg||2)*Math.PI/180,n=P.length,lines=[],odd=[],s45=[];keep=keep||{};
  for(var i=0;i<n;i++){var a=P[i],b=P[(i+1)%n],ang=Math.atan2(b[1]-a[1],b[0]-a[0]),rel=ang-axis,q=Math.PI/4,k=Math.round(rel/q),dv=rel-k*q,dir=ang;
@@ -6906,7 +6907,7 @@ function bcTraceUndo(){var S=bcS;if(S.trace&&S.trace.length)S.trace.pop();bcRend
 /* largest gap between two outlines, both ways, corner to side (drawing units) */
 function bcDev(A,B){var sd=function(p,R){var m=1e18;for(var i=0;i<R.length;i++){var a=R[i],b=R[(i+1)%R.length],v=cdSub(b,a),L2=cdDot(v,v),t=L2?Math.max(0,Math.min(1,cdDot(cdSub(p,a),v)/L2)):0,d=cdHyp(p,[a[0]+v[0]*t,a[1]+v[1]*t]);if(d<m)m=d;}return m;};
  var m=0;A.forEach(function(p){m=Math.max(m,sd(p,B));});B.forEach(function(p){m=Math.max(m,sd(p,A));});return m;}
-function bcSquareNow(){var S=bcS,O=S.out,P=O.base||O.raw,ax=bcAxis(P);if(O.doors===undefined)O.doors=true;O.cuts=0;if(O.doors){var CS=bcCutSwings(P,ax,0.05/S.k,0.15/S.k);P=CS.P;O.cuts=CS.cuts.length;}var Q=bcSquare(P,ax,2);var R=Q.P;if(O.tidy===undefined)O.tidy=true;var dev={sq:bcDev(P,R)*S.k,jog:0,round:0};
+function bcSquareNow(){var S=bcS,O=S.out,P=O.base||O.raw,ax=bcAxis(P);if(O.doors===undefined)O.doors=true;O.cuts=0;if(O.doors){var CS=bcCutSwings(P,ax,0.05/S.k,0.15/S.k,2.0/S.k);P=CS.P;O.cuts=CS.cuts.length;}var Q=bcSquare(P,ax,2);var R=Q.P;if(O.tidy===undefined)O.tidy=true;var dev={sq:bcDev(P,R)*S.k,jog:0,round:0};
  /* drafting jogs under 20 mm aren't the building: taken out */
  var jog=0.02/S.k,nj=0,R0=R;for(var g=0;g<200&&R.length>4&&O.tidy;g++){var ix=-1;for(var i=0;i<R.length;i++)if(cdHyp(R[i],R[(i+1)%R.length])<jog){ix=(i+1)%R.length;break;}if(ix<0)break;var T=R.slice();T.splice(ix,1);var Q2=bcSquare(T,ax,2);R=Q2.P;nj++;}
  O.jogs=nj;if(nj)dev.jog=bcDev(R0,R)*S.k;

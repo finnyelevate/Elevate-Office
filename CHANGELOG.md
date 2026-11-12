@@ -1,5 +1,8 @@
 # Elevate Office — changelog
 
+## Build 1.41.13 — 2026-11-12
+- **Building calc › Door-swing cut limited to door openings (fix).** In 1.41.12 the cut could replace whole lengths of wall with one long diagonal, e.g. along a side drawn slightly off square with small steps. It now only cuts a run that spans **2 m or less**, the width of a door opening. Anything longer is left exactly as picked. The mocked door is still cut cleanly. A214, D2609 and Kerfoot are unchanged.
+
 ## Build 1.41.12 — 2026-11-12
 - **Building calc › Outline tidy-up back to the earlier defaults.** *Take out jogs under 20 mm* is on again and corners round to **¼″** again, as before 1.41.8. With both off, plans with lots of small steps came out with crowds of corners. Both are still tick-boxes, and *Largest difference from the drawing's lines* still shows what the tidy-up costs (A214: 12.2 mm, from one 13 mm jog).
 - **Building calc › Door swings cut straight across (new, on by default).** A door leaf and its swing arc drawn in the same pen as the wall, and touching the jamb, were followed as part of the foundation. Now any run of off-angle sides between square corners that contains an angle other than 45° (a leaf plus an arc) is replaced by a straight line across the opening, then squared. Runs that are all 45° (bays, chamfers) are left alone, and so are square jogs. Step 2 says how many were cut; there's a tick-box to turn it off. No false cuts on the A214 DWG, the D2609 PDF or Kerfoot page 2.
