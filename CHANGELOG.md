@@ -1,5 +1,14 @@
 # Elevate Office — changelog
 
+## Build 1.41.15 — 2026-11-12
+- **Building calc › Edits stay put (fix for the "endless cycle").**
+  - **Before:** every edit (drop corner, box drop, straight across) re-ran the whole outline process: squaring every wall, ¼″ rounding from corner 1, the opening and door tidy-ups, and renumbering from the south-west corner. Each edit could therefore shift or renumber corners elsewhere.
+  - **Now:** edits only change the spot you touch. Every other corner stays exactly where it was and keeps its order, and the outline stays square. Tested on Kerfoot page 3: a box drop, a single drop and a straight-across left all other corners unchanged.
+- **Undo last edit (new).** A button in step 2 steps back one edit at a time (drops, straight across, corner and side drags).
+- **Asks before starting over.** Changing a tick-box (rounding, jogs, door swings, fill openings), the gap or the layers, or picking again, works the outline out again from the drawing. Once you've made edits it now asks first, and says how many edits would be cleared.
+- **Fix:** a click where there's nothing to follow could stop the pick with an error, so nothing happened. It now says it couldn't close an outline there.
+- **Checked against your 1.41.10 export** (*1516 Kerfoot Road-p2-CALC.dxf*, 14 corners, 306.76 m²). On page 2, 1.41.10 and this build make the same first pick, 18 corners and 345.7 m². Your export is that outline with the window well and the patio slab taken out.
+
 ## Build 1.41.14 — 2026-11-12
 Worked through on *1516 Kerfoot Road*, page 3 (main floor). Its west wall has two garage doors, two entries, windows and boxed-out columns. The outline came out with 75 corners; it's now 24, all square.
 - **Pick outline follows the black wall lines, not coloured overlays (fix).**
