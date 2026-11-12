@@ -840,7 +840,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.41.10";
+const BUILD="1.41.11";
 const NEWS=["Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
@@ -6469,6 +6469,7 @@ function cdHatchRings(e){var M=e.m,i=0,n=M.length,rings=[];
 var BC_FT=0.3048,BC_IN=0.0254;
 /* lengths as written on plans: 42'-6", 42' - 6 1/2", 42'6", 6 1/2", 42.5', 15.24, 15.24 m, 1524 mm */
 function bcParseLen(s){s=String(s||"").trim().replace(/[’′]/g,"'").replace(/[”″]/g,'"').replace(/''/g,'"');if(!s)return null;var m;
+ s=s.replace(/\s*(feet|foot|ft)\b\.?/gi,"'").replace(/\s*(inches|inch|in)\b\.?/gi,'"').replace(/\s*(metres|meters|metre|meter)\b/gi,"m").replace(/'\s+(?=\d)/,"'-");
  if((m=/^(-?\d+(?:\.\d+)?)\s*mm$/i.exec(s)))return parseFloat(m[1])/1000;
  if((m=/^(-?\d+(?:\.\d+)?)\s*m$/i.exec(s)))return parseFloat(m[1]);
  if(/['"]/.test(s)){var ft=0,inch=0;m=/^(\d+(?:\.\d+)?)\s*'\s*-?\s*(.*)$/.exec(s);var rest=s;if(m){ft=parseFloat(m[1]);rest=m[2];}
@@ -6706,7 +6707,15 @@ function bcGrow(P,axis,d){var c=Math.cos(-axis),s=Math.sin(-axis),to=function(p)
  var Q=outer.v.map(function(i){return A.nodes[i];});return bcPolyArea(Q)*bcPolyArea(P)<0?Q.reverse():Q;}
 function bcExcavation(house,posts,lot,axis,off,postOff){var notes=[],ring=bcGrow(house,axis,off),rings=[ring];
  (posts||[]).forEach(function(p,i){var r=postOff+(p.half||0),c=Math.cos(axis),s=Math.sin(axis),sq=[[-r,-r],[r,-r],[r,r],[-r,r]].map(function(q){return [p.c[0]+q[0]*c-q[1]*s,p.c[1]+q[0]*s+q[1]*c];});
-  if(sq.some(function(q){return !bcInPoly(ring,q);})){rings.push(sq);notes.push("post "+(i+1)+" sits near or outside the 4 ft line — excavation taken out round it");}});
+  if(sq.some(function(q){return !bcInPoly(ring,q);})){rings.push(sq);
+   if(!sq.some(function(q){return bcInPoly(ring,q);})){/* clear of it altogether: reach back to the nearest part of the excavation */
+    var nb=null;for(var j=0;j<ring.length;j++){var r2=cdSegDist(p.c,ring[j],ring[(j+1)%ring.length]);if(!nb||r2.d<nb.d)nb={d:r2.d,p:r2.p||r2.q||r2.pt};}
+    if(nb&&nb.p){var u=cdSub(nb.p,p.c),L=Math.hypot(u[0],u[1])||1,np=[nb.p[0]+u[0]/L*0.05,nb.p[1]+u[1]/L*0.05],ic=Math.cos(-axis),is=Math.sin(-axis),fr=function(q){return [q[0]*ic-q[1]*is,q[0]*is+q[1]*ic];},bk=function(q){return [q[0]*c-q[1]*s,q[0]*s+q[1]*c];};
+     /* the strip is as wide as the post's square, running square to the building */var A=sq.map(fr),b=bcBox(A),t=fr(np),x0=b[0],x1=b[2],y0=b[1],y1=b[3];
+     if(t[0]>=b[0]&&t[0]<=b[2]){y0=Math.min(y0,t[1]);y1=Math.max(y1,t[1]);}else if(t[1]>=b[1]&&t[1]<=b[3]){x0=Math.min(x0,t[0]);x1=Math.max(x1,t[0]);}else{x0=Math.min(x0,t[0]);x1=Math.max(x1,t[0]);y0=Math.min(y0,t[1]);y1=Math.max(y1,t[1]);}
+     rings.push([[x0,y0],[x1,y0],[x1,y1],[x0,y1]].map(bk));}
+    notes.push("post "+(i+1)+" is "+(nb?(nb.d-r).toFixed(2):"?")+" m beyond the 4 ft line — excavation run out to take it in, "+bcFtIn(postOff)+" clear round it");}
+   else notes.push("post "+(i+1)+" sits on the 4 ft line — excavation taken out round it");}});
  var U=rings.length>1?bcUnionRect(rings,axis):ring;
  if(lot){var C=bcConvex(lot)?bcClip(U,lot):bcIntersect(U,lot);if(Math.abs(Math.abs(bcPolyArea(C))-Math.abs(bcPolyArea(U)))>1e-7||C.length!==U.length){notes.push("held to the lot line where the offset would cross it");
    /* posts left with less than the clearance */
@@ -6738,14 +6747,55 @@ function bcDxf(sets,th){/* sets: [{layer, kind:"poly"|"pts"|"line", rings:[[..]]
  Object.keys(lays).forEach(function(n){tbl.push("0","LAYER","2",n,"70","0","62",String(lays[n].c),"6",lays[n].d?"DASHED":"CONTINUOUS");});tbl.push("0","ENDTAB","0","ENDSEC");
  return ["0","SECTION","2","HEADER","9","$ACADVER","1","AC1009","9","$INSUNITS","70","6","0","ENDSEC"].concat(tbl).concat(["0","SECTION","2","ENTITIES"]).concat(ent).concat(["0","ENDSEC","0","EOF"]).join("\r\n")+"\r\n";}
 
+/* the calc added to a copy of our own drawing: everything in it is kept; new layers go in its layer table, new objects get fresh handles */
+function bcDxfMerge(text,sets,th){var NL=text.indexOf("\r\n")>=0?"\r\n":"\n",h=th||0.3,lines=text.split(/\r?\n/);if(lines[lines.length-1]==="")lines.pop();
+ if(lines.length%2)throw new Error("odd number of lines");
+ /* code/value pairs, exactly as in the file */
+ var P=[];for(var i=0;i<lines.length;i+=2)P.push([lines[i],lines[i+1]]);var C=function(k){return parseInt(P[k][0],10);},V=function(k){return String(P[k][1]).trim();};
+ var find=function(from,fn){for(var k=from;k<P.length;k++)if(fn(k))return k;return -1;};
+ var hv=function(name,code){var k=find(0,function(k){return C(k)===9&&V(k)===name;});return k>=0&&C(k+1)===code?k+1:-1;};
+ var kv=hv("$ACADVER",1),ver=kv>=0?V(kv):"AC1009",r12=ver<="AC1009";
+ var ks=hv("$HANDSEED",5),seed=ks>=0?parseInt(V(ks),16):0;if(!r12&&!(seed>0))throw new Error("no $HANDSEED");
+ var Hn=function(){return (seed++).toString(16).toUpperCase();};
+ var fmt=function(c){return (c<10?"  ":c<100?" ":"")+c;},pr=function(c,v){return [fmt(c),String(v)];};
+ /* model space owner */
+ var msh="1F";if(!r12){var kb=find(0,function(k){return C(k)===2&&V(k)==="*Model_Space";});if(kb>=0){for(var k2=kb;k2>0&&!(C(k2)===0);k2--);var k5=find(k2,function(k){return C(k)===5;});if(k5>=0&&k5<kb)msh=V(k5);}}
+ /* entities section end */
+ var ke=find(0,function(k){return C(k)===2&&V(k)==="ENTITIES"&&C(k-1)===0&&V(k-1)==="SECTION";});if(ke<0)throw new Error("no ENTITIES section");
+ var kend=find(ke,function(k){return C(k)===0&&V(k)==="ENDSEC";});
+ /* layer table and its layer 0 record */
+ var kt=find(0,function(k){return C(k)===0&&V(k)==="TABLE"&&C(k+1)===2&&V(k+1)==="LAYER";}),ktEnd=kt>=0?find(kt,function(k){return C(k)===0&&V(k)==="ENDTAB";}):-1;
+ var have={},l0=null;if(kt>=0){for(var k=kt+1;k<ktEnd;k++){if(C(k)===0&&V(k)==="LAYER"){var e=find(k+1,function(j){return C(j)===0;}),nm=null;for(var j=k+1;j<e;j++)if(C(j)===2){nm=V(j);break;}if(nm!==null){have[nm.toUpperCase()]=1;if(nm==="0")l0=P.slice(k,e);}k=e-1;}}}
+ var tblH=null;if(kt>=0){for(var j3=kt+1;j3<ktEnd&&C(j3)!==0;j3++)if(C(j3)===5){tblH=V(j3);break;}}
+ var newLays={},order=[],L=function(n,c){if(!have[n.toUpperCase()]&&!newLays[n]){newLays[n]=c;order.push(n);}};
+ var out=[],ent=function(type,lay,lt){var a=[pr(0,type)];if(!r12)a.push(pr(5,Hn()),pr(330,msh),pr(100,"AcDbEntity"));a.push(pr(8,lay));if(lt)a.push(pr(6,lt));return a;};
+ var hasDash=find(0,function(k){return C(k)===2&&V(k).toUpperCase()==="DASHED";})>=0;
+ sets.forEach(function(S,si){var c=[1,3,5,2,6,4,30,140][si%8];
+  if(S.kind==="poly"||S.kind==="line"){L(S.layer,c);(S.rings||[]).forEach(function(R){var closed=S.kind==="poly",lt=S.dashed&&hasDash?"DASHED":null;
+    if(r12){var a=ent("POLYLINE",S.layer,lt);a.push(pr(66,1),pr(10,"0.0"),pr(20,"0.0"),pr(30,"0.0"),pr(70,closed?1:0));R.forEach(function(p){a.push(pr(0,"VERTEX"),pr(8,S.layer),pr(10,p[0].toFixed(4)),pr(20,p[1].toFixed(4)),pr(30,"0.0"));});a.push(pr(0,"SEQEND"),pr(8,S.layer));out.push.apply(out,a);}
+    else{var b2=ent("LWPOLYLINE",S.layer,lt);b2.push(pr(100,"AcDbPolyline"),pr(90,R.length),pr(70,closed?1:0));R.forEach(function(p){b2.push(pr(10,p[0].toFixed(4)),pr(20,p[1].toFixed(4)));});out.push.apply(out,b2);}});}
+  if(S.kind==="pts"){L(S.layer,c);L(S.layer+"-LABELS",7);S.pts.forEach(function(r){var a=ent("POINT",S.layer);if(!r12)a.push(pr(100,"AcDbPoint"));a.push(pr(10,r.E.toFixed(4)),pr(20,r.N.toFixed(4)),pr(30,(r.Z||0).toFixed(4)));out.push.apply(out,a);
+    var t=ent("TEXT",S.layer+"-LABELS");if(!r12)t.push(pr(100,"AcDbText"));t.push(pr(10,(r.E+h*0.5).toFixed(4)),pr(20,(r.N+h*0.3).toFixed(4)),pr(30,"0.0"),pr(40,h.toFixed(4)),pr(1,String(r.pt)));if(!r12)t.push(pr(100,"AcDbText"));out.push.apply(out,t);});}});
+ /* new layer records: layer 0's record with a new handle, name and colour (no xdata / dictionary carried over) */
+ var lrec=[];order.forEach(function(n){var r;
+  if(l0&&!r12){r=[];var skip=false;for(var q=0;q<l0.length;q++){var c0=parseInt(l0[q][0],10),v0=String(l0[q][1]).trim();
+    if(c0===102&&v0==="{ACAD_XDICTIONARY"){skip=true;continue;}if(skip){if(c0===102&&v0==="}")skip=false;continue;}if(c0===1001)break;
+    if(c0===5)r.push(pr(5,Hn()));else if(c0===2)r.push(pr(2,n));else if(c0===62)r.push(pr(62,newLays[n]));else if(c0===6)r.push(pr(6,"Continuous"));else if(c0===70)r.push(pr(70,0));else r.push([l0[q][0],l0[q][1]]);}}
+  else{r=[pr(0,"LAYER")];if(!r12)r.push(pr(5,Hn()),pr(330,tblH||"2"),pr(100,"AcDbSymbolTableRecord"),pr(100,"AcDbLayerTableRecord"));r.push(pr(2,n),pr(70,0),pr(62,newLays[n]),pr(6,"CONTINUOUS"));}
+  lrec.push.apply(lrec,r);});
+ /* splice: entities first (later in the file), then layers, then the counts and the seed */
+ P.splice.apply(P,[kend,0].concat(out));
+ if(ktEnd>=0&&lrec.length){P.splice.apply(P,[ktEnd,0].concat(lrec));for(var j4=kt+1;j4<ktEnd&&C(j4)!==0;j4++)if(C(j4)===70){P[j4]=[P[j4][0],String(parseInt(V(j4),10)+order.length)];break;}}
+ if(!r12&&ks>=0)P[ks]=[P[ks][0],seed.toString(16).toUpperCase()];
+ var outL=[];P.forEach(function(x){outL.push(x[0],x[1]);});return outL.join(NL)+NL;}
 function bcComponents(A){var c=new Array(A.nodes.length).fill(-1),k=0;for(var i=0;i<A.nodes.length;i++){if(c[i]>=0)continue;var st=[i];c[i]=k;while(st.length){var v=st.pop();A.adj[v].forEach(function(h){if(c[h.to]<0){c[h.to]=k;st.push(h.to);}});}k++;}return c;}
 
 /* ================= 1.41 Building calc (Points tab) =================
    Step by step: scale -> outline -> posts -> lot -> setbacks -> excavation -> output.
    Plan units stay as drawn until the scale is confirmed; everything that comes out is metric. */
 var bcS=null;
-var BC_LAYDEF={house:"CALC {date} NEW HOUSE",pts:"CALC {date} HOUSE PTS",posts:"CALC {date} POSTS",plines:"CALC {date} POST LINES",exc:"CALC EXCAVATION",excpts:"CALC EXCAVATION_PTS"};
-function bcLaysGet(){var o={};try{o=JSON.parse(localStorage.getItem("eo:bclays")||"{}")||{};}catch(e){}var r={};Object.keys(BC_LAYDEF).forEach(function(k){r[k]=o[k]||BC_LAYDEF[k];});return r;}
+var BC_LAYDEF={house:"CALC {date} NEW HOUSE",pts:"CALC {date} HOUSE PTS",posts:"CALC {date} NEW HOUSE",plines:"CALC {date} NEW HOUSE",exc:"CALC EXCAVATION",excpts:"CALC EXCAVATION_PTS"};
+function bcLaysGet(){var o={};try{o=JSON.parse(localStorage.getItem("eo:bclays")||"{}")||{};}catch(e){}var r={},old={posts:"CALC {date} POSTS",plines:"CALC {date} POST LINES"};Object.keys(BC_LAYDEF).forEach(function(k){r[k]=o[k]&&o[k]!==old[k]?o[k]:BC_LAYDEF[k];});return r;}
 function bcLaysPut(L){try{localStorage.setItem("eo:bclays",JSON.stringify(L));}catch(e){}}
 function bcDate(){var d=new Date(),p=function(n){return (n<10?"0":"")+n;};return String(d.getFullYear()).slice(2)+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());}
 function bcLayName(t){return String(t||"").replace(/\{date\}/gi,bcDate()).trim()||"CALC";}
@@ -6784,7 +6834,7 @@ function bcFromDxf(t,which){var S=bcS,D=cdDxfParse(t),F=cdDxfFlatten(D,{hatch:tr
  var b=bcRobustBox(F.paths)||cdBounds(F.paths),ext=Math.max(b[2]-b[0],b[3]-b[1])||1,idx=cdIndex(F.paths,Math.max(ext/300,0.05));
  var src={kind:"cad",F:F,idx:idx,D:D,bounds:b,ext:ext,iu:+D.hdr.$INSUNITS||0};
  if(which==="plan"){S.src=src;S.scene="plan";S.view.plan=null;var g={1:BC_IN,2:BC_FT,4:0.001,5:0.01,6:1}[src.iu];S.kGuess=g||null;S.dimsAll=bcCadDims(D);}
- else{src.pts=bcDwgPts(D);S.lotSrc=src;S.scene="site";S.view.site=null;S.lot=null;S.place=null;S.exc.res=null;S.mode="lot";S.msg="Click inside the subject lot (not inside the house).";}}
+ else{src.pts=bcDwgPts(D);src.text=t;S.lotSrc=src;S.scene="site";S.view.site=null;S.lot=null;S.place=null;S.exc.res=null;S.mode="lot";S.msg="Click inside the subject lot (not inside the house).";}}
 function bcPdfPage(n){var S=bcS;S.busy="Reading page "+n+" …";bcRender();
  return S.pdf.getPage(n).then(function(page){return Promise.all([page.getOperatorList(),page.getTextContent()]).then(function(r){var F=cdPdfPrims(cdPdfPaths(r[0],window.pdfjsLib.OPS),{fills:true}),idx=cdIndex(F.paths,10);
   S.scan=bcIsScan(r[0],F);S.bg=null;if(S.scan)bcRenderBg(page);S.src={kind:"pdf",F:F,idx:idx,bounds:[page.view[0],page.view[1],page.view[2],page.view[3]],ext:Math.max(page.view[2],page.view[3]),page:n,text:r[1].items.map(function(i){return {s:i.str,t:i.transform,w:i.width};})};
@@ -6920,12 +6970,13 @@ function bcClashes(){var used={};bcKnownPts().forEach(function(p){used[String(p.
 function bcBase(){var n=(bcS.file&&bcS.file.name)||"building";return n.replace(/\.[^.]+$/,"")+(bcS.src&&bcS.src.kind==="pdf"?"-p"+bcS.src.page:"");}
 function bcSave(which){var S=bcS;if(!bcUnlocked(7)){S.msg="Finish the steps above first.";bcRender();return;}var rows=bcRows(),f=bcJobF(),k=S.k,L=S.lays,B=bcBase()+"-CALC",txt,fn,type="text/plain";
  if(which==="txt"){txt=rows.map(function(r){return [r.pt,r.N.toFixed(3),r.E.toFixed(3),"",r.desc].join(",");}).join("\r\n")+"\r\n";fn=B+"-PTS.txt";}
- else if(which==="dxf"){var sets=[{layer:bcLayName(L.house),kind:"poly",rings:[bcHm().map(f)]},{layer:bcLayName(L.pts),kind:"pts",pts:rows.filter(function(r){return r.set==="pts";})}];
+ else if(which==="dxf"||which==="merge"){var sets=[{layer:bcLayName(L.house),kind:"poly",rings:[bcHm().map(f)]},{layer:bcLayName(L.pts),kind:"pts",pts:rows.filter(function(r){return r.set==="pts";})}];
   if(!S.posts.none&&S.posts.list.length){sets.push({layer:bcLayName(L.posts),kind:"pts",pts:rows.filter(function(r){return r.set==="posts";})});
    sets.push({layer:bcLayName(L.posts),kind:"poly",rings:S.posts.list.map(function(p){return bcPostCorners(p).map(function(q){return f([q[0]*k,q[1]*k]);});})});}
   if(S.posts.lines.length)sets.push({layer:bcLayName(L.plines),kind:"line",dashed:true,rings:S.posts.lines.map(function(l){return [f([l[0][0]*k,l[0][1]*k]),f([l[1][0]*k,l[1][1]*k])];})});
   if(S.exc.res){sets.push({layer:bcLayName(L.exc),kind:"poly",rings:[S.exc.res.P]});sets.push({layer:bcLayName(L.excpts),kind:"pts",pts:rows.filter(function(r){return r.set==="excpts";})});}
-  txt=bcDxf(sets,0.3);fn=B+".dxf";type="application/dxf";}
+  if(which==="merge"){if(!S.lotSrc||!S.lotSrc.text){S.msg="Load our lot drawing in step 4 first.";bcRender();return;}try{txt=bcDxfMerge(S.lotSrc.text,sets,0.3);}catch(e){S.msg="Couldn’t add the calc to that drawing: "+(e.message||e);bcRender();return;}fn=String(S.lotFile.name).replace(/\.[^.]+$/,"")+"-WITH-CALC.dxf";}
+  else{txt=bcDxf(sets,0.3);fn=B+".dxf";}type="application/dxf";}
  else{txt=bcSummary(rows);fn=B+"-SUMMARY.txt";}
  cuSaveText(txt,fn,type);S.msg="Saved "+fn+".";bcRender();}
 function bcSummary(rows){var S=bcS,L=[],H=bcHm(),k=S.k;
@@ -7015,17 +7066,17 @@ function bcStepsHtml(){var S=bcS,E=esc,k=S.k,h="";
   if(S.place){var R=S.place;if(R.outside&&R.outside.length)b+="<div class='cu-pkgwarn' style='display:block'>House corner"+(R.outside.length===1?" ":"s ")+R.outside.slice(0,8).join(", ")+(R.outside.length>8?" …":"")+" land"+(R.outside.length===1?"s":"")+" outside the lot — check each row’s lot side and house points (a setback measured from the wrong side puts the house over the line).</div>";b+="<div class='bc-res'>"+(R.under?"<span class='cu-pkgwarn'>Not fixed yet — the house can still slide"+(R.free?" along "+bcBrg(R.free):"")+". Add a setback across that direction.</span>":"Fitted: "+(R.nEq>3?"best fit of "+R.nEq+" conditions, rms "+(R.rms*1000).toFixed(1)+" mm":"exact")+" · rotation "+(((R.th*180/Math.PI)%360+360)%360).toFixed(4)+"°")+"</div>";}
   h+=bcCard(5,"Setbacks",b,S.place&&!S.place.under?"fitted":"");}
  /* 6 excavation */
- b="<div class='row'>Off the foundation <input type='text' id='bc-xo' value='"+E(S.exc.off)+"' style='width:60px'> · clear of posts at least <input type='text' id='bc-xp' value='"+E(S.exc.post)+"' style='width:60px'></div><div class='hint'>Measured from the outline confirmed in step 2"+(S.local.on?"":"; never past the lot line")+". If the office measures from the footing, add the footing’s projection here.</div><div class='bc-act'><button class='btn pri' onclick='bcExcRun()'>Work out the excavation</button></div>";
+ b="<div class='row'>Off the foundation <input type='text' id='bc-xo' value='"+E(S.exc.off)+"' style='width:60px'> <span id='bc-xo-v' class='hint' style='margin:0'>"+bcLenEcho(S.exc.off,2.5)+"</span></div><div class='row'>Clear of posts at least <input type='text' id='bc-xp' value='"+E(S.exc.post)+"' style='width:60px'> <span id='bc-xp-v' class='hint' style='margin:0'>"+bcLenEcho(S.exc.post,1.5)+"</span></div><div class='hint' style='margin:0'>Feet: 4' or 4 ft · metres: 1.219 (a plain number is metres)</div><div class='hint'>Measured from the outline confirmed in step 2"+(S.local.on?"":"; never past the lot line")+". If the office measures from the footing, add the footing’s projection here.</div><div class='bc-act'><button class='btn pri' onclick='bcExcRun()'>Work out the excavation</button></div>";
  if(S.exc.res){var X=S.exc.res;b+="<div class='bc-res'>"+X.P.length+" corners, "+Math.abs(bcPolyArea(X.P)).toFixed(2)+" m²"+(X.notes.length?"<br>"+X.notes.map(E).join("<br>"):"")+"</div>";}
  h+=bcCard(6,"Excavation",b,S.exc.res?S.exc.res.P.length+" corners":"");
  /* 7 output */
  if(bcUnlocked(7)){if(!S.o.start)S.o.start=String(bcStartDefault());}
- var Ls=S.lays,li=function(key,lab){return "<tr><td>"+lab+"</td><td><input type='text' class='bc-lname' data-k='"+key+"' value='"+E(Ls[key])+"' style='width:200px'></td></tr>";};
+ var Ls=S.lays,li=function(key,lab){return "<tr><td>"+lab+"</td><td><input type='text' class='bc-lname' data-k='"+key+"' value='"+E(bcLayName(Ls[key]))+"' style='width:220px'></td></tr>";};
  b="<div class='row'>Points from <input type='text' id='bc-start' value='"+E(S.o.start)+"' style='width:70px'> <span class='hint'>1–99 when the job’s file leaves them free, else the next clean hundred above it</span></div>";
- b+="<table class='cu-mtt'><tr><th>DXF layer</th><th>name ({date} = "+bcDate()+")</th></tr>"+li("house","Building outline")+li("pts","Building points")+li("posts","Posts")+li("plines","Post lines (dashed)")+li("exc","Excavation")+li("excpts","Excavation points")+"</table><button class='cd-mini' onclick='bcLaysReset()'>Default names</button>";
+ b+="<table class='cu-mtt'><tr><th>DXF layer</th><th>name (today’s date fills in)</th></tr>"+li("house","Building outline, posts, post lines")+li("pts","Building points")+li("exc","Excavation")+li("excpts","Excavation points")+"</table><details style='font-size:12px;margin-top:2px'><summary>Separate layers for posts / post lines</summary><table class='cu-mtt'>"+li("posts","Posts")+li("plines","Post lines (dashed)")+"</table></details><button class='cd-mini' onclick='bcLaysReset()'>Default names</button>";
  if(bcUnlocked(7)){var rows=bcRows(),kp=bcKnownPts(),nd=kp.filter(function(p){return p.src==="drawing";}).length;b+="<div class='hint'>"+rows.length+" points: "+rows[0].pt+"–"+rows[rows.length-1].pt+" · checked against "+(kp.length-nd)+" point"+(kp.length-nd===1?"":"s")+" on the shelf"+(S.lotSrc?" and "+nd+" in our lot drawing":"")+"</div>";
   var cl=bcClashes();if(cl.length)b+="<div class='cu-pkgwarn' style='display:block'>"+cl.length+" of these numbers are already used ("+cl.slice(0,10).join(", ")+(cl.length>10?" …":"")+"). <button class='cd-mini' onclick='bcS.o.start=String(bcStartDefault());bcRender()'>Use "+bcStartDefault()+" and up</button></div>";}
- b+="<div class='bc-act'><button class='btn pri' onclick='bcSave(\"txt\")'>Points (.txt)</button> <button class='btn pri' onclick='bcSave(\"dxf\")'>DXF</button> <button class='btn' onclick='bcSave(\"sum\")'>Summary</button></div>";
+ b+="<div class='bc-act'><button class='btn pri' onclick='bcSave(\"txt\")'>Points (.txt)</button> <button class='btn pri' onclick='bcSave(\"dxf\")'>DXF (calc only)</button> <button class='btn' onclick='bcSave(\"sum\")'>Summary</button></div>"+(S.lotSrc&&S.lotSrc.text?"<div class='bc-act'><button class='btn pri' onclick='bcSave(\"merge\")'>Our drawing + calc (.dxf)</button> <span class='hint' style='margin:0'>"+E(S.lotFile.name)+" with everything in it, the calc added on its layers</span></div>":"");
  h+=bcCard(7,"Output",b,"");
  return h;}
 function bcWire(host){var S=bcS,g=function(id){return document.getElementById(id);};
@@ -7051,11 +7102,12 @@ function bcWire(host){var S=bcS,g=function(id){return document.getElementById(id
  host.querySelectorAll(".bc-sbside").forEach(function(el){el.onchange=function(){S.sb[+el.dataset.r].side=el.value;};});
  host.querySelectorAll(".bc-sbd").forEach(function(el){el.oninput=function(){S.sb[+el.dataset.r].d=el.value;};});
  host.querySelectorAll("[data-sbx]").forEach(function(el){el.onclick=function(){S.sb.splice(+el.dataset.sbx,1);S.place=null;S.exc.res=null;bcRender();};});
- var xo=g("bc-xo");if(xo)xo.oninput=function(){S.exc.off=xo.value;};var xp=g("bc-xp");if(xp)xp.oninput=function(){S.exc.post=xp.value;};
+ var xo=g("bc-xo");if(xo)xo.oninput=function(){S.exc.off=xo.value;var v=g("bc-xo-v");if(v)v.innerHTML=bcLenEcho(xo.value,2.5);};var xp=g("bc-xp");if(xp)xp.oninput=function(){S.exc.post=xp.value;var v=g("bc-xp-v");if(v)v.innerHTML=bcLenEcho(xp.value,1.5);};
  var sn=g("bc-start");if(sn)sn.onchange=function(){S.o.start=sn.value.trim();bcRender();};
- host.querySelectorAll(".bc-lname").forEach(function(el){el.onchange=function(){S.lays[el.dataset.k]=el.value.trim()||BC_LAYDEF[el.dataset.k];bcLaysPut(S.lays);};});}
+ host.querySelectorAll(".bc-lname").forEach(function(el){el.onchange=function(){var v=el.value.trim();S.lays[el.dataset.k]=v?v.split(bcDate()).join("{date}"):BC_LAYDEF[el.dataset.k];bcLaysPut(S.lays);};});}
 function bcScaleClear(){var S=bcS;S.scl.a=null;S.scl.b=null;bcRender();setTimeout(bcDraw,0);}
 function bcOutlineEdited(){var S=bcS,O=S.out,was=O.ok;O.ok=false;S.place=null;S.exc.res=null;if(was){S.msg="Outline changed — confirm it again in step 2. Posts, lot and setback rows are kept — check the corner numbers in the setback rows, then Calculate and work out the excavation again.";S.open[2]=true;}}
+function bcLenEcho(t,big){var v=bcParseLen(t);if(v===null)return "<span class='cd-amb'>not a length — 4' or 1.219</span>";var x="= "+v.toFixed(3)+" m ("+bcFtIn(v)+")";if(v>big&&/^\s*\d+(\.\d+)?\s*$/.test(String(t)))x+=" <span class='cd-amb'>— "+String(t).trim()+" metres? For feet type "+String(t).trim()+"'</span>";return x;}
 function bcOutlineAgain(){var S=bcS,O=S.out;if(!O)return;var lays=[];document.querySelectorAll(".bc-lay").forEach(function(c){if(c.checked)lays.push(c.value);});if(!lays.length){S.msg="Tick at least one layer.";bcRender();return;}var gp=document.getElementById("bc-gap");if(gp)O.gapTxt=gp.value;bcOutlineRun(O.q,lays);}
 function bcOutlineOk(on){var S=bcS;S.out.ok=on;if(!on){S.place=null;S.exc.res=null;}S.mode="pan";S.open={};bcRender();setTimeout(bcDraw,0);}
 function bcPostsOk(v){var S=bcS;S.posts.ok=v===1;S.posts.none=v===2;S.mode="pan";S.exc.res=null;S.open={};if(v&&S.lotSrc)S.scene="site";bcRender();setTimeout(bcDraw,0);}

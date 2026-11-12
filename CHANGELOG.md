@@ -1,5 +1,19 @@
 # Elevate Office — changelog
 
+## Build 1.41.11 — 2026-11-11
+- **Building calc › Excavation takes in the posts (fix).** A post more than 4′ + 2′ from the house was left outside the excavation, because its clearance square came out as a separate piece and was dropped. The excavation now runs out to take in any post beyond the 4 ft line, at least 2′ clear round it, held to the lot line as before. The note says how far beyond the line each post was.
+- **Building calc › Excavation distances read the way you type them (fix).** A plain number is metres, so *4* and *2* meant 4 m and 2 m, and *4 ft* wasn't understood at all.
+  - **Accepted now:** 4', 4 ft, 4ft, 2 feet, 48in, 4' 6", 1.219, 1.219 m.
+  - **Shown back:** each box shows what it was read as (*= 1.219 m (4'-0")*).
+  - **Warning:** a plain number that's large for metres (over 2.5 m off the foundation, or over 1.5 m clear of posts) gets *4 metres? For feet type 4'*.
+- **Building calc › DXF layers pre-filled with today's date, posts on the house layer.**
+  - **Shown in full:** the layer boxes show the real names with today's date, e.g. *CALC 26-11-11 NEW HOUSE*. They're remembered with the date as a placeholder, so tomorrow they show tomorrow's date.
+  - **Posts and post lines** go on the NEW HOUSE layer by default; post lines are still dashed. Separate post / post-line layers are under *Separate layers for posts / post lines*. Names saved under the old POSTS / POST LINES defaults switch to the new ones.
+- **Building calc › Our drawing + calc (.dxf) (new).** A copy of our own lot drawing with the calc added:
+  - **Everything kept:** every object in it is kept as it was. The calc goes on its layers, which are added to the drawing's layer table with fresh handles, and the drawing's own format is kept.
+  - **Tested** on *26-3657-House-test*: all 2,686 objects kept, 77 added, read back with zero audit errors.
+  - *DXF (calc only)* is still there for the calc on its own.
+
 ## Build 1.41.10 — 2026-11-11
 - **Building calc reads the point numbers in our own lot drawing.**
   - **Where they come from:** MicroSurvey stores each point's number on the point itself, and the app now reads it. Drawings without that fall back to the point-number label beside the point.
