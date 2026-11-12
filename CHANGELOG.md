@@ -1,5 +1,10 @@
 # Elevate Office — changelog
 
+## Build 1.41.12 — 2026-11-12
+- **Building calc › Outline tidy-up back to the earlier defaults.** *Take out jogs under 20 mm* is on again and corners round to **¼″** again, as before 1.41.8. With both off, plans with lots of small steps came out with crowds of corners. Both are still tick-boxes, and *Largest difference from the drawing's lines* still shows what the tidy-up costs (A214: 12.2 mm, from one 13 mm jog).
+- **Building calc › Door swings cut straight across (new, on by default).** A door leaf and its swing arc drawn in the same pen as the wall, and touching the jamb, were followed as part of the foundation. Now any run of off-angle sides between square corners that contains an angle other than 45° (a leaf plus an arc) is replaced by a straight line across the opening, then squared. Runs that are all 45° (bays, chamfers) are left alone, and so are square jogs. Step 2 says how many were cut; there's a tick-box to turn it off. No false cuts on the A214 DWG, the D2609 PDF or Kerfoot page 2.
+- **Building calc › Drop several corners at once (new).** In *Drop corner*, drag a box round the corners you don't want and they all go in one step (a click on a single corner still works). The edit lists which corners went.
+
 ## Build 1.41.11 — 2026-11-11
 - **Building calc › Excavation takes in the posts (fix).** A post more than 4′ + 2′ from the house was left outside the excavation, because its clearance square came out as a separate piece and was dropped. The excavation now runs out to take in any post beyond the 4 ft line, at least 2′ clear round it, held to the lot line as before. The note says how far beyond the line each post was.
 - **Building calc › Excavation distances read the way you type them (fix).** A plain number is metres, so *4* and *2* meant 4 m and 2 m, and *4 ft* wasn't understood at all.

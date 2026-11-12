@@ -840,7 +840,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.41.11";
+const BUILD="1.41.12";
 const NEWS=["Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
@@ -6572,6 +6572,18 @@ function bcAxis(P){var h={};for(var i=0;i<P.length;i++){var a=P[i],b=P[(i+1)%P.l
  var base=bk.k/10*Math.PI/180,sw=0,sx=0;for(var i2=0;i2<P.length;i2++){var a2=P[i2],b2=P[(i2+1)%P.length],L2=cdHyp(a2,b2),an=Math.atan2(b2[1]-a2[1],b2[0]-a2[0]),dv=((an-base)%(Math.PI/2)+Math.PI*2.5)%(Math.PI/2);if(dv>Math.PI/4)dv-=Math.PI/2;if(Math.abs(dv)<1*Math.PI/180){sx+=dv*L2;sw+=L2;}}
  return base+(sw?sx/sw:0);}
 /* squares a ring; returns {P, moved:[per vertex], odd:[side indexes left as drawn], snapped45:[...]} */
+/* door swings (leaf + arc) caught in a picked outline: a run of off-angle sides between square corners that has any angle other than 45° in it is cut straight across.
+   Runs that are all 45° (bays, chamfers) stay. minLen: sides shorter than this don't decide anything (arc pieces, tiny jogs). */
+function bcCutSwings(P,axis,minLen,minSq){minSq=minSq||minLen*3;var n=P.length,tol=3*Math.PI/180,cls=[];
+ for(var i=0;i<n;i++){var a=P[i],b=P[(i+1)%n],L=cdHyp(a,b),ang=Math.atan2(b[1]-a[1],b[0]-a[0])-axis,m=((ang%(Math.PI/2))+Math.PI/2)%(Math.PI/2);
+  var o=Math.min(m,Math.PI/2-m)<tol?"sq":Math.abs(m-Math.PI/4)<tol?"45":"odd";cls.push(o==="sq"?(L<minSq?"tiny":"sq"):(L<minLen?"tiny":o));}
+ if(cls.every(function(c){return c!=="sq";}))return {P:P,cuts:[]};
+ var s0=cls.indexOf("sq"),keepV=P.map(function(){return true;}),cuts=[];
+ /* walk once round from a square side; collect runs of non-square sides */
+ for(var t=1;t<=n;t++){var i2=(s0+t)%n;if(cls[i2]==="sq")continue;var run=[];while(cls[i2]!=="sq"&&run.length<n){run.push(i2);t++;i2=(s0+t)%n;}
+  var hasOdd=run.some(function(k){return cls[k]==="odd";}),allSmall=run.every(function(k){return cls[k]==="tiny";});
+  if(hasOdd&&!allSmall&&run.length>=2){/* vertices inside the run go: run sides are i..j, keep vertex run[0] and the end of the last side */for(var q=1;q<run.length;q++)keepV[run[q]]=false;cuts.push([run[0],(run[run.length-1]+1)%n,run.length]);}}
+ var Q=P.filter(function(p,i){return keepV[i];});return {P:Q.length>=3?Q:P,cuts:cuts};}
 function bcSquare(P,axis,tolDeg,keep){var tol=(tolDeg||2)*Math.PI/180,n=P.length,lines=[],odd=[],s45=[];keep=keep||{};
  for(var i=0;i<n;i++){var a=P[i],b=P[(i+1)%n],ang=Math.atan2(b[1]-a[1],b[0]-a[0]),rel=ang-axis,q=Math.PI/4,k=Math.round(rel/q),dv=rel-k*q,dir=ang;
   if(!keep[i]&&Math.abs(dv)<=tol){dir=axis+k*q;if(k%2)s45.push(i);}else{odd.push(i);}
@@ -6894,14 +6906,18 @@ function bcTraceUndo(){var S=bcS;if(S.trace&&S.trace.length)S.trace.pop();bcRend
 /* largest gap between two outlines, both ways, corner to side (drawing units) */
 function bcDev(A,B){var sd=function(p,R){var m=1e18;for(var i=0;i<R.length;i++){var a=R[i],b=R[(i+1)%R.length],v=cdSub(b,a),L2=cdDot(v,v),t=L2?Math.max(0,Math.min(1,cdDot(cdSub(p,a),v)/L2)):0,d=cdHyp(p,[a[0]+v[0]*t,a[1]+v[1]*t]);if(d<m)m=d;}return m;};
  var m=0;A.forEach(function(p){m=Math.max(m,sd(p,B));});B.forEach(function(p){m=Math.max(m,sd(p,A));});return m;}
-function bcSquareNow(){var S=bcS,O=S.out,P=O.base||O.raw,ax=bcAxis(P),Q=bcSquare(P,ax,2);var R=Q.P;if(O.tidy===undefined)O.tidy=false;var dev={sq:bcDev(P,R)*S.k,jog:0,round:0};
+function bcSquareNow(){var S=bcS,O=S.out,P=O.base||O.raw,ax=bcAxis(P);if(O.doors===undefined)O.doors=true;O.cuts=0;if(O.doors){var CS=bcCutSwings(P,ax,0.05/S.k,0.15/S.k);P=CS.P;O.cuts=CS.cuts.length;}var Q=bcSquare(P,ax,2);var R=Q.P;if(O.tidy===undefined)O.tidy=true;var dev={sq:bcDev(P,R)*S.k,jog:0,round:0};
  /* drafting jogs under 20 mm aren't the building: taken out */
  var jog=0.02/S.k,nj=0,R0=R;for(var g=0;g<200&&R.length>4&&O.tidy;g++){var ix=-1;for(var i=0;i<R.length;i++)if(cdHyp(R[i],R[(i+1)%R.length])<jog){ix=(i+1)%R.length;break;}if(ix<0)break;var T=R.slice();T.splice(ix,1);var Q2=bcSquare(T,ax,2);R=Q2.P;nj++;}
  O.jogs=nj;if(nj)dev.jog=bcDev(R0,R)*S.k;
- if(O.round){var g=(BC_IN/16)/S.k,R1=R;R=bcClean(bcRound(R,ax,g));dev.round=bcDev(R1,R)*S.k;}
+ if(O.round){var g=(0.25*BC_IN)/S.k,R1=R;R=bcClean(bcRound(R,ax,g));dev.round=bcDev(R1,R)*S.k;}
  dev.total=bcDev(P,R)*S.k;O.dev=dev;
  O.axis=ax;O.P=bcOrder(R);O.moved=Q.maxMove*S.k;O.odd=Q.odd.length;O.s45=Q.s45.length;if(O.ok&&O.edits.length&&typeof bcOutlineEdited==="function")bcOutlineEdited();else O.ok=false;S.place=null;S.exc.res=null;}
 function bcDropCorner(i){var S=bcS,O=S.out;if(!O||O.P.length<=3)return;var P=O.P.slice();P.splice(i,1);O.base=P;O.edits.push("dropped corner "+(i+1));bcSquareNow();bcRender();setTimeout(bcDraw,0);}
+function bcDropBox(a,b){var S=bcS,O=S.out;if(!O)return;var x0=Math.min(a[0],b[0]),x1=Math.max(a[0],b[0]),y0=Math.min(a[1],b[1]),y1=Math.max(a[1],b[1]),gone=[];
+ var P=O.P.filter(function(p,i){var inn=p[0]>=x0&&p[0]<=x1&&p[1]>=y0&&p[1]<=y1;if(inn)gone.push(i+1);return !inn;});
+ if(!gone.length){S.msg="No corners inside that box.";bcRender();return;}if(P.length<3){S.msg="That would leave fewer than three corners.";bcRender();return;}
+ O.base=P;O.edits.push("dropped corner"+(gone.length===1?" ":"s ")+(gone.length>6?gone.slice(0,6).join(", ")+" … ("+gone.length+")":gone.join(", ")));bcSquareNow();S.msg="";bcRender();setTimeout(bcDraw,0);}
 function bcAcross(i,j){var S=bcS,O=S.out,n=O.P.length;if(i===j)return;/* keep the longer way round: the corners between i and j on the shorter way go */
  var a=[],b=[];for(var x=(i+1)%n;x!==j;x=(x+1)%n)a.push(x);for(var y=(j+1)%n;y!==i;y=(y+1)%n)b.push(y);var drop=a.length<=b.length?a:b;if(!drop.length)return;
  var P=O.P.filter(function(p,ix){return drop.indexOf(ix)<0;});O.base=P;O.edits.push("straight across "+(i+1)+"–"+(j+1)+" ("+drop.length+" corner"+(drop.length===1?"":"s")+" taken out)");bcSquareNow();bcRender();setTimeout(bcDraw,0);}
@@ -7011,7 +7027,7 @@ function bcRender(){var host=document.getElementById("cu-bc");if(!host)return;if
  h+=" <span class='seg'><button data-sc='plan' class='"+(S.scene==="plan"?"on":"")+"'>Plan</button><button data-sc='site' class='"+(S.scene==="site"?"on":"")+"'"+(S.lotSrc||bcJobF()?"":" disabled")+">Site</button></span> <button class='btn ghost' onclick='bcZoomAll()'>Whole drawing</button>";
  if(S.scene==="plan"&&S.out)h+=" <button class='btn ghost' onclick='bcZoomOutline()'>Zoom to outline</button>";h+="</div>";
  var tip={pan:S.out&&S.scene==="plan"?"Drag a <b>corner</b> or the <b>middle of a side</b> of the orange outline to adjust it (it snaps to line corners; sides stay square). Drag elsewhere to move the view, scroll to zoom.":"Drag to move, scroll to zoom.",scale:(!S.scl.a?"Click the <b>first end ①</b> of a dimension you trust.":!S.scl.b?"<b>① is placed.</b> Now click the <b>second end ②</b>.":"<b>① and ② are placed</b> — type the length in step 1 and Set scale. Drag either end to adjust; click elsewhere to start again.")+" A green square means you’re on a corner / line end (✕ = a crossing).",outline:"Click the foundation wall, or inside the foundation — the outline is followed round automatically.",trace:"Click each outside corner of the foundation in turn (snaps to line corners); click the first corner again or Finish to close.",
-  drop:"Click a corner to take it out (the outline is squared again).",across:"Click two corners — the corners between them (the shorter way round) are taken out and the side runs straight across.",
+  drop:"Click a corner to take it out — or <b>drag a box</b> round several to take them all out. The outline is squared again.",across:"Click two corners — the corners between them (the shorter way round) are taken out and the side runs straight across.",
   post:"Click inside a post (or on its outline) to add it; click it again to take it off. Then “Select similar” in step 3 finds the rest.",postc:(S.posts.c1?"First corner placed — click the <b>opposite corner</b> of the post.":"Click one corner of the post, then the <b>opposite corner</b> (snaps to line corners). The post is squared to the building.")+"",pperp:"Click a post — a dashed post line is drawn from it square back to the nearest wall of the house.",pline:"Click two points for a dashed post line. Green square = snapped: post centre / corner, house corner, line end, crossing — or <b>perpendicular</b> onto a house wall for the second end.",lot:"Click inside the subject lot, clear of the house."}[m]||"";
  if(m==="across"&&S.acrossA!==undefined&&S.acrossA!==null)tip="Corner "+(S.acrossA+1)+" picked — now click the other corner.";
  if(m==="pline"&&S.posts.pend)tip="First end picked — click the second.";
@@ -7033,10 +7049,10 @@ function bcStepsHtml(){var S=bcS,E=esc,k=S.k,h="";
  b="";var O=S.out;
  if(!O)b+="<div>Tap <b>Pick outline</b> and click the foundation wall (or inside it) — or <b>Trace outline</b> and click the corners yourself.</div>";
  else{var H=bcHm(),A=Math.abs(bcPolyArea(H));
-  b+="<div class='bc-res'><b>"+H.length+" corners</b>, area "+A.toFixed(2)+" m² ("+(A/0.09290304).toFixed(0)+" sq ft). Squared to the building axis — largest move "+(O.moved*1000).toFixed(0)+" mm"+(O.s45?", "+O.s45+" side"+(O.s45===1?"":"s")+" at 45°":"")+(O.odd?"<span class='cu-pkgwarn'>"+O.odd+" side"+(O.odd===1?" is":"s are")+" at another angle — left as drawn.</span>":"")+(O.dev?"<br><span class='"+(O.dev.total>0.002?"cd-amb":"cd-ok")+"'>Largest difference from the drawing’s lines: <b>"+(O.dev.total*1000).toFixed(1)+" mm</b></span>"+(O.dev.total>0.0005?" (squaring "+(O.dev.sq*1000).toFixed(1)+" · jogs taken out "+(O.dev.jog*1000).toFixed(1)+" · 1/16″ rounding "+(O.dev.round*1000).toFixed(1)+" mm)":"")+(O.edits.length?" — your edits aren’t counted":""):"")+(O.jogs?"<br>"+O.jogs+" drafting jog"+(O.jogs===1?"":"s")+" under 20 mm taken out.":"")+(O.bridged&&O.bridged.length?"<br>Joined across "+O.bridged.length+" gap"+(O.bridged.length===1?"":"s")+" (openings).":"")+(O.traced?"<br>Traced by hand.":"")+(O.edits.length?"<br>Edits: "+E(O.edits.join("; ")):"")+"</div>";
+  b+="<div class='bc-res'><b>"+H.length+" corners</b>, area "+A.toFixed(2)+" m² ("+(A/0.09290304).toFixed(0)+" sq ft). Squared to the building axis — largest move "+(O.moved*1000).toFixed(0)+" mm"+(O.s45?", "+O.s45+" side"+(O.s45===1?"":"s")+" at 45°":"")+(O.odd?"<span class='cu-pkgwarn'>"+O.odd+" side"+(O.odd===1?" is":"s are")+" at another angle — left as drawn.</span>":"")+(O.dev?"<br><span class='"+(O.dev.total>0.002?"cd-amb":"cd-ok")+"'>Largest difference from the drawing’s lines: <b>"+(O.dev.total*1000).toFixed(1)+" mm</b></span>"+(O.dev.total>0.0005?" (squaring "+(O.dev.sq*1000).toFixed(1)+" · jogs taken out "+(O.dev.jog*1000).toFixed(1)+" · ¼″ rounding "+(O.dev.round*1000).toFixed(1)+" mm)":"")+(O.edits.length?" — your edits aren’t counted":""):"")+(O.cuts?"<br>"+O.cuts+" door swing"+(O.cuts===1?"":"s")+" (or other off-angle bit) cut straight across.":"")+(O.jogs?"<br>"+O.jogs+" drafting jog"+(O.jogs===1?"":"s")+" under 20 mm taken out.":"")+(O.bridged&&O.bridged.length?"<br>Joined across "+O.bridged.length+" gap"+(O.bridged.length===1?"":"s")+" (openings).":"")+(O.traced?"<br>Traced by hand.":"")+(O.edits.length?"<br>Edits: "+E(O.edits.join("; ")):"")+"</div>";
   b+="<table class='cu-mtt bc-sides'><tr><th>Side</th><th>m</th><th>ft-in</th></tr>"+H.map(function(p,i){var d=cdHyp(p,H[(i+1)%H.length]);return "<tr><td>"+(i+1)+"–"+((i+1)%H.length+1)+"</td><td>"+d.toFixed(3)+"</td><td>"+bcFtIn(d)+"</td></tr>";}).join("")+"</table>";
   if(!O.traced)b+="<div class='bc-lays'>Layers followed: "+(O.near||[]).map(function(l){return "<label class='cu-cb'><input type='checkbox' class='bc-lay' value='"+E(l)+"'"+(O.lays.indexOf(l)>=0?" checked":"")+"> "+E(l)+"</label>";}).join(" ")+"</div>";
-  b+="<div class='row' style='margin:4px 0'>Join gaps up to <input type='text' id='bc-gap' value='"+E(O.gapTxt)+"' style='width:46px'> m <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-round'"+(O.round?" checked":"")+"> round corners to 1/16″</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-tidy'"+(O.tidy?" checked":"")+"> take out jogs under 20 mm</label> "+(O.traced?"<button class='cd-mini' onclick='bcS.mode=\"trace\";bcS.trace=[];bcRender()'>Trace again</button>":"<button class='cd-mini' onclick='bcOutlineAgain()'>Pick again</button>")+"</div>";
+  b+="<div class='row' style='margin:4px 0'>Join gaps up to <input type='text' id='bc-gap' value='"+E(O.gapTxt)+"' style='width:46px'> m <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-round'"+(O.round?" checked":"")+"> round corners to ¼″</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-tidy'"+(O.tidy?" checked":"")+"> take out jogs under 20 mm</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-doors'"+(O.doors!==false?" checked":"")+"> cut door swings straight across</label> "+(O.traced?"<button class='cd-mini' onclick='bcS.mode=\"trace\";bcS.trace=[];bcRender()'>Trace again</button>":"<button class='cd-mini' onclick='bcOutlineAgain()'>Pick again</button>")+"</div>";
   b+="<div class='bc-act'>"+(O.ok?"<button class='btn' onclick='bcOutlineOk(false)'>Change it</button>":"<button class='btn pri' onclick='bcOutlineOk(true)'>Confirm outline</button>")+"</div>";}
  h+=bcCard(2,"Outline",b,O&&O.ok?bcHm().length+" corners, "+Math.abs(bcPolyArea(bcHm())).toFixed(1)+" m²":"");
  /* 3 posts */
@@ -7089,6 +7105,7 @@ function bcWire(host){var S=bcS,g=function(id){return document.getElementById(id
  var sn0=g("bc-snap");if(sn0)sn0.onchange=function(){try{localStorage.setItem("eo:bcsnap",sn0.checked?"1":"0");}catch(e){}};
  var st=g("bc-sclt");if(st)st.oninput=function(){S.scl.txt=st.value;};
  var gp=g("bc-gap");if(gp)gp.onchange=function(){S.out.gapTxt=gp.value;};
+ var dd=g("bc-doors");if(dd)dd.onchange=function(){S.out.doors=dd.checked;bcSquareNow();bcRender();setTimeout(bcDraw,0);};
  var td=g("bc-tidy");if(td)td.onchange=function(){S.out.tidy=td.checked;bcSquareNow();bcRender();setTimeout(bcDraw,0);};
  var rd=g("bc-round");if(rd)rd.onchange=function(){S.out.round=rd.checked;bcSquareNow();bcRender();setTimeout(bcDraw,0);};
  host.querySelectorAll(".bc-pc button").forEach(function(b){b.onclick=function(){S.posts.corners=b.dataset.pc==="1";bcRender();};});
@@ -7144,6 +7161,7 @@ function bcDraw(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S||!S.s
  if(S.scene==="plan"){
   if(S.out){ring(S.out.raw,"rgba(194,65,12,.45)",1.5,[4,3]);ring(S.out.P,S.out.ok?"#2a8a3a":"#C2410C",2.5,null,true,function(i){return String(i+1);});
    if(S.acrossA!==null&&S.acrossA!==undefined){var a=S.out.P[S.acrossA];g.strokeStyle="#2456A6";g.lineWidth=2;g.beginPath();g.arc(X(a[0]),Y(a[1]),8,0,7);g.stroke();}}
+  if(S.dropBox){var d0=S.dropBox[0],d1=S.dropBox[1];g.strokeStyle="#b91c1c";g.lineWidth=1.5;g.setLineDash([5,3]);g.strokeRect(Math.min(X(d0[0]),X(d1[0])),Math.min(Y(d0[1]),Y(d1[1])),Math.abs(X(d1[0])-X(d0[0])),Math.abs(Y(d1[1])-Y(d0[1])));g.setLineDash([]);g.fillStyle="rgba(185,28,28,.06)";g.fillRect(Math.min(X(d0[0]),X(d1[0])),Math.min(Y(d0[1]),Y(d1[1])),Math.abs(X(d1[0])-X(d0[0])),Math.abs(Y(d1[1])-Y(d0[1])));}
   if(S.trace&&S.trace.length){ring(S.trace,"#2456A6",2,null,false,function(i){return String(i+1);});}
   if(S.posts.c1){var c1=S.posts.c1;g.strokeStyle="#7C3AED";g.lineWidth=2;g.beginPath();g.moveTo(X(c1[0])-7,Y(c1[1]));g.lineTo(X(c1[0])+7,Y(c1[1]));g.moveTo(X(c1[0]),Y(c1[1])-7);g.lineTo(X(c1[0]),Y(c1[1])+7);g.stroke();if(S.hover){var h2=S.hover.p;g.setLineDash([4,3]);g.strokeRect(Math.min(X(c1[0]),X(h2[0])),Math.min(Y(c1[1]),Y(h2[1])),Math.abs(X(h2[0])-X(c1[0])),Math.abs(Y(h2[1])-Y(c1[1])));g.setLineDash([]);}}
   S.posts.list.forEach(function(p,i){g.strokeStyle="#7C3AED";g.lineWidth=2;ring(bcPostCorners(p),"#7C3AED",2);g.beginPath();g.arc(X(p.c[0]),Y(p.c[1]),2.5,0,7);g.fillStyle="#7C3AED";g.fill();});
@@ -7211,15 +7229,18 @@ function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src
   /* Measure: grab either end and drag it */
   if(S.scene==="plan"&&S.mode==="scale"){var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,V=S.view.plan,W=cv.clientWidth,H=cv.clientHeight;
    ["a","b"].forEach(function(k){var q=S.scl[k];if(!q||!V||drag.end)return;var x=W/2+(q[0]-V.cx)*V.s,y=H/2-(q[1]-V.cy)*V.s;if(Math.hypot(x-mx,y-my)<=10)drag.end=k;});}
+  if(S.scene==="plan"&&S.mode==="drop"&&S.out){var b4=cv.getBoundingClientRect();drag.box=bcToSrc(e.clientX-b4.left,e.clientY-b4.top);drag.boxEnd=drag.box;}
   if(S.scene==="plan"&&S.mode==="pan"&&S.out){var b2=cv.getBoundingClientRect(),oh=bcOutlineHit(e.clientX-b2.left,e.clientY-b2.top);if(oh){drag.oh=oh;drag.P0=S.out.P.map(function(p){return p.slice();});drag.q0=bcToSrc(e.clientX-b2.left,e.clientY-b2.top);}}};
  cv.onmousemove=function(e){if(!drag){var bb=cv.getBoundingClientRect(),hq=bcToSrc(e.clientX-bb.left,e.clientY-bb.top);
    if(S.scene==="plan"&&/^(scale|trace|pline|postc)$/.test(S.mode)){var sf=S.mode==="pline"?bcPlineSnap(hq):bcSnapFind(hq,10);S.hover={p:sf?sf.p:hq,k:sf?sf.k:null};if(!S.hoverRaf){S.hoverRaf=1;(window.requestAnimationFrame||setTimeout)(function(){S.hoverRaf=0;bcDraw();});}}else if(S.hover){S.hover=null;bcDraw();}
    var on=false;if(S.scene==="plan"&&S.mode==="scale"&&S.view.plan){var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,V=S.view.plan,W=cv.clientWidth,H=cv.clientHeight;["a","b"].forEach(function(k){var q=S.scl[k];if(q&&Math.hypot(W/2+(q[0]-V.cx)*V.s-mx,H/2-(q[1]-V.cy)*V.s-my)<=10)on=true;});}if(!on&&S.scene==="plan"&&S.mode==="pan"&&S.out){var oh2=bcOutlineHit(e.clientX-bb.left,e.clientY-bb.top);if(oh2)on=true;}cv.style.cursor=on?"move":"";return;}var V=S.view[S.scene],dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;if(!drag.moved||!V)return;
+  if(drag.box){var b5=cv.getBoundingClientRect();drag.boxEnd=bcToSrc(e.clientX-b5.left,e.clientY-b5.top);S.dropBox=[drag.box,drag.boxEnd];bcDraw();return;}
   if(drag.oh){var b3=cv.getBoundingClientRect(),rq3=bcToSrc(e.clientX-b3.left,e.clientY-b3.top),sf3=bcSnapFind(rq3,10),q3=sf3?sf3.p:rq3;S.hover=sf3?{p:sf3.p,k:sf3.k}:null;
    S.out.P=drag.oh.kind==="corner"?bcMoveCorner(drag.P0,drag.oh.i,q3):bcMoveSide(drag.P0,drag.oh.i,q3,drag.q0);bcDraw();return;}
   if(drag.end){var b=cv.getBoundingClientRect(),rq=bcToSrc(e.clientX-b.left,e.clientY-b.top),sf=bcSnapFind(rq,10);S.scl[drag.end]=sf?sf.p:rq;S.hover={p:S.scl[drag.end],k:sf?sf.k:null};bcDraw();return;}V.cx-=dx/V.s;V.cy+=dy/V.s;drag.x=e.clientX;drag.y=e.clientY;bcDraw();};
  cv.onmouseleave=function(){drag=null;if(S.hover){S.hover=null;bcDraw();}};
  cv.onmouseup=function(e){var was=drag;drag=null;
+  if(was&&was.box){S.dropBox=null;if(was.moved){bcDropBox(was.box,was.boxEnd);return;}}
   if(was&&was.oh){S.hover=null;if(was.moved){var O=S.out,mv=Math.max.apply(null,O.P.map(function(p,i){return cdHyp(p,was.P0[i]);}))*S.k;
     O.P=bcClean(O.P);O.base=O.P.map(function(p){return p.slice();});O.edits.push((was.oh.kind==="corner"?"moved corner "+(was.oh.i+1):"moved side "+(was.oh.i+1)+"–"+((was.oh.i+1)%was.P0.length+1))+" ("+mv.toFixed(3)+" m)");bcOutlineEdited();bcRender();}else bcDraw();return;}
   if(was&&was.end&&was.moved){var b0=cv.getBoundingClientRect();S.scl[was.end]=bcSnapPlan(bcToSrc(e.clientX-b0.left,e.clientY-b0.top),10);bcRender();return;}
