@@ -1,5 +1,18 @@
 # Elevate Office — changelog
 
+## Build 1.41.14 — 2026-11-12
+Worked through on *1516 Kerfoot Road*, page 3 (main floor). Its west wall has two garage doors, two entries, windows and boxed-out columns. The outline came out with 75 corners; it's now 24, all square.
+- **Pick outline follows the black wall lines, not coloured overlays (fix).**
+  - **The cause:** on sheets with the floor above drawn in orange (*Flr Above*), the pick could start on an orange line and follow that layer. That was the jogging inside the outside wall.
+  - **The fix:** on PDFs, coloured lines near the click now lose to black or grey wall lines, and the search looks a little wider before choosing.
+- **Fill in openings (new, on for PDFs).**
+  - **What it does:** at windows, doors and garage doors the pick dropped onto the frame line, a wall's thickness in, and came back out. Where the outline steps in from a wall face and back out onto the same line, no deeper than 0.45 m and no longer than 10 m, it's now straightened along the face.
+  - **What stays:** real recesses deeper than that, like a recessed entry, are left.
+  - **Off by default for CAD files**, where wall geometry is exact. A tick-box in step 2 turns it on or off. Step 2 says how many were filled, and the readout includes it.
+- **Door-swing cut closes along the walls, never on a diagonal.** It now follows the walls either side: straight on if they're in line, the square corner if they meet, a square step if they're offset. The limit is now 3 m, which covers double doors.
+- **When an outline won't close, it tries wider gaps by itself.** It retries at 1.5, 2 and 3 m and says what was needed (Kerfoot page 3 needed 1.5 m). *Join gaps up to* is now in step 2 before the first pick as well, not only after one has worked.
+- No change on the A214 DWG (34 corners, 221.09 m²), D2609 PDF or Kerfoot page 2 (18 corners); 25-3402 placement still reproduces the office calc.
+
 ## Build 1.41.13 — 2026-11-12
 - **Building calc › Door-swing cut limited to door openings (fix).** In 1.41.12 the cut could replace whole lengths of wall with one long diagonal, e.g. along a side drawn slightly off square with small steps. It now only cuts a run that spans **2 m or less**, the width of a door opening. Anything longer is left exactly as picked. The mocked door is still cut cleanly. A214, D2609 and Kerfoot are unchanged.
 

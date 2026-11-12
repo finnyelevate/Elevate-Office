@@ -840,7 +840,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.41.13";
+const BUILD="1.41.14";
 const NEWS=["Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
@@ -6584,7 +6584,27 @@ function bcCutSwings(P,axis,minLen,minSq,maxSpan){minSq=minSq||minLen*3;maxSpan=
   var hasOdd=run.some(function(k){return cls[k]==="odd";}),allSmall=run.every(function(k){return cls[k]==="tiny";});
   var span=cdHyp(P[run[0]],P[(run[run.length-1]+1)%n]);
   if(hasOdd&&!allSmall&&run.length>=2&&span<=maxSpan){/* vertices inside the run go: run sides are i..j, keep vertex run[0] and the end of the last side */for(var q=1;q<run.length;q++)keepV[run[q]]=false;cuts.push([run[0],(run[run.length-1]+1)%n,run.length]);}}
- var Q=P.filter(function(p,i){return keepV[i];});return {P:Q.length>=3?Q:P,cuts:cuts};}
+ /* rebuild: each cut closes along the walls either side of it (in line -> straight on; square -> the corner; offset -> a square step), never a diagonal */
+ var out=[],cutAt={};cuts.forEach(function(c){cutAt[c[0]]=c;});
+ var lineX=function(a1,a2,b1,b2){var d1=cdSub(a2,a1),d2=cdSub(b2,b1),den=d1[0]*d2[1]-d1[1]*d2[0];if(Math.abs(den)<1e-12)return null;var t=((b1[0]-a1[0])*d2[1]-(b1[1]-a1[1])*d2[0])/den;return [a1[0]+d1[0]*t,a1[1]+d1[1]*t];};
+ for(var v=0;v<n;v++){if(!keepV[v])continue;var c=cutAt[v];if(!c){out.push(P[v]);continue;}
+  var v0=c[0],v1=c[1],pb=P[(v0-1+n)%n],a0=P[v0],a1=P[v1],nx=P[(v1+1)%n],span=cdHyp(a0,a1),X=lineX(pb,a0,a1,nx);
+  if(X&&cdHyp(X,a0)<=span*1.5+1e-9&&cdHyp(X,a1)<=span*1.5+1e-9){out.push(X);keepV[v1]=false;continue;}
+  var db=cdSub(a0,pb),L=Math.hypot(db[0],db[1])||1,u=[db[0]/L,db[1]/L],off=Math.abs(cdCross(u,cdSub(a1,a0)));
+  if(off<span*0.02){keepV[v1]=false;continue;}/* the same wall line: straight on */
+  var t2=cdDot(cdSub(a1,a0),u),foot=[a0[0]+u[0]*t2,a0[1]+u[1]*t2];out.push(foot);/* step square where the far wall starts */}
+ var Q=bcClean(out);return {P:Q.length>=3?Q:P,cuts:cuts};}
+/* openings: where a squared outline steps in from a wall face and comes back out onto the same line within spanMax, no deeper than depthMax, straighten it along the face */
+function bcFillNotches(P,axis,depthMax,spanMax){var c=Math.cos(-axis),s=Math.sin(-axis),Q=P.map(function(p){return [p[0]*c-p[1]*s,p[0]*s+p[1]*c];}),ccw=bcPolyArea(Q)>0,fills=0,eps=Math.max(1e-6,depthMax*0.02);
+ for(var guard=0;guard<200;guard++){var n=Q.length,done=false;if(n<5)break;
+  for(var i=0;i<n&&!done;i++){var a=Q[i],bestJ=-1;
+   for(var m=2;m<=Math.min(n-2,40);m++){var j=(i+m)%n,b=Q[j],horiz=Math.abs(a[1]-b[1])<eps,vert=Math.abs(a[0]-b[0])<eps;if(!horiz&&!vert)continue;var span=horiz?Math.abs(b[0]-a[0]):Math.abs(b[1]-a[1]);if(span>spanMax||span<eps)continue;
+    /* travel direction a->b and the inside of the outline is to its left (ccw) or right */var d=horiz?[Math.sign(b[0]-a[0]),0]:[0,Math.sign(b[1]-a[1])],inN=ccw?[-d[1],d[0]]:[d[1],-d[0]],ok=true,deep=0;
+    for(var t=1;t<m&&ok;t++){var q=Q[(i+t)%n],rel=[q[0]-a[0],q[1]-a[1]],along=rel[0]*d[0]+rel[1]*d[1],into=rel[0]*inN[0]+rel[1]*inN[1];if(along<-eps||along>span+eps||into<-eps||into>depthMax)ok=false;deep=Math.max(deep,into);}
+    if(ok&&deep>eps)bestJ=j;}
+   if(bestJ>=0){var keep=[];for(var k=0;k<n;k++){var off=(k-i+n)%n,mm=(bestJ-i+n)%n;if(off===0||off>=mm)keep.push(Q[k]);}Q=keep;fills++;done=true;}}
+  if(!done)break;}
+ var back=Q.map(function(p){return [p[0]*Math.cos(axis)-p[1]*Math.sin(axis),p[0]*Math.sin(axis)+p[1]*Math.cos(axis)];});return {P:bcClean(back),fills:fills};}
 function bcSquare(P,axis,tolDeg,keep){var tol=(tolDeg||2)*Math.PI/180,n=P.length,lines=[],odd=[],s45=[];keep=keep||{};
  for(var i=0;i<n;i++){var a=P[i],b=P[(i+1)%n],ang=Math.atan2(b[1]-a[1],b[0]-a[0]),rel=ang-axis,q=Math.PI/4,k=Math.round(rel/q),dv=rel-k*q,dir=ang;
   if(!keep[i]&&Math.abs(dv)<=tol){dir=axis+k*q;if(k%2)s45.push(i);}else{odd.push(i);}
@@ -6884,20 +6904,21 @@ function bcScaleClicks(){var S=bcS;if(!S.scl.a||!S.scl.b){S.msg="Click the two e
 var BC_PDFSCALES=[["1/8\"=1'-0\"",96],["3/16\"=1'-0\"",64],["1/4\"=1'-0\"",48],["3/8\"=1'-0\"",32],["1/2\"=1'-0\"",24],["1:50",50/0.0254*0.0254],["1:100",100],["1:200",200]];
 function bcPdfScale(i){var x=BC_PDFSCALES[i];if(!x)return;/* a PDF unit is 1/72 inch on the sheet */var k=/:/.test(x[0])?x[1]*0.0254/72:x[1]*0.0254/72;bcSetK(k,"sheet scale "+x[0]);}
 /* ---- step 2: outline ---- */
-function bcSeed(q,tol){var S=bcS,F=S.src.F,best=null;for(var r=tol;r<=tol*512&&!best;r*=2){S.src.idx.near(q,r).forEach(function(h){var P=F.paths[h.pi];if(P.ell||P.glyph)return;
-   var skip=P.lay&&BC_SKIPLAY.test(P.lay)&&!(P.hatch||P.fill||/WALL|FOUND|FDN|FTG/i.test(P.lay));if(skip)return;var d=h.d-(P.hatch||P.fill?tol*0.5:0);if(!best||d<best.d)best={d:d,P:P};});}return best&&best.P;}
+function bcSeed(q,tol){var S=bcS,F=S.src.F,best=null;for(var r=tol;r<=tol*512&&(!best||r<=tol*4);r*=2){S.src.idx.near(q,r).forEach(function(h){var P=F.paths[h.pi];if(P.ell||P.glyph)return;
+   var skip=P.lay&&BC_SKIPLAY.test(P.lay)&&!(P.hatch||P.fill||/WALL|FOUND|FDN|FTG/i.test(P.lay));if(skip)return;var cm=/(\d+),(\d+),(\d+)\s*$/.exec(P.lay||""),colr=cm&&!(cm[1]===cm[2]&&cm[2]===cm[3]);/* coloured overlay lines (floor above, revisions) lose to black / grey wall lines nearby */var d=h.d-(P.hatch||P.fill?tol*0.5:0)+(colr?tol*3:0);if(!best||d<best.d)best={d:d,P:P};});}return best&&best.P;}
 function bcLayersNear(q,R){var S=bcS,c={};S.src.idx.near(q,R).forEach(function(h){var P=S.src.F.paths[h.pi];if(P.glyph||P.ell)return;c[P.lay||""]=(c[P.lay||""]||0)+1;});return Object.keys(c).sort(function(a,b){return c[b]-c[a];}).slice(0,14);}
 function bcOutlineAt(q){var S=bcS,k=S.k,tol=6/((S.view.plan&&S.view.plan.s)||1),seed=bcSeed(q,tol);if(!seed){S.msg="Nothing to follow there — click on the foundation wall or inside it.";bcRender();return;}
  var lays;if(S.out&&S.out.lays&&S.out.q&&cdHyp(S.out.q,q)<1e-9)lays=S.out.lays;
  else{lays=[seed.lay];if(S.src.kind==="cad"){var near=bcLayersNear(q,25/k);near.forEach(function(l){if(l!==seed.lay&&/WALL|FOUND|FDN|FTG/i.test(l)&&!/FURN|FIXT|DOOR|WIND|IDEN|TAG|ANNO|DIM|TEXT|SYMB|NPLT|HIDD|BELOW|OVHD|ABOVE/i.test(l))lays.push(l);});}}
  bcOutlineRun(q,lays);}
 function bcOutlineRun(q,lays){var S=bcS;S.busy="Following the outline …";bcRender();setTimeout(function(){S.busy="";bcOutlineRun2(q,lays);},20);}
-function bcOutlineRun2(q,lays){var S=bcS,k=S.k,gap=(bcParseLen((S.out&&S.out.gapTxt)||"1.0")||1)/k;
- var O=bcPickOutline(S.src.F,S.src.idx,q,{tol:6/((S.view.plan&&S.view.plan.s)||1),layers:lays,eps:Math.max(0.005/k,S.src.ext*2e-7),gap:gap,skipLay:false,reach:40/k,minPiece:S.src.kind==="pdf"?0.3/k:0,maxSegs:60000});
+function bcOutlineRun2(q,lays){var S=bcS,k=S.k,g0=bcParseLen(S.gapTxt||"1.0")||1,gaps=[g0].concat([1.5,2,3].filter(function(x){return x>g0;})),O=null,used=g0;
+ for(var gi=0;gi<gaps.length;gi++){used=gaps[gi];O=bcPickOutline(S.src.F,S.src.idx,q,{tol:6/((S.view.plan&&S.view.plan.s)||1),layers:lays,eps:Math.max(0.005/k,S.src.ext*2e-7),gap:used/k,skipLay:false,reach:40/k,minPiece:S.src.kind==="pdf"?0.3/k:0,maxSegs:60000});if(O&&(O.tooMany||(O.P&&O.P.length>=3)))break;}
+ S.gapUsed=used>g0?used:null;
  if(O&&O.tooMany){S.msg="Too much linework on that layer to follow automatically ("+O.tooMany+" pieces) — use Trace outline: click the corners round the foundation.";S.mode="trace";bcRender();return;}
  if(!O||!O.P||O.P.length<3){S.msg="Couldn’t close an outline there — tick more layers or raise the gap and click again, or use Trace outline.";bcRender();return;}
  var round=S.out?S.out.round:(k&&(Math.abs(k/BC_IN-1)<0.01||Math.abs(k/BC_FT-1)<0.01||S.src.kind==="pdf"));
- S.out={q:q,lays:lays,gapTxt:(S.out&&S.out.gapTxt)||"1.0",raw:O.P,traced:false,bridged:O.bridged||[],round:round,edits:[],ok:false,near:bcLayersNear(q,25/k)};bcSquareNow();S.mode="pan";S.msg="";bcRender();setTimeout(bcDraw,0);}
+ S.out={q:q,lays:lays,gapTxt:S.gapTxt||"1.0",raw:O.P,traced:false,bridged:O.bridged||[],round:round,edits:[],ok:false,near:bcLayersNear(q,25/k)};bcSquareNow();S.mode="pan";S.msg="";bcRender();setTimeout(bcDraw,0);}
 /* trace: corners clicked by hand (snapped to line corners), closed by clicking the first again or Finish */
 function bcTraceClick(q){var S=bcS,t=S.trace||(S.trace=[]),px=10/S.view.plan.s;if(t.length>=3&&cdHyp(q,t[0])<=px){bcTraceFinish();return;}t.push(S.scan?q:bcSnapPlan(q,10));bcRender();}
 function bcTraceFinish(){var S=bcS,t=S.trace||[];if(t.length<3){S.msg="Click at least three corners.";bcRender();return;}
@@ -6907,7 +6928,8 @@ function bcTraceUndo(){var S=bcS;if(S.trace&&S.trace.length)S.trace.pop();bcRend
 /* largest gap between two outlines, both ways, corner to side (drawing units) */
 function bcDev(A,B){var sd=function(p,R){var m=1e18;for(var i=0;i<R.length;i++){var a=R[i],b=R[(i+1)%R.length],v=cdSub(b,a),L2=cdDot(v,v),t=L2?Math.max(0,Math.min(1,cdDot(cdSub(p,a),v)/L2)):0,d=cdHyp(p,[a[0]+v[0]*t,a[1]+v[1]*t]);if(d<m)m=d;}return m;};
  var m=0;A.forEach(function(p){m=Math.max(m,sd(p,B));});B.forEach(function(p){m=Math.max(m,sd(p,A));});return m;}
-function bcSquareNow(){var S=bcS,O=S.out,P=O.base||O.raw,ax=bcAxis(P);if(O.doors===undefined)O.doors=true;O.cuts=0;if(O.doors){var CS=bcCutSwings(P,ax,0.05/S.k,0.15/S.k,2.0/S.k);P=CS.P;O.cuts=CS.cuts.length;}var Q=bcSquare(P,ax,2);var R=Q.P;if(O.tidy===undefined)O.tidy=true;var dev={sq:bcDev(P,R)*S.k,jog:0,round:0};
+function bcSquareNow(){var S=bcS,O=S.out,P=O.base||O.raw,ax=bcAxis(P);if(O.doors===undefined)O.doors=true;O.cuts=0;if(O.doors){var CS=bcCutSwings(P,ax,0.05/S.k,0.15/S.k,3.0/S.k);P=CS.P;O.cuts=CS.cuts.length;}var Q=bcSquare(P,ax,2);var R=Q.P;if(O.tidy===undefined)O.tidy=true;if(O.fillOpen===undefined)O.fillOpen=S.src.kind==="pdf";var dev={sq:bcDev(P,R)*S.k,jog:0,round:0,fill:0};O.fills=0;
+ if(O.fillOpen){var NF=bcFillNotches(R,ax,0.45/S.k,10/S.k);if(NF.fills){dev.fill=bcDev(R,NF.P)*S.k;R=NF.P;O.fills=NF.fills;}}
  /* drafting jogs under 20 mm aren't the building: taken out */
  var jog=0.02/S.k,nj=0,R0=R;for(var g=0;g<200&&R.length>4&&O.tidy;g++){var ix=-1;for(var i=0;i<R.length;i++)if(cdHyp(R[i],R[(i+1)%R.length])<jog){ix=(i+1)%R.length;break;}if(ix<0)break;var T=R.slice();T.splice(ix,1);var Q2=bcSquare(T,ax,2);R=Q2.P;nj++;}
  O.jogs=nj;if(nj)dev.jog=bcDev(R0,R)*S.k;
@@ -7048,12 +7070,12 @@ function bcStepsHtml(){var S=bcS,E=esc,k=S.k,h="";
  h+=bcCard(1,"Scale",b,k?(bcUnitsName(k)||k.toPrecision(4)+" m/unit")+(S.dims&&S.dims.n?" · "+S.dims.ok+"/"+S.dims.n+" dims":""):"");
  /* 2 outline */
  b="";var O=S.out;
- if(!O)b+="<div>Tap <b>Pick outline</b> and click the foundation wall (or inside it) — or <b>Trace outline</b> and click the corners yourself.</div>";
+ if(!O)b+="<div>Tap <b>Pick outline</b> and click the foundation wall (or inside it) — or <b>Trace outline</b> and click the corners yourself.</div><div class='row' style='margin:4px 0'>Join gaps up to <input type='text' id='bc-gap' value='"+E(S.gapTxt||"1.0")+"' style='width:46px'> m <span class='hint' style='margin:0'>(door and window openings; it tries up to 3 m by itself if the outline won’t close)</span></div>";
  else{var H=bcHm(),A=Math.abs(bcPolyArea(H));
-  b+="<div class='bc-res'><b>"+H.length+" corners</b>, area "+A.toFixed(2)+" m² ("+(A/0.09290304).toFixed(0)+" sq ft). Squared to the building axis — largest move "+(O.moved*1000).toFixed(0)+" mm"+(O.s45?", "+O.s45+" side"+(O.s45===1?"":"s")+" at 45°":"")+(O.odd?"<span class='cu-pkgwarn'>"+O.odd+" side"+(O.odd===1?" is":"s are")+" at another angle — left as drawn.</span>":"")+(O.dev?"<br><span class='"+(O.dev.total>0.002?"cd-amb":"cd-ok")+"'>Largest difference from the drawing’s lines: <b>"+(O.dev.total*1000).toFixed(1)+" mm</b></span>"+(O.dev.total>0.0005?" (squaring "+(O.dev.sq*1000).toFixed(1)+" · jogs taken out "+(O.dev.jog*1000).toFixed(1)+" · ¼″ rounding "+(O.dev.round*1000).toFixed(1)+" mm)":"")+(O.edits.length?" — your edits aren’t counted":""):"")+(O.cuts?"<br>"+O.cuts+" door swing"+(O.cuts===1?"":"s")+" (or other off-angle bit) cut straight across.":"")+(O.jogs?"<br>"+O.jogs+" drafting jog"+(O.jogs===1?"":"s")+" under 20 mm taken out.":"")+(O.bridged&&O.bridged.length?"<br>Joined across "+O.bridged.length+" gap"+(O.bridged.length===1?"":"s")+" (openings).":"")+(O.traced?"<br>Traced by hand.":"")+(O.edits.length?"<br>Edits: "+E(O.edits.join("; ")):"")+"</div>";
+  b+="<div class='bc-res'><b>"+H.length+" corners</b>, area "+A.toFixed(2)+" m² ("+(A/0.09290304).toFixed(0)+" sq ft). Squared to the building axis — largest move "+(O.moved*1000).toFixed(0)+" mm"+(O.s45?", "+O.s45+" side"+(O.s45===1?"":"s")+" at 45°":"")+(O.odd?"<span class='cu-pkgwarn'>"+O.odd+" side"+(O.odd===1?" is":"s are")+" at another angle — left as drawn.</span>":"")+(O.dev?"<br><span class='"+(O.dev.total>0.002?"cd-amb":"cd-ok")+"'>Largest difference from the drawing’s lines: <b>"+(O.dev.total*1000).toFixed(1)+" mm</b></span>"+(O.dev.total>0.0005?" (squaring "+(O.dev.sq*1000).toFixed(1)+(O.dev.fill?" · openings filled "+(O.dev.fill*1000).toFixed(0):"")+" · jogs taken out "+(O.dev.jog*1000).toFixed(1)+" · ¼″ rounding "+(O.dev.round*1000).toFixed(1)+" mm)":"")+(O.edits.length?" — your edits aren’t counted":""):"")+(O.fills?"<br>"+O.fills+" opening"+(O.fills===1?"":"s")+" (window / door / garage-door frames stepped in up to 0.45 m) filled along the wall face.":"")+(O.cuts?"<br>"+O.cuts+" door swing"+(O.cuts===1?"":"s")+" (or other off-angle bit) cut straight across.":"")+(O.jogs?"<br>"+O.jogs+" drafting jog"+(O.jogs===1?"":"s")+" under 20 mm taken out.":"")+(O.bridged&&O.bridged.length?"<br>Joined across "+O.bridged.length+" gap"+(O.bridged.length===1?"":"s")+" (openings).":"")+(O.traced?"<br>Traced by hand.":"")+(O.edits.length?"<br>Edits: "+E(O.edits.join("; ")):"")+"</div>";
   b+="<table class='cu-mtt bc-sides'><tr><th>Side</th><th>m</th><th>ft-in</th></tr>"+H.map(function(p,i){var d=cdHyp(p,H[(i+1)%H.length]);return "<tr><td>"+(i+1)+"–"+((i+1)%H.length+1)+"</td><td>"+d.toFixed(3)+"</td><td>"+bcFtIn(d)+"</td></tr>";}).join("")+"</table>";
   if(!O.traced)b+="<div class='bc-lays'>Layers followed: "+(O.near||[]).map(function(l){return "<label class='cu-cb'><input type='checkbox' class='bc-lay' value='"+E(l)+"'"+(O.lays.indexOf(l)>=0?" checked":"")+"> "+E(l)+"</label>";}).join(" ")+"</div>";
-  b+="<div class='row' style='margin:4px 0'>Join gaps up to <input type='text' id='bc-gap' value='"+E(O.gapTxt)+"' style='width:46px'> m <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-round'"+(O.round?" checked":"")+"> round corners to ¼″</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-tidy'"+(O.tidy?" checked":"")+"> take out jogs under 20 mm</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-doors'"+(O.doors!==false?" checked":"")+"> cut door swings straight across</label> "+(O.traced?"<button class='cd-mini' onclick='bcS.mode=\"trace\";bcS.trace=[];bcRender()'>Trace again</button>":"<button class='cd-mini' onclick='bcOutlineAgain()'>Pick again</button>")+"</div>";
+  b+="<div class='row' style='margin:4px 0'>Join gaps up to <input type='text' id='bc-gap' value='"+E(S.gapTxt||O.gapTxt||"1.0")+"' style='width:46px'> m"+(S.gapUsed?" <span class='cd-amb'>(needed "+S.gapUsed+" m to close)</span>":"")+" <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-round'"+(O.round?" checked":"")+"> round corners to ¼″</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-tidy'"+(O.tidy?" checked":"")+"> take out jogs under 20 mm</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-doors'"+(O.doors!==false?" checked":"")+"> cut door swings straight across</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-fill'"+(O.fillOpen!==false?" checked":"")+"> fill in openings (steps in up to 0.45 m)</label> "+(O.traced?"<button class='cd-mini' onclick='bcS.mode=\"trace\";bcS.trace=[];bcRender()'>Trace again</button>":"<button class='cd-mini' onclick='bcOutlineAgain()'>Pick again</button>")+"</div>";
   b+="<div class='bc-act'>"+(O.ok?"<button class='btn' onclick='bcOutlineOk(false)'>Change it</button>":"<button class='btn pri' onclick='bcOutlineOk(true)'>Confirm outline</button>")+"</div>";}
  h+=bcCard(2,"Outline",b,O&&O.ok?bcHm().length+" corners, "+Math.abs(bcPolyArea(bcHm())).toFixed(1)+" m²":"");
  /* 3 posts */
@@ -7105,7 +7127,8 @@ function bcWire(host){var S=bcS,g=function(id){return document.getElementById(id
  host.querySelectorAll("details.bc-step").forEach(function(d){d.addEventListener("toggle",function(){S.open[d.dataset.st]=d.open;});});
  var sn0=g("bc-snap");if(sn0)sn0.onchange=function(){try{localStorage.setItem("eo:bcsnap",sn0.checked?"1":"0");}catch(e){}};
  var st=g("bc-sclt");if(st)st.oninput=function(){S.scl.txt=st.value;};
- var gp=g("bc-gap");if(gp)gp.onchange=function(){S.out.gapTxt=gp.value;};
+ var gp=g("bc-gap");if(gp)gp.onchange=function(){S.gapTxt=gp.value;if(S.out)S.out.gapTxt=gp.value;};
+ var fo=g("bc-fill");if(fo)fo.onchange=function(){S.out.fillOpen=fo.checked;bcSquareNow();bcRender();setTimeout(bcDraw,0);};
  var dd=g("bc-doors");if(dd)dd.onchange=function(){S.out.doors=dd.checked;bcSquareNow();bcRender();setTimeout(bcDraw,0);};
  var td=g("bc-tidy");if(td)td.onchange=function(){S.out.tidy=td.checked;bcSquareNow();bcRender();setTimeout(bcDraw,0);};
  var rd=g("bc-round");if(rd)rd.onchange=function(){S.out.round=rd.checked;bcSquareNow();bcRender();setTimeout(bcDraw,0);};
@@ -7126,7 +7149,7 @@ function bcWire(host){var S=bcS,g=function(id){return document.getElementById(id
 function bcScaleClear(){var S=bcS;S.scl.a=null;S.scl.b=null;bcRender();setTimeout(bcDraw,0);}
 function bcOutlineEdited(){var S=bcS,O=S.out,was=O.ok;O.ok=false;S.place=null;S.exc.res=null;if(was){S.msg="Outline changed — confirm it again in step 2. Posts, lot and setback rows are kept — check the corner numbers in the setback rows, then Calculate and work out the excavation again.";S.open[2]=true;}}
 function bcLenEcho(t,big){var v=bcParseLen(t);if(v===null)return "<span class='cd-amb'>not a length — 4' or 1.219</span>";var x="= "+v.toFixed(3)+" m ("+bcFtIn(v)+")";if(v>big&&/^\s*\d+(\.\d+)?\s*$/.test(String(t)))x+=" <span class='cd-amb'>— "+String(t).trim()+" metres? For feet type "+String(t).trim()+"'</span>";return x;}
-function bcOutlineAgain(){var S=bcS,O=S.out;if(!O)return;var lays=[];document.querySelectorAll(".bc-lay").forEach(function(c){if(c.checked)lays.push(c.value);});if(!lays.length){S.msg="Tick at least one layer.";bcRender();return;}var gp=document.getElementById("bc-gap");if(gp)O.gapTxt=gp.value;bcOutlineRun(O.q,lays);}
+function bcOutlineAgain(){var S=bcS,O=S.out;if(!O)return;var lays=[];document.querySelectorAll(".bc-lay").forEach(function(c){if(c.checked)lays.push(c.value);});if(!lays.length){S.msg="Tick at least one layer.";bcRender();return;}var gp=document.getElementById("bc-gap");if(gp){O.gapTxt=gp.value;S.gapTxt=gp.value;}bcOutlineRun(O.q,lays);}
 function bcOutlineOk(on){var S=bcS;S.out.ok=on;if(!on){S.place=null;S.exc.res=null;}S.mode="pan";S.open={};bcRender();setTimeout(bcDraw,0);}
 function bcPostsOk(v){var S=bcS;S.posts.ok=v===1;S.posts.none=v===2;S.mode="pan";S.exc.res=null;S.open={};if(v&&S.lotSrc)S.scene="site";bcRender();setTimeout(bcDraw,0);}
 function bcPostLineUndo(){bcS.posts.lines.pop();bcRender();setTimeout(bcDraw,0);}
