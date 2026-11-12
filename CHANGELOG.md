@@ -1,5 +1,21 @@
 # Elevate Office — changelog
 
+## Build 1.41.17 — 2026-11-12
+- **Building calc › Our drawing + calc (.dxf) saves cleanly in MicroSurvey (fix).** The 1.41.11 version opened in MicroSurvey CAD 2027, but saving failed with *Error 314 (Unknown internal error during save)*. It was built on the modern DXF that the app's DWG reader makes from your drawing, and MicroSurvey couldn't save that back out cleanly.
+  - **Now:** the file is written in the same plain format (R12) as *DXF (calc only)*, which MicroSurvey already handles. It carries your drawing's lines and polylines, circles, text and points on their own layers, with the layer colours from your drawing, plus the calc layers.
+  - **Left out:** frozen or off layers, hatches, and dimension objects. Blocks come through as their linework.
+  - **Points:** MicroSurvey's point database is still the points file. Import the calc's Points (.txt) for real MicroSurvey points.
+  - **Checked** on *26-3657-House-test*: 1,174 objects across 17 layers (including the 18 lot lines on EX_LOT_LINES). Read back with zero errors, and saved again without trouble.
+
+## Build 1.41.16 — 2026-11-12
+- **Building calc › Excavation round posts the way it's dug (change).** Posts beyond the 4 ft line used to get a narrow finger of excavation each.
+  - **Now one rectangle per side:** posts on the same side are taken in together by squaring off that side of the excavation, 2′ clear past the posts.
+  - **Lined up with corners:** the rectangle is widened to line up with the excavation's own corners within 3 m.
+  - **Unchanged:** a post sitting on the 4 ft line still gets a box round it.
+  - **The note** lists the posts and how far beyond the line each was.
+- **Building calc › Simplify the excavation (new, on).** The excavation no longer follows every small jog in the house wall. Inward steps up to **1.25 m** (editable, tick-box in step 6) are filled so the sides run straight, like a hand-drawn excavation. Deeper real steps stay, and it's still held to the lot line.
+- Matches the examples from *26-3657* (posts below the house, cyan) and *1516 Kerfoot Road*.
+
 ## Build 1.41.15 — 2026-11-12
 - **Building calc › Edits stay put (fix for the "endless cycle").**
   - **Before:** every edit (drop corner, box drop, straight across) re-ran the whole outline process: squaring every wall, ¼″ rounding from corner 1, the opening and door tidy-ups, and renumbering from the south-west corner. Each edit could therefore shift or renumber corners elsewhere.
