@@ -840,7 +840,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.41.17";
+const BUILD="1.41.18";
 const NEWS=["Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
@@ -6786,6 +6786,7 @@ function bcDxf(sets,th,extra){/* sets: [{layer, kind:"poly"|"pts"|"line", rings:
  sets.forEach(function(S,si){var col=[1,3,5,2,6,4,30,140][si%8];
   if(S.kind==="poly"||S.kind==="line"){L(S.layer,col,S.dashed);(S.rings||[]).forEach(function(R){ent.push("0","POLYLINE","8",S.layer);if(S.dashed)ent.push("6","DASHED");ent.push("66","1","10","0.0","20","0.0","30","0.0","70",S.kind==="poly"?"1":"0");
     R.forEach(function(p){ent.push("0","VERTEX","8",S.layer,"10",p[0].toFixed(4),"20",p[1].toFixed(4),"30","0.0");});ent.push("0","SEQEND","8",S.layer);});}
+  if(S.kind==="text"){L(S.layer,S.col||col);(S.texts||[]).forEach(function(T){ent.push("0","TEXT","8",S.layer,"10",T.p[0].toFixed(4),"20",T.p[1].toFixed(4),"30","0.0","40",T.h.toFixed(4),"1",String(T.s),"50",(T.rot*180/Math.PI).toFixed(6));if(T.mid)ent.push("72","1","11",T.p[0].toFixed(4),"21",T.p[1].toFixed(4),"31","0.0","73","2");});}
   if(S.kind==="pts"){L(S.layer,col);L(S.layer+"-LABELS",7);S.pts.forEach(function(r){ent.push("0","POINT","8",S.layer,"10",r.E.toFixed(4),"20",r.N.toFixed(4),"30",(r.Z||0).toFixed(4));
     ent.push("0","TEXT","8",S.layer+"-LABELS","10",(r.E+h*0.5).toFixed(4),"20",(r.N+h*0.3).toFixed(4),"30","0.0","40",h.toFixed(4),"1",String(r.pt));});}});
  var tbl=["0","SECTION","2","TABLES","0","TABLE","2","LTYPE","70","2","0","LTYPE","2","CONTINUOUS","70","0","3","Solid line","72","65","73","0","40","0.0",
@@ -6853,7 +6854,7 @@ function bcComponents(A){var c=new Array(A.nodes.length).fill(-1),k=0;for(var i=
    Step by step: scale -> outline -> posts -> lot -> setbacks -> excavation -> output.
    Plan units stay as drawn until the scale is confirmed; everything that comes out is metric. */
 var bcS=null;
-var BC_LAYDEF={house:"CALC {date} NEW HOUSE",pts:"CALC {date} HOUSE PTS",posts:"CALC {date} NEW HOUSE",plines:"CALC {date} NEW HOUSE",exc:"CALC EXCAVATION",excpts:"CALC EXCAVATION_PTS"};
+var BC_LAYDEF={house:"CALC {date} NEW HOUSE",pts:"CALC {date} HOUSE PTS",posts:"CALC {date} NEW HOUSE",plines:"CALC {date} NEW HOUSE",exc:"CALC EXCAVATION",excpts:"CALC EXCAVATION_PTS",dims:"CALC {date} HOUSE DIMS",notes:"CALC {date} HOUSE TEXT"};
 function bcLaysGet(){var o={};try{o=JSON.parse(localStorage.getItem("eo:bclays")||"{}")||{};}catch(e){}var r={},old={posts:"CALC {date} POSTS",plines:"CALC {date} POST LINES"};Object.keys(BC_LAYDEF).forEach(function(k){r[k]=o[k]&&o[k]!==old[k]?o[k]:BC_LAYDEF[k];});return r;}
 function bcLaysPut(L){try{localStorage.setItem("eo:bclays",JSON.stringify(L));}catch(e){}}
 function bcDate(){var d=new Date(),p=function(n){return (n<10?"0":"")+n;};return String(d.getFullYear()).slice(2)+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());}
@@ -6861,7 +6862,7 @@ function bcLayName(t){return String(t||"").replace(/\{date\}/gi,bcDate()).trim()
 function bcNew(){return {file:null,busy:"",msg:"",src:null,k:null,kTxt:"",scl:{a:null,b:null,txt:""},dims:null,
  out:null,posts:{list:[],shape:null,lines:[],pend:null,corners:false,ok:false,none:false},lot:null,lotSrc:null,local:{on:false,E:"",N:"",rot:"0"},
  sb:[{kind:"pt",h:"",h2:"",side:"",d:""},{kind:"face",h:"",h2:"",side:"",d:""},{kind:"pt",h:"",h2:"",side:"",d:""}],place:null,
- exc:{off:"4'",post:"2'",res:null},o:{start:""},lays:bcLaysGet(),mode:"pan",scene:"plan",view:{},step:1,open:{}};}
+ exc:{off:"4'",post:"2'",res:null},o:{start:""},lays:bcLaysGet(),tx:bcTxGet(),el:bcElNew(),pages:{},mode:"pan",scene:"plan",view:{},step:1,open:{}};}
 /* ---- loading ---- */
 function bcLoadFile(file,which){if(!bcS)bcS=bcNew();var S=bcS;which=which||"plan";
  if(which==="plan"){var keep={lays:S.lays,open:S.open};bcS=S=bcNew();S.lays=keep.lays;S.file={name:file.name};}
@@ -6872,7 +6873,7 @@ function bcLoadFile(file,which){if(!bcS)bcS=bcNew();var S=bcS;which=which||"plan
  var p;
  if(/\.pdf$/i.test(file.name)){if(which!=="plan"){S.busy="";S.msg="The lot has to come from our own CAD file (.dxf / .dwg) — the lot lines are read in job coordinates.";bcRender();return;}
   p=file.arrayBuffer().then(function(ab){return pmscPdfLib().then(function(lib){return lib.getDocument({data:new Uint8Array(ab)}).promise.then(function(doc){S.pdf=doc;S.file.pages=doc.numPages;return bcPdfGuessPage(doc).then(bcPdfPage);});});});}
- else if(/\.dwg$/i.test(file.name))p=file.arrayBuffer().then(function(ab){return hcDwgLib().then(function(lib){var out=lib.dwg_write_dxf(ab);if(!out||!out.length)throw new Error("That DWG couldn’t be converted — save it as DXF from CAD and drop that.");return new TextDecoder("utf-8").decode(out);});}).then(function(t){bcFromDxf(t,which);});
+ else if(/\.dwg$/i.test(file.name))p=file.arrayBuffer().then(function(ab){return hcDwgLib().then(function(lib){var out;try{out=lib.dwg_write_dxf(ab);}catch(e){HC_DWGP=null;throw new Error("The DWG reader couldn’t read this drawing (it stopped with “"+((e&&e.message)||e)+"”). That’s the reader in the app, not your file or your drive — open the drawing in MicroSurvey, save it as DXF and drop the DXF.");}if(!out||!out.length)throw new Error("That DWG couldn’t be converted — save it as DXF from CAD and drop that.");return new TextDecoder("utf-8").decode(out);});}).then(function(t){bcFromDxf(t,which);});
  else p=file.text().then(function(t){bcFromDxf(t,which);});
  p.then(function(){S.busy="";bcRender();setTimeout(bcDraw,0);}).catch(function(e){S.busy="";S.msg=(e&&e.message)||String(e);bcRender();});}
 function bcPdfGuessPage(doc){var n=Math.min(doc.numPages,60),f={p:0,h:0},b={p:0,h:0},i=1;
@@ -6880,7 +6881,7 @@ function bcPdfGuessPage(doc){var n=Math.min(doc.numPages,60),f={p:0,h:0},b={p:0,
    if(/FOUNDATION\s+PLAN/.test(t)&&h>f.h){f.p=k;f.h=h;}else if(/BASEMENT\s+(FLOOR\s+)?PLAN/.test(t)&&h>b.h){b.p=k;b.h=h;}});return next();},function(){return next();});}
  return next();}
 function bcRenderBg(page){try{var v0=page.getViewport({scale:1}),sc=Math.min(3,4000/Math.max(v0.width,v0.height)),vp=page.getViewport({scale:sc}),c=document.createElement("canvas");c.width=Math.round(vp.width);c.height=Math.round(vp.height);var g=c.getContext&&c.getContext("2d");if(!g)return;
- page.render({canvasContext:g,viewport:vp}).promise.then(function(){if(bcS)bcS.bg={cv:c,view:page.view};bcDraw();}).catch(function(){});}catch(e){}}
+ page.render({canvasContext:g,viewport:vp}).promise.then(function(){var pn=page.pageNumber,B={cv:c,view:page.view};if(bcS&&(!pn||!bcS.src||bcS.src.page===pn))bcS.bg=B;else if(bcS&&bcS.pages&&bcS.pages[pn])bcS.pages[pn].bg=B;bcDraw();}).catch(function(){});}catch(e){}}
 /* a scanned page: a picture, no linework to follow */
 function bcIsScan(ol,F){var O=window.pdfjsLib.OPS,img=0;ol.fnArray.forEach(function(f){if(f===O.paintImageXObject||f===O.paintInlineImageXObject||f===O.paintJpegXObject)img++;});return img>0&&F.paths.filter(function(p){return !p.glyph;}).length<30;}
 function bcRobustBox(paths){var xs=[],ys=[];paths.forEach(function(P){if(P.glyph)return;var st=Math.max(1,Math.floor(P.p.length/8));for(var i=0;i<P.p.length;i+=st){xs.push(P.p[i][0]);ys.push(P.p[i][1]);}});if(!xs.length)return null;
@@ -6894,10 +6895,10 @@ function bcFromDxf(t,which){var S=bcS,D=cdDxfParse(t),F=cdDxfFlatten(D,{hatch:tr
  var src={kind:"cad",F:F,idx:idx,D:D,bounds:b,ext:ext,iu:+D.hdr.$INSUNITS||0};
  if(which==="plan"){S.src=src;S.scene="plan";S.view.plan=null;var g={1:BC_IN,2:BC_FT,4:0.001,5:0.01,6:1}[src.iu];S.kGuess=g||null;S.dimsAll=bcCadDims(D);}
  else{src.pts=bcDwgPts(D);src.text=t;src.allPts=(D.ents||[]).filter(function(e){var L=D.layers&&D.layers[e.g[8]];return e.t==="POINT"&&!(L&&(L.frozen||L.off))&&isFinite(+e.g[10]);}).map(function(e){return {E:+e.g[10],N:+e.g[20],Z:+e.g[30]||0,lay:e.g[8]};});S.lotSrc=src;S.scene="site";S.view.site=null;S.lot=null;S.place=null;S.exc.res=null;S.mode="lot";S.msg="Click inside the subject lot (not inside the house).";}}
-function bcPdfPage(n){var S=bcS;S.busy="Reading page "+n+" …";bcRender();
+function bcPdfPage(n){var S=bcS;if(S.src&&S.src.kind==="pdf"){if(S.src.page===n)return Promise.resolve();bcPageKeep();if(bcPageBack(n))return Promise.resolve();}S.busy="Reading page "+n+" …";bcRender();
  return S.pdf.getPage(n).then(function(page){return Promise.all([page.getOperatorList(),page.getTextContent()]).then(function(r){var F=cdPdfPrims(cdPdfPaths(r[0],window.pdfjsLib.OPS),{fills:true}),idx=cdIndex(F.paths,10);
   S.scan=bcIsScan(r[0],F);S.bg=null;if(S.scan)bcRenderBg(page);S.src={kind:"pdf",F:F,idx:idx,bounds:[page.view[0],page.view[1],page.view[2],page.view[3]],ext:Math.max(page.view[2],page.view[3]),page:n,text:r[1].items.map(function(i){return {s:i.str,t:i.transform,w:i.width};})};
-  S.file.page=n;S.kGuess=null;S.k=null;S.dims=null;S.out=null;S.posts=bcNew().posts;S.place=null;S.exc.res=null;S.step=1;S.view.plan=null;S.scene="plan";S.dimsAll=null;S.busy="";});});}
+  bcPageFresh();S.file.page=n;S.kGuess=null;S.k=null;S.kHow=null;S.dims=null;S.out=null;S.posts=bcNew().posts;S.place=null;S.exc.res=null;S.step=1;S.view.plan=null;S.scene="plan";S.dimsAll=null;S.busy="";});});}
 /* ---- helpers ---- */
 /* points stored in our own drawing: MicroSurvey keeps description, number and elevation on each POINT (xdata MSCAD_PRO_MSI); otherwise a number label beside the point */
 function bcDwgPts(D){var out=[],bare=[];(D.ents||[]).forEach(function(e){if(e.t!=="POINT")return;var x=+e.g[10],y=+e.g[20];if(!isFinite(x)||!isFinite(y))return;var m=e.m||[],i=-1;
@@ -7039,9 +7040,9 @@ function bcCalc(){var S=bcS,H=bcHm(),sides=S.lot.sides,cons=[],bad=[];
  if(R.f&&S.lot.ring){var out=[];H.forEach(function(p,i){var q=R.f(p);if(!bcInPoly(S.lot.ring,q)){var d=Math.min.apply(null,S.lot.ring.map(function(a,j){var b=S.lot.ring[(j+1)%S.lot.ring.length],v=cdSub(b,a),t=Math.max(0,Math.min(1,cdDot(cdSub(q,a),v)/(cdDot(v,v)||1)));return cdHyp(q,[a[0]+v[0]*t,a[1]+v[1]*t]);}));if(d>0.005)out.push(i+1);}});
   R.outside=out;}S.scene="site";bcRender();setTimeout(bcDraw,0);}
 /* ---- step 6: excavation ---- */
-function bcExcRun(){var S=bcS,f=bcJobF(),off=bcParseLen(S.exc.off),po=bcParseLen(S.exc.post);if(!f)return;if(off===null||po===null){S.msg="Check the two excavation distances.";bcRender();return;}
+function bcExcRun(){var S=bcS,f=bcJobF(),off=bcParseLen(S.exc.off),po=bcParseLen(S.exc.post);if(!f)return;var ed=S.exc.res&&S.exc.res.edits?S.exc.res.edits.length:0;if(ed&&!window.confirm("This works the excavation out again and clears your "+ed+" edit"+(ed===1?"":"s")+" to it. Go ahead?"))return;if(off===null||po===null){S.msg="Check the two excavation distances.";bcRender();return;}
  var H=bcHm().map(f),k=S.k,posts=S.posts.none?[]:S.posts.list.map(function(p){return {c:f([p.c[0]*k,p.c[1]*k]),half:Math.max(p.w,p.h)*k/2};});
- var sp=S.exc.simpOn===false?0:(bcParseLen(S.exc.simp||"1.25")||0);var X=bcExcavation(H,posts,S.lot&&S.lot.ok&&!S.local.on?S.lot.ring:null,bcAxis(H),off,po,sp);S.exc.res={P:bcOrder(X.P),notes:X.notes,off:off,po:po};S.msg="";bcRender();setTimeout(bcDraw,0);}
+ var sp=S.exc.simpOn===false?0:(bcParseLen(S.exc.simp||"1.25")||0);var lotR=S.lot&&S.lot.ok&&!S.local.on?S.lot.ring:null,ax=bcAxis(H),X=bcExcavation(H,posts,lotR,ax,off,po,sp);S.exc.res={P:bcOrder(X.P),notes:X.notes,off:off,po:po};try{bcXArm(S.exc.res,H,posts,lotR,ax);}catch(e){}S.msg="";bcRender();setTimeout(bcDraw,0);}
 /* ---- step 7: output ---- */
 function bcStartDefault(){var mx=0,low=false;bcKnownPts().forEach(function(s){if(/^\d+$/.test(s.pt)){var v=+s.pt;mx=Math.max(mx,v);if(v>=1&&v<=99)low=true;}});return bcStart(mx,low);}
 function bcRows(){var S=bcS,f=bcJobF(),k=S.k,n=parseInt(S.o.start,10);if(!(n>0))n=bcStartDefault();var rows=[],add=function(p,d,set){rows.push({pt:n++,E:p[0],N:p[1],Z:0,desc:d,set:set});};
@@ -7058,6 +7059,8 @@ function bcSave(which){var S=bcS;if(!bcUnlocked(7)){S.msg="Finish the steps abov
    sets.push({layer:bcLayName(L.posts),kind:"poly",rings:S.posts.list.map(function(p){return bcPostCorners(p).map(function(q){return f([q[0]*k,q[1]*k]);});})});}
   if(S.posts.lines.length)sets.push({layer:bcLayName(L.plines),kind:"line",dashed:true,rings:S.posts.lines.map(function(l){return [f([l[0][0]*k,l[0][1]*k]),f([l[1][0]*k,l[1][1]*k])];})});
   if(S.exc.res){sets.push({layer:bcLayName(L.exc),kind:"poly",rings:[S.exc.res.P]});sets.push({layer:bcLayName(L.excpts),kind:"pts",pts:rows.filter(function(r){return r.set==="excpts";})});}
+  var TX=bcTexts();if(TX&&!TX.h&&(S.tx.dim||bcElLines().length)){S.msg="Check the plot scale and Leroy size in step 7 — the dimensions and floor elevations need a text height.";bcRender();return;}
+  if(TX&&TX.dims.length)sets.push({layer:bcLayName(L.dims),kind:"text",col:7,texts:TX.dims});if(TX&&TX.el.length)sets.push({layer:bcLayName(L.notes),kind:"text",col:7,texts:TX.el});
   if(which==="merge"){if(!S.lotSrc||!S.lotSrc.text){S.msg="Load our lot drawing in step 4 first.";bcRender();return;}try{txt=bcDxf(sets,0.3,bcDrawingPlain(S.lotSrc));}catch(e){S.msg="Couldn’t add the calc to that drawing: "+(e.message||e);bcRender();return;}fn=String(S.lotFile.name).replace(/\.[^.]+$/,"")+"-WITH-CALC.dxf";}
   else{txt=bcDxf(sets,0.3);fn=B+".dxf";}type="application/dxf";}
  else{txt=bcSummary(rows);fn=B+"-SUMMARY.txt";}
@@ -7072,7 +7075,9 @@ function bcSummary(rows){var S=bcS,L=[],H=bcHm(),k=S.k;
  else if(S.place){L.push("Lot: "+(S.lotFile?S.lotFile.name:"")+" layer "+S.lot.lay+", area "+Math.abs(bcPolyArea(S.lot.ring)).toFixed(2)+" m²");
   S.place.rep.forEach(function(r){var c=r.c,sd=S.lot.sides[c.side];L.push("  "+(c.kind==="face"?"house "+(c.i+1)+"–"+(c.j+1)+" parallel to ":"house "+(c.i+1)+" to ")+sd.name+": asked "+c.d.toFixed(3)+" m, got "+r.got.map(function(g){return g.toFixed(3);}).join(" / ")+" m");});
   if(S.place.under)L.push("  NOT FIXED: the house can still slide"+(S.place.free?" along bearing "+bcBrg(S.place.free):"")+" — add a setback.");}
- if(S.exc.res){L.push("Excavation: "+S.exc.res.off.toFixed(3)+" m ("+bcFtIn(S.exc.res.off)+") off the outline, at least "+S.exc.res.po.toFixed(3)+" m ("+bcFtIn(S.exc.res.po)+") clear of posts, held to the lot");S.exc.res.notes.forEach(function(n){L.push("  "+n);});}
+ if(S.exc.res){L.push("Excavation: "+S.exc.res.off.toFixed(3)+" m ("+bcFtIn(S.exc.res.off)+") off the outline, at least "+S.exc.res.po.toFixed(3)+" m ("+bcFtIn(S.exc.res.po)+") clear of posts, held to the lot");S.exc.res.notes.forEach(function(n){L.push("  "+n);});if(S.exc.res.edits&&S.exc.res.edits.length)L.push("  edited by hand: "+S.exc.res.edits.join("; "));L.push("  "+S.exc.res.P.length+" corners, "+Math.abs(bcPolyArea(S.exc.res.P)).toFixed(2)+" m²");}
+ var EL=bcElLines();if(EL.length){L.push("Floor elevations (metres; the architect’s feet in brackets):");EL.slice(1).forEach(function(s){L.push("  "+s);});}
+ var TH=bcTxH();if(TH&&(S.tx.dim||EL.length))L.push("Lettering: "+TH.toFixed(3)+" m high (Leroy "+S.tx.leroy+" at 1:"+String(S.tx.scale).replace(/^\s*1\s*[:\/]\s*/,"")+")"+(S.tx.dim?"; every side of the building dimensioned to two decimals on "+bcLayName(S.lays.dims):"")+(EL.length?"; floor elevations on "+bcLayName(S.lays.notes):""));
  L.push("Points ("+rows.length+"):");rows.forEach(function(r){L.push("  "+[r.pt,r.N.toFixed(3),r.E.toFixed(3),r.desc].join("  "));});return L.join("\r\n")+"\r\n";}
 function bcBrg(v){var a=Math.atan2(v[0],v[1])*180/Math.PI;a=(a+360)%180;var d=Math.floor(a),m=Math.round((a-d)*60);if(m===60){d++;m=0;}return d+"°"+(m<10?"0":"")+m+"′ / "+(d+180)+"°";}
 
@@ -7090,13 +7095,15 @@ function bcRender(){var host=document.getElementById("cu-bc");if(!host)return;if
  if(S.scan)h+="<div class='cu-pkgwarn' style='display:block;margin:4px 0 8px'>Page "+S.src.page+" is a <b>scanned image</b> — nothing to follow or snap to. You can still Measure for the scale and <b>Trace outline</b> by clicking the corners on the picture (less precise than CAD; check a couple of dimensions). Better: the architect’s CAD file or a PDF printed straight from CAD.</div>";
  /* tools over the viewer change with the step you're on */
  var m=S.mode,btn=function(id,t,dis){return "<button data-bm='"+id+"' class='"+(m===id?"on":"")+"'"+(dis?" disabled":"")+">"+t+"</button>";};
- h+="<div class='cd-bar'><span class='seg'>"+btn("pan","Move")+(S.scene==="plan"?btn("scale","Measure",!!S.k&&false)+btn("outline","Pick outline",!S.k||S.scan)+btn("trace","Trace outline",!S.k)+btn("drop","Drop corner",!S.out)+btn("across","Straight across",!S.out)+btn("post","Pick post",!bcStepOk(2))+btn("postc","Post by corners",!bcStepOk(2))+btn("pperp","Post line to house",!bcStepOk(2))+btn("pline","Draw post line",!bcStepOk(2)):btn("lot","Click inside lot",!S.lotSrc))+"</span> <label class='cu-cb' title='Snap clicks to line ends and crossings'><input type='checkbox' id='bc-snap'"+(bcSnapOn()?" checked":"")+(S.scan?" disabled":"")+"> Snap</label>";
- h+=" <span class='seg'><button data-sc='plan' class='"+(S.scene==="plan"?"on":"")+"'>Plan</button><button data-sc='site' class='"+(S.scene==="site"?"on":"")+"'"+(S.lotSrc||bcJobF()?"":" disabled")+">Site</button></span> <button class='btn ghost' onclick='bcZoomAll()'>Whole drawing</button>";
+ h+="<div class='cd-bar'><span class='seg'>"+btn("pan","Move")+(S.scene==="plan"?btn("scale","Measure",!!S.k&&false)+btn("outline","Pick outline",!S.k||S.scan)+btn("trace","Trace outline",!S.k)+btn("drop","Drop corner",!S.out)+btn("across","Straight across",!S.out)+btn("post","Pick post",!bcStepOk(2))+btn("postc","Post by corners",!bcStepOk(2))+btn("pperp","Post line to house",!bcStepOk(2))+btn("pline","Draw post line",!bcStepOk(2)):btn("lot","Click inside lot",!S.lotSrc)+(S.exc.res&&S.exc.res.req?btn("xdrop","Drop excavation corner")+btn("xacross","Straight across (excavation)"):""))+"</span> <label class='cu-cb' title='Snap clicks to line ends and crossings'><input type='checkbox' id='bc-snap'"+(bcSnapOn()?" checked":"")+(S.scan?" disabled":"")+"> Snap</label>";
+ h+=" <span class='seg'><button data-sc='plan' class='"+(S.scene==="plan"?"on":"")+"'>Plan</button><button data-sc='site' class='"+(S.scene==="site"?"on":"")+"'"+(S.lotSrc||bcJobF()?"":" disabled")+">Site</button></span> <button class='btn ghost' onclick='bcZoomAll()'>Whole drawing</button>"+(S.scene==="plan"?" <button class='btn ghost' onclick='bcRotate(0)' title='Turn the plan a quarter turn anticlockwise, so north is up'>⟲ Turn 90°</button> <button class='btn ghost' onclick='bcRotate(1)' title='Turn the plan a quarter turn clockwise, so north is up'>⟳ Turn 90°</button>":"");
  if(S.scene==="plan"&&S.out)h+=" <button class='btn ghost' onclick='bcZoomOutline()'>Zoom to outline</button>";h+="</div>";
  var tip={pan:S.out&&S.scene==="plan"?"Drag a <b>corner</b> or the <b>middle of a side</b> of the orange outline to adjust it (it snaps to line corners; sides stay square). Drag elsewhere to move the view, scroll to zoom.":"Drag to move, scroll to zoom.",scale:(!S.scl.a?"Click the <b>first end ①</b> of a dimension you trust.":!S.scl.b?"<b>① is placed.</b> Now click the <b>second end ②</b>.":"<b>① and ② are placed</b> — type the length in step 1 and Set scale. Drag either end to adjust; click elsewhere to start again.")+" A green square means you’re on a corner / line end (✕ = a crossing).",outline:"Click the foundation wall, or inside the foundation — the outline is followed round automatically.",trace:"Click each outside corner of the foundation in turn (snaps to line corners); click the first corner again or Finish to close.",
   drop:"Click a corner to take it out — or <b>drag a box</b> round several to take them all out. The outline is squared again.",across:"Click two corners — the corners between them (the shorter way round) are taken out and the side runs straight across.",
-  post:"Click inside a post (or on its outline) to add it; click it again to take it off. Then “Select similar” in step 3 finds the rest.",postc:(S.posts.c1?"First corner placed — click the <b>opposite corner</b> of the post.":"Click one corner of the post, then the <b>opposite corner</b> (snaps to line corners). The post is squared to the building.")+"",pperp:"Click a post — a dashed post line is drawn from it square back to the nearest wall of the house.",pline:"Click two points for a dashed post line. Green square = snapped: post centre / corner, house corner, line end, crossing — or <b>perpendicular</b> onto a house wall for the second end.",lot:"Click inside the subject lot, clear of the house."}[m]||"";
- if(m==="across"&&S.acrossA!==undefined&&S.acrossA!==null)tip="Corner "+(S.acrossA+1)+" picked — now click the other corner.";
+  post:"Click inside a post (or on its outline) to add it; click it again to take it off. Then “Select similar” in step 3 finds the rest.",postc:(S.posts.c1?"First corner placed — click the <b>opposite corner</b> of the post.":"Click one corner of the post, then the <b>opposite corner</b> (snaps to line corners). The post is squared to the building.")+"",pperp:"Click a post — a dashed post line is drawn from it square back to the nearest wall of the house.",pline:"Click two points for a dashed post line. Green square = snapped: post centre / corner, house corner, line end, crossing — or <b>perpendicular</b> onto a house wall for the second end.",lot:"Click inside the subject lot, clear of the house.",xdrop:"Click a corner of the dashed excavation to take it out — or <b>drag a box</b> round several. It squares off to the outside; anything inside the clearances or past the lot line is refused.",xacross:"Click two corners of the dashed excavation — the corners between them (the shorter way round) are taken out.",elpick:"Click the elevation’s text on the drawing"+(S.src.kind==="pdf"?" (change the page above first if it’s on another sheet)":"")+"."}[m]||"";
+ if(m==="pan"&&S.scene==="site"&&S.exc.res&&S.exc.res.req)tip="Drag a <b>corner</b> or the <b>middle of a side</b> of the dashed excavation to adjust it (sides stay square; the clearances are checked when you let go). Drag elsewhere to move the view, scroll to zoom.";
+ if(m==="elpick"&&S.el.pick!==null&&S.el.rows[S.el.pick])tip="<b>"+E(S.el.rows[S.el.pick].lab||"Elevation")+":</b> "+tip;
+ if((m==="across"||m==="xacross")&&S.acrossA!==undefined&&S.acrossA!==null)tip="Corner "+(S.acrossA+1)+" picked — now click the other corner.";
  if(m==="pline"&&S.posts.pend)tip="First end picked — click the second.";
  if(m==="trace"&&S.trace&&S.trace.length)tip=S.trace.length+" corner"+(S.trace.length===1?"":"s")+" — keep clicking round; click corner 1 again or <button class='cd-mini' onclick='bcTraceFinish()'>Finish</button> <button class='cd-mini' onclick='bcTraceUndo()'>Undo last</button>";
  h+="<div class='hint' style='margin:2px 0 4px'>"+tip+"</div>";
@@ -7150,24 +7157,25 @@ function bcStepsHtml(){var S=bcS,E=esc,k=S.k,h="";
   h+=bcCard(5,"Setbacks",b,S.place&&!S.place.under?"fitted":"");}
  /* 6 excavation */
  b="<div class='row'>Off the foundation <input type='text' id='bc-xo' value='"+E(S.exc.off)+"' style='width:60px'> <span id='bc-xo-v' class='hint' style='margin:0'>"+bcLenEcho(S.exc.off,2.5)+"</span></div><div class='row'>Clear of posts at least <input type='text' id='bc-xp' value='"+E(S.exc.post)+"' style='width:60px'> <span id='bc-xp-v' class='hint' style='margin:0'>"+bcLenEcho(S.exc.post,1.5)+"</span></div><div class='hint' style='margin:0'>Feet: 4' or 4 ft · metres: 1.219 (a plain number is metres)</div><div class='row'><label class='cu-cb'><input type='checkbox' id='bc-xs'"+(S.exc.simpOn===false?"":" checked")+"> simplify: fill in steps up to</label> <input type='text' id='bc-xsd' value='"+E(S.exc.simp||"1.25")+"' style='width:46px'> m <span class='hint' style='margin:0'>(long straight sides, like a hand-drawn excavation; posts beyond the line square that side off)</span></div><div class='hint'>Measured from the outline confirmed in step 2"+(S.local.on?"":"; never past the lot line")+". If the office measures from the footing, add the footing’s projection here.</div><div class='bc-act'><button class='btn pri' onclick='bcExcRun()'>Work out the excavation</button></div>";
- if(S.exc.res){var X=S.exc.res;b+="<div class='bc-res'>"+X.P.length+" corners, "+Math.abs(bcPolyArea(X.P)).toFixed(2)+" m²"+(X.notes.length?"<br>"+X.notes.map(E).join("<br>"):"")+"</div>";}
+ if(S.exc.res){var X=S.exc.res;b+="<div class='bc-res'>"+X.P.length+" corners, "+Math.abs(bcPolyArea(X.P)).toFixed(2)+" m²"+(X.notes.length?"<br>"+X.notes.map(E).join("<br>"):"")+"</div>"+bcXHtml();}
  h+=bcCard(6,"Excavation",b,S.exc.res?S.exc.res.P.length+" corners":"");
  /* 7 output */
  if(bcUnlocked(7)){if(!S.o.start)S.o.start=String(bcStartDefault());}
  var Ls=S.lays,li=function(key,lab){return "<tr><td>"+lab+"</td><td><input type='text' class='bc-lname' data-k='"+key+"' value='"+E(bcLayName(Ls[key]))+"' style='width:220px'></td></tr>";};
  b="<div class='row'>Points from <input type='text' id='bc-start' value='"+E(S.o.start)+"' style='width:70px'> <span class='hint'>1–99 when the job’s file leaves them free, else the next clean hundred above it</span></div>";
- b+="<table class='cu-mtt'><tr><th>DXF layer</th><th>name (today’s date fills in)</th></tr>"+li("house","Building outline, posts, post lines")+li("pts","Building points")+li("exc","Excavation")+li("excpts","Excavation points")+"</table><details style='font-size:12px;margin-top:2px'><summary>Separate layers for posts / post lines</summary><table class='cu-mtt'>"+li("posts","Posts")+li("plines","Post lines (dashed)")+"</table></details><button class='cd-mini' onclick='bcLaysReset()'>Default names</button>";
+ b+="<table class='cu-mtt'><tr><th>DXF layer</th><th>name (today’s date fills in)</th></tr>"+li("house","Building outline, posts, post lines")+li("pts","Building points")+li("exc","Excavation")+li("excpts","Excavation points")+li("dims","Building dimensions")+li("notes","Floor elevations")+"</table><details style='font-size:12px;margin-top:2px'><summary>Separate layers for posts / post lines</summary><table class='cu-mtt'>"+li("posts","Posts")+li("plines","Post lines (dashed)")+"</table></details><button class='cd-mini' onclick='bcLaysReset()'>Default names</button>";
+ b+=bcTxHtml();
  if(bcUnlocked(7)){var rows=bcRows(),kp=bcKnownPts(),nd=kp.filter(function(p){return p.src==="drawing";}).length;b+="<div class='hint'>"+rows.length+" points: "+rows[0].pt+"–"+rows[rows.length-1].pt+" · checked against "+(kp.length-nd)+" point"+(kp.length-nd===1?"":"s")+" on the shelf"+(S.lotSrc?" and "+nd+" in our lot drawing":"")+"</div>";
   var cl=bcClashes();if(cl.length)b+="<div class='cu-pkgwarn' style='display:block'>"+cl.length+" of these numbers are already used ("+cl.slice(0,10).join(", ")+(cl.length>10?" …":"")+"). <button class='cd-mini' onclick='bcS.o.start=String(bcStartDefault());bcRender()'>Use "+bcStartDefault()+" and up</button></div>";}
  b+="<div class='bc-act'><button class='btn pri' onclick='bcSave(\"txt\")'>Points (.txt)</button> <button class='btn pri' onclick='bcSave(\"dxf\")'>DXF (calc only)</button> <button class='btn' onclick='bcSave(\"sum\")'>Summary</button></div>"+(S.lotSrc&&S.lotSrc.text?"<div class='bc-act'><button class='btn pri' onclick='bcSave(\"merge\")'>Our drawing + calc (.dxf)</button> <span class='hint' style='margin:0'>"+E(S.lotFile.name)+" — its lines, text and points on their layers with the calc added, in a plain DXF any CAD program opens and saves</span></div>":"");
- h+=bcCard(7,"Output",b,"");
+ h+=bcCard(7,"Output",b,"");h+=bcElHtml();
  return h;}
 function bcWire(host){var S=bcS,g=function(id){return document.getElementById(id);};
  var f=g("bc-file");if(f)f.onchange=function(){if(f.files[0])bcLoadFile(f.files[0],"plan");};
  var lf=g("bc-lotfile");if(lf)lf.onchange=function(){if(lf.files[0])bcLoadFile(lf.files[0],"lot");};
  var pg=g("bc-page");if(pg)pg.onchange=function(){var n=parseInt(pg.value,10);if(n>=1&&n<=(S.file.pages||1))bcPdfPage(n).then(function(){bcRender();setTimeout(bcDraw,0);});};
- host.querySelectorAll("[data-bm]").forEach(function(b){b.onclick=function(){S.mode=b.dataset.bm;S.posts.c1=null;if(S.mode==="trace"&&!S.trace)S.trace=[];S.acrossA=null;S.posts.pend=null;if(S.mode==="scale"){S.scl.a=null;S.scl.b=null;}bcRender();};});
- host.querySelectorAll("[data-sc]").forEach(function(b){b.onclick=function(){S.scene=b.dataset.sc;S.mode=S.scene==="site"?(S.lot?"pan":"lot"):"pan";bcRender();setTimeout(bcDraw,0);};});
+ host.querySelectorAll("[data-bm]").forEach(function(b){b.onclick=function(){S.mode=b.dataset.bm;S.el.pick=null;S.posts.c1=null;if(S.mode==="trace"&&!S.trace)S.trace=[];S.acrossA=null;S.posts.pend=null;if(S.mode==="scale"){S.scl.a=null;S.scl.b=null;}bcRender();};});
+ host.querySelectorAll("[data-sc]").forEach(function(b){b.onclick=function(){S.scene=b.dataset.sc;S.acrossA=null;S.el.pick=null;S.mode=S.scene==="site"?(S.lot?"pan":"lot"):"pan";bcRender();setTimeout(bcDraw,0);};});
  host.querySelectorAll("details.bc-step").forEach(function(d){d.addEventListener("toggle",function(){S.open[d.dataset.st]=d.open;});});
  var sn0=g("bc-snap");if(sn0)sn0.onchange=function(){try{localStorage.setItem("eo:bcsnap",sn0.checked?"1":"0");}catch(e){}};
  var st=g("bc-sclt");if(st)st.oninput=function(){S.scl.txt=st.value;};
@@ -7190,7 +7198,7 @@ function bcWire(host){var S=bcS,g=function(id){return document.getElementById(id
  var xs=g("bc-xs");if(xs)xs.onchange=function(){S.exc.simpOn=xs.checked;};var xsd=g("bc-xsd");if(xsd)xsd.oninput=function(){S.exc.simp=xsd.value;};
  var xo=g("bc-xo");if(xo)xo.oninput=function(){S.exc.off=xo.value;var v=g("bc-xo-v");if(v)v.innerHTML=bcLenEcho(xo.value,2.5);};var xp=g("bc-xp");if(xp)xp.oninput=function(){S.exc.post=xp.value;var v=g("bc-xp-v");if(v)v.innerHTML=bcLenEcho(xp.value,1.5);};
  var sn=g("bc-start");if(sn)sn.onchange=function(){S.o.start=sn.value.trim();bcRender();};
- host.querySelectorAll(".bc-lname").forEach(function(el){el.onchange=function(){var v=el.value.trim();S.lays[el.dataset.k]=v?v.split(bcDate()).join("{date}"):BC_LAYDEF[el.dataset.k];bcLaysPut(S.lays);};});}
+ host.querySelectorAll(".bc-lname").forEach(function(el){el.onchange=function(){var v=el.value.trim();S.lays[el.dataset.k]=v?v.split(bcDate()).join("{date}"):BC_LAYDEF[el.dataset.k];bcLaysPut(S.lays);};});bcWire2(host);}
 function bcScaleClear(){var S=bcS;S.scl.a=null;S.scl.b=null;bcRender();setTimeout(bcDraw,0);}
 function bcOutlineEdited(){var S=bcS,O=S.out,was=O.ok;O.ok=false;S.place=null;S.exc.res=null;if(was){S.msg="Outline changed — confirm it again in step 2. Posts, lot and setback rows are kept — check the corner numbers in the setback rows, then Calculate and work out the excavation again.";S.open[2]=true;}}
 function bcLenEcho(t,big){var v=bcParseLen(t);if(v===null)return "<span class='cd-amb'>not a length — 4' or 1.219</span>";var x="= "+v.toFixed(3)+" m ("+bcFtIn(v)+")";if(v>big&&/^\s*\d+(\.\d+)?\s*$/.test(String(t)))x+=" <span class='cd-amb'>— "+String(t).trim()+" metres? For feet type "+String(t).trim()+"'</span>";return x;}
@@ -7226,7 +7234,7 @@ function bcDraw(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S||!S.s
  var V=bcView(W,H),X=function(x){return W/2+(x-V.cx)*V.s;},Y=function(y){return H/2-(y-V.cy)*V.s;},src=bcSceneSrc(),k=S.k;
  if(S.scene==="plan"&&S.bg&&S.bg.cv){var bv=S.bg.view;g.save();g.setTransform(dpr*V.s,0,0,dpr*V.s,dpr*(W/2-V.cx*V.s),dpr*(H/2+V.cy*V.s));try{g.drawImage(S.bg.cv,bv[0],-bv[3],bv[2]-bv[0],bv[3]-bv[1]);}catch(e){}g.restore();}
  if(src&&typeof Path2D!=="undefined"){if(!src.p2d){var p2=new Path2D(),pf=new Path2D();src.F.paths.forEach(function(P){if(P.glyph&&src.kind==="pdf"){}var t=(P.hatch||P.fill)?pf:p2;t.moveTo(P.p[0][0],P.p[0][1]);for(var i=1;i<P.p.length;i++)t.lineTo(P.p[i][0],P.p[i][1]);if(P.hatch||P.fill)t.closePath();});src.p2d=p2;src.pf=pf;}
-  g.save();g.setTransform(dpr*V.s,0,0,-dpr*V.s,dpr*(W/2-V.cx*V.s),dpr*(H/2+V.cy*V.s));g.fillStyle="rgba(150,150,150,.25)";g.fill(src.pf);g.lineWidth=1/V.s;g.strokeStyle="rgba(110,110,110,.6)";g.stroke(src.p2d);g.restore();}
+  g.save();g.setTransform(dpr*V.s,0,0,-dpr*V.s,dpr*(W/2-V.cx*V.s),dpr*(H/2+V.cy*V.s));g.fillStyle="rgba(150,150,150,.25)";g.fill(src.pf);g.lineWidth=1/V.s;g.strokeStyle="rgba(110,110,110,.6)";g.stroke(src.p2d);g.restore();if(S.scene==="plan")bcDrawSrcText(g,X,Y,V,W,H,src);}
  var ring=function(P,col,w,dash,close,lab){if(!P||!P.length)return;g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.beginPath();P.forEach(function(p,i){if(i)g.lineTo(X(p[0]),Y(p[1]));else g.moveTo(X(p[0]),Y(p[1]));});if(close!==false)g.closePath();g.stroke();g.setLineDash([]);
   if(lab){g.fillStyle=col;g.font="bold 11px sans-serif";P.forEach(function(p,i){g.beginPath();g.arc(X(p[0]),Y(p[1]),3,0,7);g.fill();g.fillText(lab(i),X(p[0])+5,Y(p[1])-5);});}};
  if(S.scene==="plan"){
@@ -7256,7 +7264,7 @@ function bcDraw(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S||!S.s
    if(!S.posts.none){S.posts.list.forEach(function(p){var c=f([p.c[0]*k,p.c[1]*k]);g.fillStyle="#7C3AED";g.beginPath();g.arc(X(c[0]),Y(c[1]),3,0,7);g.fill();});
     S.posts.lines.forEach(function(l){ring([f([l[0][0]*k,l[0][1]*k]),f([l[1][0]*k,l[1][1]*k])],"#7C3AED",1.5,[6,4],false);});}
    if(S.place&&S.place.rep){S.place.rep.forEach(function(r){var c=r.c,sd=S.lot.sides[c.side],pts=c.kind==="face"?[c.i,c.j]:[c.i];pts.forEach(function(ix){var p=Hj[ix],q=bcFoot(sd,p);g.strokeStyle=r.err>0.002?"#a86400":"#2a8a3a";g.lineWidth=1;g.setLineDash([2,2]);g.beginPath();g.moveTo(X(p[0]),Y(p[1]));g.lineTo(X(q[0]),Y(q[1]));g.stroke();g.setLineDash([]);});});}}
-  if(S.exc.res)ring(S.exc.res.P,"#0F766E",2,[8,4],true,function(i){return "";});
+  if(S.exc.res)ring(S.exc.res.P,"#0F766E",2,[8,4],true,function(i){return /^x(drop|across)$/.test(S.mode)?String(i+1):"";});bcDrawExtra(g,X,Y,V);
   S._inset=null;if(S.out&&S.k){var Hp=S.out.P,bb=bcBox(Hp),IW=Math.min(300,W*0.36),IH=Math.min(300,H*0.5),x0=W-IW-10,y0=10,pad=26,sc=Math.min((IW-2*pad)/Math.max(1e-9,bb[2]-bb[0]),(IH-2*pad-16)/Math.max(1e-9,bb[3]-bb[1]));
    var ix=function(p){return [x0+IW/2+(p[0]-(bb[0]+bb[2])/2)*sc,y0+16+(IH-16)/2-(p[1]-(bb[1]+bb[3])/2)*sc];};
    g.fillStyle="rgba(255,255,255,.96)";g.fillRect(x0,y0,IW,IH);g.strokeStyle="#9aa3ad";g.lineWidth=1;g.strokeRect(x0+.5,y0+.5,IW,IH);
@@ -7301,26 +7309,29 @@ function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src
   if(S.scene==="plan"&&S.mode==="scale"){var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,V=S.view.plan,W=cv.clientWidth,H=cv.clientHeight;
    ["a","b"].forEach(function(k){var q=S.scl[k];if(!q||!V||drag.end)return;var x=W/2+(q[0]-V.cx)*V.s,y=H/2-(q[1]-V.cy)*V.s;if(Math.hypot(x-mx,y-my)<=10)drag.end=k;});}
   if(S.scene==="plan"&&S.mode==="drop"&&S.out){var b4=cv.getBoundingClientRect();drag.box=bcToSrc(e.clientX-b4.left,e.clientY-b4.top);drag.boxEnd=drag.box;}
-  if(S.scene==="plan"&&S.mode==="pan"&&S.out){var b2=cv.getBoundingClientRect(),oh=bcOutlineHit(e.clientX-b2.left,e.clientY-b2.top);if(oh){drag.oh=oh;drag.P0=S.out.P.map(function(p){return p.slice();});drag.q0=bcToSrc(e.clientX-b2.left,e.clientY-b2.top);}}};
+  if(S.scene==="plan"&&S.mode==="pan"&&S.out){var b2=cv.getBoundingClientRect(),oh=bcOutlineHit(e.clientX-b2.left,e.clientY-b2.top);if(oh){drag.oh=oh;drag.P0=S.out.P.map(function(p){return p.slice();});drag.q0=bcToSrc(e.clientX-b2.left,e.clientY-b2.top);}}bcXDown(e,drag,cv);};
  cv.onmousemove=function(e){if(!drag){var bb=cv.getBoundingClientRect(),hq=bcToSrc(e.clientX-bb.left,e.clientY-bb.top);
    if(S.scene==="plan"&&/^(scale|trace|pline|postc)$/.test(S.mode)){var sf=S.mode==="pline"?bcPlineSnap(hq):bcSnapFind(hq,10);S.hover={p:sf?sf.p:hq,k:sf?sf.k:null};if(!S.hoverRaf){S.hoverRaf=1;(window.requestAnimationFrame||setTimeout)(function(){S.hoverRaf=0;bcDraw();});}}else if(S.hover){S.hover=null;bcDraw();}
-   var on=false;if(S.scene==="plan"&&S.mode==="scale"&&S.view.plan){var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,V=S.view.plan,W=cv.clientWidth,H=cv.clientHeight;["a","b"].forEach(function(k){var q=S.scl[k];if(q&&Math.hypot(W/2+(q[0]-V.cx)*V.s-mx,H/2-(q[1]-V.cy)*V.s-my)<=10)on=true;});}if(!on&&S.scene==="plan"&&S.mode==="pan"&&S.out){var oh2=bcOutlineHit(e.clientX-bb.left,e.clientY-bb.top);if(oh2)on=true;}cv.style.cursor=on?"move":"";return;}var V=S.view[S.scene],dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;if(!drag.moved||!V)return;
+   var on=false;if(S.scene==="plan"&&S.mode==="scale"&&S.view.plan){var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,V=S.view.plan,W=cv.clientWidth,H=cv.clientHeight;["a","b"].forEach(function(k){var q=S.scl[k];if(q&&Math.hypot(W/2+(q[0]-V.cx)*V.s-mx,H/2-(q[1]-V.cy)*V.s-my)<=10)on=true;});}if(!on&&S.scene==="plan"&&S.mode==="pan"&&S.out){var oh2=bcOutlineHit(e.clientX-bb.left,e.clientY-bb.top);if(oh2)on=true;}if(!on&&bcXHover(e,cv))on=true;cv.style.cursor=on?"move":"";return;}var V=S.view[S.scene],dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;if(!drag.moved||!V)return;
   if(drag.box){var b5=cv.getBoundingClientRect();drag.boxEnd=bcToSrc(e.clientX-b5.left,e.clientY-b5.top);S.dropBox=[drag.box,drag.boxEnd];bcDraw();return;}
+  if(drag.xh){bcXDragMove(e,drag,cv);return;}
   if(drag.oh){var b3=cv.getBoundingClientRect(),rq3=bcToSrc(e.clientX-b3.left,e.clientY-b3.top),sf3=bcSnapFind(rq3,10),q3=sf3?sf3.p:rq3;S.hover=sf3?{p:sf3.p,k:sf3.k}:null;
    S.out.P=drag.oh.kind==="corner"?bcMoveCorner(drag.P0,drag.oh.i,q3):bcMoveSide(drag.P0,drag.oh.i,q3,drag.q0);bcDraw();return;}
   if(drag.end){var b=cv.getBoundingClientRect(),rq=bcToSrc(e.clientX-b.left,e.clientY-b.top),sf=bcSnapFind(rq,10);S.scl[drag.end]=sf?sf.p:rq;S.hover={p:S.scl[drag.end],k:sf?sf.k:null};bcDraw();return;}V.cx-=dx/V.s;V.cy+=dy/V.s;drag.x=e.clientX;drag.y=e.clientY;bcDraw();};
  cv.onmouseleave=function(){drag=null;if(S.hover){S.hover=null;bcDraw();}};
  cv.onmouseup=function(e){var was=drag;drag=null;
-  if(was&&was.box){S.dropBox=null;if(was.moved){bcDropBox(was.box,was.boxEnd);return;}}
+  if(was&&was.box){S.dropBox=null;if(was.moved){if(S.scene==="site")bcXDropBox(was.box,was.boxEnd);else bcDropBox(was.box,was.boxEnd);return;}}
+  if(was&&was.xh){bcXDragEnd(was);return;}
   if(was&&was.oh){S.hover=null;if(was.moved){var O=S.out,mv=Math.max.apply(null,O.P.map(function(p,i){return cdHyp(p,was.P0[i]);}))*S.k;
     var newP=bcClean(O.P);O.P=was.P0;bcEditPush(newP,(was.oh.kind==="corner"?"moved corner "+(was.oh.i+1):"moved side "+(was.oh.i+1)+"–"+((was.oh.i+1)%was.P0.length+1))+" ("+mv.toFixed(3)+" m)");}else bcDraw();return;}
   if(was&&was.end&&was.moved){var b0=cv.getBoundingClientRect();S.scl[was.end]=bcSnapPlan(bcToSrc(e.clientX-b0.left,e.clientY-b0.top),10);bcRender();return;}
   if(was&&was.moved)return;var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,q=bcToSrc(mx,my),m=S.mode;
-  if(S.scene==="site"){if(S._inset){var IB=S._inset.box;if(mx>=IB[0]&&mx<=IB[0]+IB[2]&&my>=IB[1]&&my<=IB[1]+IB[3]){var bh=null,bd=14;S._inset.pts.forEach(function(t){var d=Math.hypot(t[0]-mx,t[1]-my);if(d<bd){bd=d;bh=t[2];}});if(bh!==null&&S.lot&&S.lot.ok)bcSbFill("h",String(bh+1));return;}}
+  if(S.scene==="site"){if((m==="xdrop"||m==="xacross")&&S.exc.res&&!(S._inset&&mx>=S._inset.box[0]&&mx<=S._inset.box[0]+S._inset.box[2]&&my>=S._inset.box[1]&&my<=S._inset.box[1]+S._inset.box[3])){bcXClick(q,m);return;}if(S._inset){var IB=S._inset.box;if(mx>=IB[0]&&mx<=IB[0]+IB[2]&&my>=IB[1]&&my<=IB[1]+IB[3]){var bh=null,bd=14;S._inset.pts.forEach(function(t){var d=Math.hypot(t[0]-mx,t[1]-my);if(d<bd){bd=d;bh=t[2];}});if(bh!==null&&S.lot&&S.lot.ok)bcSbFill("h",String(bh+1));return;}}
    if(m==="lot"){bcLotAt(q);return;}
    if(S.lot&&S.lot.ok){var V2=S.view.site,bs=null,bsd=12/V2.s;S.lot.sides.forEach(function(sd,si){var d=Math.abs(bcSideDist(sd,q));var on=sd.arc?true:(function(){var v=cdSub(sd.b,sd.a),t=cdDot(cdSub(q,sd.a),v)/cdDot(v,v);return t>-0.05&&t<1.05;})();if(on&&d<bsd){bsd=d;bs=si;}});if(bs!==null)bcSbFill("side",String(bs));}
    return;}
   if(m==="scale"){var sq=S.hover&&S.hover.k?S.hover.p.slice():bcSnapPlan(q,10);if(!S.scl.a||S.scl.b){S.scl.a=sq;S.scl.b=null;}else S.scl.b=sq;S.open[1]=true;bcRender();if(S.scl.b){var t=document.getElementById("bc-sclt");if(t&&t.focus)t.focus();}return;}
+  if(m==="elpick"){bcElPickAt(q);return;}
   if(m==="outline"){bcOutlineAt(q);return;}
   if(m==="trace"){bcTraceClick(q);return;}
   if(m==="drop"){var i=bcCornerAt(q,12);if(i>=0)bcDropCorner(i);return;}
@@ -7330,6 +7341,205 @@ function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src
   if(m==="pperp"){bcPerpAt(q);return;}
   if(m==="pline"){var p=S.hover&&S.hover.k?S.hover.p.slice():(function(){var f=bcPlineSnap(q);return f?f.p:q;})();if(!S.posts.pend){S.posts.pend=p;bcRender();}else{S.posts.lines.push([S.posts.pend,p]);S.posts.pend=null;bcRender();}return;}};}
 
+
+/* ================= 1.41.18: excavation edits · dimensions · floor elevations · page memory ================= */
+/* ---- excavation edits (job frame). The guard: never inside the distance off the foundation, never less than the post clearance, never past the lot ---- */
+function bcXSamples(R,step){var o=[];for(var i=0;i<R.length;i++){var a=R[i],b=R[(i+1)%R.length],L=cdHyp(a,b),n=Math.max(1,Math.ceil(L/step));for(var k=0;k<n;k++)o.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);}return o;}
+function bcXEdgeD(R,q){var d=1e18;for(var i=0;i<R.length;i++){var r=cdSegDist(q,R[i],R[(i+1)%R.length]).d;if(r<d)d=r;}return d;}
+function bcXIn(R,q,tol){return bcInPoly(R,q)||bcXEdgeD(R,q)<=tol;}
+function bcXSimple(R){var n=R.length,o=function(a,b,c){var v=cdCross(cdSub(b,a),cdSub(c,a));return v>1e-9?1:v<-1e-9?-1:0;};
+ for(var i=0;i<n;i++)for(var j=i+1;j<n;j++){if(j===i+1||(i===0&&j===n-1))continue;var a=R[i],b=R[(i+1)%n],c=R[j],d=R[(j+1)%n];
+  if(o(a,b,c)*o(a,b,d)<0&&o(c,d,a)*o(c,d,b)<0)return false;}return true;}
+/* what the excavation has to take in: the house grown by the offset, and each post's clearance square, both held to the lot */
+function bcXReq(H,posts,lot,axis,off,po){var F=bcAxisFrame(axis),clip=function(R){if(!lot)return R;try{return bcConvex(lot)?bcClip(R,lot):bcIntersect(R,lot);}catch(e){return R;}};
+ var req=[{what:"house",ring:clip(bcGrow(H,axis,off))}];
+ (posts||[]).forEach(function(p,i){var r=po+(p.half||0),c=F.to(p.c),C=clip([[c[0]-r,c[1]-r],[c[0]+r,c[1]-r],[c[0]+r,c[1]+r],[c[0]-r,c[1]+r]].map(F.back));if(C&&C.length>=3)req.push({what:"post",i:i,ring:C});});return req;}
+/* set up the guard on a freshly worked-out excavation; anything the lot line already holds short is not held against later edits */
+function bcXArm(X,H,posts,lot,axis){X.axis=axis;X.house=H;X.posts=posts;X.lot=lot||null;X.edits=[];X.hist=[];
+ X.req=bcXReq(H,posts,lot,axis,X.off,X.po).map(function(q){q.s=bcXSamples(q.ring,0.1).filter(function(p){return bcXIn(X.P,p,0.003);});return q;});return X;}
+function bcXCheck(X,R0){var R=bcClean(R0);if(R.length<3||Math.abs(bcPolyArea(R))<1e-6)return "that would leave no excavation";if(!bcXSimple(R))return "that would cross the excavation over itself";
+ for(var i=0;i<X.req.length;i++){var q=X.req[i],bad=false;for(var k=0;k<q.s.length;k++)if(!bcXIn(R,q.s[k],0.003)){bad=true;break;}
+  if(!bad)continue;
+  if(q.what==="house"){var c=1e18;bcXSamples(R,0.1).forEach(function(p){var d=bcXEdgeD(X.house,p);if(d<c)c=d;});
+   return c<X.off-0.003?"that would leave only "+c.toFixed(2)+" m ("+bcFtIn(c)+") off the foundation — "+bcFtIn(X.off)+" is needed":"that would cut inside the "+bcFtIn(X.off)+" line round the foundation";}
+  var p0=X.posts[q.i],cl=bcXEdgeD(R,p0.c)-(p0.half||0);
+  return bcInPoly(R,p0.c)?"that would leave post "+(q.i+1)+" only "+Math.max(0,cl).toFixed(2)+" m ("+bcFtIn(Math.max(0,cl))+") clear — "+bcFtIn(X.po)+" is needed":"that would leave post "+(q.i+1)+" outside the excavation";}
+ if(X.lot){var S2=bcXSamples(R,0.1);for(var j=0;j<S2.length;j++)if(!bcXIn(X.lot,S2[j],0.005))return "that would take the excavation past the lot line";}
+ return null;}
+/* drop the flagged corners: each run closes square between the corners either side — outward where it can, inward only if every clearance is still kept */
+function bcXDropRun(P,D,X){var F=bcAxisFrame(X.axis),cur=P.map(function(p,i){return {p:p,d:!!D[i]};}),g=0,inward=false,A0=Math.abs(bcPolyArea(P));
+ if(cur.filter(function(c){return !c.d;}).length<3)return {why:"that would leave fewer than three corners"};
+ while(g++<400){var n=cur.length,s=-1;for(var i=0;i<n;i++)if(cur[i].d&&!cur[(i-1+n)%n].d){s=i;break;}if(s<0)break;
+  var e=s;while(cur[(e+1)%n].d)e=(e+1)%n;
+  var ia=(s-1+n)%n,ib=(e+1)%n,a=F.to(cur[ia].p),b=F.to(cur[ib].p),eps=1e-6,cands=[],run=[],rest=[];
+  for(var j=s;;j=(j+1)%n){run.push(cur[j].p);if(j===e)break;}
+  for(var j2=ib;;j2=(j2+1)%n){rest.push(cur[j2]);if(j2===ia)break;}
+  if(Math.abs(a[0]-b[0])<eps||Math.abs(a[1]-b[1])<eps)cands.push([]);else{cands.push([F.back([b[0],a[1]])]);cands.push([F.back([a[0],b[1]])]);}
+  var Ac=Math.abs(bcPolyArea(cur.map(function(x){return x.p;}))),opts=[];
+  cands.forEach(function(c){if(run.length===1&&c.length&&cdHyp(c[0],run[0])<1e-6)return;
+   var R=rest.concat(c.map(function(p){return {p:p,d:false};})),ring=R.map(function(x){return x.p;});opts.push({R:R,dA:Math.abs(bcPolyArea(ring))-Ac,why:bcXCheck(X,ring)});});
+  if(!opts.length)return {same:true,why:"dropping that corner on its own changes nothing — drag a box round both corners of the step"};
+  var pass=opts.filter(function(o){return !o.why;}),outw=pass.filter(function(o){return o.dA>=-1e-7;}).sort(function(x,y){return x.dA-y.dA;}),inw=pass.filter(function(o){return o.dA<-1e-7;}).sort(function(x,y){return y.dA-x.dA;}),pick=outw[0]||inw[0];
+  if(!pick){opts.sort(function(x,y){return y.dA-x.dA;});return {why:opts[0].why};}
+  if(pick.dA<-1e-7)inward=true;cur=pick.R;}
+ var out=bcClean(cur.map(function(x){return x.p;}));return {P:out,inward:inward,dA:Math.abs(bcPolyArea(out))-A0};}
+function bcXPush(newP,label){var S=bcS,X=S.exc.res;(X.hist=X.hist||[]).push({P:X.P.map(function(p){return p.slice();}),edits:(X.edits||[]).slice()});
+ X.P=bcOrder(bcClean(newP));X.edits=(X.edits||[]).concat([label]);S.msg="";bcRender();setTimeout(bcDraw,0);}
+function bcXUndo(){var S=bcS,X=S.exc.res;if(!X||!X.hist||!X.hist.length)return;var h=X.hist.pop();X.P=h.P;X.edits=h.edits;S.msg="Undone.";bcRender();setTimeout(bcDraw,0);}
+function bcXNo(why){var S=bcS;S.msg="Not changed — "+why+".";bcRender();setTimeout(bcDraw,0);}
+function bcXTail(r){return (r.inward?" (cut in; clearances still kept)":"")+(Math.abs(r.dA)>0.005?", "+(r.dA>0?"+":"−")+Math.abs(r.dA).toFixed(2)+" m²":"");}
+function bcXDrop(i){var S=bcS,X=S.exc.res,P=X.P,n=P.length,tryS=function(idx){var D=[];idx.forEach(function(k){D[(k+n)%n]=1;});var q=bcXDropRun(P,D,X);q.s=idx.map(function(k){return (k+n)%n+1;});return q;};
+ var r=tryS([i]);if(!r.P){var alt=[tryS([i,i+1]),tryS([i-1,i])].filter(function(q){return q.P;}).sort(function(x,y){return Math.abs(x.dA)-Math.abs(y.dA);});if(alt.length)r=alt[0];}
+ if(!r.P){bcXNo(r.why);return;}
+ bcXPush(r.P,"dropped excavation corner"+(r.s.length===1?" ":"s ")+r.s.join(", ")+bcXTail(r));}
+function bcXDropBox(a,b){var S=bcS,X=S.exc.res;if(!X)return;var x0=Math.min(a[0],b[0]),x1=Math.max(a[0],b[0]),y0=Math.min(a[1],b[1]),y1=Math.max(a[1],b[1]),D=[],nm=[];
+ X.P.forEach(function(p,i){if(p[0]>=x0&&p[0]<=x1&&p[1]>=y0&&p[1]<=y1){D[i]=1;nm.push(i+1);}});
+ if(!nm.length){S.msg="No excavation corners inside that box.";bcRender();return;}if(nm.length===1){bcXDrop(nm[0]-1);return;}
+ var r=bcXDropRun(X.P,D,X);if(!r.P){bcXNo(r.why);return;}
+ bcXPush(r.P,"dropped excavation corners "+(nm.length>6?nm.slice(0,6).join(", ")+" … ("+nm.length+")":nm.join(", "))+bcXTail(r));}
+function bcXAcross(i,j){var S=bcS,X=S.exc.res,n=X.P.length;if(i===j)return;var a=[],b=[];for(var x=(i+1)%n;x!==j;x=(x+1)%n)a.push(x);for(var y=(j+1)%n;y!==i;y=(y+1)%n)b.push(y);var drop=a.length<=b.length?a:b;if(!drop.length)return;
+ var D=[];drop.forEach(function(k){D[k]=1;});var r=bcXDropRun(X.P,D,X);if(!r.P){bcXNo(r.why);return;}
+ bcXPush(r.P,"excavation straight across "+(i+1)+"–"+(j+1)+" ("+drop.length+" corner"+(drop.length===1?"":"s")+" taken out)"+bcXTail(r));}
+function bcXHtml(){var S=bcS,X=S.exc.res;if(!X||!X.req)return "";var E=esc,h="<div class='hint'>To tidy it by hand, open the <b>Site</b> view: <b>Drop excavation corner</b> (click one, or drag a box round several), <b>Straight across</b>, or in <b>Move</b> drag a corner or the middle of a side. A dropped corner squares off to the outside. Anything that would come inside "+bcFtIn(X.off)+" off the foundation, "+bcFtIn(X.po)+" clear of a post"+(X.lot?", or go past the lot line,":"")+" is refused.</div>";
+ if(X.edits&&X.edits.length)h+="<div class='hint' style='margin-top:2px'><b>Edits:</b> "+X.edits.map(E).join("; ")+" <button class='cd-mini' onclick='bcXUndo()'>Undo last edit</button></div>";return h;}
+/* corner first, else the middle of a side (screen px) */
+function bcRingHit(P,V,cv,mx,my){if(!P||!V||!cv)return null;var W=cv.clientWidth,H=cv.clientHeight,X=function(p){return [W/2+(p[0]-V.cx)*V.s,H/2-(p[1]-V.cy)*V.s];},n=P.length,best=null;
+ P.forEach(function(p,i){var a=X(p),d=Math.hypot(a[0]-mx,a[1]-my);if(d<=9&&(!best||d<best.d))best={kind:"corner",i:i,d:d};});if(best)return best;
+ for(var i=0;i<n;i++){var a=X(P[i]),b=X(P[(i+1)%n]),v=[b[0]-a[0],b[1]-a[1]],L2=v[0]*v[0]+v[1]*v[1];if(L2<400)continue;var t=((mx-a[0])*v[0]+(my-a[1])*v[1])/L2;if(t<0.15||t>0.85)continue;
+  var d2=Math.abs((mx-a[0])*v[1]-(my-a[1])*v[0])/Math.sqrt(L2);if(d2<=6&&(!best||d2<best.d))best={kind:"side",i:i,d:d2};}
+ return best;}
+function bcXEditable(){var S=bcS;return S.scene==="site"&&S.exc.res&&S.exc.res.req&&S.view.site;}
+function bcXDown(e,drag,cv){var S=bcS;if(!bcXEditable())return;var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top;
+ if(S._inset){var IB=S._inset.box;if(mx>=IB[0]&&mx<=IB[0]+IB[2]&&my>=IB[1]&&my<=IB[1]+IB[3])return;}
+ if(S.mode==="xdrop"){drag.box=bcToSrc(mx,my);drag.boxEnd=drag.box;return;}
+ if(S.mode==="pan"){var h=bcRingHit(S.exc.res.P,S.view.site,cv,mx,my);if(h){drag.xh=h;drag.P0=S.exc.res.P.map(function(p){return p.slice();});drag.q0=bcToSrc(mx,my);}}}
+function bcXHover(e,cv){var S=bcS;if(!bcXEditable()||S.mode!=="pan")return false;var b=cv.getBoundingClientRect();return !!bcRingHit(S.exc.res.P,S.view.site,cv,e.clientX-b.left,e.clientY-b.top);}
+function bcXDragMove(e,drag,cv){var S=bcS,b=cv.getBoundingClientRect(),q=bcToSrc(e.clientX-b.left,e.clientY-b.top);
+ S.exc.res.P=drag.xh.kind==="corner"?bcMoveCorner(drag.P0,drag.xh.i,q):bcMoveSide(drag.P0,drag.xh.i,q,drag.q0);bcDraw();}
+function bcXDragEnd(was){var S=bcS,X=S.exc.res,newP=X.P;X.P=was.P0;if(!was.moved){bcDraw();return;}
+ var why=bcXCheck(X,newP);if(why){bcXNo(why);return;}var mv=Math.max.apply(null,newP.map(function(p,i){return cdHyp(p,was.P0[i]);}));
+ bcXPush(newP,(was.xh.kind==="corner"?"moved excavation corner "+(was.xh.i+1):"moved excavation side "+(was.xh.i+1)+"–"+((was.xh.i+1)%was.P0.length+1))+" ("+mv.toFixed(3)+" m)");}
+function bcXClick(q,m){var S=bcS,X=S.exc.res;if(!X||!X.req)return;var best=-1,bd=12/S.view.site.s;X.P.forEach(function(p,i){var d=cdHyp(p,q);if(d<bd){bd=d;best=i;}});if(best<0)return;
+ if(m==="xdrop"){bcXDrop(best);return;}
+ if(S.acrossA===null||S.acrossA===undefined){S.acrossA=best;bcRender();}else{var a=S.acrossA;S.acrossA=null;bcXAcross(a,best);}}
+
+/* ---- text size: plot scale and Leroy size -> text height in metres (Leroy 80 = 0.080 in on paper) ---- */
+function bcTxGet(){var o={};try{o=JSON.parse(localStorage.getItem("eo:bctx")||"{}")||{};}catch(e){}return {dim:o.dim!==false,scale:o.scale||"250",leroy:o.leroy||"80"};}
+function bcTxPut(){try{localStorage.setItem("eo:bctx",JSON.stringify(bcS.tx));}catch(e){}}
+function bcTxH(){var T=bcS.tx||bcTxGet(),sc=parseFloat(String(T.scale).replace(/^\s*1\s*[:\/]\s*/,"")),lr=parseFloat(T.leroy);if(!(sc>0)||!(lr>0))return null;return lr/1000*0.0254*sc;}
+function bcTxEcho(){var h=bcTxH(),T=bcS.tx;if(!h)return "<span class='cd-amb'>check the plot scale and Leroy size</span>";var sc=parseFloat(String(T.scale).replace(/^\s*1\s*[:\/]\s*/,""));return "= text "+h.toFixed(3)+" m high ("+(parseFloat(T.leroy)*0.0254).toFixed(2)+" mm on paper at 1:"+sc+")";}
+/* rectangles for keeping lettering off each other and off the outline: {c,u (unit, along the text),hw,hh} */
+function bcRcLocal(r,p){var d=cdSub(p,r.c);return [d[0]*r.u[0]+d[1]*r.u[1],-d[0]*r.u[1]+d[1]*r.u[0]];}
+function bcRcSeg(r,a,b){var A=bcRcLocal(r,a),B=bcRcLocal(r,b),t0=0,t1=1,d=[B[0]-A[0],B[1]-A[1]],lim=[r.hw,r.hh];
+ for(var k=0;k<2;k++){if(Math.abs(d[k])<1e-12){if(Math.abs(A[k])>lim[k])return false;}else{var x=(-lim[k]-A[k])/d[k],y=(lim[k]-A[k])/d[k];if(x>y){var z=x;x=y;y=z;}t0=Math.max(t0,x);t1=Math.min(t1,y);if(t0>t1)return false;}}return true;}
+function bcRcCorners(r){var u=r.u,v=[-u[1],u[0]];return [[1,1],[-1,1],[-1,-1],[1,-1]].map(function(s){return [r.c[0]+u[0]*r.hw*s[0]+v[0]*r.hh*s[1],r.c[1]+u[1]*r.hw*s[0]+v[1]*r.hh*s[1]];});}
+function bcRcHit(a,b){var ca=bcRcCorners(a),cb=bcRcCorners(b);for(var i=0;i<4;i++){if(bcRcSeg(a,cb[i],cb[(i+1)%4])||bcRcSeg(b,ca[i],ca[(i+1)%4]))return true;}return false;}
+function bcTxAng(d){var a=Math.atan2(d[1],d[0]);if(a>Math.PI/2+1e-9)a-=Math.PI;if(a<=-Math.PI/2+1e-9)a+=Math.PI;return a;}
+/* a length on every side of the outline, to two decimals: centred, parallel, outside where there's room; long sides placed first */
+function bcDimTexts(H,h,busy){var n=H.length,cw=bcPolyArea(H)<0,out=[],rcs=(busy||[]).slice(),order=H.map(function(p,i){return i;}).sort(function(a,b){return cdHyp(H[b],H[(b+1)%n])-cdHyp(H[a],H[(a+1)%n]);});
+ order.forEach(function(i){var a=H[i],b=H[(i+1)%n],L=cdHyp(a,b);if(L<0.005)return;var d=[(b[0]-a[0])/L,(b[1]-a[1])/L],nr=cw?[-d[1],d[0]]:[d[1],-d[0]],s=L.toFixed(2),ang=bcTxAng(d),u=[Math.cos(ang),Math.sin(ang)],m=[(a[0]+b[0])/2,(a[1]+b[1])/2],hw=s.length*h*0.4+h*0.15,hh=h*0.65,pick=null;
+  [0.85,2.1,-0.85,3.35,4.6,-2.1].some(function(k){var r={c:[m[0]+nr[0]*h*k,m[1]+nr[1]*h*k],u:u,hw:hw,hh:hh};
+   for(var j=0;j<n;j++)if(bcRcSeg(r,H[j],H[(j+1)%n]))return false;for(var q=0;q<rcs.length;q++)if(bcRcHit(r,rcs[q]))return false;pick=r;return true;});
+  if(!pick)pick={c:[m[0]+nr[0]*h*0.85,m[1]+nr[1]*h*0.85],u:u,hw:hw,hh:hh};rcs.push(pick);out.push({p:pick.c,h:h,rot:ang,s:s,mid:true,side:i});});
+ return out.sort(function(x,y){return x.side-y.side;});}
+/* ---- floor elevations: the PROPOSED HOUSE block ---- */
+function bcElNew(){return {rows:[{lab:"MAIN FLOOR EL",v:""},{lab:"BASEMENT SLAB EL",v:""},{lab:"SECOND FLOOR EL",v:""},{lab:"MBE EL",v:""}],pump:"",pick:null};}
+/* a typed elevation: feet (76.92' / 76.92 ft / 76'-11") or metres (23.45 / 23.45 m); null if it doesn't read */
+function bcElParse(t){t=String(t||"").trim();if(!t)return null;var s=t.replace(/[’′]/g,"'").replace(/[”″]/g,'"'),neg=/^-/.test(s);if(neg)s=s.slice(1).trim();var m=bcParseLen(s);if(m===null)return null;if(neg)m=-m;
+ if(/['"]|ft\b|feet\b|foot\b|\bin\b|inch/i.test(s)){var dm=/^(\d+(?:\.\d+)?)\s*('|ft\.?|feet|foot)$/i.exec(s);return {m:m,ft:(neg?"-":"")+(dm?parseFloat(dm[1]).toFixed(2)+"'":bcFtIn(Math.abs(m)))};}
+ return {m:m,ft:null};}
+function bcElEcho(t){if(!String(t||"").trim())return "";var r=bcElParse(t);if(!r)return "<span class='cd-amb'>not an elevation — 76.92' or 23.45</span>";return "→ "+r.m.toFixed(2)+(r.ft?" ("+r.ft+")":" m");}
+function bcElLines(){var S=bcS,L=[];if(!S.el)return L;S.el.rows.forEach(function(r){var e=bcElParse(r.v),lab=String(r.lab||"").trim();if(!e||!lab)return;L.push(lab.replace(/:\s*$/,"")+": "+e.m.toFixed(2)+(e.ft?" ("+e.ft+")":""));});
+ if(S.el.pump)L.push("Mechanical Pump Required:"+(S.el.pump==="yes"?" Yes":S.el.pump==="no"?" No":""));return L.length?["PROPOSED HOUSE"].concat(L):L;}
+/* the block inside the outline, at its roomiest spot, lettered along the building's long direction */
+function bcElTexts(H,h){var lines=bcElLines();if(!lines.length)return {texts:[],rc:null};var ax=bcAxis(H),F=bcAxisFrame(ax),R=H.map(F.to),bb=bcBox(R),along=(bb[2]-bb[0])>=(bb[3]-bb[1])?ax:ax+Math.PI/2,ang=bcTxAng([Math.cos(along),Math.sin(along)]),u=[Math.cos(ang),Math.sin(ang)],v=[-u[1],u[0]];
+ var W=Math.max.apply(null,lines.map(function(s){return s.length;}))*h*0.8,sp=h*1.7,Ht=lines.length*sp,b2=bcBox(H),N=40,n=H.length;
+ /* where the whole block sits inside the outline with the most room; the other way round if it only fits that way; else the roomiest spot */
+ function seat(a){var uu=[Math.cos(a),Math.sin(a)],best=null,pole=null;for(var i=1;i<N;i++)for(var j=1;j<N;j++){var q=[b2[0]+(b2[2]-b2[0])*i/N,b2[1]+(b2[3]-b2[1])*j/N];if(!bcInPoly(H,q))continue;var d=bcXEdgeD(H,q);if(!pole||d>pole.d)pole={d:d,q:q};
+   var rc={c:q,u:uu,hw:W/2+h*0.3,hh:Ht/2+h*0.3},hit=false;for(var k=0;k<n&&!hit;k++)if(bcRcSeg(rc,H[k],H[(k+1)%n]))hit=true;if(hit)continue;var cs=bcRcCorners(rc),dr=1e18;cs.forEach(function(p,x){var p2=cs[(x+1)%4];dr=Math.min(dr,bcXEdgeD(H,p),bcXEdgeD(H,[(p[0]+p2[0])/2,(p[1]+p2[1])/2]));});if(!best||dr>best.d)best={d:dr,q:q};}return {fit:best,pole:pole};}
+ var s1=seat(ang),ang2=bcTxAng([Math.cos(along+Math.PI/2),Math.sin(along+Math.PI/2)]),s2=s1.fit?null:seat(ang2),c;
+ if(s1.fit)c=s1.fit.q;else if(s2&&s2.fit){c=s2.fit.q;ang=ang2;}else c=s1.pole?s1.pole.q:[(b2[0]+b2[2])/2,(b2[1]+b2[3])/2];
+ u=[Math.cos(ang),Math.sin(ang)];v=[-u[1],u[0]];
+ var texts=lines.map(function(s,k){var off=Ht/2-h*1.2-k*sp;return {p:[c[0]-u[0]*W/2+v[0]*off,c[1]-u[1]*W/2+v[1]*off],h:h,rot:ang,s:(k===0?"%%u":"")+s,mid:false};});
+ return {texts:texts,rc:{c:c,u:u,hw:W/2+h*0.3,hh:Ht/2+h*0.3}};}
+/* everything lettered on the calc, in job coordinates; null until the house is placed */
+function bcTexts(){var S=bcS,f=bcJobF(),Hm=bcHm();if(!f||!Hm)return null;var h=bcTxH();if(!h)return {h:null,dims:[],el:[]};var H=Hm.map(f),E=bcElTexts(H,h);
+ return {h:h,el:E.texts,dims:S.tx.dim?bcDimTexts(H,h,E.rc?[E.rc]:[]):[]};}
+function bcDrawExtra(g,X,Y,V){var S=bcS;
+ if(S.exc.res&&S.acrossA!==null&&S.acrossA!==undefined&&S.exc.res.P[S.acrossA]){var a=S.exc.res.P[S.acrossA];g.strokeStyle="#2456A6";g.lineWidth=2;g.beginPath();g.arc(X(a[0]),Y(a[1]),8,0,7);g.stroke();}
+ if(S.dropBox){var d0=S.dropBox[0],d1=S.dropBox[1],x=Math.min(X(d0[0]),X(d1[0])),y=Math.min(Y(d0[1]),Y(d1[1])),w=Math.abs(X(d1[0])-X(d0[0])),hh=Math.abs(Y(d1[1])-Y(d0[1]));g.strokeStyle="#b91c1c";g.lineWidth=1.5;g.setLineDash([5,3]);g.strokeRect(x,y,w,hh);g.setLineDash([]);g.fillStyle="rgba(185,28,28,.06)";g.fillRect(x,y,w,hh);}
+ var T=null;try{T=bcTexts();}catch(e){}if(!T||!T.h)return;var px=T.h*V.s;if(px<3||!g.save||!g.rotate)return;
+ T.dims.concat(T.el).forEach(function(t){g.save();g.translate(X(t.p[0]),Y(t.p[1]));g.rotate(-t.rot);g.fillStyle=t.mid?"#9A3412":"#1f2937";g.font=px.toFixed(1)+"px sans-serif";g.textAlign=t.mid?"center":"left";g.textBaseline=t.mid?"middle":"alphabetic";g.fillText(String(t.s).replace(/^%%u/,""),0,0);g.restore();});
+ g.textAlign="left";g.textBaseline="alphabetic";}
+function bcTxHtml(){var S=bcS,E=esc,T=S.tx;return "<div class='row'>Lettering: plot scale 1: <input type='text' id='bc-txs' value='"+E(String(T.scale))+"' style='width:52px'> Leroy <input type='text' id='bc-txl' value='"+E(String(T.leroy))+"' style='width:44px'> <span id='bc-tx-v' class='hint' style='margin:0'>"+bcTxEcho()+"</span></div>"+
+ "<div class='row'><label class='cu-cb'><input type='checkbox' id='bc-dim'"+(T.dim?" checked":"")+"> dimension every side of the building (metres, two decimals)</label></div><div class='hint' style='margin:0 0 4px'>The dimensions and the floor-elevation block go in both DXFs as plain text at this height, on their own layers, and show on the Site view.</div>";}
+function bcElHtml(){var S=bcS,E=esc,L=S.el,n=bcElLines().length,open=S.open.el!==undefined?S.open.el:false;
+ var b="<div class='hint' style='margin:0 0 4px'>Main floor, slab and other design elevations from the architect’s site plan or section, for the crew’s benchmark. Type each one, or press <b>Pick</b> and click its text on the drawing (change the page first if it’s on another sheet — each page’s work is kept). Feet: 76.92' or 76'-11\" · metres: 23.45. Feet are shown in metres with the architect’s figure in brackets. Blank rows are left off.</div><table class='cu-mtt'>";
+ L.rows.forEach(function(r,i){b+="<tr><td><input type='text' class='bc-ell' data-r='"+i+"' value='"+E(r.lab)+"' style='width:150px'></td><td><input type='text' class='bc-elv' data-r='"+i+"' value='"+E(r.v)+"' style='width:76px'></td><td><button class='cd-mini"+(L.pick===i?" on":"")+"' data-elp='"+i+"'>"+(L.pick===i?"click the text…":"Pick")+"</button></td><td><span class='hint bc-ele' data-r='"+i+"' style='margin:0'>"+bcElEcho(r.v)+"</span></td><td><button class='cd-mini' data-elx='"+i+"' title='Remove this row'>✕</button></td></tr>";});
+ b+="</table><button class='cd-mini' onclick='bcElAdd()'>+ Row</button><div class='row' style='margin-top:4px'>Mechanical pump required: <select id='bc-elpump'>"+[["","leave off"],["yes","Yes"],["no","No"],["blank","show the line, blank"]].map(function(o){return "<option value='"+o[0]+"'"+(L.pump===o[0]?" selected":"")+">"+o[1]+"</option>";}).join("")+"</select></div>";
+ if(n)b+="<div class='bc-res'>"+bcElLines().map(E).join("<br>")+"</div>";
+ return "<details class='bc-step"+(n?" ok":"")+"' data-st='el'"+(open?" open":"")+"><summary><span class='bc-n'>"+(n?"✓":"+")+"</span>Floor elevations <span class='bc-done'>"+(n?(n-1)+" line"+(n===2?"":"s")+" on the drawing":"optional")+"</span></summary><div class='bc-body'>"+b+"</div></details>";}
+function bcElAdd(){bcS.el.rows.push({lab:"",v:""});bcS.open.el=true;bcRender();}
+/* the number in a piece of drawing text, as you would type it */
+function bcElRead(s){s=String(s||"").replace(/\\[Pp]/g," ").replace(/\{|\}|\\[A-Za-z][^;]*;/g,"").replace(/[’′]/g,"'").replace(/[”″]/g,'"').replace(/''/g,'"');var m;
+ if((m=/(\d+)\s*'\s*-?\s*(\d+(?:\.\d+)?(?:\s+\d+\/\d+)?|\d+\/\d+)\s*"/.exec(s)))return {v:m[0].replace(/\s+/g," ").trim(),unit:true};
+ if((m=/(-?\d+(?:\.\d+)?)\s*('|ft\b|feet\b)/i.exec(s)))return {v:m[1]+"'",unit:true};
+ if((m=/(-?\d+\.\d+)\s*m\b/i.exec(s)))return {v:m[1]+" m",unit:true};
+ var all=s.match(/-?\d+\.\d+/g);if(all)return {v:all[all.length-1],unit:false};return null;}
+function bcElPickAt(q){var S=bcS,L=S.el,i=L.pick,V=S.view.plan;if(i===null||i===undefined||!L.rows[i]||!V)return;var best=null,tol=30/V.s,tryT=function(str,d){if(d>tol||!/\d/.test(str))return;var r=bcElRead(str);if(r&&(!best||d<best.d))best={d:d,r:r,s:str};};
+ if(S.src.kind==="pdf")(S.src.text||[]).forEach(function(it){var t=it.t,L1=Math.hypot(t[0],t[1])||1,u=[t[0]/L1,t[1]/L1],hh=Math.hypot(t[2],t[3]),a=[t[4]+(-u[1])*hh*0.4,t[5]+u[0]*hh*0.4],b=[a[0]+u[0]*(it.w||0),a[1]+u[1]*(it.w||0)];tryT(String(it.s||""),cdSegDist(q,a,b).d);});
+ else(S.src.F.texts||[]).forEach(function(T){if(!T.s||!isFinite(T.c[0]))return;var u=[Math.cos(T.rot||0),Math.sin(T.rot||0)],hw=(T.w>0?T.w:String(T.s).length*(T.h||0.3)*0.8)/2;tryT(String(T.s),cdSegDist(q,[T.c[0]-u[0]*hw,T.c[1]-u[1]*hw],[T.c[0]+u[0]*hw,T.c[1]+u[1]*hw]).d);});
+ if(!best){S.msg="No readable number there. On this sheet the lettering may be drawn as lines, or it’s a scan — type the elevation in instead.";bcRender();return;}
+ L.rows[i].v=best.r.v;L.pick=null;S.mode="pan";S.open.el=true;S.msg="Read "+best.r.v+" from “"+String(best.s).trim().slice(0,60)+"” for "+(L.rows[i].lab||"row "+(i+1))+(best.r.unit?"":" — no unit on the drawing, so it’s taken as metres; add ' if it’s feet")+". Check it.";bcRender();setTimeout(bcDraw,0);}
+function bcWire2(host){var S=bcS,g=function(id){return document.getElementById(id);};
+ var ts=g("bc-txs"),tl=g("bc-txl"),dm=g("bc-dim"),echo=function(){var v=g("bc-tx-v");if(v)v.innerHTML=bcTxEcho();bcTxPut();bcDraw();};
+ if(ts)ts.oninput=function(){S.tx.scale=ts.value.trim();echo();};if(tl)tl.oninput=function(){S.tx.leroy=tl.value.trim();echo();};if(dm)dm.onchange=function(){S.tx.dim=dm.checked;echo();};
+ host.querySelectorAll(".bc-ell").forEach(function(el){el.oninput=function(){S.el.rows[+el.dataset.r].lab=el.value;bcDraw();};});
+ host.querySelectorAll(".bc-elv").forEach(function(el){el.oninput=function(){S.el.rows[+el.dataset.r].v=el.value;var e=host.querySelector(".bc-ele[data-r='"+el.dataset.r+"']");if(e)e.innerHTML=bcElEcho(el.value);bcDraw();};el.onchange=function(){bcRender();};});
+ host.querySelectorAll("[data-elp]").forEach(function(el){el.onclick=function(){var i=+el.dataset.elp;if(S.el.pick===i){S.el.pick=null;S.mode="pan";}else{S.el.pick=i;S.scene="plan";S.mode="elpick";}S.open.el=true;bcRender();setTimeout(bcDraw,0);};});
+ host.querySelectorAll("[data-elx]").forEach(function(el){el.onclick=function(){S.el.rows.splice(+el.dataset.elx,1);S.el.pick=null;if(S.mode==="elpick")S.mode="pan";bcRender();setTimeout(bcDraw,0);};});
+ var pu=g("bc-elpump");if(pu)pu.onchange=function(){S.el.pump=pu.value;bcRender();setTimeout(bcDraw,0);};}
+/* ---- page memory: each PDF page's work is kept while the file is open ---- */
+var BC_PAGEKEYS=["src","scan","bg","kGuess","k","kHow","dims","dimsAll","out","posts","place","exc","scl","trace","sb","gapTxt"];
+function bcPageKeep(){var S=bcS;if(!S.src||S.src.kind!=="pdf"||!S.src.page)return;var o={vplan:S.view.plan};BC_PAGEKEYS.forEach(function(k){o[k]=S[k];});(S.pages=S.pages||{})[S.src.page]=o;}
+function bcPageBack(n){var S=bcS,o=S.pages&&S.pages[n];if(!o)return false;BC_PAGEKEYS.forEach(function(k){S[k]=o[k];});S.view.plan=o.vplan||null;S.file.page=n;S.scene="plan";S.acrossA=null;S.dropBox=null;S.hover=null;
+ S.mode=S.el&&S.el.pick!==null&&S.el.pick!==undefined?"elpick":"pan";S.busy="";S.msg=S.k?"Page "+n+" is back as you left it"+(S.out?" — scale, outline"+(S.posts.list.length?", posts":"")+(S.exc.res?", excavation":""):" — scale set")+".":"";return true;}
+/* a page not seen yet starts clean, without touching what was kept for the page just left */
+function bcPageFresh(){var S=bcS;S.exc={off:S.exc.off,post:S.exc.post,simp:S.exc.simp,simpOn:S.exc.simpOn,res:null};S.scl={a:null,b:null,txt:""};S.trace=null;S.sb=S.sb.map(function(r){return {kind:r.kind,h:r.h,h2:r.h2,side:r.side,d:r.d};});S.acrossA=null;S.dropBox=null;
+ if(S.mode!=="elpick")S.mode="pan";}
+["bcXUndo","bcElAdd"].forEach(function(n){window[n]=eval(n);});
+
+/* the drawing's own lettering (dimensions, notes) on the Plan view, once it's big enough to read */
+function bcDrawSrcText(g,X,Y,V,W,H,src){if(!src||!g.save||!g.rotate||!g.fillText)return;g.fillStyle="rgba(55,65,81,.9)";
+ if(src.kind==="pdf")(src.text||[]).forEach(function(it){var t=it.t,hp=Math.hypot(t[2],t[3]),px=hp*V.s;if(px<5||!String(it.s||"").trim())return;g.fillStyle=hp>src.ext/40?"rgba(55,65,81,.10)":"rgba(55,65,81,.9)";/* watermarks stay faint */var x=X(t[4]),y=Y(t[5]);if(x<-600||y<-600||x>W+600||y>H+600)return;
+  g.save();g.translate(x,y);g.rotate(-Math.atan2(t[1],t[0]));g.font=px.toFixed(1)+"px sans-serif";g.textAlign="left";g.textBaseline="alphabetic";var mw=(it.w||0)*V.s;if(mw>1)g.fillText(it.s,0,0,mw);else g.fillText(it.s,0,0);g.restore();});
+ else(src.F.texts||[]).forEach(function(T){var px=(T.h||0)*V.s;if(px<5||!T.s||!isFinite(T.c[0]))return;var x=X(T.c[0]),y=Y(T.c[1]);if(x<-600||y<-600||x>W+600||y>H+600)return;
+  g.save();g.translate(x,y);g.rotate(-(T.rot||0));g.font=px.toFixed(1)+"px sans-serif";g.textAlign="center";g.textBaseline="middle";var mw=(T.w||0)*V.s,s=String(T.s).replace(/\\P/g," ").replace(/\{|\}|\\[A-Za-z][^;]*;/g,"");if(mw>1)g.fillText(s,0,0,mw);else g.fillText(s,0,0);g.restore();});
+ g.textAlign="left";g.textBaseline="alphabetic";}
+
+/* ---- turn the plan a quarter turn, so it reads north-up like our lot drawing. The drawing and everything picked on it turn together;
+   lengths don't change, and the setback fit works out the exact rotation anyway ---- */
+function bcRotDeep(v,cw,seen){if(!v||typeof v!=="object"||seen.has(v))return;seen.add(v);if(!Array.isArray(v))return;
+ if(v.length===2&&typeof v[0]==="number"&&typeof v[1]==="number"){var x=v[0],y=v[1];if(cw){v[0]=y;v[1]=-x;}else{v[0]=-y;v[1]=x;}return;}v.forEach(function(q){bcRotDeep(q,cw,seen);});}
+function bcRotate(cw){var S=bcS,src=S&&S.src;if(!src)return;cw=!!cw;var seen=new WeakSet(),th=cw?-Math.PI/2:Math.PI/2,R=function(v){bcRotDeep(v,cw,seen);};
+ src.F.paths.forEach(function(P){R(P.p);(P.am||[]).forEach(function(m){if(m&&m.c)R(m.c);});});
+ (src.F.ells||[]).forEach(function(E){R(E.c);if(E.u)R(E.u);});
+ (src.F.texts||[]).forEach(function(T){R(T.c);T.rot=(T.rot||0)+th;});
+ (src.text||[]).forEach(function(it){var t=it.t;if(!t||seen.has(t))return;seen.add(t);[0,2,4].forEach(function(i){var x=t[i],y=t[i+1];if(cw){t[i]=y;t[i+1]=-x;}else{t[i]=-y;t[i+1]=x;}});});
+ var b=src.bounds,cs=[[b[0],b[1]],[b[2],b[1]],[b[2],b[3]],[b[0],b[3]]];R(cs);src.bounds=bcBox(cs);src.p2d=null;src.pf=null;src.idx=cdIndex(src.F.paths,src.kind==="pdf"?10:Math.max(src.ext/300,0.05));src.rot=(((src.rot||0)+(cw?90:270))%360);
+ /* a scanned page's picture turns with it */
+ if(S.bg&&S.bg.cv){try{var o=S.bg.cv,c=document.createElement("canvas");c.width=o.height;c.height=o.width;var g=c.getContext("2d");if(cw){g.translate(c.width,0);g.rotate(Math.PI/2);}else{g.translate(0,c.height);g.rotate(-Math.PI/2);}g.drawImage(o,0,0);
+   var v=S.bg.view,vc=[[v[0],v[1]],[v[2],v[1]],[v[2],v[3]],[v[0],v[3]]];R(vc);S.bg={cv:c,view:bcBox(vc)};}catch(e){}}
+ var O=S.out,had=!!(S.place||S.exc.res);
+ if(O){["raw","base","P","q","bridged"].forEach(function(k){R(O[k]);});(O.hist||[]).forEach(function(h){R(h.P);});
+  /* corner 1 is the south-west corner again; setback rows follow their corners */
+  var old=O.P,neu=bcOrder(old),map={};old.forEach(function(p,i){map[String(i+1)]=String(neu.indexOf(p)+1);});O.P=neu;O.axis=bcAxis(neu);
+  S.sb.forEach(function(r){if(map[r.h])r.h=map[r.h];if(map[r.h2])r.h2=map[r.h2];});}
+ S.posts.list.forEach(function(p){R(p.c);var w=p.w;p.w=p.h;p.h=w;});R(S.posts.lines);if(S.posts.shape){R(S.posts.shape.c);var sw=S.posts.shape.w;S.posts.shape.w=S.posts.shape.h;S.posts.shape.h=sw;}S.posts.pend=null;S.posts.c1=null;
+ R(S.scl.a);R(S.scl.b);R(S.trace);S.place=null;S.exc.res=null;S.view.plan=null;S.hover=null;S.dropBox=null;S.acrossA=null;S.scene="plan";
+ S.msg="Plan turned a quarter turn "+(cw?"clockwise":"anticlockwise")+(src.rot?" (now "+src.rot+"° clockwise from the sheet)":" (back as on the sheet)")+"."+(O?" Corner 1 is the south-west corner again"+(had?"; the setback rows follow their corners — Calculate and work out the excavation again.":"."):"");
+ bcRender();setTimeout(bcDraw,0);}
+["bcRotate"].forEach(function(n){window[n]=eval(n);});
 
 /* ---------- Coordinate design (1.40) — the Points-tab panel and viewer ---------- */
 var cdS=null;
@@ -7346,7 +7556,7 @@ function cdLoadFile(file){if(!cdS)cdS=cdNew();var S=cdNew();S.open=cdS.open;cdS=
  if(typeof cuToolSet==="function"&&typeof cuTool!=="undefined")cuTool="cd";try{localStorage.setItem("eo:cutool","cd");}catch(e){}cdRender();
  var p;
  if(/\.pdf$/i.test(file.name))p=file.arrayBuffer().then(function(ab){return pmscPdfLib().then(function(lib){return lib.getDocument({data:new Uint8Array(ab)}).promise.then(function(doc){S.pdf=doc;S.file.pages=doc.numPages;S.file.page=Math.min(S.file.page||1,doc.numPages);return cdPdfPage(S.file.page);});});});
- else if(/\.dwg$/i.test(file.name))p=file.arrayBuffer().then(function(ab){return hcDwgLib().then(function(lib){var out=lib.dwg_write_dxf(ab);if(!out||!out.length)throw new Error("That DWG couldn’t be converted — save it as DXF from CAD and drop that.");return new TextDecoder("utf-8").decode(out);});}).then(cdFromDxfText);
+ else if(/\.dwg$/i.test(file.name))p=file.arrayBuffer().then(function(ab){return hcDwgLib().then(function(lib){var out;try{out=lib.dwg_write_dxf(ab);}catch(e){HC_DWGP=null;throw new Error("The DWG reader couldn’t read this drawing (it stopped with “"+((e&&e.message)||e)+"”). That’s the reader in the app, not your file or your drive — open the drawing in MicroSurvey, save it as DXF and drop the DXF.");}if(!out||!out.length)throw new Error("That DWG couldn’t be converted — save it as DXF from CAD and drop that.");return new TextDecoder("utf-8").decode(out);});}).then(cdFromDxfText);
  else p=file.text().then(cdFromDxfText);
  p.then(function(){S.busy="";cdAfterLoad();cdRender();}).catch(function(e){S.busy="";S.msg=(e&&e.message)||String(e);cdRender();});}
 function cdFromDxfText(t){var S=cdS,D=cdDxfParse(t),F=cdDxfFlatten(D);if(!F.paths.length&&!F.texts.length)throw new Error("No drawing found in that file — is it a DXF?");

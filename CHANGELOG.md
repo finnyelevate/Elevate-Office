@@ -1,5 +1,36 @@
 # Elevate Office — changelog
 
+## Build 1.41.18 — 2026-11-13
+- **Building calc › Edit the excavation by hand (new).** Once the excavation is worked out, open the **Site** view to tidy it the way the excavator will dig it.
+  - **Drop excavation corner:** click a corner, or drag a box round several. The side squares off to the **outside**, so a small jog beside a post becomes one straight side with a single corner at the end.
+  - **Straight across (excavation):** click two corners and the ones between them go.
+  - **Move:** drag a corner or the middle of a side of the dashed line; sides stay square.
+  - **Undo last edit** in step 6, where the edits are listed. *Work out the excavation* asks before it clears them.
+  - **The guard stays on.** An edit that would bring the line inside the distance off the foundation (4 ft), inside the post clearance (2 ft), or past the lot line is refused, and the message says which and by how much, e.g. *that would leave only 0.50 m (1'-7 3/4") off the foundation*. Where the lot line already holds the excavation short, that isn't counted against later edits.
+  - The Summary lists the hand edits and the final corner count and area.
+- **Building calc › Dimensions on every side of the building (new, on).**
+  - **Text height from the plot:** in step 7, type the plot scale and the Leroy size. Leroy 80 at 1:250 gives text 0.508 m high (2.03 mm on paper). Both are remembered.
+  - **What's drawn:** each side's length in metres to two decimals, centred on the side, parallel to it, outside the outline and never upside down. Long sides are placed first; a number that would sit on another number or on the outline is moved further out.
+  - **In the files:** plain text on its own layer, `CALC {date} HOUSE DIMS`, in *DXF (calc only)* and *Our drawing + calc*. They also show on the Site view. Untick *dimension every side* to leave them off.
+- **Building calc › Floor elevations block (new).** A new *Floor elevations* box under step 7 makes the **PROPOSED HOUSE** block for the crew's benchmark.
+  - **Rows:** Main floor, Basement slab, Second floor, MBE and *Mechanical pump required*; rename them or add your own. Blank rows are left off.
+  - **Typed or picked:** type the elevation, or press **Pick** and click its text on the architect's drawing (CAD text or PDF text; on a scan, or where the lettering is drawn as lines, type it).
+  - **Both units:** an elevation in feet (76.92' or 76'-11") is shown in metres with the architect's figure in brackets, e.g. *MAIN FLOOR EL: 23.45 (76.92')*. One given in metres shows the one number. A picked number with no unit on the drawing is taken as metres, and the app says so.
+  - **In the files:** the block goes inside the outline where there's most room, lettered along the building, at the same text height, on `CALC {date} HOUSE TEXT`. The same lines go in the Summary.
+- **Building calc › Turn the plan to north (new).** Two **Turn 90°** buttons on the Plan toolbar turn the architect's plan a quarter turn either way, for sheets where the foundation plan isn't drawn north-up.
+  - **Everything turns together:** the drawing, its lettering, a scanned page's picture, and anything already picked on it (scale marks, outline and its edits, posts, post lines).
+  - **Corner 1 is the south-west corner again**, so the numbered house on the Site view reads the same way as the lot. Setback rows already filled in follow their corners to the new numbers; Calculate again afterwards.
+  - It's for reading the plan, not for accuracy: lengths don't change, and the setbacks still work out the exact rotation. Four turns bring it back exactly as it was. Each PDF page keeps its own turn.
+- **Building calc › Changing the page no longer loses your work (fix).** Each PDF page's scale, outline, edits, posts, setback rows and excavation are kept while the file is open. Go back to a page and it's as you left it. A page you haven't worked on still starts clean. The floor elevations stay with the file, so you can go to the site plan or a section to pick them and come back.
+- **Building calc › The drawing's own lettering shows on the Plan view (fix).** On PDFs with real text (e.g. *ARCH_Final*, page 2) the dimensions and notes didn't show, only the linework. They now appear once you zoom in far enough to read them, and CAD text shows the same way. Large watermarks such as DRAFT stay faint.
+- **DWG files the reader can't open now say so (fix).** A drawing that crashed the in-browser DWG reader showed only *memory access out of bounds*. The message now says it's the reader, not your file or drive, and to save the drawing as DXF from MicroSurvey and drop that. The reader also starts fresh for the next file. Applies to Building calc and Coordinate design.
+- **Checked:**
+  - Excavation edits on a test house with a post on the 4 ft line: click, box and straight-across drops, drags, undo, and each kind of refusal (foundation, post, lot line).
+  - The DXF read back in an independent CAD reader with zero errors: 6 dimensions and the 6-line block at 0.508 m, on their layers, and saved again.
+  - Page memory and the lettering preview on *ARCH_Final* (pages 2 and 3).
+  - Turn 90°: side lengths and area unchanged, corner 1 at the south-west, setback rows renumbered with their corners, and four turns back to the start exactly.
+  - Not yet opened in MicroSurvey, and the DWG message couldn't be tried on *QUALTROUGH_ARCH_V13.dwg* itself.
+
 ## Build 1.41.17 — 2026-11-12
 - **Building calc › Our drawing + calc (.dxf) saves cleanly in MicroSurvey (fix).** The 1.41.11 version opened in MicroSurvey CAD 2027, but saving failed with *Error 314 (Unknown internal error during save)*. It was built on the modern DXF that the app's DWG reader makes from your drawing, and MicroSurvey couldn't save that back out cleanly.
   - **Now:** the file is written in the same plain format (R12) as *DXF (calc only)*, which MicroSurvey already handles. It carries your drawing's lines and polylines, circles, text and points on their own layers, with the layer colours from your drawing, plus the calc layers.
