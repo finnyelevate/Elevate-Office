@@ -17,6 +17,14 @@
   - **Typed or picked:** type the elevation, or press **Pick** and click its text on the architect's drawing (CAD text or PDF text; on a scan, or where the lettering is drawn as lines, type it).
   - **Both units:** an elevation in feet (76.92' or 76'-11") is shown in metres with the architect's figure in brackets, e.g. *MAIN FLOOR EL: 23.45 (76.92')*. One given in metres shows the one number. A picked number with no unit on the drawing is taken as metres, and the app says so.
   - **In the files:** the block goes inside the outline where there's most room, lettered along the building, at the same text height, on `CALC {date} HOUSE TEXT`. The same lines go in the Summary.
+- **Building calc › Pick outline no longer doubles back through the inside (fix).** On plans where the outer wall has openings wider than the 1 m the pick joins across, the outline couldn't close round the outside. It came back through the inside instead: lines inside the building, a stop at a post, and corners stacked on top of each other.
+  - **Now:** the pick measures how much of the outline is traced out and back along the same line. If it's more than half a metre, it joins wider gaps by itself (1.5, 2, 3, then 4 m) and keeps the first clean result. Step 2 says what it did.
+  - **Checked on *ARCH_Final*, page 2:** at 1 m the outline was 98 corners and 324 m² with 111 m of it doubled. It now comes out at 78 corners and 607.6 m², joined at 2 m, with nothing doubled. Small leftovers such as a wall stub or a post box are still tidied by hand.
+- **Building calc › Drop a side (new).** In **Drop corner / side**, click the middle of a side to take that side out: both its corners go and the sides either side join up square. Clicking a corner or dragging a box works as before. The same click works on the excavation in the Site view, with the clearance guard.
+- **Building calc › Redraw a stretch (new).** Fixes one wrong part of a picked outline without starting over.
+  - Click the corner where the outline stops being right, then the corner where it's right again. The stretch between them (the shorter way round) shows in red.
+  - Click the true corners in between, in order; they snap to the drawing. With none, the two corners join up square. **Finish** (or click either end corner again) replaces just that stretch.
+  - Every other corner stays where it was. *Undo last* and *Cancel* are on the hint line, and the whole edit can be undone with *Undo last edit*.
 - **Building calc › Turn the plan to north (new).** Two **Turn 90°** buttons on the Plan toolbar turn the architect's plan a quarter turn either way, for sheets where the foundation plan isn't drawn north-up.
   - **Everything turns together:** the drawing, its lettering, a scanned page's picture, and anything already picked on it (scale marks, outline and its edits, posts, post lines).
   - **Corner 1 is the south-west corner again**, so the numbered house on the Site view reads the same way as the lot. Setback rows already filled in follow their corners to the new numbers; Calculate again afterwards.
@@ -28,6 +36,7 @@
   - Excavation edits on a test house with a post on the 4 ft line: click, box and straight-across drops, drags, undo, and each kind of refusal (foundation, post, lot line).
   - The DXF read back in an independent CAD reader with zero errors: 6 dimensions and the 6-line block at 0.508 m, on their layers, and saved again.
   - Page memory and the lettering preview on *ARCH_Final* (pages 2 and 3).
+  - Drop a side and Redraw a stretch on the *ARCH_Final* outline, each undone cleanly.
   - Turn 90°: side lengths and area unchanged, corner 1 at the south-west, setback rows renumbered with their corners, and four turns back to the start exactly.
   - Not yet opened in MicroSurvey, and the DWG message couldn't be tried on *QUALTROUGH_ARCH_V13.dwg* itself.
 

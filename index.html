@@ -6940,12 +6940,13 @@ function bcOutlineAt(q){if(typeof bcRedoOk==="function"&&!bcRedoOk())return;var 
  bcOutlineRun(q,lays);}
 function bcOutlineRun(q,lays){var S=bcS;S.busy="Following the outline …";bcRender();setTimeout(function(){S.busy="";bcOutlineRun2(q,lays);},20);}
 function bcOutlineRun2(q,lays){var S=bcS,k=S.k,g0=bcParseLen(S.gapTxt||"1.0")||1,gaps=[g0].concat([1.5,2,3].filter(function(x){return x>g0;})),O=null,used=g0;
- for(var gi=0;gi<gaps.length;gi++){used=gaps[gi];O=bcPickOutline(S.src.F,S.src.idx,q,{tol:6/((S.view.plan&&S.view.plan.s)||1),layers:lays,eps:Math.max(0.005/k,S.src.ext*2e-7),gap:used/k,skipLay:false,reach:40/k,minPiece:S.src.kind==="pdf"?0.3/k:0,maxSegs:60000});if(O&&(O.tooMany||(O.P&&O.P.length>=3)))break;}
+ var bestO=null,bestG=g0,bestD=1e18;if(g0<4)gaps.push(4);for(var gi=0;gi<gaps.length;gi++){used=gaps[gi];O=bcPickOutline(S.src.F,S.src.idx,q,{tol:6/((S.view.plan&&S.view.plan.s)||1),layers:lays,eps:Math.max(0.005/k,S.src.ext*2e-7),gap:used/k,skipLay:false,reach:40/k,minPiece:S.src.kind==="pdf"?0.3/k:0,maxSegs:60000});if(O&&O.tooMany)break;if(O&&O.P&&O.P.length>=3){var dbl=bcDoubled(O.P)*k;if(dbl<bestD-0.25){bestD=dbl;bestO=O;bestG=used;}if(dbl<=0.5)break;}}
+ if(bestO&&!(O&&O.tooMany)){O=bestO;used=bestG;}S.dblNote=bestO&&bestG>g0&&bestD<1e17?"The outer wall has openings wider than "+g0.toFixed(1)+" m, so the outline doubled back through the inside. Gaps up to "+bestG+" m were joined instead"+(bestD>0.5?" ("+bestD.toFixed(1)+" m is still doubled — tidy it with Drop corner or Redraw a stretch)":"")+".":bestO&&bestD>0.5&&bestD<1e17?"About "+bestD.toFixed(1)+" m of this outline is traced out and back along the same line — the outer wall has openings the pick couldn’t join. Raise “Join gaps up to”, or tidy it with Drop corner or Redraw a stretch.":"";
  S.gapUsed=used>g0?used:null;
  if(O&&O.tooMany){S.msg="Too much linework on that layer to follow automatically ("+O.tooMany+" pieces) — use Trace outline: click the corners round the foundation.";S.mode="trace";bcRender();return;}
  if(!O||!O.P||O.P.length<3){S.msg="Couldn’t close an outline there — tick more layers or raise the gap and click again, or use Trace outline.";bcRender();return;}
  var round=S.out?S.out.round:(k&&(Math.abs(k/BC_IN-1)<0.01||Math.abs(k/BC_FT-1)<0.01||S.src.kind==="pdf"));
- S.out={q:q,lays:lays,gapTxt:S.gapTxt||"1.0",raw:O.P,traced:false,bridged:O.bridged||[],round:round,edits:[],ok:false,near:bcLayersNear(q,25/k)};bcSquareNow();S.mode="pan";S.msg="";bcRender();setTimeout(bcDraw,0);}
+ S.out={q:q,lays:lays,gapTxt:S.gapTxt||"1.0",raw:O.P,traced:false,bridged:O.bridged||[],round:round,edits:[],ok:false,near:bcLayersNear(q,25/k)};bcSquareNow();S.mode="pan";S.msg=S.dblNote||"";bcRender();setTimeout(bcDraw,0);}
 /* trace: corners clicked by hand (snapped to line corners), closed by clicking the first again or Finish */
 function bcTraceClick(q){var S=bcS,t=S.trace||(S.trace=[]),px=10/S.view.plan.s;if(t.length>=3&&cdHyp(q,t[0])<=px){bcTraceFinish();return;}t.push(S.scan?q:bcSnapPlan(q,10));bcRender();}
 function bcTraceFinish(){var S=bcS,t=S.trace||[];if(t.length<3){S.msg="Click at least three corners.";bcRender();return;}
@@ -7095,12 +7096,12 @@ function bcRender(){var host=document.getElementById("cu-bc");if(!host)return;if
  if(S.scan)h+="<div class='cu-pkgwarn' style='display:block;margin:4px 0 8px'>Page "+S.src.page+" is a <b>scanned image</b> — nothing to follow or snap to. You can still Measure for the scale and <b>Trace outline</b> by clicking the corners on the picture (less precise than CAD; check a couple of dimensions). Better: the architect’s CAD file or a PDF printed straight from CAD.</div>";
  /* tools over the viewer change with the step you're on */
  var m=S.mode,btn=function(id,t,dis){return "<button data-bm='"+id+"' class='"+(m===id?"on":"")+"'"+(dis?" disabled":"")+">"+t+"</button>";};
- h+="<div class='cd-bar'><span class='seg'>"+btn("pan","Move")+(S.scene==="plan"?btn("scale","Measure",!!S.k&&false)+btn("outline","Pick outline",!S.k||S.scan)+btn("trace","Trace outline",!S.k)+btn("drop","Drop corner",!S.out)+btn("across","Straight across",!S.out)+btn("post","Pick post",!bcStepOk(2))+btn("postc","Post by corners",!bcStepOk(2))+btn("pperp","Post line to house",!bcStepOk(2))+btn("pline","Draw post line",!bcStepOk(2)):btn("lot","Click inside lot",!S.lotSrc)+(S.exc.res&&S.exc.res.req?btn("xdrop","Drop excavation corner")+btn("xacross","Straight across (excavation)"):""))+"</span> <label class='cu-cb' title='Snap clicks to line ends and crossings'><input type='checkbox' id='bc-snap'"+(bcSnapOn()?" checked":"")+(S.scan?" disabled":"")+"> Snap</label>";
+ h+="<div class='cd-bar'><span class='seg'>"+btn("pan","Move")+(S.scene==="plan"?btn("scale","Measure",!!S.k&&false)+btn("outline","Pick outline",!S.k||S.scan)+btn("trace","Trace outline",!S.k)+btn("drop","Drop corner / side",!S.out)+btn("across","Straight across",!S.out)+btn("redo","Redraw a stretch",!S.out)+btn("post","Pick post",!bcStepOk(2))+btn("postc","Post by corners",!bcStepOk(2))+btn("pperp","Post line to house",!bcStepOk(2))+btn("pline","Draw post line",!bcStepOk(2)):btn("lot","Click inside lot",!S.lotSrc)+(S.exc.res&&S.exc.res.req?btn("xdrop","Drop excavation corner / side")+btn("xacross","Straight across (excavation)"):""))+"</span> <label class='cu-cb' title='Snap clicks to line ends and crossings'><input type='checkbox' id='bc-snap'"+(bcSnapOn()?" checked":"")+(S.scan?" disabled":"")+"> Snap</label>";
  h+=" <span class='seg'><button data-sc='plan' class='"+(S.scene==="plan"?"on":"")+"'>Plan</button><button data-sc='site' class='"+(S.scene==="site"?"on":"")+"'"+(S.lotSrc||bcJobF()?"":" disabled")+">Site</button></span> <button class='btn ghost' onclick='bcZoomAll()'>Whole drawing</button>"+(S.scene==="plan"?" <button class='btn ghost' onclick='bcRotate(0)' title='Turn the plan a quarter turn anticlockwise, so north is up'>⟲ Turn 90°</button> <button class='btn ghost' onclick='bcRotate(1)' title='Turn the plan a quarter turn clockwise, so north is up'>⟳ Turn 90°</button>":"");
  if(S.scene==="plan"&&S.out)h+=" <button class='btn ghost' onclick='bcZoomOutline()'>Zoom to outline</button>";h+="</div>";
  var tip={pan:S.out&&S.scene==="plan"?"Drag a <b>corner</b> or the <b>middle of a side</b> of the orange outline to adjust it (it snaps to line corners; sides stay square). Drag elsewhere to move the view, scroll to zoom.":"Drag to move, scroll to zoom.",scale:(!S.scl.a?"Click the <b>first end ①</b> of a dimension you trust.":!S.scl.b?"<b>① is placed.</b> Now click the <b>second end ②</b>.":"<b>① and ② are placed</b> — type the length in step 1 and Set scale. Drag either end to adjust; click elsewhere to start again.")+" A green square means you’re on a corner / line end (✕ = a crossing).",outline:"Click the foundation wall, or inside the foundation — the outline is followed round automatically.",trace:"Click each outside corner of the foundation in turn (snaps to line corners); click the first corner again or Finish to close.",
-  drop:"Click a corner to take it out — or <b>drag a box</b> round several to take them all out. The outline is squared again.",across:"Click two corners — the corners between them (the shorter way round) are taken out and the side runs straight across.",
-  post:"Click inside a post (or on its outline) to add it; click it again to take it off. Then “Select similar” in step 3 finds the rest.",postc:(S.posts.c1?"First corner placed — click the <b>opposite corner</b> of the post.":"Click one corner of the post, then the <b>opposite corner</b> (snaps to line corners). The post is squared to the building.")+"",pperp:"Click a post — a dashed post line is drawn from it square back to the nearest wall of the house.",pline:"Click two points for a dashed post line. Green square = snapped: post centre / corner, house corner, line end, crossing — or <b>perpendicular</b> onto a house wall for the second end.",lot:"Click inside the subject lot, clear of the house.",xdrop:"Click a corner of the dashed excavation to take it out — or <b>drag a box</b> round several. It squares off to the outside; anything inside the clearances or past the lot line is refused.",xacross:"Click two corners of the dashed excavation — the corners between them (the shorter way round) are taken out.",elpick:"Click the elevation’s text on the drawing"+(S.src.kind==="pdf"?" (change the page above first if it’s on another sheet)":"")+"."}[m]||"";
+  drop:"Click a <b>corner</b> to take it out, click the <b>middle of a side</b> to take that side out (both its corners go), or <b>drag a box</b> round several corners. The sides either side join up square.",redo:bcRedoTip(),across:"Click two corners — the corners between them (the shorter way round) are taken out and the side runs straight across.",
+  post:"Click inside a post (or on its outline) to add it; click it again to take it off. Then “Select similar” in step 3 finds the rest.",postc:(S.posts.c1?"First corner placed — click the <b>opposite corner</b> of the post.":"Click one corner of the post, then the <b>opposite corner</b> (snaps to line corners). The post is squared to the building.")+"",pperp:"Click a post — a dashed post line is drawn from it square back to the nearest wall of the house.",pline:"Click two points for a dashed post line. Green square = snapped: post centre / corner, house corner, line end, crossing — or <b>perpendicular</b> onto a house wall for the second end.",lot:"Click inside the subject lot, clear of the house.",xdrop:"Click a corner of the dashed excavation to take it out, the middle of a side to take that side out, or <b>drag a box</b> round several. It squares off to the outside; anything inside the clearances or past the lot line is refused.",xacross:"Click two corners of the dashed excavation — the corners between them (the shorter way round) are taken out.",elpick:"Click the elevation’s text on the drawing"+(S.src.kind==="pdf"?" (change the page above first if it’s on another sheet)":"")+"."}[m]||"";
  if(m==="pan"&&S.scene==="site"&&S.exc.res&&S.exc.res.req)tip="Drag a <b>corner</b> or the <b>middle of a side</b> of the dashed excavation to adjust it (sides stay square; the clearances are checked when you let go). Drag elsewhere to move the view, scroll to zoom.";
  if(m==="elpick"&&S.el.pick!==null&&S.el.rows[S.el.pick])tip="<b>"+E(S.el.rows[S.el.pick].lab||"Elevation")+":</b> "+tip;
  if((m==="across"||m==="xacross")&&S.acrossA!==undefined&&S.acrossA!==null)tip="Corner "+(S.acrossA+1)+" picked — now click the other corner.";
@@ -7174,7 +7175,7 @@ function bcWire(host){var S=bcS,g=function(id){return document.getElementById(id
  var f=g("bc-file");if(f)f.onchange=function(){if(f.files[0])bcLoadFile(f.files[0],"plan");};
  var lf=g("bc-lotfile");if(lf)lf.onchange=function(){if(lf.files[0])bcLoadFile(lf.files[0],"lot");};
  var pg=g("bc-page");if(pg)pg.onchange=function(){var n=parseInt(pg.value,10);if(n>=1&&n<=(S.file.pages||1))bcPdfPage(n).then(function(){bcRender();setTimeout(bcDraw,0);});};
- host.querySelectorAll("[data-bm]").forEach(function(b){b.onclick=function(){S.mode=b.dataset.bm;S.el.pick=null;S.posts.c1=null;if(S.mode==="trace"&&!S.trace)S.trace=[];S.acrossA=null;S.posts.pend=null;if(S.mode==="scale"){S.scl.a=null;S.scl.b=null;}bcRender();};});
+ host.querySelectorAll("[data-bm]").forEach(function(b){b.onclick=function(){S.mode=b.dataset.bm;S.el.pick=null;S.redo=null;S.posts.c1=null;if(S.mode==="trace"&&!S.trace)S.trace=[];S.acrossA=null;S.posts.pend=null;if(S.mode==="scale"){S.scl.a=null;S.scl.b=null;}bcRender();};});
  host.querySelectorAll("[data-sc]").forEach(function(b){b.onclick=function(){S.scene=b.dataset.sc;S.acrossA=null;S.el.pick=null;S.mode=S.scene==="site"?(S.lot?"pan":"lot"):"pan";bcRender();setTimeout(bcDraw,0);};});
  host.querySelectorAll("details.bc-step").forEach(function(d){d.addEventListener("toggle",function(){S.open[d.dataset.st]=d.open;});});
  var sn0=g("bc-snap");if(sn0)sn0.onchange=function(){try{localStorage.setItem("eo:bcsnap",sn0.checked?"1":"0");}catch(e){}};
@@ -7242,6 +7243,7 @@ function bcDraw(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S||!S.s
    if(S.acrossA!==null&&S.acrossA!==undefined){var a=S.out.P[S.acrossA];g.strokeStyle="#2456A6";g.lineWidth=2;g.beginPath();g.arc(X(a[0]),Y(a[1]),8,0,7);g.stroke();}}
   if(S.dropBox){var d0=S.dropBox[0],d1=S.dropBox[1];g.strokeStyle="#b91c1c";g.lineWidth=1.5;g.setLineDash([5,3]);g.strokeRect(Math.min(X(d0[0]),X(d1[0])),Math.min(Y(d0[1]),Y(d1[1])),Math.abs(X(d1[0])-X(d0[0])),Math.abs(Y(d1[1])-Y(d0[1])));g.setLineDash([]);g.fillStyle="rgba(185,28,28,.06)";g.fillRect(Math.min(X(d0[0]),X(d1[0])),Math.min(Y(d0[1]),Y(d1[1])),Math.abs(X(d1[0])-X(d0[0])),Math.abs(Y(d1[1])-Y(d0[1])));}
   if(S.trace&&S.trace.length){ring(S.trace,"#2456A6",2,null,false,function(i){return String(i+1);});}
+  bcDrawRedo(g,X,Y);
   if(S.posts.c1){var c1=S.posts.c1;g.strokeStyle="#7C3AED";g.lineWidth=2;g.beginPath();g.moveTo(X(c1[0])-7,Y(c1[1]));g.lineTo(X(c1[0])+7,Y(c1[1]));g.moveTo(X(c1[0]),Y(c1[1])-7);g.lineTo(X(c1[0]),Y(c1[1])+7);g.stroke();if(S.hover){var h2=S.hover.p;g.setLineDash([4,3]);g.strokeRect(Math.min(X(c1[0]),X(h2[0])),Math.min(Y(c1[1]),Y(h2[1])),Math.abs(X(h2[0])-X(c1[0])),Math.abs(Y(h2[1])-Y(c1[1])));g.setLineDash([]);}}
   S.posts.list.forEach(function(p,i){g.strokeStyle="#7C3AED";g.lineWidth=2;ring(bcPostCorners(p),"#7C3AED",2);g.beginPath();g.arc(X(p.c[0]),Y(p.c[1]),2.5,0,7);g.fillStyle="#7C3AED";g.fill();});
   S.posts.lines.forEach(function(l){ring(l,"#7C3AED",1.5,[6,4],false);});
@@ -7311,7 +7313,7 @@ function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src
   if(S.scene==="plan"&&S.mode==="drop"&&S.out){var b4=cv.getBoundingClientRect();drag.box=bcToSrc(e.clientX-b4.left,e.clientY-b4.top);drag.boxEnd=drag.box;}
   if(S.scene==="plan"&&S.mode==="pan"&&S.out){var b2=cv.getBoundingClientRect(),oh=bcOutlineHit(e.clientX-b2.left,e.clientY-b2.top);if(oh){drag.oh=oh;drag.P0=S.out.P.map(function(p){return p.slice();});drag.q0=bcToSrc(e.clientX-b2.left,e.clientY-b2.top);}}bcXDown(e,drag,cv);};
  cv.onmousemove=function(e){if(!drag){var bb=cv.getBoundingClientRect(),hq=bcToSrc(e.clientX-bb.left,e.clientY-bb.top);
-   if(S.scene==="plan"&&/^(scale|trace|pline|postc)$/.test(S.mode)){var sf=S.mode==="pline"?bcPlineSnap(hq):bcSnapFind(hq,10);S.hover={p:sf?sf.p:hq,k:sf?sf.k:null};if(!S.hoverRaf){S.hoverRaf=1;(window.requestAnimationFrame||setTimeout)(function(){S.hoverRaf=0;bcDraw();});}}else if(S.hover){S.hover=null;bcDraw();}
+   if(S.scene==="plan"&&/^(scale|trace|pline|postc|redo)$/.test(S.mode)){var sf=S.mode==="pline"?bcPlineSnap(hq):bcSnapFind(hq,10);S.hover={p:sf?sf.p:hq,k:sf?sf.k:null};if(!S.hoverRaf){S.hoverRaf=1;(window.requestAnimationFrame||setTimeout)(function(){S.hoverRaf=0;bcDraw();});}}else if(S.hover){S.hover=null;bcDraw();}
    var on=false;if(S.scene==="plan"&&S.mode==="scale"&&S.view.plan){var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,V=S.view.plan,W=cv.clientWidth,H=cv.clientHeight;["a","b"].forEach(function(k){var q=S.scl[k];if(q&&Math.hypot(W/2+(q[0]-V.cx)*V.s-mx,H/2-(q[1]-V.cy)*V.s-my)<=10)on=true;});}if(!on&&S.scene==="plan"&&S.mode==="pan"&&S.out){var oh2=bcOutlineHit(e.clientX-bb.left,e.clientY-bb.top);if(oh2)on=true;}if(!on&&bcXHover(e,cv))on=true;cv.style.cursor=on?"move":"";return;}var V=S.view[S.scene],dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;if(!drag.moved||!V)return;
   if(drag.box){var b5=cv.getBoundingClientRect();drag.boxEnd=bcToSrc(e.clientX-b5.left,e.clientY-b5.top);S.dropBox=[drag.box,drag.boxEnd];bcDraw();return;}
   if(drag.xh){bcXDragMove(e,drag,cv);return;}
@@ -7334,7 +7336,8 @@ function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src
   if(m==="elpick"){bcElPickAt(q);return;}
   if(m==="outline"){bcOutlineAt(q);return;}
   if(m==="trace"){bcTraceClick(q);return;}
-  if(m==="drop"){var i=bcCornerAt(q,12);if(i>=0)bcDropCorner(i);return;}
+  if(m==="drop"){var i=bcCornerAt(q,12);if(i>=0)bcDropCorner(i);else{var sd=bcSideAt(S.out&&S.out.P,S.view.plan,q,7);if(sd>=0)bcDropSide(sd);}return;}
+  if(m==="redo"){bcRedoClick(q);return;}
   if(m==="across"){var j=bcCornerAt(q,12);if(j<0)return;if(S.acrossA===null||S.acrossA===undefined){S.acrossA=j;bcRender();}else{var a=S.acrossA;S.acrossA=null;bcAcross(a,j);}return;}
   if(m==="post"){bcPostAt(q);return;}
   if(m==="postc"){bcPostByCorner(S.hover&&S.hover.k?S.hover.p.slice():q);return;}
@@ -7419,7 +7422,7 @@ function bcXDragMove(e,drag,cv){var S=bcS,b=cv.getBoundingClientRect(),q=bcToSrc
 function bcXDragEnd(was){var S=bcS,X=S.exc.res,newP=X.P;X.P=was.P0;if(!was.moved){bcDraw();return;}
  var why=bcXCheck(X,newP);if(why){bcXNo(why);return;}var mv=Math.max.apply(null,newP.map(function(p,i){return cdHyp(p,was.P0[i]);}));
  bcXPush(newP,(was.xh.kind==="corner"?"moved excavation corner "+(was.xh.i+1):"moved excavation side "+(was.xh.i+1)+"–"+((was.xh.i+1)%was.P0.length+1))+" ("+mv.toFixed(3)+" m)");}
-function bcXClick(q,m){var S=bcS,X=S.exc.res;if(!X||!X.req)return;var best=-1,bd=12/S.view.site.s;X.P.forEach(function(p,i){var d=cdHyp(p,q);if(d<bd){bd=d;best=i;}});if(best<0)return;
+function bcXClick(q,m){var S=bcS,X=S.exc.res;if(!X||!X.req)return;var best=-1,bd=12/S.view.site.s;X.P.forEach(function(p,i){var d=cdHyp(p,q);if(d<bd){bd=d;best=i;}});if(best<0){if(m==="xdrop"){var sd=bcSideAt(X.P,S.view.site,q,7);if(sd>=0)bcXDropSide(sd);}return;}
  if(m==="xdrop"){bcXDrop(best);return;}
  if(S.acrossA===null||S.acrossA===undefined){S.acrossA=best;bcRender();}else{var a=S.acrossA;S.acrossA=null;bcXAcross(a,best);}}
 
@@ -7540,6 +7543,39 @@ function bcRotate(cw){var S=bcS,src=S&&S.src;if(!src)return;cw=!!cw;var seen=new
  S.msg="Plan turned a quarter turn "+(cw?"clockwise":"anticlockwise")+(src.rot?" (now "+src.rot+"° clockwise from the sheet)":" (back as on the sheet)")+"."+(O?" Corner 1 is the south-west corner again"+(had?"; the setback rows follow their corners — Calculate and work out the excavation again.":"."):"");
  bcRender();setTimeout(bcDraw,0);}
 ["bcRotate"].forEach(function(n){window[n]=eval(n);});
+
+/* ---- a picked outline that doubles back on itself (the outer wall has openings wider than the gap allowance, so the pick goes round the inside as well):
+   the length of outline traced out and back along the same line, in drawing units ---- */
+function bcDoubled(P){var n=P.length,E={},d=0,k=function(a,b){return a[0]+","+a[1]+">"+b[0]+","+b[1];};for(var i=0;i<n;i++)E[k(P[i],P[(i+1)%n])]=1;
+ for(var j=0;j<n;j++){var a=P[j],b=P[(j+1)%n];if(E[k(b,a)])d+=cdHyp(a,b);}return d/2;}
+/* ---- drop a side: both its corners go and the sides either side of it join up square ---- */
+function bcSideAt(P,V,q,px){if(!P||!V)return -1;var best=-1,bd=px/V.s,n=P.length;for(var i=0;i<n;i++){var r=cdSegDist(q,P[i],P[(i+1)%n]);if(r.d<bd&&r.t>0.1&&r.t<0.9){bd=r.d;best=i;}}return best;}
+function bcDropSide(i){var S=bcS,O=S.out,n=O.P.length,j=(i+1)%n;bcDropSet([i,j],"dropped side "+(i+1)+"–"+(j+1));}
+function bcXDropSide(i){var S=bcS,X=S.exc.res,n=X.P.length,j=(i+1)%n,D=[];D[i]=1;D[j]=1;var r=bcXDropRun(X.P,D,X);if(!r.P){bcXNo(r.why);return;}bcXPush(r.P,"dropped excavation side "+(i+1)+"–"+(j+1)+bcXTail(r));}
+/* ---- redraw a stretch: click the corner where the good outline stops, the corner where it picks up again, then the corners in between; the rest of the outline is untouched ---- */
+function bcRedoClick(q){var S=bcS,O=S.out,R=S.redo||(S.redo={a:null,b:null,pts:[]}),V=S.view.plan;if(!O)return;var ci=bcCornerAt(q,12);
+ if(R.a===null){if(ci<0){S.msg="Start on a corner of the outline: the last corner that is right.";bcRender();return;}R.a=ci;S.msg="";bcRender();return;}
+ if(R.b===null){if(ci<0||ci===R.a){S.msg="Now click the corner of the outline where it is right again.";bcRender();return;}R.b=ci;S.msg="";bcRender();return;}
+ if(ci===R.b||ci===R.a){bcRedoFinish();return;}
+ var p=S.hover&&S.hover.k?S.hover.p.slice():(S.scan?q:bcSnapPlan(q,10));R.pts.push(p);bcRender();}
+function bcRedoRuns(){var S=bcS,O=S.out,R=S.redo,n=O.P.length,f=[],g=[],len=function(a,b){var L=0;for(var x=a;x!==b;x=(x+1)%n)L+=cdHyp(O.P[x],O.P[(x+1)%n]);return L;};
+ for(var x=(R.a+1)%n;x!==R.b;x=(x+1)%n)f.push(x);for(var y=(R.b+1)%n;y!==R.a;y=(y+1)%n)g.push(y);return len(R.a,R.b)<=len(R.b,R.a)?{fwd:true,gone:f,keep:g}:{fwd:false,gone:g,keep:f};}
+function bcRedoFinish(){var S=bcS,O=S.out,R=S.redo;if(!O||!R||R.a===null||R.b===null){S.msg="Click the two corners of the outline first.";bcRender();return;}
+ var U=bcRedoRuns(),P=O.P,ring=U.fwd?[P[R.a]].concat(R.pts,[P[R.b]],U.keep.map(function(i){return P[i];})):[P[R.b]].concat(R.pts.slice().reverse(),[P[R.a]],U.keep.map(function(i){return P[i];}));
+ ring=bcClean(ring.map(function(p){return p.slice();}));if(ring.length<3){S.msg="That would leave fewer than three corners.";bcRender();return;}
+ var lab="redrew "+(R.a+1)+"–"+(R.b+1)+": "+U.gone.length+" corner"+(U.gone.length===1?"":"s")+" out, "+R.pts.length+" in";S.redo=null;S.mode="pan";bcEditPush(ring,lab);}
+function bcRedoUndo(){var S=bcS,R=S.redo;if(!R)return;if(R.pts.length)R.pts.pop();else if(R.b!==null)R.b=null;else R.a=null;bcRender();setTimeout(bcDraw,0);}
+function bcRedoCancel(){bcS.redo=null;bcS.msg="";bcRender();setTimeout(bcDraw,0);}
+function bcRedoTip(){var S=bcS,R=S.redo,bt=" <button class='cd-mini' onclick='bcRedoUndo()'>Undo last</button> <button class='cd-mini' onclick='bcRedoCancel()'>Cancel</button>";
+ if(!R||R.a===null)return "Click the corner of the outline where it <b>stops being right</b>.";
+ if(R.b===null)return "Corner "+(R.a+1)+" picked. Now click the corner where the outline is <b>right again</b> — the stretch between them (the shorter way round) will be replaced."+bt;
+ return "Replacing "+(R.a+1)+"–"+(R.b+1)+" (red). Click the true corners in between, in order from "+(R.a+1)+" (they snap to the drawing), or none for a square join. <button class='cd-mini' onclick='bcRedoFinish()'>Finish</button>"+bt;}
+function bcDrawRedo(g,X,Y){var S=bcS,R=S.redo,O=S.out;if(!R||!O||R.a===null)return;var P=O.P,dot=function(p,c){g.strokeStyle=c;g.lineWidth=2.5;g.beginPath();g.arc(X(p[0]),Y(p[1]),8,0,7);g.stroke();};dot(P[R.a],"#2456A6");if(R.b===null)return;dot(P[R.b],"#2456A6");
+ var U=bcRedoRuns(),n=P.length,chain=U.fwd?[R.a].concat(U.gone,[R.b]):[R.b].concat(U.gone,[R.a]);
+ g.strokeStyle="#dc2626";g.lineWidth=4;g.setLineDash([6,4]);g.beginPath();chain.forEach(function(i,k){if(k)g.lineTo(X(P[i][0]),Y(P[i][1]));else g.moveTo(X(P[i][0]),Y(P[i][1]));});g.stroke();g.setLineDash([]);
+ var path=[P[R.a]].concat(R.pts);if(S.hover)path.push(S.hover.p);else path.push(P[R.b]);g.strokeStyle="#2456A6";g.lineWidth=2;g.beginPath();path.forEach(function(p,k){if(k)g.lineTo(X(p[0]),Y(p[1]));else g.moveTo(X(p[0]),Y(p[1]));});g.stroke();
+ g.fillStyle="#2456A6";R.pts.forEach(function(p){g.beginPath();g.arc(X(p[0]),Y(p[1]),3.5,0,7);g.fill();});}
+["bcRedoFinish","bcRedoUndo","bcRedoCancel"].forEach(function(n){window[n]=eval(n);});
 
 /* ---------- Coordinate design (1.40) — the Points-tab panel and viewer ---------- */
 var cdS=null;
