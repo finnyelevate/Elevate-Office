@@ -840,7 +840,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.41.18";
+const BUILD="1.41.20";
 const NEWS=["Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
@@ -6795,17 +6795,17 @@ function bcDxf(sets,th,extra){/* sets: [{layer, kind:"poly"|"pts"|"line", rings:
  return ["0","SECTION","2","HEADER","9","$ACADVER","1","AC1009","9","$INSUNITS","70","6","0","ENDSEC"].concat(tbl).concat(["0","SECTION","2","ENTITIES"]).concat(ent).concat(["0","ENDSEC","0","EOF"]).join("\r\n")+"\r\n";}
 
 /* our own drawing rewritten plainly (R12): its linework, circles, text and points on their layers and layer colours, ready to take the calc on top */
-function bcDrawingPlain(src){var ents=[],lays={},cols={};
+function bcDrawingPlain(src,only){var ents=[],lays={},cols={};
  if(src.text){var L=src.text.split(/\r?\n/),inL=false,nm=null;for(var i=0;i+1<L.length;i+=2){var c=parseInt(L[i],10),v=String(L[i+1]).trim();
    if(c===0){if(nm!==null&&inL&&cols[nm]===undefined)cols[nm]=7;inL=v==="LAYER";nm=null;}else if(inL&&c===2)nm=v;else if(inL&&c===62&&nm!==null)cols[nm]=Math.abs(parseInt(v,10))||7;
    if(c===0&&v==="ENDTAB"&&inL)inL=false;if(c===2&&v==="ENTITIES")break;}}
  var lay=function(n){n=n||"0";if(!lays[n])lays[n]={c:cols[n]||7};return n;},f=function(x){return (+x).toFixed(4);};
- src.F.paths.forEach(function(P){if(P.hatch||P.glyph||!P.p||P.p.length<2)return;var closed=!!P.closed;var R=P.p;if(R.length>2&&cdHyp(R[0],R[R.length-1])<1e-9){R=R.slice(0,-1);closed=true;}
+ src.F.paths.forEach(function(P){if(P.hatch||P.glyph||!P.p||P.p.length<2)return;if(only&&!only(P.lay||"0"))return;var closed=!!P.closed;var R=P.p;if(R.length>2&&cdHyp(R[0],R[R.length-1])<1e-9){R=R.slice(0,-1);closed=true;}
   ents.push("0","POLYLINE","8",lay(P.lay),"66","1","10","0.0","20","0.0","30","0.0","70",closed?"1":"0");R.forEach(function(p){ents.push("0","VERTEX","8",P.lay||"0","10",f(p[0]),"20",f(p[1]),"30","0.0");});ents.push("0","SEQEND","8",P.lay||"0");});
- (src.F.ells||[]).forEach(function(E){if(E.circ){ents.push("0","CIRCLE","8",lay(E.lay),"10",f(E.c[0]),"20",f(E.c[1]),"30","0.0","40",f(E.a));return;}
+ (src.F.ells||[]).forEach(function(E){if(only&&!only(E.lay||"0"))return;if(E.circ){ents.push("0","CIRCLE","8",lay(E.lay),"10",f(E.c[0]),"20",f(E.c[1]),"30","0.0","40",f(E.a));return;}
   var n=48;ents.push("0","POLYLINE","8",lay(E.lay),"66","1","10","0.0","20","0.0","30","0.0","70","1");for(var k=0;k<n;k++){var t=2*Math.PI*k/n,x=E.c[0]+E.u[0]*E.a*Math.cos(t)-E.u[1]*E.b*Math.sin(t),y=E.c[1]+E.u[1]*E.a*Math.cos(t)+E.u[0]*E.b*Math.sin(t);ents.push("0","VERTEX","8",E.lay||"0","10",f(x),"20",f(y),"30","0.0");}ents.push("0","SEQEND","8",E.lay||"0");});
- (src.F.texts||[]).forEach(function(T){if(!T.s||!isFinite(T.c[0]))return;var s=String(T.s).replace(/[\r\n]+/g," ");ents.push("0","TEXT","8",lay(T.lay),"10",f(T.c[0]),"20",f(T.c[1]),"30","0.0","40",f(T.h||0.3),"1",s,"50",((T.rot||0)*180/Math.PI).toFixed(6),"72","1","11",f(T.c[0]),"21",f(T.c[1]),"31","0.0","73","2");});
- (src.allPts||[]).forEach(function(p){ents.push("0","POINT","8",lay(p.lay),"10",f(p.E),"20",f(p.N),"30",f(p.Z||0));});
+ (only?[]:src.F.texts||[]).forEach(function(T){if(!T.s||!isFinite(T.c[0]))return;var s=String(T.s).replace(/[\r\n]+/g," ");ents.push("0","TEXT","8",lay(T.lay),"10",f(T.c[0]),"20",f(T.c[1]),"30","0.0","40",f(T.h||0.3),"1",s,"50",((T.rot||0)*180/Math.PI).toFixed(6),"72","1","11",f(T.c[0]),"21",f(T.c[1]),"31","0.0","73","2");});
+ (only?[]:src.allPts||[]).forEach(function(p){ents.push("0","POINT","8",lay(p.lay),"10",f(p.E),"20",f(p.N),"30",f(p.Z||0));});
  return {ents:ents,lays:lays};}
 /* the calc added to a copy of our own drawing: everything in it is kept; new layers go in its layer table, new objects get fresh handles */
 function bcDxfMerge(text,sets,th){var NL=text.indexOf("\r\n")>=0?"\r\n":"\n",h=th||0.3,lines=text.split(/\r?\n/);if(lines[lines.length-1]==="")lines.pop();
@@ -7062,7 +7062,7 @@ function bcSave(which){var S=bcS;if(!bcUnlocked(7)){S.msg="Finish the steps abov
   if(S.exc.res){sets.push({layer:bcLayName(L.exc),kind:"poly",rings:[S.exc.res.P]});sets.push({layer:bcLayName(L.excpts),kind:"pts",pts:rows.filter(function(r){return r.set==="excpts";})});}
   var TX=bcTexts();if(TX&&!TX.h&&(S.tx.dim||bcElLines().length)){S.msg="Check the plot scale and Leroy size in step 7 — the dimensions and floor elevations need a text height.";bcRender();return;}
   if(TX&&TX.dims.length)sets.push({layer:bcLayName(L.dims),kind:"text",col:7,texts:TX.dims});if(TX&&TX.el.length)sets.push({layer:bcLayName(L.notes),kind:"text",col:7,texts:TX.el});
-  if(which==="merge"){if(!S.lotSrc||!S.lotSrc.text){S.msg="Load our lot drawing in step 4 first.";bcRender();return;}try{txt=bcDxf(sets,0.3,bcDrawingPlain(S.lotSrc));}catch(e){S.msg="Couldn’t add the calc to that drawing: "+(e.message||e);bcRender();return;}fn=String(S.lotFile.name).replace(/\.[^.]+$/,"")+"-WITH-CALC.dxf";}
+  if(which==="merge"){if(!S.lotSrc||!S.lotSrc.text){S.msg="Load our lot drawing in step 4 first.";bcRender();return;}try{var LL=bcLotLayer(),XD=bcDrawingPlain(S.lotSrc,function(l){return LL?l===LL:/LOT|PROP|BOUND|PL\b|LEGAL/i.test(l);});if(!XD.ents.length){S.msg="No lot lines found on "+(LL?"layer "+LL:"a lot-line layer")+" in that drawing — use DXF (calc only).";bcRender();return;}txt=bcDxf(sets,0.3,XD);}catch(e){S.msg="Couldn’t add the calc to that drawing: "+(e.message||e);bcRender();return;}fn=String(S.lotFile.name).replace(/\.[^.]+$/,"")+"-LOT-LINES-WITH-CALC.dxf";}
   else{txt=bcDxf(sets,0.3);fn=B+".dxf";}type="application/dxf";}
  else{txt=bcSummary(rows);fn=B+"-SUMMARY.txt";}
  cuSaveText(txt,fn,type);S.msg="Saved "+fn+".";bcRender();}
@@ -7097,7 +7097,7 @@ function bcRender(){var host=document.getElementById("cu-bc");if(!host)return;if
  /* tools over the viewer change with the step you're on */
  var m=S.mode,btn=function(id,t,dis){return "<button data-bm='"+id+"' class='"+(m===id?"on":"")+"'"+(dis?" disabled":"")+">"+t+"</button>";};
  h+="<div class='cd-bar'><span class='seg'>"+btn("pan","Move")+(S.scene==="plan"?btn("scale","Measure",!!S.k&&false)+btn("outline","Pick outline",!S.k||S.scan)+btn("trace","Trace outline",!S.k)+btn("drop","Drop corner / side",!S.out)+btn("across","Straight across",!S.out)+btn("redo","Redraw a stretch",!S.out)+btn("post","Pick post",!bcStepOk(2))+btn("postc","Post by corners",!bcStepOk(2))+btn("pperp","Post line to house",!bcStepOk(2))+btn("pline","Draw post line",!bcStepOk(2)):btn("lot","Click inside lot",!S.lotSrc)+(S.exc.res&&S.exc.res.req?btn("xdrop","Drop excavation corner / side")+btn("xacross","Straight across (excavation)"):""))+"</span> <label class='cu-cb' title='Snap clicks to line ends and crossings'><input type='checkbox' id='bc-snap'"+(bcSnapOn()?" checked":"")+(S.scan?" disabled":"")+"> Snap</label>";
- h+=" <span class='seg'><button data-sc='plan' class='"+(S.scene==="plan"?"on":"")+"'>Plan</button><button data-sc='site' class='"+(S.scene==="site"?"on":"")+"'"+(S.lotSrc||bcJobF()?"":" disabled")+">Site</button></span> <button class='btn ghost' onclick='bcZoomAll()'>Whole drawing</button>"+(S.scene==="plan"?" <button class='btn ghost' onclick='bcRotate(0)' title='Turn the plan a quarter turn anticlockwise, so north is up'>⟲ Turn 90°</button> <button class='btn ghost' onclick='bcRotate(1)' title='Turn the plan a quarter turn clockwise, so north is up'>⟳ Turn 90°</button>":"");
+ h+=" <span class='seg'><button data-sc='plan' class='"+(S.scene==="plan"?"on":"")+"'>Plan</button><button data-sc='site' class='"+(S.scene==="site"?"on":"")+"'"+(S.lotSrc||bcJobF()?"":" disabled")+">Site</button></span> <button class='btn ghost' onclick='bcZoomAll()'>Whole drawing</button>"+(S.scene==="plan"||S.out?" <button class='btn ghost' onclick='bcRotate(0)' title='Turn the architect’s plan a quarter turn anticlockwise, so it reads north-up like the lot'>⟲ Turn "+(S.scene==="site"?"house ":"")+"90°</button> <button class='btn ghost' onclick='bcRotate(1)' title='Turn the architect’s plan a quarter turn clockwise, so it reads north-up like the lot'>⟳ Turn "+(S.scene==="site"?"house ":"")+"90°</button>":"");
  if(S.scene==="plan"&&S.out)h+=" <button class='btn ghost' onclick='bcZoomOutline()'>Zoom to outline</button>";h+="</div>";
  var tip={pan:S.out&&S.scene==="plan"?"Drag a <b>corner</b> or the <b>middle of a side</b> of the orange outline to adjust it (it snaps to line corners; sides stay square). Drag elsewhere to move the view, scroll to zoom.":"Drag to move, scroll to zoom.",scale:(!S.scl.a?"Click the <b>first end ①</b> of a dimension you trust.":!S.scl.b?"<b>① is placed.</b> Now click the <b>second end ②</b>.":"<b>① and ② are placed</b> — type the length in step 1 and Set scale. Drag either end to adjust; click elsewhere to start again.")+" A green square means you’re on a corner / line end (✕ = a crossing).",outline:"Click the foundation wall, or inside the foundation — the outline is followed round automatically.",trace:"Click each outside corner of the foundation in turn (snaps to line corners); click the first corner again or Finish to close.",
   drop:"Click a <b>corner</b> to take it out, click the <b>middle of a side</b> to take that side out (both its corners go), or <b>drag a box</b> round several corners. The sides either side join up square.",redo:bcRedoTip(),across:"Click two corners — the corners between them (the shorter way round) are taken out and the side runs straight across.",
@@ -7168,7 +7168,7 @@ function bcStepsHtml(){var S=bcS,E=esc,k=S.k,h="";
  b+=bcTxHtml();
  if(bcUnlocked(7)){var rows=bcRows(),kp=bcKnownPts(),nd=kp.filter(function(p){return p.src==="drawing";}).length;b+="<div class='hint'>"+rows.length+" points: "+rows[0].pt+"–"+rows[rows.length-1].pt+" · checked against "+(kp.length-nd)+" point"+(kp.length-nd===1?"":"s")+" on the shelf"+(S.lotSrc?" and "+nd+" in our lot drawing":"")+"</div>";
   var cl=bcClashes();if(cl.length)b+="<div class='cu-pkgwarn' style='display:block'>"+cl.length+" of these numbers are already used ("+cl.slice(0,10).join(", ")+(cl.length>10?" …":"")+"). <button class='cd-mini' onclick='bcS.o.start=String(bcStartDefault());bcRender()'>Use "+bcStartDefault()+" and up</button></div>";}
- b+="<div class='bc-act'><button class='btn pri' onclick='bcSave(\"txt\")'>Points (.txt)</button> <button class='btn pri' onclick='bcSave(\"dxf\")'>DXF (calc only)</button> <button class='btn' onclick='bcSave(\"sum\")'>Summary</button></div>"+(S.lotSrc&&S.lotSrc.text?"<div class='bc-act'><button class='btn pri' onclick='bcSave(\"merge\")'>Our drawing + calc (.dxf)</button> <span class='hint' style='margin:0'>"+E(S.lotFile.name)+" — its lines, text and points on their layers with the calc added, in a plain DXF any CAD program opens and saves</span></div>":"");
+ b+="<div class='bc-act'><button class='btn pri' onclick='bcSave(\"txt\")'>Points (.txt)</button> <button class='btn pri' onclick='bcSave(\"dxf\")'>DXF (calc only)</button> <button class='btn' onclick='bcSave(\"sum\")'>Summary</button></div>"+(S.lotSrc&&S.lotSrc.text?"<div class='bc-act'><button class='btn pri' onclick='bcSave(\"merge\")'>Lot lines + calc (.dxf)</button> <span class='hint' style='margin:0'>only the lot lines from "+E(S.lotFile.name)+(bcLotLayer()?" (layer "+E(bcLotLayer())+")":"")+" with the calc added — nothing else from that drawing comes across</span></div>":"");
  h+=bcCard(7,"Output",b,"");h+=bcElHtml();
  return h;}
 function bcWire(host){var S=bcS,g=function(id){return document.getElementById(id);};
@@ -7267,15 +7267,7 @@ function bcDraw(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S||!S.s
     S.posts.lines.forEach(function(l){ring([f([l[0][0]*k,l[0][1]*k]),f([l[1][0]*k,l[1][1]*k])],"#7C3AED",1.5,[6,4],false);});}
    if(S.place&&S.place.rep){S.place.rep.forEach(function(r){var c=r.c,sd=S.lot.sides[c.side],pts=c.kind==="face"?[c.i,c.j]:[c.i];pts.forEach(function(ix){var p=Hj[ix],q=bcFoot(sd,p);g.strokeStyle=r.err>0.002?"#a86400":"#2a8a3a";g.lineWidth=1;g.setLineDash([2,2]);g.beginPath();g.moveTo(X(p[0]),Y(p[1]));g.lineTo(X(q[0]),Y(q[1]));g.stroke();g.setLineDash([]);});});}}
   if(S.exc.res)ring(S.exc.res.P,"#0F766E",2,[8,4],true,function(i){return /^x(drop|across)$/.test(S.mode)?String(i+1):"";});bcDrawExtra(g,X,Y,V);
-  S._inset=null;if(S.out&&S.k){var Hp=S.out.P,bb=bcBox(Hp),IW=Math.min(300,W*0.36),IH=Math.min(300,H*0.5),x0=W-IW-10,y0=10,pad=26,sc=Math.min((IW-2*pad)/Math.max(1e-9,bb[2]-bb[0]),(IH-2*pad-16)/Math.max(1e-9,bb[3]-bb[1]));
-   var ix=function(p){return [x0+IW/2+(p[0]-(bb[0]+bb[2])/2)*sc,y0+16+(IH-16)/2-(p[1]-(bb[1]+bb[3])/2)*sc];};
-   g.fillStyle="rgba(255,255,255,.96)";g.fillRect(x0,y0,IW,IH);g.strokeStyle="#9aa3ad";g.lineWidth=1;g.strokeRect(x0+.5,y0+.5,IW,IH);
-   g.fillStyle="#555";g.font="bold 11px sans-serif";g.fillText("HOUSE AS ON THE PLAN — click a corner",x0+8,y0+14);
-   g.strokeStyle="#C2410C";g.lineWidth=2;g.beginPath();Hp.forEach(function(p,i){var q=ix(p);if(i)g.lineTo(q[0],q[1]);else g.moveTo(q[0],q[1]);});g.closePath();g.stroke();
-   var cen=[(bb[0]+bb[2])/2,(bb[1]+bb[3])/2],pts=[],sel={};(S.sb||[]).forEach(function(r,ri){if(S.sbFocus&&S.sbFocus.row===ri){if(r.h)sel[r.h]=1;if(r.h2)sel[r.h2]=1;}});
-   Hp.forEach(function(p,i){var q=ix(p),d=[q[0]-(x0+IW/2),q[1]-(y0+16+(IH-16)/2)],L=Math.hypot(d[0],d[1])||1,lx=q[0]+d[0]/L*11,ly=q[1]+d[1]/L*11,on=sel[String(i+1)];
-    g.fillStyle=on?"#2456A6":"#C2410C";g.beginPath();g.arc(q[0],q[1],on?4.5:3,0,7);g.fill();g.font=(on?"bold 13px":"bold 11px")+" sans-serif";var t=String(i+1),tw=g.measureText(t).width;g.fillText(t,lx-tw/2,ly+4);pts.push([q[0],q[1],i]);});
-   S._inset={box:[x0,y0,IW,IH],pts:pts};}}
+  bcDrawInset(g,W,H);}
  }
 function bcLinesOf(P){return P.map(function(a,k){var b=P[(k+1)%P.length],v=cdSub(b,a),L=Math.hypot(v[0],v[1])||1;return {p:a.slice(),d:[v[0]/L,v[1]/L]};});}
 function bcLX(L1,L2){var den=cdCross(L1.d,L2.d);if(Math.abs(den)<1e-12)return null;var t=cdCross(cdSub(L2.p,L1.p),L2.d)/den;return [L1.p[0]+L1.d[0]*t,L1.p[1]+L1.d[1]*t];}
@@ -7305,8 +7297,8 @@ function bcPlineSnap(q){var S=bcS,V=S.view.plan;if(!V)return null;var tol=12/V.s
  return null;}
 function bcSnapPlan(q,px){var f=bcSnapFind(q,px);return f?f.p:q;}
 function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src)return;bcDraw();var drag=null;
- cv.onwheel=function(e){e.preventDefault();var V=S.view[S.scene];if(!V)return;var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,W=cv.clientWidth,H=cv.clientHeight,ex=V.cx+(mx-W/2)/V.s,ny=V.cy-(my-H/2)/V.s,kk=e.deltaY<0?1.25:0.8;V.s*=kk;V.cx=ex-(mx-W/2)/V.s;V.cy=ny+(my-H/2)/V.s;bcDraw();};
- cv.onmousedown=function(e){drag={x:e.clientX,y:e.clientY,moved:false};
+ cv.onwheel=function(e){e.preventDefault();var V=S.view[S.scene];if(!V)return;if(bcInsetWheel(e,cv))return;var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,W=cv.clientWidth,H=cv.clientHeight,ex=V.cx+(mx-W/2)/V.s,ny=V.cy-(my-H/2)/V.s,kk=e.deltaY<0?1.25:0.8;V.s*=kk;V.cx=ex-(mx-W/2)/V.s;V.cy=ny+(my-H/2)/V.s;bcDraw();};
+ cv.onmousedown=function(e){drag={x:e.clientX,y:e.clientY,moved:false};if(bcInsetHit(e,cv)){drag.ins=true;return;}
   /* Measure: grab either end and drag it */
   if(S.scene==="plan"&&S.mode==="scale"){var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,V=S.view.plan,W=cv.clientWidth,H=cv.clientHeight;
    ["a","b"].forEach(function(k){var q=S.scl[k];if(!q||!V||drag.end)return;var x=W/2+(q[0]-V.cx)*V.s,y=H/2-(q[1]-V.cy)*V.s;if(Math.hypot(x-mx,y-my)<=10)drag.end=k;});}
@@ -7316,10 +7308,12 @@ function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src
    if(S.scene==="plan"&&/^(scale|trace|pline|postc|redo)$/.test(S.mode)){var sf=S.mode==="pline"?bcPlineSnap(hq):bcSnapFind(hq,10);S.hover={p:sf?sf.p:hq,k:sf?sf.k:null};if(!S.hoverRaf){S.hoverRaf=1;(window.requestAnimationFrame||setTimeout)(function(){S.hoverRaf=0;bcDraw();});}}else if(S.hover){S.hover=null;bcDraw();}
    var on=false;if(S.scene==="plan"&&S.mode==="scale"&&S.view.plan){var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,V=S.view.plan,W=cv.clientWidth,H=cv.clientHeight;["a","b"].forEach(function(k){var q=S.scl[k];if(q&&Math.hypot(W/2+(q[0]-V.cx)*V.s-mx,H/2-(q[1]-V.cy)*V.s-my)<=10)on=true;});}if(!on&&S.scene==="plan"&&S.mode==="pan"&&S.out){var oh2=bcOutlineHit(e.clientX-bb.left,e.clientY-bb.top);if(oh2)on=true;}if(!on&&bcXHover(e,cv))on=true;cv.style.cursor=on?"move":"";return;}var V=S.view[S.scene],dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;if(!drag.moved||!V)return;
   if(drag.box){var b5=cv.getBoundingClientRect();drag.boxEnd=bcToSrc(e.clientX-b5.left,e.clientY-b5.top);S.dropBox=[drag.box,drag.boxEnd];bcDraw();return;}
+  if(drag.ins){bcInsetPan(dx,dy);drag.x=e.clientX;drag.y=e.clientY;return;}
   if(drag.xh){bcXDragMove(e,drag,cv);return;}
   if(drag.oh){var b3=cv.getBoundingClientRect(),rq3=bcToSrc(e.clientX-b3.left,e.clientY-b3.top),sf3=bcSnapFind(rq3,10),q3=sf3?sf3.p:rq3;S.hover=sf3?{p:sf3.p,k:sf3.k}:null;
    S.out.P=drag.oh.kind==="corner"?bcMoveCorner(drag.P0,drag.oh.i,q3):bcMoveSide(drag.P0,drag.oh.i,q3,drag.q0);bcDraw();return;}
   if(drag.end){var b=cv.getBoundingClientRect(),rq=bcToSrc(e.clientX-b.left,e.clientY-b.top),sf=bcSnapFind(rq,10);S.scl[drag.end]=sf?sf.p:rq;S.hover={p:S.scl[drag.end],k:sf?sf.k:null};bcDraw();return;}V.cx-=dx/V.s;V.cy+=dy/V.s;drag.x=e.clientX;drag.y=e.clientY;bcDraw();};
+ cv.ondblclick=function(e){if(bcInsetHit(e,cv)){S.insetV=null;bcDraw();}};
  cv.onmouseleave=function(){drag=null;if(S.hover){S.hover=null;bcDraw();}};
  cv.onmouseup=function(e){var was=drag;drag=null;
   if(was&&was.box){S.dropBox=null;if(was.moved){if(S.scene==="site")bcXDropBox(was.box,was.boxEnd);else bcDropBox(was.box,was.boxEnd);return;}}
@@ -7328,7 +7322,7 @@ function bcCanvas(){var S=bcS,cv=document.getElementById("bc-cv");if(!cv||!S.src
     var newP=bcClean(O.P);O.P=was.P0;bcEditPush(newP,(was.oh.kind==="corner"?"moved corner "+(was.oh.i+1):"moved side "+(was.oh.i+1)+"–"+((was.oh.i+1)%was.P0.length+1))+" ("+mv.toFixed(3)+" m)");}else bcDraw();return;}
   if(was&&was.end&&was.moved){var b0=cv.getBoundingClientRect();S.scl[was.end]=bcSnapPlan(bcToSrc(e.clientX-b0.left,e.clientY-b0.top),10);bcRender();return;}
   if(was&&was.moved)return;var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,q=bcToSrc(mx,my),m=S.mode;
-  if(S.scene==="site"){if((m==="xdrop"||m==="xacross")&&S.exc.res&&!(S._inset&&mx>=S._inset.box[0]&&mx<=S._inset.box[0]+S._inset.box[2]&&my>=S._inset.box[1]&&my<=S._inset.box[1]+S._inset.box[3])){bcXClick(q,m);return;}if(S._inset){var IB=S._inset.box;if(mx>=IB[0]&&mx<=IB[0]+IB[2]&&my>=IB[1]&&my<=IB[1]+IB[3]){var bh=null,bd=14;S._inset.pts.forEach(function(t){var d=Math.hypot(t[0]-mx,t[1]-my);if(d<bd){bd=d;bh=t[2];}});if(bh!==null&&S.lot&&S.lot.ok)bcSbFill("h",String(bh+1));return;}}
+  if(S.scene==="site"){if((m==="xdrop"||m==="xacross")&&S.exc.res&&!(S._inset&&mx>=S._inset.box[0]&&mx<=S._inset.box[0]+S._inset.box[2]&&my>=S._inset.box[1]&&my<=S._inset.box[1]+S._inset.box[3])){bcXClick(q,m);return;}if(S._inset){var IB=S._inset.box;if(mx>=IB[0]&&mx<=IB[0]+IB[2]&&my>=IB[1]&&my<=IB[1]+IB[3]){if(bcInsetBtn(mx,my))return;var bh=null,bd=14;S._inset.pts.forEach(function(t){var d=Math.hypot(t[0]-mx,t[1]-my);if(d<bd){bd=d;bh=t[2];}});if(bh!==null&&S.lot&&S.lot.ok)bcSbFill("h",String(bh+1));return;}}
    if(m==="lot"){bcLotAt(q);return;}
    if(S.lot&&S.lot.ok){var V2=S.view.site,bs=null,bsd=12/V2.s;S.lot.sides.forEach(function(sd,si){var d=Math.abs(bcSideDist(sd,q));var on=sd.arc?true:(function(){var v=cdSub(sd.b,sd.a),t=cdDot(cdSub(q,sd.a),v)/cdDot(v,v);return t>-0.05&&t<1.05;})();if(on&&d<bsd){bsd=d;bs=si;}});if(bs!==null)bcSbFill("side",String(bs));}
    return;}
@@ -7539,8 +7533,8 @@ function bcRotate(cw){var S=bcS,src=S&&S.src;if(!src)return;cw=!!cw;var seen=new
   var old=O.P,neu=bcOrder(old),map={};old.forEach(function(p,i){map[String(i+1)]=String(neu.indexOf(p)+1);});O.P=neu;O.axis=bcAxis(neu);
   S.sb.forEach(function(r){if(map[r.h])r.h=map[r.h];if(map[r.h2])r.h2=map[r.h2];});}
  S.posts.list.forEach(function(p){R(p.c);var w=p.w;p.w=p.h;p.h=w;});R(S.posts.lines);if(S.posts.shape){R(S.posts.shape.c);var sw=S.posts.shape.w;S.posts.shape.w=S.posts.shape.h;S.posts.shape.h=sw;}S.posts.pend=null;S.posts.c1=null;
- R(S.scl.a);R(S.scl.b);R(S.trace);S.place=null;S.exc.res=null;S.view.plan=null;S.hover=null;S.dropBox=null;S.acrossA=null;S.scene="plan";
- S.msg="Plan turned a quarter turn "+(cw?"clockwise":"anticlockwise")+(src.rot?" (now "+src.rot+"° clockwise from the sheet)":" (back as on the sheet)")+"."+(O?" Corner 1 is the south-west corner again"+(had?"; the setback rows follow their corners — Calculate and work out the excavation again.":"."):"");
+ R(S.scl.a);R(S.scl.b);R(S.trace);S.place=null;S.exc.res=null;S.view.plan=null;S.hover=null;S.dropBox=null;S.acrossA=null;S.insetV=null;S.redo=null;
+ S.msg=(S.scene==="site"?"House plan":"Plan")+" turned a quarter turn "+(cw?"clockwise":"anticlockwise")+(src.rot?" (now "+src.rot+"° clockwise from the sheet)":" (back as on the sheet)")+"."+(O?" Corner 1 is the south-west corner again"+(had?"; the setback rows follow their corners — Calculate and work out the excavation again.":"."):"");
  bcRender();setTimeout(bcDraw,0);}
 ["bcRotate"].forEach(function(n){window[n]=eval(n);});
 
@@ -7576,6 +7570,29 @@ function bcDrawRedo(g,X,Y){var S=bcS,R=S.redo,O=S.out;if(!R||!O||R.a===null)retu
  var path=[P[R.a]].concat(R.pts);if(S.hover)path.push(S.hover.p);else path.push(P[R.b]);g.strokeStyle="#2456A6";g.lineWidth=2;g.beginPath();path.forEach(function(p,k){if(k)g.lineTo(X(p[0]),Y(p[1]));else g.moveTo(X(p[0]),Y(p[1]));});g.stroke();
  g.fillStyle="#2456A6";R.pts.forEach(function(p){g.beginPath();g.arc(X(p[0]),Y(p[1]),3.5,0,7);g.fill();});}
 ["bcRedoFinish","bcRedoUndo","bcRedoCancel"].forEach(function(n){window[n]=eval(n);});
+
+/* ---- 1.41.19: the small "house as on the plan" on the Site view zooms, pans and can be made bigger ---- */
+function bcDrawInset(g,W,H){var S=bcS;S._inset=null;if(!S.out||!S.k)return;var Hp=S.out.P,bb=bcBox(Hp),big=!!S.insetBig,IW=big?Math.min(W-20,Math.max(300,W*0.62)):Math.min(300,W*0.36),IH=big?Math.min(H-20,Math.max(300,H*0.82)):Math.min(300,H*0.5),x0=W-IW-10,y0=10,pad=26,
+ sc0=Math.min((IW-2*pad)/Math.max(1e-9,bb[2]-bb[0]),(IH-2*pad-30)/Math.max(1e-9,bb[3]-bb[1])),key=Hp.length+"|"+bb.map(function(v){return v.toFixed(3);}).join(",");
+ if(!S.insetV||S.insetV.key!==key)S.insetV={z:1,cx:(bb[0]+bb[2])/2,cy:(bb[1]+bb[3])/2,key:key};var Z=S.insetV,sc=sc0*Z.z,ccx=x0+IW/2,ccy=y0+30+(IH-30)/2,ix=function(p){return [ccx+(p[0]-Z.cx)*sc,ccy-(p[1]-Z.cy)*sc];};
+ g.fillStyle="rgba(255,255,255,.97)";g.fillRect(x0,y0,IW,IH);g.strokeStyle="#9aa3ad";g.lineWidth=1;g.strokeRect(x0+.5,y0+.5,IW,IH);
+ g.fillStyle="#555";g.font="bold 11px sans-serif";g.fillText("HOUSE AS ON THE PLAN — click a corner",x0+8,y0+14);g.font="10px sans-serif";g.fillStyle="#777";g.fillText("scroll to zoom · drag to move · double-click to reset",x0+8,y0+26);
+ var bx=x0+IW-58,by=y0+3;g.strokeStyle="#9aa3ad";g.strokeRect(bx+.5,by+.5,52,15);g.fillStyle="#2456A6";g.font="bold 10px sans-serif";g.fillText(big?"Smaller":"Bigger",bx+(big?6:9),by+11);
+ g.save();g.beginPath();g.rect(x0+1,y0+30,IW-2,IH-31);g.clip();
+ g.strokeStyle="#C2410C";g.lineWidth=2;g.beginPath();Hp.forEach(function(p,i){var q=ix(p);if(i)g.lineTo(q[0],q[1]);else g.moveTo(q[0],q[1]);});g.closePath();g.stroke();
+ var hc=ix([(bb[0]+bb[2])/2,(bb[1]+bb[3])/2]),pts=[],sel={};(S.sb||[]).forEach(function(r,ri){if(S.sbFocus&&S.sbFocus.row===ri){if(r.h)sel[r.h]=1;if(r.h2)sel[r.h2]=1;}});
+ Hp.forEach(function(p,i){var q=ix(p),d=[q[0]-hc[0],q[1]-hc[1]],L=Math.hypot(d[0],d[1])||1,lx=q[0]+d[0]/L*11,ly=q[1]+d[1]/L*11,on=sel[String(i+1)];
+  g.fillStyle=on?"#2456A6":"#C2410C";g.beginPath();g.arc(q[0],q[1],on?4.5:3,0,7);g.fill();g.font=(on?"bold 13px":"bold 11px")+" sans-serif";var t=String(i+1),tw=g.measureText(t).width;g.fillText(t,lx-tw/2,ly+4);
+  if(q[0]>=x0&&q[0]<=x0+IW&&q[1]>=y0+30&&q[1]<=y0+IH)pts.push([q[0],q[1],i]);});
+ g.restore();S._inset={box:[x0,y0,IW,IH],pts:pts,sc:sc,c:[ccx,ccy],btn:[bx,by,52,15]};}
+function bcInsetHit(e,cv){var S=bcS;if(S.scene!=="site"||!S._inset)return false;var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,B=S._inset.box;return mx>=B[0]&&mx<=B[0]+B[2]&&my>=B[1]&&my<=B[1]+B[3];}
+function bcInsetWheel(e,cv){var S=bcS;if(!bcInsetHit(e,cv)||!S.insetV)return false;var b=cv.getBoundingClientRect(),mx=e.clientX-b.left,my=e.clientY-b.top,I=S._inset,Z=S.insetV,wx=Z.cx+(mx-I.c[0])/I.sc,wy=Z.cy-(my-I.c[1])/I.sc,z2=Math.max(1,Math.min(60,Z.z*(e.deltaY<0?1.25:0.8))),s2=I.sc*z2/Z.z;
+ Z.z=z2;Z.cx=wx-(mx-I.c[0])/s2;Z.cy=wy+(my-I.c[1])/s2;bcDraw();return true;}
+function bcInsetPan(dx,dy){var S=bcS,I=S._inset,Z=S.insetV;if(!I||!Z)return;Z.cx-=dx/I.sc;Z.cy+=dy/I.sc;bcDraw();}
+function bcInsetBtn(mx,my){var S=bcS,B=S._inset&&S._inset.btn;if(!B||mx<B[0]||mx>B[0]+B[2]||my<B[1]||my>B[1]+B[3])return false;S.insetBig=!S.insetBig;bcDraw();return true;}
+
+/* ---- 1.41.20: the layer the lot lines are on in our own drawing ---- */
+function bcLotLayer(){var S=bcS;return (S.lot&&S.lot.lay)||S.lotLay||null;}
 
 /* ---------- Coordinate design (1.40) — the Points-tab panel and viewer ---------- */
 var cdS=null;

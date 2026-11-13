@@ -1,5 +1,20 @@
 # Elevate Office — changelog
 
+## Build 1.41.20 — 2026-11-13
+- **Building calc › Lot lines + calc (.dxf) replaces Our drawing + calc (change).** Bringing the whole lot drawing across made a mess on a full job file: on *24-2627-HOUSE-test* it carried 6,259 objects, including the sheet frames and title blocks drawn in model space.
+  - **Now:** the file has only the lot lines from our drawing (the layer the lot was picked on, e.g. EX_LOT_LINES) plus the calc layers. No text, points, frames or anything else comes across.
+  - **File name:** `…-LOT-LINES-WITH-CALC.dxf`. *DXF (calc only)* is unchanged.
+  - **Checked on *24-2627-HOUSE-test*:** 11 lot lines on EX_LOT_LINES plus the calc, 56 objects instead of 6,259, about 10 KB instead of 2 MB. Read back in an independent CAD reader with zero errors and saved again. Not yet opened in MicroSurvey.
+
+## Build 1.41.19 — 2026-11-13
+- **Building calc › The small house plan on the Site view zooms (new).** On a building with many corners, the numbered *house as on the plan* was too small to read.
+  - **Scroll** over it to zoom in on the spot under the cursor, **drag** inside it to move it, **double-click** to reset.
+  - **Bigger / Smaller** (top-right of the box) switches it to a large version that covers most of the Site view.
+  - Clicking a corner still fills the House box of the setback row. The lot drawing behind it doesn't move while you work in the box.
+- **Building calc › Turn the house from the Site view (new).** The two **Turn house 90°** buttons are now on the Site toolbar as well, where the building is placed into the lot, and you stay on the Site view. It's the same quarter turn as on the Plan view: corner 1 becomes the south-west corner again and filled setback rows follow their corners.
+- Includes everything in 1.41.18. That build went out three times under the same number, so browsers that already had it showed no update bar; this number makes the bar appear.
+- **Checked:** zoom, pan, reset and Bigger on the test house; the turn from the Site view; and every 1.41.18 check again on this build.
+
 ## Build 1.41.18 — 2026-11-13
 - **Building calc › Edit the excavation by hand (new).** Once the excavation is worked out, open the **Site** view to tidy it the way the excavator will dig it.
   - **Drop excavation corner:** click a corner, or drag a box round several. The side squares off to the **outside**, so a small jog beside a post becomes one straight side with a single corner at the end.
