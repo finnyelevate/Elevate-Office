@@ -1,5 +1,33 @@
 # Elevate Office — changelog
 
+## Build 1.41.25 — 2026-11-16
+From the first strata DXF saved off the Delta plan (9362 114 Street, basement).
+- **Strata › Strata line at the centre of the structural wall, not the wall plus its furring (fix).** On this plan the outside wall is 8" concrete with a furred wall drawn 4" inside it. The tool read the two together as a 12" wall and put the line 0.152 m in from the outside face, which is three quarters of the way through the concrete, towards the inside.
+  - **Now:** where the first line in from the outline is already a whole wall away (12 to 27 cm), that is taken as the structural wall and anything drawn further in is left out. On this plan every side now reads 8" (0.203 m) with the line 0.101 m in, and 13 of 14 sides are read from the drawing (was 7).
+  - The message after *Measure* says when a furred wall or finish was left out, so it can be checked.
+  - Wood-frame walls with cladding lines (25-3402 Levels 1 and 2) are read as before; their figures are unchanged.
+- **Strata › TA= only when there is more than one floor (change).** TA is each lot's total over all its floors, lettered once, on the floor chosen in step 7. With one floor saved the DXF no longer letters a TA that just repeats the floor's own area. Step 7 says so until a second floor is saved.
+- **Also in this build:** everything listed under 1.41.24 below (that build went out in chat only, a few minutes earlier).
+- **Checked:** Delta plan, strata line against the drawn wall lines on all 14 sides; one floor saved gives no TA, two floors give one TA per lot. 25-3402 re-run with the same figures on all three floors (TA 315.5 against 315.7). Building layout tests unchanged (31). Not yet opened in MicroSurvey.
+- **To know:** one side on the Delta plan (the short one beside the sunken well) still takes the usual wall and shows as assumed. The small LCP pieces round the sunken well in that DXF letter on top of each other at 1:150; that isn't changed here.
+
+## Build 1.41.24 — 2026-11-16
+Strata party walls, worked through on a second plan (9362 114 Street, Delta duplex, basement sheet), where the walls are drawn as lines with a dot pattern instead of solid shading.
+- **Strata › One click now works on walls drawn as lines (fix).** On this plan the one click found nothing to follow and asked for a second point, and the two clicks then centred on only one half of the double wall, so the line sat off to one side.
+  - **Now:** the click looks at the lines either side of it and takes the set that is the same on both sides of its middle. On this plan that is the whole double wall, 0.432 m across (two 8" walls and the gap), with the line at its middle.
+  - It doesn't matter whether the click lands in the gap, on a face line or on the outer face: all five places tried gave the same line.
+  - The message says the width was read from lines and to check it is the whole wall.
+- **Strata › Step 4 is now "Party walls & strata lots" (change).** Outside walls are their own step 3 (*Measure*, then confirm). Step 4 opens with **Select party wall** already switched on, and the toolbar button has the same name.
+- **Strata › Draw wall line (new, replaces Wall by hand).** Draw the line that separates two lots yourself: click at one edge of the outline, any corners in between, and the other edge.
+  - The line is used exactly as drawn and is trimmed or extended to the outline. Clicking past the edge is fine.
+  - It finishes by itself once it runs from edge to edge. A line that doesn't cross a lot is refused and nothing is added.
+  - It goes on the `SL` layer as a solid line and is listed as *drawn by hand* in step 4.
+- **Strata › Drag a wall line to move it (new).** In *Move*, drag any party wall line sideways. It's listed as *moved by hand*. A move that would stop it cutting a lot is refused.
+- **Strata › Undo (new).** *↶ Undo* on the toolbar and in steps 4 to 6 takes back the last thing done on the floor, one at a time, up to 60: a wall selected, drawn, moved or removed, an LCP or non-habitable area, a side-wall setting, a wall measure. While a line or trace is half drawn it takes back the last point. *Remove all walls* and *Remove all* (areas) clear a list in one go, and Undo brings them back.
+  - Undo covers the strata steps only. The outline in step 2 keeps its own Undo, as before.
+- **Checked:** on the Delta plan, one click, drag, Draw wall line, Undo and Remove all (15 checks). 25-3402 re-run with the same figures as 1.41.23 on all three floors (TA 315.5 against 315.7). Building layout tests unchanged. Not yet opened in MicroSurvey.
+- **To know:** on the Delta plan *Measure* read the outside walls on 7 of 14 sides and marked the rest assumed; those sides want a look before the plan is used. The outline there was set to the 14 corners from the screenshot (247.6 m² against 249.3 on screen), so areas on that plan are not a check of anything.
+
 ## Build 1.41.23 — 2026-11-16
 - **Strata › One click follows the whole wall (change).** In 1.41.22 a wall that stepped sideways had to be clicked at each jog, which defeated the point.
   - **Now:** tap *Wall between lots* and click once anywhere on the wall. It's followed from one side of the building to the other, through door openings and sideways steps, and the strata line goes down its middle with the jogs put in square.
