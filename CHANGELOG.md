@@ -1,5 +1,49 @@
 # Elevate Office — changelog
 
+## Build 1.41.23 — 2026-11-16
+- **Strata › One click follows the whole wall (change).** In 1.41.22 a wall that stepped sideways had to be clicked at each jog, which defeated the point.
+  - **Now:** tap *Wall between lots* and click once anywhere on the wall. It's followed from one side of the building to the other, through door openings and sideways steps, and the strata line goes down its middle with the jogs put in square.
+  - **A wall that passes through several lots cuts each of them.** One click on the basement suite wall of 25-3402 split both lots into their main part and secondary suite, with both 0.14 m jogs.
+  - **Clicking a wall that's already in** adds nothing and says so.
+  - **Where the plan doesn't shade the wall,** the one click can't follow it. The tool then asks for a second point along the wall, as before. *Wall with jogs* is renamed *Wall by hand* and is only for that case.
+- **Checked on 25-3402 with one click per wall:** the same figures as 1.41.22 on all three floors (basement parts 49.4 and 55.7, Level 1 102.6, Level 2 107.8, TA 315.5 against 315.7 on the finished plan). The drawn test floor and Building layout re-checked. Not yet opened in MicroSurvey.
+
+## Build 1.41.22 — 2026-11-16
+Strata plan, worked through on a real job: the architect's set for 25-3402 (4144 Price Crescent duplex) checked against our finished strata plan for the same job.
+- **Strata › Walls are read the way the plan draws them (change).**
+  - **Shaded walls:** where the plan fills its walls (concrete, party walls), the strata line goes at the middle of the shaded part. A double stud wall with a gap is read as one wall.
+  - **Wood-frame outside walls:** where the wall is lines only, the structural part is found behind the cladding and the strata line goes at the middle of the structure, not the middle of the whole wall. On Level 1 that put the line 0.125 m in from the outline, on a 0.154 m structure.
+  - **Odd readings aren't trusted:** a side that reads very differently from the rest (a counter or stair beside the wall) takes the usual wall instead and shows dashed orange as assumed.
+- **Strata › Wall with jogs (new).** For a wall that steps sideways, click at one end, at each jog and at the other end. Each straight run is centred on its own wall and the jog is put in square. *Wall between lots* is still two clicks for a straight wall; if those two clicks span a jog it says so instead of guessing.
+- **Strata › Parts of a lot, notes and TA (new).** The wall tools also split one lot into parts. Give both parts the same lot number and they're added together in the floor table. Each part can carry a note (e.g. *Secondary suite*), and one floor of your choice shows each lot's total as *TA=*.
+- **Strata › Pick outline takes the heaviest line under the click (change, Strata only).** On this architect's sheets that is the heavy line drawn round each floor, which gave a clean 12-corner outline on the basement and Level 1 with nothing to tidy. Building layout picks as before.
+- **Strata › The DXF matches our strata drawings (change).**
+  - **Layers** (still editable): `SL`, `SL ASSUMED (CHECK)`, `LCP`, `SL NH`, `SL_NO`, `AREA`, `DISTANCE`, `TEXT`, `TITLE`, and `A-WALL` for the picked outline.
+  - **Lettering:** lot numbers as *PT. SL 1* at one and a half times the text height, areas as *49.5 Sq.m.*, notes and *LCP SL 1* / *NH* on TEXT, LCP sides dimensioned. Strata starts at 1:150 with Leroy 80 (0.30 m text) and remembers its own scale, separate from Building layout.
+- **Checked against the finished 25-3402 strata plan** (figures there in brackets):
+  - Basement: parts 49.4 and 55.7 m² each side (49.5 and 55.8).
+  - Level 1: 102.6 m² (102.7). Level 2: 107.8 m² (107.7 by subtraction). TA 315.5 m² (315.7).
+  - Dimensions agree within 2 cm (7.21, 7.49, 7.52, 7.35, 2.54, 1.70, 5.68, 3.35, 0.86, 2.46, 0.14, 13.33, 7.54, 3.40) except the suite wall's jog, which the tool places 6 to 7 cm along the wall from where our drafter did (3.75 / 3.76 against 3.82 / 3.70).
+  - The DXF read back in an independent CAD reader with zero errors. Not yet opened in MicroSurvey.
+- **Still not in this version:** LCP and non-habitable areas weren't run on this job (only on the drawn test floor); floors aren't lined up with each other; a picked area can't be edited.
+
+## Build 1.41.21 — 2026-11-16
+- **Building calc › Strata plan (new).** A switch at the top of Building calc, *Building layout | Strata plan*, turns the same tool into a floor-by-floor strata calc. It builds on the method from the Auto strata prototype (wall centre lines from both faces of the wall) and uses everything Building calc already has: PDF or CAD plans, the scale check, the automatic outline with its edit tools, Turn 90°, and each page's work kept.
+  - **1 Scale and 2 Outline:** as for a building. Click the wall and the outline of the floor is followed; drop or redraw anything that isn't building (an attached deck or steps).
+  - **3 Walls & strata lots:**
+    - *Measure the walls from the drawing* finds the wall's second face beside each side of the outline and puts the strata line halfway. A side with only one face drawn uses the usual thickness you type and shows dashed orange as assumed, to check.
+    - Strata lines can go at the wall centres or on the outer face of the outside walls, and **Side wall** sets any one side by hand (a thickness, or the outer face).
+    - **Party wall:** click two points along the wall between two lots. Its other face is found, the line goes down the middle and the floor is split into lots. Lots are listed west to east with their areas; type the strata lot numbers and they're remembered for the next floor.
+  - **4 Non-habitable areas:** *pick* (click inside a garage slab, sunken well or crawl space and its outline is followed from the drawing's lines) or *trace* its corners. An area drawn to a wall's face is carried on to that wall's strata line. Each lot shows total, non-habitable and habitable area.
+  - **5 LCP:** the same pick or trace for decks, patios and porches, each assigned to a lot (the nearest by default).
+  - **6 Floors:** save each floor (Basement, Main floor, Upper floor, or your own name) and go to the next page. A table shows every lot on every floor with the habitable total.
+  - **7 Output:** no points file. *Strata DXF* has every saved floor side by side in metres: strata lines, assumed lines on their own layer, the wall's outer face, non-habitable and LCP outlines, lot numbers with areas, and each lot's sides to two decimals at the plot-scale lettering size. *Areas (.csv)* and *Summary* list the same figures. Layer names can be changed and are remembered (`CALC {date} STRATA LINES`, `… ASSUMED (CHECK)`, `… WALL FACE`, `… NON-HABITABLE`, `… LCP`, `… AREA`, `… DISTANCE`).
+- **Not in this version:**
+  - Floors are each on their own sheet coordinates, so there is no check yet that a strata line sits in the same place on every floor, and party walls aren't carried from one floor to the next.
+  - A picked area can't be edited; remove it and pick or trace it again.
+  - Garages aren't found automatically, and common property inside the building isn't handled.
+- **Checked:** on a drawn test duplex floor (walls 0.150 m, party wall 0.250 m, a garage, a deck and a patio): the measured walls, both lots at 93.911 m², the garage at 19.331 m² held to the strata lines, the two LCP areas, two saved floors, the CSV and Summary, and the DXF read back in an independent CAD reader with zero errors. Building layout re-checked and unchanged. **Not yet tried on a real architect's plan or opened in MicroSurvey.**
+
 ## Build 1.41.20 — 2026-11-13
 - **Building calc › Lot lines + calc (.dxf) replaces Our drawing + calc (change).** Bringing the whole lot drawing across made a mess on a full job file: on *24-2627-HOUSE-test* it carried 6,259 objects, including the sheet frames and title blocks drawn in model space.
   - **Now:** the file has only the lot lines from our drawing (the layer the lot was picked on, e.g. EX_LOT_LINES) plus the calc layers. No text, points, frames or anything else comes across.
