@@ -1,5 +1,16 @@
 # Elevate Office — changelog
 
+## Build 1.42.3 — 2026-11-17
+The rule behind this build: no gaps and no overlaps between the lots and the areas round them.
+- **Strata › An LCP drawn to the wall face runs on to the strata line (new).** Trace or pick an LCP to the outside face of the building wall and the side on the wall is moved square on to the strata line at the centre of that wall, so the LCP meets the lot with nothing between them. The message says when that happened. Non-habitable areas already did this; LCP now does too.
+  - A corner where two such sides meet lands on the corner of the strata lines.
+  - A side that only lines up with a wall past its end is left where it was drawn, so the area stays square.
+  - An area away from any wall is left exactly as traced.
+- **Strata › The same applies after an edit (new).** Drag a side or corner of an area back near a wall and it goes on to the strata line again.
+- **Strata › Overlaps are flagged (new).** In steps 5 and 6 a row shows "overlaps …" when an LCP laps more than 2 cm over a lot or another area, or two non-habitable areas lap over each other. Gaps between two areas that don't touch a wall are not detected; trace both to the same drawn line.
+- **Checked:** on the Delta basement, an LCP traced on the wall faces at an inside corner comes out square on the two strata lines (2.02 m²); a free-standing one is untouched; a side nudged 5 cm off the wall goes back; an LCP drawn across the wall into the lot is flagged (7 + 8 checks). The synthetic deck now reads 10.30 m² (4.00 m of wall × 0.075 m more than before), which is the intended change. All earlier checks unchanged, including 25-3402 (TA 315.5 against 315.7). Scripted browser, not by hand in Chrome. Not yet opened in MicroSurvey.
+- **To know:** areas already saved on a floor before this build keep their old edges; re-trace them or drag the side once to pick up the new rule.
+
 ## Build 1.42.2 — 2026-11-17
 From working through the Delta plan's LCPs: editing an area, what the buttons do, and Undo.
 - **Strata › The toolbar follows the step you're on (change).** There were 14 buttons, two of them just called "trace". Now there are six or so, and they work on whatever step is open:
