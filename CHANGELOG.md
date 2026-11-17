@@ -1,5 +1,12 @@
 # Elevate Office — changelog
 
+## Build 1.42.1 — 2026-11-17
+- **Design calc › Dragging a drawing onto the tab now loads it (fix).** In 1.42.0 a PDF dragged onto the Design calc tab gave "This PDF doesn't contain Elevate Office data, so it can't be imported." The app has one catch-all for dropped files that decides by tab where a file goes; it knew about Points and PM but not the new tab, so it treated the drawing as a checklist to import. Choosing the file with the button worked; dragging didn't.
+  - **Now:** a file dropped anywhere on the Design calc tab (on the drop zone or not) opens in the tool that is showing, and is loaded once.
+  - A drawing dropped on the Points tab is also loaded once now (it used to be read twice).
+  - The Checklists tab keeps its own message for a PDF that isn't an app-made checklist.
+- **Checked:** real drop events on the drop zone, elsewhere on the tab, on the Points drop zone and on Checklists (5 checks); the 20 tab checks from 1.42.0; Delta main floor, 25-3402 and Building layout tests unchanged. Scripted browser, not by hand in Chrome.
+
 ## Build 1.42.0 — 2026-11-17
 - **Design calc (new tab).** Everything that starts from someone else's drawing now has its own tab, next to Points. It holds three tools side by side:
   - **Coordinate design** (the engineer's design drawing),

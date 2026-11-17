@@ -848,7 +848,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.42.0";
+const BUILD="1.42.1";
 const NEWS=["Design calc (new tab): Coordinate design, Building layout and Strata plan have moved out of Points into their own tab. Pick the tool, then drop the engineer’s or architect’s drawing. Points keeps the points-file tools, including Design vs Field.", "Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
@@ -1889,7 +1889,7 @@ function doImport(){
 (function(){
  var dz=document.getElementById("dropzone"),depth=0;
  function onPoints(){var v=document.getElementById("v-cleanup");return v&&v.classList.contains("on");}
- window.addEventListener("dragenter",function(e){e.preventDefault();depth++;dz.textContent=onPoints()?"Drop points file or drawing package":(window.pmOnView&&pmOnView())?"Drop a Word quote or job details file":"Drop checklist file to import";dz.classList.add("show");});
+ window.addEventListener("dragenter",function(e){e.preventDefault();depth++;dz.textContent=onPoints()?"Drop points file or drawing package":(window.dcOn&&dcOn())?"Drop the drawing (or the job’s points file)":(window.pmOnView&&pmOnView())?"Drop a Word quote or job details file":"Drop checklist file to import";dz.classList.add("show");});
  window.addEventListener("dragover",function(e){e.preventDefault();});
  window.addEventListener("dragleave",function(e){depth--;if(depth<=0){depth=0;dz.classList.remove("show");}});
  window.addEventListener("drop",function(e){
@@ -1897,6 +1897,7 @@ function doImport(){
   var file=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
   if(!file)return;
   if(onPoints()){if(window.cuLoadFile)cuLoadFile(file);return;}
+  if(window.dcOn&&dcOn()){dcOpen(file,false);return;}
   if(window.pmOnView&&pmOnView()){if(window.PM&&PM.mode==="jobs"&&PM.key&&window.pmjDropFile)pmjDropFile(file);else pmImportFile(file);return;}
   var r=new FileReader();
   r.onload=function(){importFromText(r.result);};
@@ -7975,14 +7976,16 @@ function dcRender(){var host=document.getElementById("dc-body");if(!host)return;
 /* called whenever the Points tab redraws: the shelf may have changed */
 function dcSync(){if(dcOn())dcRender();}
 /* a file for this tab: a drawing opens in the tool that is showing; anything else is a points file for the shelf. jump = it was dropped in the Points tab */
-function dcOpen(file,jump){if(!/\.(dxf|dwg|pdf)$/i.test(file.name)){cuLoadFile(file);return;}
+var dcLast=null;
+function dcOpen(file,jump){/* the same drop can arrive from two handlers: take it once */var now=Date.now();if(dcLast&&dcLast.f===file&&now-dcLast.t<1500)return;dcLast={f:file,t:now};
+ if(!/\.(dxf|dwg|pdf)$/i.test(file.name)){cuLoadFile(file);return;}
  if(jump)dcGo("design");var dz=document.getElementById("dc-drop");if(dz)dz.classList.add("has");
  if(dcTool==="cd"){cdLoadFile(file);dcRender();return;}
  var lotNext=dcTool==="bc"&&typeof bcS!=="undefined"&&bcS&&bcS.src&&bcStepOk(2)&&bcStepOk(3)&&/\.(dxf|dwg)$/i.test(file.name);dcKindApply();bcLoadFile(file,lotNext?"lot":"plan");dcRender();}
-window.dcToolSet=dcToolSet;window.dcRender=dcRender;window.dcOpen=dcOpen;window.dcSync=dcSync;
+window.dcOn=dcOn;window.dcToolSet=dcToolSet;window.dcRender=dcRender;window.dcOpen=dcOpen;window.dcSync=dcSync;
 (function(){var dz=document.getElementById("dc-drop"),fi=document.getElementById("dc-file"),nb=document.querySelector("nav button[data-v='design']");
  if(dz){dz.addEventListener("dragover",function(e){e.preventDefault();dz.classList.add("over");});dz.addEventListener("dragleave",function(){dz.classList.remove("over");});
-  dz.addEventListener("drop",function(e){e.preventDefault();dz.classList.remove("over");if(e.dataTransfer.files[0])dcOpen(e.dataTransfer.files[0],false);});}
+  /* the file itself is taken by the app-wide drop handler (anywhere on the tab), so it is loaded once */dz.addEventListener("drop",function(){dz.classList.remove("over");});}
  if(fi)fi.addEventListener("change",function(e){if(e.target.files[0])dcOpen(e.target.files[0],false);fi.value="";});
  if(nb)nb.addEventListener("click",function(){dcRender();});})();
 
