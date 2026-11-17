@@ -494,6 +494,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
     <button data-v="samples">Samples</button>
     <button data-v="training">Training</button>
     <button data-v="cleanup">Points</button>
+    <button data-v="design">Design calc</button>
     <button data-v="pm">PM</button>
     <button data-v="auto">Auto</button>
     <button data-v="resources">Resources</button>
@@ -776,8 +777,15 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 <div class="view" id="v-cleanup">
   <h1 class="pg">Points — cleanup &amp; extraction</h1>
   <div class="warnline" style="max-width:760px">Descriptions only — point numbers, coordinates, and elevations are never touched, and the raw RW5 is never the input. Output files preserve the original delimiter, spacing, and line endings byte for byte outside the accepted changes. Extraction splits the cleaned file into a control + calc file and a client file (check shots drop from both).</div>
-  <div id="cu-drop" class="cu-drop">Drop points files (.txt / .csv / .asc), MicroSurvey drawing packages (.msz / .mbz) or raw data (.rw5) here — each one is added to the shelf; an engineer’s design drawing (.dxf / .dwg / .pdf) opens in Coordinate design (or in Building calc when you’re in it: the architect’s plan, then our lot drawing); re-dropping the same file name replaces it<br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="cu-file" accept=".txt,.csv,.asc,.dat,.msz,.mbz,.dbf,.rw5,.dxf,.dwg,.pdf,text/plain" style="display:none"></label></div>
+  <div id="cu-drop" class="cu-drop">Drop points files (.txt / .csv / .asc), MicroSurvey drawing packages (.msz / .mbz) or raw data (.rw5) here — each one is added to the shelf; a drawing (.dxf / .dwg / .pdf) dropped here opens in the Design calc tab; re-dropping the same file name replaces it<br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="cu-file" accept=".txt,.csv,.asc,.dat,.msz,.mbz,.dbf,.rw5,.dxf,.dwg,.pdf,text/plain" style="display:none"></label></div>
   <div id="cu-body"></div>
+</div>
+
+<div class="view" id="v-design">
+  <h1 class="pg">Design calc</h1>
+  <p class="sub">Calcs that start from someone else’s drawing — the engineer’s design or the architect’s plans. Pick the tool, then drop the drawing.</p>
+  <div id="dc-drop" class="cu-drop"><span id="dc-droptxt">Drop the drawing (.dxf / .dwg / .pdf) here.</span><br><label class="btn" style="margin-top:8px;display:inline-block">Choose file<input type="file" id="dc-file" accept=".dxf,.dwg,.pdf,.txt,.csv,.asc,.dat,.msz,.mbz,.dbf,text/plain" style="display:none"></label></div>
+  <div id="dc-body"></div>
 </div>
 
 <div class="view" id="v-pm">
@@ -840,8 +848,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.41.25";
-const NEWS=["Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
+const BUILD="1.42.0";
+const NEWS=["Design calc (new tab): Coordinate design, Building layout and Strata plan have moved out of Points into their own tab. Pick the tool, then drop the engineer’s or architect’s drawing. Points keeps the points-file tools, including Design vs Field.", "Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -4300,10 +4308,7 @@ function cuUnknowns(comp){
 }
 function cuRender(){
  var host=document.getElementById("cu-body");
- if(!cu.lines){if(cuDrawFile){var bcOn=cuTool==="bc",bar="<div class='cu-tools' style='margin-top:8px'><button data-t='cd' class='"+(bcOn?"":"on")+"'>Coordinate design</button><button data-t='bc' class='"+(bcOn?"on":"")+"'>Building calc</button></div><div class='cu-tooldesc'>"+esc(CU_TOOL_DESC[bcOn?"bc":"cd"])+"</div>";
-  if(bcOn){host.innerHTML=bar+"<div class='hint' style='margin:0 0 6px'>Drop the job’s points file too to number the lot corners and the new points above the job’s.</div><div class='cu-tv' data-t='bc'><div id='cu-bc'></div></div>";bcRender();setTimeout(bcDraw,0);}
-  else{host.innerHTML=bar+"<div class='hint' style='margin:0 0 6px'>Drop the job’s points file too if you want numbering above its points, placement by point number, or Design vs Field.</div><div class='cu-tv' data-t='cd'><div id='cu-cd'></div></div>";cdRender();setTimeout(cdDraw,0);}
-  host.querySelectorAll(".cu-tools button").forEach(function(b){b.onclick=function(){cuToolSet(b.dataset.t);cuRender();};});}else host.innerHTML="";return;}
+ if(!cu.lines){host.innerHTML="";dcSync();return;}
  var pts=cu.lines.filter(function(r){return r.point;}).length;
  var blanks=cu.lines.filter(function(r){return r.point&&r.desc.trim()==="";}).length;
  var h=cuShelfHtml();
@@ -4321,7 +4326,7 @@ function cuRender(){
  }
  h+="<div class='cu-manual'><h3>Add your own fix</h3><div class='row'><input type='text' id='cu-mf' placeholder='find' style='width:130px'> <span>\u2192</span> <input type='text' id='cu-mr' placeholder='replace' style='width:130px'> <label class='cu-cb'><input type='checkbox' id='cu-mw' checked> whole token</label> <input type='text' id='cu-mrange' placeholder='point range (optional)' style='width:150px'> <button class='btn' onclick='cuManAdd()'>Add rule</button></div><div id='cu-mprev' class='hint'></div></div>";
  h+="<div id='cu-review'></div><div id='cu-unknown'></div><div id='cu-out'></div></div>";
- [["scale","cu-scale"],["match","cu-match"],["cd","cu-cd"],["dvf","cu-dvf"],["bc","cu-bc"],["mon","cu-mon"],["tree","cu-tree"],["hc","cu-hc"],["tf","cu-tf"]].forEach(function(p){h+="<div class='cu-tv' data-t='"+p[0]+"'><div class='cu-vids' data-v='"+p[0]+"'></div><div id='"+p[1]+"'></div></div>";});
+ [["scale","cu-scale"],["match","cu-match"],["dvf","cu-dvf"],["mon","cu-mon"],["tree","cu-tree"],["hc","cu-hc"],["tf","cu-tf"]].forEach(function(p){h+="<div class='cu-tv' data-t='"+p[0]+"'><div class='cu-vids' data-v='"+p[0]+"'></div><div id='"+p[1]+"'></div></div>";});
  host.innerHTML=h;
  host.querySelectorAll(".cu-src").forEach(function(el){el.onclick=function(e){if(e.target.classList.contains("cu-srcx"))return;cuActivate(el.dataset.id);};});
  host.querySelectorAll(".cu-srcx").forEach(function(b){b.onclick=function(e){e.stopPropagation();cuShelfRemove(b.dataset.id);};});
@@ -4345,12 +4350,12 @@ function cuRender(){
  cuRenderReview();cuRenderScale();cuRenderMatch();cdRender();cuRenderDvf();bcRender();cuRenderMon();cuRenderTree();cuRenderTf();cuRenderHc();
  host.querySelectorAll(".cu-tools button").forEach(function(b){b.onclick=function(){cuToolSet(b.dataset.t);};});
  host.querySelectorAll(".cu-groups button").forEach(function(b){b.onclick=function(){cuGroupSet(b.dataset.g);};});
- cuToolsApply();
+ cuToolsApply();dcSync();
 }
 /* ---------- Points tab tool buttons (1.31): one tool shown at a time; the file shelf stays on top ---------- */
 var CU_TOOLS=[["clean","Clean-up"],["scale","Scale"],["match","Match points"],["cd","Coordinate design"],["dvf","Design vs Field"],["bc","Building calc"],["mon","Monitoring"],["tree","Tree table"],["hc","Height check"],["tf","Transform"]];
 var CU_TOOL_VIDS={clean:["Fixing tree sizes to imperial (Points tab)","Points upload for crew \u2014 example","RW5 file to points for a topo in feet (Points tab)"],match:["Points matching (Match points tab)","Points matching \u2014 PL sample"],dvf:["Design vs Field \u2014 comparing cut / fills (Points tab)","Design vs Field \u2014 cut / fill example (Points tab)","Design vs Field \u2014 comparing residuals (Points tab)"],bc:["House calc for new subdivision (Delta)"],tree:["Tree table (Points tab)"],hc:["Height check (Points tab)"]};
-var cuTool=(function(){try{var t=localStorage.getItem("eo:cutool");return CU_TOOLS.some(function(x){return x[0]===t;})?t:"clean";}catch(e){return "clean";}})();
+var cuTool=(function(){try{var t=localStorage.getItem("eo:cutool");return CU_TOOLS.some(function(x){return x[0]===t;})&&t!=="cd"&&t!=="bc"?t:"clean";}catch(e){return "clean";}})();
 function cuHasTrees(){try{return cuTreeRows().length>0;}catch(e){return false;}}
 function cuVidsHtml(t){var names=CU_TOOL_VIDS[t]||[];if(!names.length||typeof TRAINING==="undefined")return "";var all=[];TRAINING.forEach(function(g){all=all.concat(g.videos);});
  var v=names.map(function(n){return all.find(function(x){return x.t===n;});}).filter(Boolean);if(!v.length)return "";
@@ -4359,7 +4364,7 @@ function cuVidsHtml(t){var names=CU_TOOL_VIDS[t]||[];if(!names.length||typeof TR
 var CU_GROUPS=[
  {id:"topo",t:"Clean up a topo",d:"Before a topo goes out",tools:["clean","tree","hc"]},
  {id:"coord",t:"Scale & move points",d:"Ground ↔ grid, two files lined up",tools:["scale","match","tf"]},
- {id:"design",t:"Design & stakeout",d:"Engineer’s / architect’s drawings, cut / fills, house calcs",tools:["cd","dvf","bc","mon"]}];
+ {id:"design",t:"Stakeout & monitoring",d:"Cut / fills against the design, repeat shots over time",tools:["dvf","mon"]}];
 var CU_TOOL_DESC={clean:"Tidy the crew’s descriptions and codes, ready for the AutoMap.",tree:"Every tree point as a table, worded the way the AutoMap writes it.",hc:"Flags heights out of line with the points round them — before the drawing goes out.",
  scale:"Ground ↔ grid with the job’s combined scale factor.",match:"Pairs the same points in two files and shows how far apart they are.",tf:"Works out the shift / rotation / scale between two drawings and applies it.",
  cd:"Coordinates the engineer’s design elevation bubbles from their CAD file or PDF.",dvf:"Compares stakes with the design points — cut / fills and offsets for the crew’s descriptions.",bc:"A new building from the architect’s plan: outline, posts, fitted to our lot by setbacks, excavation.",mon:"Compares repeat shots of monitoring points over time."};
@@ -5876,9 +5881,7 @@ function cuLoadPackage(buf,name){
  }).catch(function(err){host.innerHTML="<div class='cu-err'>Couldn't read the package: "+esc(String(err.message||err))+"</div>";});
 }
 function cuLoadFile(file){
- if(/\.(dxf|dwg|pdf)$/i.test(file.name)){var dz=document.getElementById("cu-drop");if(dz)dz.classList.add("has");if(!(cuTool==="bc"&&typeof bcS!=="undefined"&&bcS&&bcS.src&&bcStepOk(2)&&bcStepOk(3)&&/\.(dxf|dwg)$/i.test(file.name)))cuDrawFile=file;
-  if(cuTool==="bc"){var lotNext=typeof bcS!=="undefined"&&bcS&&bcS.src&&bcStepOk(2)&&bcStepOk(3)&&/\.(dxf|dwg)$/i.test(file.name);bcLoadFile(file,lotNext?"lot":"plan");cuRender();return;}
-  cdLoadFile(file);cuRender();return;}
+ if(/\.(dxf|dwg|pdf)$/i.test(file.name)){dcOpen(file,true);return;}
  if(/\.msd$/i.test(file.name)){
   document.getElementById("cu-body").innerHTML="<div class='cu-err'>That's a legacy .msd project (pre-2008 format). Open it once in MicroSurvey CAD and it converts to .msz, which this tool reads.</div>";return;
  }
@@ -6214,7 +6217,7 @@ function cdPdfPrims(subs,o){o=o||{};var paths=[],ells=[];
  subs.forEach(function(s){if(s.fill&&!s.w&&!o.fills)return;var p=s.p;if(s.closed&&cdHyp(p[0],p[p.length-1])>1e-6)p=p.concat([p[0]]);
   var P={p:p,am:p.slice(1).map(function(){return null;}),w:Math.round((s.w||0)*100)/100,fill:!!s.fill,cv:s.cv.length,ord:paths.length};
   if(p.length>=12&&cdHyp(p[0],p[p.length-1])<0.3){var E=cdFitEll(p);if(E&&E.a<200&&E.a>1){E.path=P;E.w=P.w;P.ell=true;ells.push(E);}}
-  P.col=s.col||'';if(s.fill){if(o.fills){P.fill=true;P.lay='fill '+(P.col||'?');paths.push(P);}}else{P.lay=P.lay||('pen '+P.w+(P.col?' '+P.col:''));paths.push(P);}});
+  P.col=s.col||'';if(s.fill){if(o.fills){P.fill=true;P.lay='fill '+(P.col||'?');paths.push(P);}}else{P.lay=P.lay||('pen '+P.w+' '+(P.col||'0,0,0'));paths.push(P);}});
  /* ovals inside bigger ovals (a 0 or an o in the text) aren't bubbles; a bubble drawn twice is one bubble */
  /* the same stroke plotted twice (common in engineers' sets): keep one */
  var seen={};paths=paths.filter(function(P){var k=P.w+"|"+P.p.length+"|"+P.p.map(function(q){return Math.round(q[0]*20)+","+Math.round(q[1]*20);}).join(";");if(seen[k]&&!P.ell)return false;seen[k]=1;return true;});
@@ -6946,7 +6949,7 @@ function bcOutlineRun2(q,lays){var S=bcS,k=S.k,g0=bcParseLen(S.gapTxt||"1.0")||1
  if(O&&O.tooMany){S.msg="Too much linework on that layer to follow automatically ("+O.tooMany+" pieces) — use Trace outline: click the corners round the foundation.";S.mode="trace";bcRender();return;}
  if(!O||!O.P||O.P.length<3){S.msg="Couldn’t close an outline there — tick more layers or raise the gap and click again, or use Trace outline.";bcRender();return;}
  var round=S.out?S.out.round:(k&&(Math.abs(k/BC_IN-1)<0.01||Math.abs(k/BC_FT-1)<0.01||S.src.kind==="pdf"));
- S.out={q:q,lays:lays,gapTxt:S.gapTxt||"1.0",raw:O.P,traced:false,bridged:O.bridged||[],round:round,edits:[],ok:false,near:bcLayersNear(q,25/k)};bcSquareNow();S.mode="pan";S.msg=S.dblNote||"";bcRender();setTimeout(bcDraw,0);}
+ S.out={q:q,lays:lays,gapTxt:S.gapTxt||"1.0",raw:O.P,traced:false,bridged:O.bridged||[],round:round,edits:[],ok:false,near:bcLayersNear(q,25/k)};bcSquareNow();S.mode="pan";S.msg=S.dblNote||"";bcRender();setTimeout(bcDraw,0);if(typeof bcsPockets==="function")bcsPockets();}
 /* trace: corners clicked by hand (snapped to line corners), closed by clicking the first again or Finish */
 function bcTraceClick(q){var S=bcS,t=S.trace||(S.trace=[]),px=10/S.view.plan.s;if(t.length>=3&&cdHyp(q,t[0])<=px){bcTraceFinish();return;}t.push(S.scan?q:bcSnapPlan(q,10));bcRender();}
 function bcTraceFinish(){var S=bcS,t=S.trace||[];if(t.length<3){S.msg="Click at least three corners.";bcRender();return;}
@@ -7127,7 +7130,7 @@ function bcStepsHtml(){var S=bcS,E=esc,k=S.k,h="";
   b+="<div class='bc-res'><b>"+H.length+" corners</b>, area "+A.toFixed(2)+" m² ("+(A/0.09290304).toFixed(0)+" sq ft). Squared to the building axis — largest move "+(O.moved*1000).toFixed(0)+" mm"+(O.s45?", "+O.s45+" side"+(O.s45===1?"":"s")+" at 45°":"")+(O.odd?"<span class='cu-pkgwarn'>"+O.odd+" side"+(O.odd===1?" is":"s are")+" at another angle — left as drawn.</span>":"")+(O.dev?"<br><span class='"+(O.dev.total>0.002?"cd-amb":"cd-ok")+"'>Largest difference from the drawing’s lines: <b>"+(O.dev.total*1000).toFixed(1)+" mm</b></span>"+(O.dev.total>0.0005?" (squaring "+(O.dev.sq*1000).toFixed(1)+(O.dev.fill?" · openings filled "+(O.dev.fill*1000).toFixed(0):"")+" · jogs taken out "+(O.dev.jog*1000).toFixed(1)+" · ¼″ rounding "+(O.dev.round*1000).toFixed(1)+" mm)":"")+(O.edits.length?" — your edits aren’t counted":""):"")+(O.fills?"<br>"+O.fills+" opening"+(O.fills===1?"":"s")+" (window / door / garage-door frames stepped in up to 0.45 m) filled along the wall face.":"")+(O.cuts?"<br>"+O.cuts+" door swing"+(O.cuts===1?"":"s")+" (or other off-angle bit) cut straight across.":"")+(O.jogs?"<br>"+O.jogs+" drafting jog"+(O.jogs===1?"":"s")+" under 20 mm taken out.":"")+(O.bridged&&O.bridged.length?"<br>Joined across "+O.bridged.length+" gap"+(O.bridged.length===1?"":"s")+" (openings).":"")+(O.traced?"<br>Traced by hand.":"")+(O.edits.length?"<br>Edits: "+E(O.edits.join("; ")):"")+"</div>";
   b+="<table class='cu-mtt bc-sides'><tr><th>Side</th><th>m</th><th>ft-in</th></tr>"+H.map(function(p,i){var d=cdHyp(p,H[(i+1)%H.length]);return "<tr><td>"+(i+1)+"–"+((i+1)%H.length+1)+"</td><td>"+d.toFixed(3)+"</td><td>"+bcFtIn(d)+"</td></tr>";}).join("")+"</table>";
   if(!O.traced)b+="<div class='bc-lays'>Layers followed: "+(O.near||[]).map(function(l){return "<label class='cu-cb'><input type='checkbox' class='bc-lay' value='"+E(l)+"'"+(O.lays.indexOf(l)>=0?" checked":"")+"> "+E(l)+"</label>";}).join(" ")+"</div>";
-  b+="<div class='row' style='margin:4px 0'>Join gaps up to <input type='text' id='bc-gap' value='"+E(S.gapTxt||O.gapTxt||"1.0")+"' style='width:46px'> m"+(S.gapUsed?" <span class='cd-amb'>(needed "+S.gapUsed+" m to close)</span>":"")+" <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-round'"+(O.round?" checked":"")+"> round corners to ¼″</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-tidy'"+(O.tidy?" checked":"")+"> take out jogs under 20 mm</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-doors'"+(O.doors!==false?" checked":"")+"> cut door swings straight across</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-fill'"+(O.fillOpen!==false?" checked":"")+"> fill in openings (steps in up to 0.45 m)</label> "+(O.traced?"<button class='cd-mini' onclick='bcS.mode=\"trace\";bcS.trace=[];bcRender()'>Trace again</button>":"<button class='cd-mini' onclick='bcOutlineAgain()'>Pick again</button>")+"</div>";
+  b+="<div class='row' style='margin:4px 0'><button class='cd-mini' onclick='bcOutlineClear()' title='Remove this outline and pick or trace it again from nothing'>✕ Clear outline</button></div>";b+="<div class='row' style='margin:4px 0'>Join gaps up to <input type='text' id='bc-gap' value='"+E(S.gapTxt||O.gapTxt||"1.0")+"' style='width:46px'> m"+(S.gapUsed?" <span class='cd-amb'>(needed "+S.gapUsed+" m to close)</span>":"")+" <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-round'"+(O.round?" checked":"")+"> round corners to ¼″</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-tidy'"+(O.tidy?" checked":"")+"> take out jogs under 20 mm</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-doors'"+(O.doors!==false?" checked":"")+"> cut door swings straight across</label> <label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='bc-fill'"+(O.fillOpen!==false?" checked":"")+"> fill in openings (steps in up to 0.45 m)</label> "+(O.traced?"<button class='cd-mini' onclick='bcS.mode=\"trace\";bcS.trace=[];bcRender()'>Trace again</button>":"<button class='cd-mini' onclick='bcOutlineAgain()'>Pick again</button>")+"</div>";
   b+="<div class='bc-act'>"+(O.ok?"<button class='btn' onclick='bcOutlineOk(false)'>Change it</button>":"<button class='btn pri' onclick='bcOutlineOk(true)'>Confirm outline</button>")+(O.hist&&O.hist.length?" <button class='btn' onclick='bcUndo()'>Undo last edit</button>":"")+"</div><div class='hint' style='margin:4px 0 0'>Edits (drag, drop, straight across) only change the spot you touch. The tick-boxes, gap and layers work the outline out again from the drawing.</div>";}
  h+=bcCard(2,"Outline",b,O&&O.ok?bcHm().length+" corners, "+Math.abs(bcPolyArea(bcHm())).toFixed(1)+" m²":"");
  if(bcsOn())return h+bcsStepsHtml();
@@ -7205,7 +7208,7 @@ function bcScaleClear(){var S=bcS;S.scl.a=null;S.scl.b=null;bcRender();setTimeou
 function bcOutlineEdited(){var S=bcS,O=S.out,was=O.ok;O.ok=false;S.place=null;S.exc.res=null;if(was){S.msg="Outline changed — confirm it again in step 2. Posts, lot and setback rows are kept — check the corner numbers in the setback rows, then Calculate and work out the excavation again.";S.open[2]=true;}}
 function bcLenEcho(t,big){var v=bcParseLen(t);if(v===null)return "<span class='cd-amb'>not a length — 4' or 1.219</span>";var x="= "+v.toFixed(3)+" m ("+bcFtIn(v)+")";if(v>big&&/^\s*\d+(\.\d+)?\s*$/.test(String(t)))x+=" <span class='cd-amb'>— "+String(t).trim()+" metres? For feet type "+String(t).trim()+"'</span>";return x;}
 function bcRedoClear(){var O=bcS.out;O.base=null;O.edits=[];O.hist=[];}
-function bcRedoOk(){var O=bcS.out;if(!O||!O.edits||!O.edits.length)return true;return window.confirm("This works the outline out again from the drawing and clears your "+O.edits.length+" edit"+(O.edits.length===1?"":"s")+". Go ahead?");}
+function bcRedoOk(){var O=bcS.out;if(!O||!O.edits||O.edits.length<=(O.auto||0))return true;return window.confirm("This works the outline out again from the drawing and clears your "+O.edits.length+" edit"+(O.edits.length===1?"":"s")+". Go ahead?");}
 function bcOutlineAgain(){if(!bcRedoOk()){bcRender();return;}var S=bcS,O=S.out;if(!O)return;var lays=[];document.querySelectorAll(".bc-lay").forEach(function(c){if(c.checked)lays.push(c.value);});if(!lays.length){S.msg="Tick at least one layer.";bcRender();return;}var gp=document.getElementById("bc-gap");if(gp){O.gapTxt=gp.value;S.gapTxt=gp.value;}bcOutlineRun(O.q,lays);}
 function bcOutlineOk(on){var S=bcS;S.out.ok=on;if(!on){S.place=null;S.exc.res=null;}S.mode="pan";S.open={};bcRender();setTimeout(bcDraw,0);}
 function bcPostsOk(v){var S=bcS;S.posts.ok=v===1;S.posts.none=v===2;S.mode="pan";S.exc.res=null;S.open={};if(v&&S.lotSrc)S.scene="site";bcRender();setTimeout(bcDraw,0);}
@@ -7609,9 +7612,23 @@ function bcsSnap(what){var S=bcS,T=S.st,o={what:what};BCS_UNDOKEYS.forEach(funct
 function bcsUndo(){var S=bcS,T=S.st;if(T.pend&&T.pend.length){T.pend.pop();if(!T.pend.length)T.pend=null;S.msg="Last point taken back.";bcRender();setTimeout(bcDraw,0);return;}if(T.trace&&T.trace.length){T.trace.pop();S.msg="Last corner taken back.";bcRender();setTimeout(bcDraw,0);return;}
  if(!T.hist||!T.hist.length){S.msg="Nothing to undo on this floor.";bcRender();return;}var o=T.hist.pop();BCS_UNDOKEYS.forEach(function(kk){T[kk]=o[kk]===null&&kk!=="meas"?T[kk]:o[kk];});if(o.over===null)T.over={};S.msg="Undone: "+o.what+".";bcRender();setTimeout(bcDraw,0);}
 function bcsClearAll(kind){var S=bcS,T=S.st,n=kind==="pw"?T.pw.length:T.regs.filter(function(r){return r.kind===kind;}).length;if(!n)return;bcsSnap(kind==="pw"?"all walls removed":"all "+(kind==="non"?"non-habitable":"LCP")+" areas removed");if(kind==="pw"){T.pw=[];T.lab={};T.note={};}else T.regs=T.regs.filter(function(r){return r.kind!==kind;});T.ok=kind==="pw"?false:T.ok;S.msg="Removed "+n+". Undo brings them back.";bcRender();setTimeout(bcDraw,0);}
+/* a garage (or other room) the outline has gone into through a wide door opening: a concave pocket of 10 m² or more whose mouth is 1.8 to 3.4 m wide, square to the building,
+   and starts or ends at a wall end (a side no longer than a wall is thick). Returns the corners to drop, or null. */
+function bcsPocket(){var S=bcS,O=S.out,k=S.k;if(!O||!O.P||!k)return null;var P=O.P,n=P.length;if(n<7)return null;var s0=bcPolyArea(P)<0?-1:1,ax=bcAxis(P),best=null;
+ for(var i=0;i<n;i++)for(var m=2;m<=8&&m<n-3;m++){var j=(i+m+1)%n,A=P[i],B=P[j],L=cdHyp(A,B)*k;if(L<1.8||L>3.4)continue;var an=Math.atan2(B[1]-A[1],B[0]-A[0])-ax,q=Math.abs(an%(Math.PI/2));q=Math.min(q,Math.PI/2-q);if(q>0.035)continue;
+   var ch=[A],drop=[];for(var t=1;t<=m;t++){ch.push(P[(i+t)%n]);drop.push((i+t)%n);}ch.push(B);var ar=bcPolyArea(ch);if((ar<0?-1:1)===s0||Math.abs(ar)*k*k<10)continue;
+   var c0=cdHyp(ch[0],ch[1])*k,c1=cdHyp(ch[ch.length-2],ch[ch.length-1])*k;if(!(c0<=0.45||c1<=0.45))continue;if(bcInPoly(P,[(A[0]+B[0])/2,(A[1]+B[1])/2]))continue;
+   if(!best||Math.abs(ar)>best.ar)best={ar:Math.abs(ar),drop:drop,L:L};}
+ return best;}
+function bcsPockets(){var S=bcS,O=S.out;if(!bcsOn()||!O||O.traced)return;var done=0,ar=0;for(var g=0;g<4;g++){var p=bcsPocket();if(!p)break;var n0=S.out.P.length;bcDropSet(p.drop,"wide door opening closed ("+p.L.toFixed(2)+" m)");if(S.out.P.length>=n0)break;done++;ar+=p.ar*S.k*S.k;}
+ if(done){S.out.auto=S.out.edits.length;S.msg=(S.msg?S.msg+" ":"")+done+" wide door opening"+(done===1?"":"s")+" (garage door"+(done===1?"":"s")+") closed straight across, which brings "+ar.toFixed(1)+" m² inside the outline. Undo in step 2 takes "+(done===1?"it":"them")+" back.";bcRender();setTimeout(bcDraw,0);}}
+/* start the outline again from nothing */
+function bcOutlineClear(){var S=bcS,O=S.out,T=S.st;if(!O)return;var mine=O.edits?O.edits.length-(O.auto||0):0,w=T&&T.pw?T.pw.length+(T.regs?T.regs.length:0):0;
+ if((mine>0||w>0)&&!window.confirm("Clear this floor’s outline"+(w?" and its "+w+" wall"+(w===1?"":"s")+" / area"+(w===1?"":"s"):"")+" and start again?"))return;
+ S.out=null;S.trace=null;if(T){T.pw=[];T.regs=[];T.meas=null;T.over={};T.lab={};T.note={};T.ok=false;T.okW=false;T.pend=null;T.hist=[];}S.mode="outline";S.msg="Outline cleared. Click on a wall to pick it again, or use Trace outline.";bcRender();setTimeout(bcDraw,0);}
 function bcsKind(){try{return localStorage.getItem("eo:bckind")==="strata"?"strata":"bld";}catch(e){return "bld";}}
 function bcsOn(){return !!bcS&&bcS.kind==="strata";}
-function bcsKindBar(){var S=bcS;return "<div class='cd-bar' style='margin:0 0 6px'><span class='seg'><button data-kind='bld' class='"+(S.kind!=="strata"?"on":"")+"'>Building layout</button><button data-kind='strata' class='"+(S.kind==="strata"?"on":"")+"'>Strata plan</button></span></div>";}
+function bcsKindBar(){/* 1.42: Building layout and Strata plan are separate tools in the Design calc tab */return "";}
 function bcsIntro(){return "<div class='hint' style='margin:0 0 8px'>Works out the strata lots floor by floor from the architect’s plans (.dxf / .dwg or a vector PDF): confirm the scale, pick the outline of the floor, then the wall centre lines, party walls, non-habitable areas and LCP. Save each floor and go on to the next page. Plans in feet and inches are fine — everything that comes out is metric.</div>";}
 /* the picked outline changed (edited, re-picked, turned): per-side measurements and overrides no longer line up with the sides */
 function bcsSync(){var S=bcS,T=S.st,O=S.out;if(!O){return;}var key=O.P.length+"|"+O.P.map(function(p){return p[0].toFixed(3)+","+p[1].toFixed(3);}).join(";");if(T.key!==key){if(T.key){T.meas=null;T.over={};T.ok=false;T.okW=false;}T.key=key;}}
@@ -7935,6 +7952,40 @@ function bcsWire(host){var S=bcS,T=S.st,g=function(id){return document.getElemen
  host.querySelectorAll(".bcs-ru").forEach(function(el){el.onchange=function(){T.regs[+el.dataset.r].unit=+el.value;bcRender();setTimeout(bcDraw,0);};});}
 ["bcsUndo","bcsClearAll","bcsMeasure","bcsOkW","bcsMode","bcsPwFinish","bcsPwUndo","bcsPwDel","bcsOk","bcsSaveFloor","bcsFloorDel","bcsSave","bcsRegDel","bcsTraceFinish","bcsTraceUndo"].forEach(function(n){window[n]=eval(n);});
 
+/* ---------- Design calc tab (1.42): everything that starts from a drawing — Coordinate design, Building layout, Strata plan ---------- */
+var DC_TOOLS=[["cd","Coordinate design","Coordinates the engineer’s design elevation bubbles from their CAD file or PDF.","Drop the engineer’s design drawing (.dxf / .dwg / .pdf) here."],
+ ["bc","Building layout","A new building from the architect’s plan: outline, posts, fitted to our lot by setbacks, excavation, points and DXF.","Drop the architect’s plan (.dxf / .dwg / .pdf) here, then our lot drawing (.dxf / .dwg) once the outline and posts are confirmed."],
+ ["st","Strata plan","Strata lots floor by floor from the architect’s plans: outside walls, party walls, non-habitable areas and LCP, out as a DXF.","Drop the architect’s floor plans (.dxf / .dwg / .pdf) here."]];
+var dcTool=(function(){try{var t=localStorage.getItem("eo:dctool");if(t==="cd"||t==="bc"||t==="st")return t;if(localStorage.getItem("eo:cutool")==="cd")return "cd";return localStorage.getItem("eo:bckind")==="strata"?"st":"bc";}catch(e){return "bc";}})();
+function dcOn(){var v=document.getElementById("v-design");return !!v&&v.classList.contains("on");}
+function dcGo(v){var b=document.querySelector("nav button[data-v='"+v+"']");if(b&&!b.classList.contains("on"))b.click();}
+/* Building layout and Strata plan are two tools on the one plan reader: the tool sets which steps show */
+function dcKindApply(){if(dcTool==="cd")return;var k=dcTool==="st"?"strata":"bld";try{localStorage.setItem("eo:bckind",k);}catch(e){}
+ if(typeof bcS!=="undefined"&&bcS&&bcS.kind!==k){bcS.kind=k;bcS.tx=bcTxGet();bcS.mode="pan";bcS.scene="plan";bcS.msg="";}}
+function dcToolSet(t){dcTool=t;try{localStorage.setItem("eo:dctool",t);}catch(e){}dcRender();}
+function dcPtsNote(){var names=[];try{(cuSources||[]).forEach(function(s){if(s&&s.name)names.push(s.name);});}catch(e){}
+ if(dcTool==="st")return "";var use=dcTool==="cd"?"numbering above its points, placement by point number, and Design vs Field (in the Points tab)":"numbering the lot corners and the new points above the job’s";
+ return "<div class='hint' style='margin:0 0 6px'>"+(names.length?"Job points on the shelf: <b>"+names.map(esc).join(", ")+"</b> — used for "+use+".":"Drop the job’s points file here too (or in the Points tab) for "+use+".")+"</div>";}
+function dcRender(){var host=document.getElementById("dc-body");if(!host)return;dcKindApply();var T=DC_TOOLS.filter(function(x){return x[0]===dcTool;})[0]||DC_TOOLS[1];
+ var h="<div class='cu-tools' style='margin-top:8px'>"+DC_TOOLS.map(function(x){return "<button data-dc='"+x[0]+"' class='"+(x[0]===dcTool?"on":"")+"' title='"+esc(x[2])+"'>"+esc(x[1])+"</button>";}).join("")+"</div><div class='cu-tooldesc'>"+esc(T[2])+"</div>"+dcPtsNote();
+ h+=dcTool==="cd"?"<div class='cu-tv' data-t='cd'><div id='cu-cd'></div></div>":"<div class='cu-tv' data-t='bc'><div id='cu-bc'></div></div>";host.innerHTML=h;
+ var dt=document.getElementById("dc-droptxt");if(dt)dt.textContent=T[3]+" A points file (.txt / .csv / .asc / .msz) dropped here goes on the Points shelf.";
+ host.querySelectorAll("[data-dc]").forEach(function(b){b.onclick=function(){dcToolSet(b.dataset.dc);};});
+ if(dcTool==="cd"){cdRender();setTimeout(cdDraw,0);}else{bcRender();setTimeout(bcDraw,0);}}
+/* called whenever the Points tab redraws: the shelf may have changed */
+function dcSync(){if(dcOn())dcRender();}
+/* a file for this tab: a drawing opens in the tool that is showing; anything else is a points file for the shelf. jump = it was dropped in the Points tab */
+function dcOpen(file,jump){if(!/\.(dxf|dwg|pdf)$/i.test(file.name)){cuLoadFile(file);return;}
+ if(jump)dcGo("design");var dz=document.getElementById("dc-drop");if(dz)dz.classList.add("has");
+ if(dcTool==="cd"){cdLoadFile(file);dcRender();return;}
+ var lotNext=dcTool==="bc"&&typeof bcS!=="undefined"&&bcS&&bcS.src&&bcStepOk(2)&&bcStepOk(3)&&/\.(dxf|dwg)$/i.test(file.name);dcKindApply();bcLoadFile(file,lotNext?"lot":"plan");dcRender();}
+window.dcToolSet=dcToolSet;window.dcRender=dcRender;window.dcOpen=dcOpen;window.dcSync=dcSync;
+(function(){var dz=document.getElementById("dc-drop"),fi=document.getElementById("dc-file"),nb=document.querySelector("nav button[data-v='design']");
+ if(dz){dz.addEventListener("dragover",function(e){e.preventDefault();dz.classList.add("over");});dz.addEventListener("dragleave",function(){dz.classList.remove("over");});
+  dz.addEventListener("drop",function(e){e.preventDefault();dz.classList.remove("over");if(e.dataTransfer.files[0])dcOpen(e.dataTransfer.files[0],false);});}
+ if(fi)fi.addEventListener("change",function(e){if(e.target.files[0])dcOpen(e.target.files[0],false);fi.value="";});
+ if(nb)nb.addEventListener("click",function(){dcRender();});})();
+
 /* ---------- Coordinate design (1.40) — the Points-tab panel and viewer ---------- */
 var cdS=null;
 var CD_LINECOL=["#2456A6","#C2410C","#0F766E","#7C3AED","#B91C1C","#4D7C0F"];
@@ -8049,7 +8100,7 @@ function cdToDvf(){var S=cdS,R=S.res;if(cdBlocked())return;var nm=cdBase()+"-DES
  cuParse(txt,nm);var src=cuSources.find(function(s){return s.name===nm;});if(src)src.cdLines=lines;
  if(!cuDvf)cuDvf=cuDvfNew();cuDvf.dSrc=src?src.id:null;cuDvf.dBlocks={};cuDvf.dRange="";cuDvf.auto=true;cuDvf.res=null;cuDvf.open=true;
  if(cuSources.length>1){var other=cuSources.filter(function(s){return s!==src;});cuDvf.fSrc=other[other.length-1].id;cuDvf.fBlocks={};}
- cuDvf.line={on:lines.length>0,src:"cd",ranges:(cuDvf.line&&cuDvf.line.ranges)||"",maxOff:(cuDvf.line&&cuDvf.line.maxOff)||"3.00"};cuToolSet("dvf");cuRender();}
+ cuDvf.line={on:lines.length>0,src:"cd",ranges:(cuDvf.line&&cuDvf.line.ranges)||"",maxOff:(cuDvf.line&&cuDvf.line.maxOff)||"3.00"};cuToolSet("dvf");cuRender();dcGo("cleanup");}
 window.cdLoadFile=cdLoadFile;window.cdSave=cdSave;window.cdToDvf=cdToDvf;window.cdSelAlong=cdSelAlong;window.cdSelAll=cdSelAll;window.cdConfirmClean=cdConfirmClean;window.cdReread=cdReread;window.cdTieUnderlay=cdTieUnderlay;window.cdTiePairs=cdTiePairs;window.cdTieAsDrawn=cdTieAsDrawn;
 window.cdState=function(){return cdS;};window.cdPickLine=cdPickLine;window.cdSetSt=cdSetSt;window.cdFix=cdFix;window.cdDrop=cdDrop;window.cdSummary=cdSummary;window.cdRun=cdRun;
 

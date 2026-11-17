@@ -1,5 +1,30 @@
 # Elevate Office — changelog
 
+## Build 1.42.0 — 2026-11-17
+- **Design calc (new tab).** Everything that starts from someone else's drawing now has its own tab, next to Points. It holds three tools side by side:
+  - **Coordinate design** (the engineer's design drawing),
+  - **Building layout** (was Building calc),
+  - **Strata plan** (was a switch inside Building calc; now a tool of its own).
+- **Pick the tool, then drop the drawing.** The tab has its own drop zone, and a drawing opens in the tool that is showing. The drop zone's wording changes with the tool.
+- **Points tab › points-file tools only (change).** The third group is now *Stakeout & monitoring*: Design vs Field and Monitoring. The first two groups are unchanged.
+  - A drawing (.dxf / .dwg / .pdf) dropped in Points still works: it opens the Design calc tab and loads there.
+  - "Send to Design vs Field" in Coordinate design takes you to the Points tab, where Design vs Field lives.
+- **One points shelf for both tabs.** A points file dropped in either tab goes on the same shelf. Coordinate design and Building layout show which job points they are using; Strata plan doesn't use a points file.
+- **Kept as it was:** every step, setting, remembered page and output inside the three tools. Building layout and Strata plan still read the same loaded plan, so switching between those two keeps the drawing open. The tab remembers which tool you were in; if you were last in Coordinate design, Building calc or Strata, it opens on that one.
+- **Not changed:** the Auto tab.
+- **Checked:** 20 checks on the new tab (tools, drop routing for each tool, points file to the shelf, the Points groups, a drawing dropped in Points, remembered tool). The Delta main floor and basement checks, 25-3402 (TA 315.5 against 315.7), the two-floor TA check and the Building layout tests (31) all give the same results as 1.41.26. Tested in a scripted browser, not by hand in Chrome; "Send to Design vs Field" was not exercised. Not yet opened in MicroSurvey.
+
+## Build 1.41.26 — 2026-11-17
+From the main floor sheet (page 3) of the Delta plan, where Pick outline gave a 24-corner, 89.7 m² outline that wandered through the inside of both units.
+- **Pick outline › Black lines are one layer whether or not the PDF says "black" (fix).** This PDF draws Unit B's walls with the colour set to black and Unit A's with no colour set, which also means black. The app treated those as two layers, followed only one, and so ran out of wall halfway round, whichever wall was clicked. They are now the same layer. This applies to Building layout picks as well.
+  - Page 3 now picks both units from one click on any outside wall. The basement sheet (page 2) also comes out the same on both sides now.
+- **Strata › Garage door openings are closed (new).** A garage door is wider than the 1 m gap the pick joins by itself, so the outline went in through the door and round the inside of the garage. In Strata, a room of 10 m² or more that the outline has entered through a square opening 1.8 to 3.4 m wide is now closed straight across, and the message says how many and how much area that brought in. On page 3: both garages, 74.9 m², giving 20 corners and 242.5 m².
+  - Undo in step 2 takes a closing back, one at a time.
+  - These automatic closings don't count as your edits, so picking again doesn't ask "clear your edits?".
+- **Step 2 › Clear outline (new).** A *✕ Clear outline* button removes the outline (and, in Strata, that floor's walls and areas) and puts you back in Pick outline with nothing on screen. It asks first only if you had made edits or added walls or areas.
+- **Checked on page 3:** pick from three different walls, pick again, clear and pick; *Measure* reads 6" walls on 14 of 20 sides; one click on the party wall gives a 0.330 m wall with the line at its middle and two lots of 118.1 m² each. 25-3402 re-run with the same figures (TA 315.5 against 315.7); the basement checks from 1.41.25 and the Building layout tests (31) unchanged. Not yet opened in MicroSurvey.
+- **To know, page 3:** the outline still includes the two small squares at the veranda (posts touching the wall line) and leaves out the recess between the units at the back; drop or keep those as the job needs. Six sides have no second wall line to read and show as assumed.
+
 ## Build 1.41.25 — 2026-11-16
 From the first strata DXF saved off the Delta plan (9362 114 Street, basement).
 - **Strata › Strata line at the centre of the structural wall, not the wall plus its furring (fix).** On this plan the outside wall is 8" concrete with a furred wall drawn 4" inside it. The tool read the two together as a 12" wall and put the line 0.152 m in from the outside face, which is three quarters of the way through the concrete, towards the inside.
