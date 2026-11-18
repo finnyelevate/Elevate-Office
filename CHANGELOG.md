@@ -1,5 +1,78 @@
 # Elevate Office — changelog
 
+## Build 1.43.1 — 2026-11-18
+Ten things asked for over the last two days, built together. Builds 1.42.4 and 1.43.0 never needed uploading; everything in them is in here (1.43.1 only adds the last CSV change below).
+
+### Points
+- **Points › Map (new).** With a points file open, the Map button (in *Clean up a topo*) puts every point over an aerial photo.
+  - **Survey control is a red triangle with its number and code; pins and posts are yellow; every other shot is a small blue dot.** Control is every code the 2026 AutoMap puts on the CONTROL layer. Pins and posts are the IP / LP / RP / pipe / rebar codes within that list.
+  - Click a point for its number, description, N / E / Z and a link to the same spot in Google Maps. Drag to move, wheel or + / − to zoom, *Fit all* to come back.
+  - Background: aerial photo, street map, or none. *Lot lines (ParcelMap BC)* can be switched on over it. *Number every point* labels the ordinary shots too once zoomed in.
+  - Coordinates are read as NAD83(CSRS) UTM zone 10. A local or assumed job gets a line saying why there is no map.
+  - Nothing from the file leaves the computer; only the picture tiles for the area in view are requested.
+
+### PM
+- **PM › Is there already a job here? (new).** Under the site address, next to *Quoted before*, the draft is checked against `Elev_Jobs_Master.csv` in Job Files - Documents.
+  - **Same address:** "Existing job: 21-1664 · quote 21-736 (same address …)". St / Street, unit numbers and "BC, Canada" don't matter.
+  - **Close by:** a job on the same street within 40 house numbers is listed as "Job close by", with the distance in metres when the BC address finder knows both addresses (anything over 150 m is dropped).
+  - **On paste:** when tracker rows are pasted, the message says straight away which of the new drafts sit on an existing job.
+  - Needs Job Files - Documents connected under *Folders on this computer*. The file is only read.
+- **PM › Make this a sub-quote, keeping the row (new).** Beside each job found is *Make this a sub-quote of 21-736*. The draft becomes the next free letter (the quote folder is checked, so 21-736C if B is there) and **nothing is cleared**: client, contact, Services Provided, task details, PM comments, date requested, hours and prices all stay. Blank job details are filled from the original quote when its file is found. It asks before changing anything, and it creates no folder; the quote saves into the original quote's folder as sub-quotes already do.
+  - *Belongs to an existing quote…* on the top bar does the same when you know the quote number and the job isn't in the master.
+  - *Duplicate as sub-quote* is unchanged: a blank sub-quote of the draft that is open.
+- **PM › Duplicate as sub-quote from a draft with only the Quote # typed (fix).** It stopped part-way and fell back to copying the empty draft. It now reads the original quote from its folder as intended.
+
+### Design calc
+- **Reopen a job later (new, Strata plan and Building layout).** The DXF the app writes now carries the working data, as comment lines CAD ignores.
+  - **To carry on with a job:** drop the architect's plan on Design calc, then drop the app's DXF (either order). Scale, outline, wall readings, strata lines, lot names, non-habitable and LCP areas and every saved floor come back; other pages come back as you turn to them. Edit, *Update* the floor, save again.
+  - **Building layout:** the outline, posts, setback rows, floor elevations and excavation come back, a turned plan is turned the same way, and the message then asks for our lot drawing. Drop it and the lot and the house position return. Both *DXF (calc only)* and *Lot lines + calc* carry the data.
+  - A tick box beside the DXF button turns this off if a plain DXF is wanted.
+  - If the DXF has been re-saved from CAD the data may be gone; the app says so and changes nothing. Keep the DXF the app wrote.
+
+### Strata plan
+- **Step 5 › Cut from a lot (new, and now the tool that is on when step 5 opens).** For a garage or any room inside a lot, draw only the wall that divides it from the rest: click along it, double-click to finish. The other sides follow the strata lines already there. The message gives both areas, and *Other side* swaps them if the wrong part was taken.
+- **Corners and sides go to the centre of the wall (new).** In Cut from a lot, Trace area and when dragging, a point near a wall goes to the wall's centre line, interior walls included; a strata line already there wins over a wall, and a corner lands on a corner. A side drawn along a wall is moved onto that wall's centre as a whole. Lines within 6° of square are made square. The marker shows what it has caught.
+- **Garages are offered (new).** A garage door closed across when the outline was picked is remembered, and step 5 offers it: *Mark as non-habitable* takes it to the centre of the walls round it.
+- **Names from the plan (new).** A new area is named from the room label inside it (GARAGE, DECK, …) when there is one.
+- **Floors where the units are separate blocks (new).** When the outline is two or more blocks that don't touch (an upper floor with roof between the units), each block is a lot and step 4 has no party wall to pick.
+- **Output › One label per area (change).** An LCP shows only its name (an unnamed one reads "LCP SL 1"), with no area figure. A non-habitable area shows its name and area. Nothing is labelled twice.
+- **Output › TA and THA (change).** On the floor chosen for totals each lot shows **TA** = every floor, habitable plus non-habitable, and **THA** = total habitable when the lot has any non-habitable. LCP is in neither.
+- **Output › Labels and dimensions kept clear (new).** Each label and dimension is placed where it doesn't touch another or cross linework; a name that won't fit inside a small area goes beside it with a leader; a dimension is written once per line. Anything that still couldn't be placed is listed in the message so it can be moved in CAD. Sides under 0.10 m are not dimensioned, and the count is given.
+- **Areas (.csv) (change).** Strata lots only: habitable, non-habitable and total for each floor, then *ALL FLOORS* for each lot. LCP areas are left out. Non-habitable areas are listed by name underneath. **When no floor has a non-habitable area, the habitable and non-habitable columns are dropped** and the file is just floor, lot and total.
+- **Step 3 "Wall thickness (centre line)"** measures itself when the outline is confirmed and is skipped when every wall agrees; the *Usual outside wall* box shows 0'-8" properly (both from 1.42.4).
+
+### Checked
+- **Delta plan, main floor:** three rough clicks cut the SL 1 garage at 40.6 m² on the interior wall centre (834.0, faces at 829.5 and 838.5), party wall line and outside strata lines; a rough trace of the same garage comes to 40.4 m²; the offered garage on SL 2 is 41.2 m² (17 checks). **Upper floor:** two blocks of 65.8 m² each, no party wall (6 checks).
+- **Output:** the DXF was read back: no label overlaps another, LCPs carry one label and no area, TA and THA add up (7 checks). **CSV:** an LCP on the floor does not appear; with no non-habitable area the file has the total column only.
+- **Reopen:** a two-floor strata job saved, the app restarted, plan then DXF dropped, and both pages compute the same lots, garages and party wall to the millimetre; edited and saved again; DXF-first order; a cut-off DXF is refused (16 checks). Building layout with a turned plan and a lot drawing comes back on the same job coordinates with its excavation (11 checks). The DXFs open in ezdxf and in the app's own reader with the comment lines in place.
+- **PM:** against the real jobs master (2,676 jobs), "14036 103A Ave, Surrey" finds 21-1664 / 21-736; 14040 is flagged as close by; 14036 104 Avenue is not matched; the pasted row keeps every field and becomes 21-736C when B is in the folder; Cancel changes nothing (13 checks).
+- **Map:** UTM to latitude / longitude agrees with the standard library (EPSG:26910) to 0.1 mm; control, pins and shots are classed correctly; the right photo tiles are asked for (9 checks).
+- All earlier checks unchanged, including 25-3402 (TA 315.5 against 315.7).
+
+### Not checked — please look at these first
+- **The aerial photo and the ParcelMap BC lot lines could not be loaded where the build was tested** (no internet access there). The points, zoom and scale bar are tested; whether the photo and lot lines appear is not. If the photo doesn't load, the map says so and the points still plot.
+- **Distances in the job check** were tested with a stand-in for the BC address finder, for the same reason.
+- **MicroSurvey has not opened a DXF with the working-data lines.** Group 999 comments are standard DXF, but if MicroSurvey objects, untick the box and tell me.
+- Everything was run in a scripted browser, not by hand in Chrome.
+
+### To know
+- The jobs master has no coordinates yet, so a job on a *different* street (a corner lot addressed on the cross street) is not found. Rows that carry a latitude and longitude are compared by distance (75 m) on any street, so this improves if coordinates are added to the master.
+- The aerial photo is Esri World Imagery. It needs no key and is shown with Esri's credit; Esri's terms expect an ArcGIS account for regular business use. The background can be switched to the street map or off.
+- A photo is only good to a metre or two, and NAD83(CSRS) is about 1.5 m from the photo's datum, so the map shows where control is; it doesn't check it.
+- Wall-centre snapping follows the layers the outline was picked on. On a scanned plan there are no lines to read, so points stay where they are clicked.
+- Floors saved before this build have no working data inside older DXFs; save the DXF again from this build to be able to reopen it.
+
+## Build 1.42.4 — 2026-11-18
+- **Strata › Step 3 is now "Wall thickness (centre line)" and mostly looks after itself (change).** The outline in step 2 is the outside face of the building; this step finds the inside face of each outside wall so the strata line can go halfway between. It used to be a button to press and a second thing to confirm.
+  - **Confirming the outline now measures the walls straight away.**
+  - **When every side reads, they all agree, and nothing was left out, step 3 is skipped:** you land on step 4 with Pick party wall on, and the message says, for example, "All 12 outside walls read 0'-8" (0.203 m) and the strata line is at their centre".
+  - **It only stops at step 3 when something needs a look:** a side that couldn't be read, sides that disagree, a furred wall or finish that was left out, or structure set back behind cladding. The message names which.
+  - One Undo from either case goes back to the unconfirmed outline.
+  - Step 3 can still be opened to change the usual wall, switch to the outer face, measure again, or set one side by hand.
+- **Strata › "Usual outside wall" box showed only "0" (fix).** The feet mark in 0'-8" ended the box's text early. The figure being used was right; the box now shows it. The same fix is applied to the other text boxes in the strata steps (floor and area names).
+- **Checked:** a plain duplex goes from confirming the outline straight to step 4, and one Undo returns to the outline. The Delta basement measures by itself (13 of 14 sides) and stops at step 3 because a furred wall was left out on 12 sides. The box reads 0'-8". All earlier checks unchanged, including 25-3402 (TA 315.5 against 315.7). Scripted browser, not by hand in Chrome. Not yet opened in MicroSurvey.
+- **To know:** a basement with furring drawn inside the concrete, like the Delta one, will stop at step 3 every time, since leaving the furring out is a judgement worth a glance.
+
 ## Build 1.42.3 — 2026-11-17
 The rule behind this build: no gaps and no overlaps between the lots and the areas round them.
 - **Strata › An LCP drawn to the wall face runs on to the strata line (new).** Trace or pick an LCP to the outside face of the building wall and the side on the wall is moved square on to the strata line at the centre of that wall, so the LCP meets the lot with nothing between them. The message says when that happened. Non-habitable areas already did this; LCP now does too.
