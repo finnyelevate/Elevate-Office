@@ -1,5 +1,21 @@
 # Elevate Office — changelog
 
+## Build 1.43.5 — 2026-11-18
+From running the Delta job through three floors on 1.43.1. Includes everything in 1.43.4 and 1.43.3 below, which were not uploaded.
+- **Strata › Floors no longer overwrite each other (fix).** Two pages could both be given the name "Floor 2", and saving the second replaced the first: the upper floor took the main floor's place and the totals lost a floor. A saved floor now belongs to the outline it was made from, not to its name.
+  - *Update* on a page changes that page's floor only. Typing a new name renames it in place.
+  - If another floor already has the name, this one takes the next free "Floor n" and the message says so.
+  - New floors are named with the first free number, and the list is kept in page order.
+  - A different outline picked elsewhere on the same sheet counts as another floor.
+- **Strata › Floors save themselves (new).** Once a floor's lots are confirmed it is saved when you turn to another page and before any export, so the totals and the DXF always have the latest. *Save this floor* / *Update* is still there for seeing the totals change straight away.
+- **Strata › Always clear which step is on (new).**
+  - **Step strip above the plan:** 1 Scale · 2 Outline · 3 Walls · 4 Lots · 5 Non-habitable · 6 LCP · 7 Floors · 8 Output. The step that is on is solid blue, finished steps are ticked, steps not yet reachable are grey. Click one to go there.
+  - **Adding switch in steps 5 and 6:** "Adding: Non-habitable | LCP" at the start of the tool bar, coloured like the areas. It shows what the next area drawn will be, and clicking the other one changes step and tool together.
+  - **One card open at a time:** only the card of the step that is on is open; every other step is folded to its heading, with its tick and summary. Saving a floor by hand moves to step 7. Clicking a step's heading always makes it the step that is on; before, clicking the heading of a card that was already open closed it and left the other step on, so an area meant as non-habitable could go in as LCP or the other way round.
+- **Strata › Only real garages are offered (fix).** On the upper floor step 5 offered "4 garages found", which were bedrooms the outline pick had closed across. A closed-off room is now offered as a garage only when the plan labels it GARAGE, CARPORT or PARKING.
+- **Checked:** three pages begun with the same floor name end as three floors in page order, by page turns alone; an area added and the page left is in the saved floor; a change followed straight by an export is in the export; a job in the state on the 16:02 screens gets its main floor back beside the upper floor (14 checks). Strip, switch and card headings (8 checks). All earlier checks unchanged. Scripted browser, not by hand in Chrome.
+- **To know:** to carry the Delta job over, press Strata DXF on 1.43.1 first, upload this build, then drop the PDF and that DXF on Design calc and turn through pages 3 and 4. The main floor is saved by itself as "Floor 3"; type the names you want in the "This floor" box.
+
 ## Build 1.43.4 — 2026-11-18
 From tracing the deck LCPs on the Delta plan in 1.43.1: the corners kept jumping to the blue strata line. Includes everything in 1.43.3 below, which was not uploaded.
 - **Strata › Tracing an LCP no longer jumps to the blue line (fix).** In 1.43.1 every point near a wall was pulled to the strata line or a wall centre from up to 60 px away, which is right for a garage wall and wrong for a deck. For an LCP the snap is now:
