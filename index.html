@@ -848,7 +848,7 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.43.1";
+const BUILD="1.43.4";
 const NEWS=["Points › Map (new): a UTM 10 points file over an aerial photo, control highlighted. Click a point for its number and coordinates.", "PM: a pasted tracker row is checked against the jobs master — if there is already a job at or beside the address it says so, and one click makes the draft the next sub-quote of that job’s quote without clearing anything.", "Design calc: the DXF the app writes now carries the working data. Drop the plan, then that DXF, and the job reopens where it was left (Strata plan and Building layout).", "Strata plan: cut a garage out of a lot by drawing only the dividing wall; corners go to wall centres; upper floors where the units are separate blocks; one label per area; TA and THA; labels and dimensions kept clear of each other.", "Design calc (new tab): Coordinate design, Building layout and Strata plan have moved out of Points into their own tab. Pick the tool, then drop the engineer’s or architect’s drawing. Points keeps the points-file tools, including Design vs Field.", "Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
@@ -1636,7 +1636,7 @@ function drawReminder(ip){
  var d=document.createElement("div");d.className="news";
  function show(items){
   if(!items||!items.length)return;
-  d.innerHTML="<button class='x' aria-label='Dismiss'>✕</button><h4>Build "+BUILD+" — what's new</h4><ul>"+items.map(function(n){return "<li>"+esc(n)+"</li>";}).join("")+"</ul>";
+  d.innerHTML="<button class='x' aria-label='Dismiss'>✕</button><h4>Build "+BUILD+" — what's new</h4><ul>"+items.map(function(n){return typeof n==="string"?"<li>"+esc(n)+"</li>":"<li>"+esc(n.t)+(n.sub&&n.sub.length?"<ul>"+n.sub.map(function(s){return "<li>"+esc(s)+"</li>";}).join("")+"</ul>":"")+"</li>";}).join("")+"</ul>";
   d.querySelector(".x").onclick=function(){sset("eo1:news",BUILD);d.remove();};
   if(!d.parentNode)host.appendChild(d);
  }
@@ -1646,7 +1646,8 @@ function drawReminder(ip){
   var esc2=BUILD.replace(/\./g,"\\.");
   var m=t.match(new RegExp("##\\s*Build\\s+"+esc2+"(?=\\s)[^\\n]*\\n([\\s\\S]*?)(?=\\n##\\s|$)"));
   if(!m){show(NEWS);return;}
-  var items=m[1].split(/\n(?=- )/).map(function(x){return x.replace(/^- /,"").replace(/\*\*/g,"").replace(/\s+/g," ").trim();}).filter(function(x){return x&&!/^Verified[:\s]/i.test(x);});
+  var clean=function(s){return s.replace(/\*\*/g,"").replace(/\*([^*\n]+)\*/g,"$1").replace(/`/g,"").replace(/\s+/g," ").trim();};
+  var items=m[1].split("\n").filter(function(l){return !/^\s*#/.test(l);}).join("\n").split(/\n(?=- )/).map(function(x){var p=x.replace(/^- /,"").split(/\n\s+- /);return {t:clean(p[0]),sub:p.slice(1).map(clean).filter(Boolean)};}).filter(function(x){return x.t&&!/^(Verified|Checked|To know)[:\s]/i.test(x.t);});
   show(items.length?items:NEWS);
  }).catch(function(){show(NEWS);});
 })();
@@ -7921,7 +7922,16 @@ function bcsClipTo(R,U){try{var C=bcConvex(U)?bcClip(R,U):bcIntersect(R,U);retur
 /* everything for the floor on screen, in drawing units: centre-line ring, its sides, the party walls as cut, the lots, and the areas marked in them */
 /* an outline that is pinched to nothing between two parts (units that don't touch on this floor, joined only by a line the outline ran along) is really several separate blocks.
    Returns [{P, side:[index of the outline side each edge lies on]}], or null for an ordinary outline. */
-function bcsBlocks(P,k){var n=P.length,tol=0.02/k,pinch=false;if(n<6)return null;
+/* 1.43.2: two blocks joined only by a strip too thin to be a room (a roof edge or parapet line the outline followed, under 0.6 m) are separate blocks too: the strip is closed up first */
+function bcsNeck(P,k){var n=P.length,Q=P.map(function(p){return p.slice();}),did=0;
+ for(var i=0;i<n;i++){var a=Q[i],b=Q[(i+1)%n],La=cdHyp(a,b);if(La*k<0.3)continue;var u=[(b[0]-a[0])/La,(b[1]-a[1])/La];
+  for(var j=0;j<n;j++){if(j===i||j===(i+1)%n||(j+1)%n===i)continue;var c=Q[j],e=Q[(j+1)%n],Lc=cdHyp(c,e);if(Lc<=La)continue;var v=[(e[0]-c[0])/Lc,(e[1]-c[1])/Lc];if(u[0]*v[0]+u[1]*v[1]>-0.995)continue;
+   var ra=cdSegDist(a,c,e),rb=cdSegDist(b,c,e);if(!(ra.t>0.001&&ra.t<0.999&&rb.t>0.001&&rb.t<0.999))continue;if(ra.d<0.02/k||ra.d>0.6/k||Math.abs(ra.d-rb.d)>0.02/k)continue;
+   var m=[(a[0]+b[0])/2,(a[1]+b[1])/2],mq=[c[0]+(e[0]-c[0])*(ra.t+rb.t)/2,c[1]+(e[1]-c[1])*(ra.t+rb.t)/2];if(!bcInPoly(P,[(m[0]+mq[0])/2,(m[1]+mq[1])/2]))continue;
+   Q[i]=[c[0]+(e[0]-c[0])*ra.t,c[1]+(e[1]-c[1])*ra.t];Q[(i+1)%n]=[c[0]+(e[0]-c[0])*rb.t,c[1]+(e[1]-c[1])*rb.t];did++;break;}}
+ return did?Q:null;}
+function bcsBlocks(P,k){if(P.length>=6&&!P._nk){var Qn=bcsNeck(P,k);if(Qn){Qn._nk=1;var Bn=bcsBlocks(Qn,k);if(Bn){Bn.neck=true;return Bn;}}}
+ var n=P.length,tol=0.02/k,pinch=false;if(n<6)return null;
  for(var i=0;i<n&&!pinch;i++)for(var j=0;j<n;j++){if(j===i||j===(i+n-1)%n)continue;var a=P[j],b=P[(j+1)%n];if(cdHyp(P[i],a)<tol||cdHyp(P[i],b)<tol)continue;var r=cdSegDist(P[i],a,b);if(r.d<tol&&r.t>0&&r.t<1){pinch=true;break;}}
  if(!pinch)return null;var A;try{A=bcArrange(P.map(function(p,i){return [p,P[(i+1)%n]];}),Math.max(1e-6,0.004/k));}catch(e){return null;}
  var out=[];A.faces.forEach(function(f){if(!(f.area>0)||f.area*k*k<1)return;var Q=bcClean(f.v.map(function(v){return A.nodes[v].slice();}));if(Q.length<3)return;if((bcPolyArea(Q)<0)!==(bcPolyArea(P)<0))Q.reverse();
@@ -8010,7 +8020,7 @@ function bcsDown(e,drag,cv){var b=cv.getBoundingClientRect(),mx0=e.clientX-b.lef
  if(!h)return;var S=bcS,L=cdHyp(h.a,h.b)||1;drag.sw={i:h.i,n:[-(h.b[1]-h.a[1])/L,(h.b[0]-h.a[0])/L],q0:bcToSrc(e.clientX-b.left,e.clientY-b.top),pts0:S.st.pw[h.i].pts.map(function(p){return p.slice();})};}
 function bcsHover(e,cv){var b=cv.getBoundingClientRect();return !!bcsWallHit(cv,e.clientX-b.left,e.clientY-b.top)||!!bcsRegHit(cv,e.clientX-b.left,e.clientY-b.top,true);}
 function bcsDragMove(e,drag,cv){var S=bcS,b=cv.getBoundingClientRect(),q=bcToSrc(e.clientX-b.left,e.clientY-b.top);
- if(drag.sw.reg){var w=drag.sw,r=S.st.regs[w.i],sfD=bcsSnapFind(q),qs=sfD?sfD.p:q,P=w.P0.map(function(p){return p.slice();}),n=P.length;
+ if(drag.sw.reg){var w=drag.sw,r=S.st.regs[w.i],sfD=bcsSnapFind(q,r.kind==="lcp"),qs=sfD?sfD.p:q,P=w.P0.map(function(p){return p.slice();}),n=P.length;
   if(w.c!==undefined)P[w.c]=qs;else{var a=w.P0[w.s],dd=(qs[0]-a[0])*w.n[0]+(qs[1]-a[1])*w.n[1];[w.s,(w.s+1)%n].forEach(function(j){P[j]=[w.P0[j][0]+w.n[0]*dd,w.P0[j][1]+w.n[1]*dd];});}
   r.P=P;w.d=1;bcDraw();return;}
  var d=(q[0]-drag.sw.q0[0])*drag.sw.n[0]+(q[1]-drag.sw.q0[1])*drag.sw.n[1];drag.sw.d=d;S.st.pw[drag.sw.i].pts=drag.sw.pts0.map(function(p){return [p[0]+drag.sw.n[0]*d,p[1]+drag.sw.n[1]*d];});bcDraw();}
@@ -8058,7 +8068,14 @@ function bcsWallSnap(q){var S=bcS,k=S.k,L=bcsWallAt(q);if(!L.length)return null;
  if(B){var den=cdCross(A.u,B.u),t=cdCross(cdSub(B.p,A.p),B.u)/den,I=[A.p[0]+A.u[0]*t,A.p[1]+A.u[1]*t];if(cdHyp(I,q)*k<0.55)return {p:I,k:"wall corner"};}
  var tt=(q[0]-A.p[0])*A.u[0]+(q[1]-A.p[1])*A.u[1];return {p:[A.p[0]+A.u[0]*tt,A.p[1]+A.u[1]*tt],k:A.ex?"strata line":"wall centre"};}
 /* the snap for area corners and dividing lines: wall centre first, then the drawing's own corners */
-function bcsSnapFind(q){var S=bcS;if(!bcSnapOn()||S.scan)return null;var w=null;try{w=bcsWallSnap(q);}catch(e){w=null;}if(w&&S.view.plan&&cdHyp(w.p,q)*S.view.plan.s<=60)return w;return bcSnapFind(q,10);}
+/* the green outline (outer face of the building) can be picked for an LCP: a corner of it, or anywhere along a side; the area is run on to the strata line when it is finished */
+function bcsFaceSnap(q,c){var S=bcS,P=S.out&&S.out.P,s=S.view.plan?S.view.plan.s:1;if(!P)return c;var bc=null,bd=10/s,be=null,ed=7/s;
+ for(var i=0;i<P.length;i++){var d=cdHyp(P[i],q);if(d<bd){bd=d;bc=P[i];}var r=cdSegDist(q,P[i],P[(i+1)%P.length]);if(r.d<ed){ed=r.d;be=r.q?r.q.slice():[P[i][0]+(P[(i+1)%P.length][0]-P[i][0])*r.t,P[i][1]+(P[(i+1)%P.length][1]-P[i][1])*r.t];}}
+ if(bc&&(!c||!c.p||bd<=cdHyp(c.p,q)))return {p:bc.slice(),k:"outline corner"};if(c&&c.p)return c;if(be)return {p:be,k:"outline"};return null;}
+/* 1.43.4: an LCP is drawn to what is on the plan (deck edges, posts, wall faces) — plain corner snapping, as before 1.43; it is run on to the strata line when it is finished.
+   For non-habitable areas and cuts a wall centre or strata line is taken when the click is on or beside the wall (25 px), unless a drawn corner is right under the cursor and nearer. */
+function bcsSnapFind(q,lcp){var S=bcS;if(!bcSnapOn()||S.scan)return null;var c=bcSnapFind(q,10);if(lcp||S.mode==="slcpt")return bcsFaceSnap(q,c);var w=null,s=S.view.plan?S.view.plan.s:1;try{w=bcsWallSnap(q);}catch(e){w=null;}
+ if(w&&cdHyp(w.p,q)*s<=25){if(c&&c.p&&cdHyp(c.p,q)*s<=6&&cdHyp(c.p,q)<cdHyp(w.p,q))return c;return w;}return c;}
 /* ---- a non-habitable area cut out of a lot: only the dividing wall is drawn; every side on an existing strata line is followed ---- */
 /* whole sides, not just corners: a side that runs along a wall (read at three places along it) is moved square onto that wall's centre line */
 function bcsFitWalls(P,closed){var S=bcS,k=S.k,n=P.length,Q=P.map(function(p){return p.slice();}),m=closed?n:n-1,moved=0;
@@ -8105,15 +8122,15 @@ function bcsRoomName(P){var S=bcS,best=null;try{(S.src.text||[]).forEach(functio
 function bcsGarages(){var S=bcS,T=S.st,O=S.out,k=S.k,out=[];if(!O||!O.edits)return out;var R0=bcsCalc();if(!R0||R0.bad)return out;
  (O.pockets||[]).forEach(function(Q){var c=bcsCentroid(Q),u=null;R0.units.forEach(function(x){if(bcInPoly(x.P,c))u=x;});if(!u)return;if(T.regs.some(function(r){return r.kind==="non"&&bcInPoly(r.P,c);}))return;var cl=bcsClipTo(Q,u.P)||Q,H=bcsHold(cl);out.push({P:H.length>=3?H:cl,unit:u.lab,area:Math.abs(bcPolyArea(H.length>=3?H:cl))*k*k});});return out;}
 function bcsGarageAdd(){var S=bcS,T=S.st,G=bcsGarages();if(!G.length)return;bcsSnap(G.length+" garage"+(G.length===1?"":"s")+" marked non-habitable");G.forEach(function(g){T.regs.push({kind:"non",P:g.P,lab:"Garage",unit:null});});S.msg=G.length+" garage"+(G.length===1?"":"s")+" marked non-habitable ("+G.map(function(g){return g.area.toFixed(1);}).join(" / ")+" m²), to the centre of the walls round "+(G.length===1?"it":"them")+". Adjust in Move if a wall was missed.";bcRender();setTimeout(bcDraw,0);}
-function bcsRegAdd(P,kind){var S=bcS,T=S.st,k=S.k;if(bcSnapOn()&&!S.scan){var fwA=bcsFitWalls(P,true);if(fwA.moved&&bcXSimple(fwA.P))P=fwA.P;}var P0=P,held=0;/* an area drawn to a wall's face (inside or outside) runs on to that wall's strata line: LCP as well as non-habitable */var H=bcsHold(P);if(H.length>=3){P=H;held=P.length===P0.length?P.filter(function(p,i){return cdHyp(p,P0[i])*k>0.005;}).length:1;}bcsSnap((kind==="non"?"non-habitable":"LCP")+" area added");T.regs.push({kind:kind,P:P,lab:kind==="non"?"":"LCP",unit:null});
+function bcsRegAdd(P,kind){var S=bcS,T=S.st,k=S.k;if(kind==="non"&&bcSnapOn()&&!S.scan){var fwA=bcsFitWalls(P,true);if(fwA.moved&&bcXSimple(fwA.P))P=fwA.P;}var P0=P,held=0;/* an area drawn to a wall's face (inside or outside) runs on to that wall's strata line: LCP as well as non-habitable */var H=bcsHold(P);if(H.length>=3){P=H;held=P.length===P0.length?P.filter(function(p,i){return cdHyp(p,P0[i])*k>0.005;}).length:1;}bcsSnap((kind==="non"?"non-habitable":"LCP")+" area added");T.regs.push({kind:kind,P:P,lab:kind==="non"?"":"LCP",unit:null});
  S.msg=(kind==="non"?"Non-habitable area":"LCP area")+" added: "+(Math.abs(bcPolyArea(P))*k*k).toFixed(2)+" m²"+(held?", run on from the wall face to the strata line (the centre of the wall)":"")+". Name it in step "+(kind==="non"?5:6)+".";bcRender();setTimeout(bcDraw,0);}
 function bcsPickClick(q){var S=bcS,r=bcsFaceAt(q);if(!r.P){S.msg=r.why;bcRender();return;}bcsRegAdd(r.P,bcsRegKind());}
 function bcsTraceClick(q){var S=bcS,T=S.st,V=S.view.plan,sfT=S.hover&&S.hover.k?{p:S.hover.p.slice(),k:S.hover.k}:bcsSnapFind(q),p=sfT?sfT.p:q,kk=sfT?sfT.k:null;if(!T.trace){T.trace=[];T.traceK=[];}if(!T.traceK||T.traceK.length!==T.trace.length)T.traceK=T.trace.map(function(){return null;});
  if(T.trace.length>=3&&(cdHyp(T.trace[0],p)*V.s<12||cdHyp(T.trace[0],q)*V.s<12)){bcsTraceFinish();return;}
  /* nearly square to the building → exactly square, the end with the weaker hold giving way */
- if(T.trace.length&&bcSnapOn()&&!S.scan){var m0=T.trace.length-1,sq=bcsSquare(T.trace[m0],T.traceK[m0],p,kk);if(m0===0)T.trace[0]=sq[0];p=sq[1];}T.trace.push(p);T.traceK.push(kk);bcRender();setTimeout(bcDraw,0);}
+ if(T.trace.length&&bcSnapOn()&&!S.scan){var m0=T.trace.length-1,lc=S.mode==="slcpt",fx=function(x){return lc?(x&&x!=="outline"?"wall corner":null):x;},sq=bcsSquare(T.trace[m0],fx(T.traceK[m0]),p,fx(kk));if(m0===0)T.trace[0]=sq[0];p=sq[1];}T.trace.push(p);T.traceK.push(kk);bcRender();setTimeout(bcDraw,0);}
 function bcsTraceFinish(){var S=bcS,T=S.st;if(!T.trace||T.trace.length<3){S.msg="Click at least three corners.";bcRender();return;}
- if(bcSnapOn()&&!S.scan&&T.traceK&&T.traceK.length===T.trace.length){var nL=T.trace.length-1,sqc=bcsSquare(T.trace[nL],T.traceK[nL],T.trace[0],T.traceK[0]);T.trace[nL]=sqc[0];T.trace[0]=sqc[1];}
+ if(bcSnapOn()&&!S.scan&&T.traceK&&T.traceK.length===T.trace.length){var nL=T.trace.length-1,lcF=S.mode==="slcpt",fxF=function(x){return lcF?(x&&x!=="outline"?"wall corner":null):x;},sqc=bcsSquare(T.trace[nL],fxF(T.traceK[nL]),T.trace[0],fxF(T.traceK[0]));T.trace[nL]=sqc[0];T.trace[0]=sqc[1];}
  var P=bcClean(T.trace);T.trace=null;T.traceK=null;if(P.length<3){S.msg="Those corners are in a line.";bcRender();return;}bcsRegAdd(P,bcsRegKind());}
 function bcsTraceUndo(){var T=bcS.st;if(T.trace&&T.trace.length)T.trace.pop();bcRender();setTimeout(bcDraw,0);}
 function bcsRegDel(i){var T=bcS.st;bcsSnap("area removed");T.regs.splice(i,1);bcRender();setTimeout(bcDraw,0);}

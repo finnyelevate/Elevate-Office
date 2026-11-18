@@ -1,5 +1,31 @@
 # Elevate Office — changelog
 
+## Build 1.43.4 — 2026-11-18
+From tracing the deck LCPs on the Delta plan in 1.43.1: the corners kept jumping to the blue strata line. Includes everything in 1.43.3 below, which was not uploaded.
+- **Strata › Tracing an LCP no longer jumps to the blue line (fix).** In 1.43.1 every point near a wall was pulled to the strata line or a wall centre from up to 60 px away, which is right for a garage wall and wrong for a deck. For an LCP the snap is now:
+  - **A corner or line end drawn on the plan** (deck edge, post, wall face), as it was before 1.43.
+  - **The green outline** (the outside face of the building): a corner of it, or anywhere along a side when nothing drawn is closer. The marker shows which it has caught.
+  - Never the blue line or a wall centre. Dragging an LCP corner in Move follows the same rule.
+- **Strata › LCP: pick the green line and it runs on to the blue (change).** A side picked on the green outline is moved square on to the strata line when the area is finished, so the LCP meets the lot with no gap. This was already the rule; in 1.43.1 the sides were also being shifted onto the centre of double lines such as guardrails, which is why the result didn't sit on the deck edge. That shift is now for non-habitable areas only.
+- **Strata › LCP squaring (change).** A point clicked in the open is squared to the point before it when the line is within 6° of square to the building. A point picked on a drawn corner never moves; a point picked along the green line may slide along it to square up.
+- **Strata › Non-habitable: wall-centre snap is less grabby (change).** A wall centre or strata line is taken when the click is on or beside the wall (25 px, was 60). A drawn corner right under the cursor (6 px) wins when it is the nearer.
+- **Checked:** on the Delta main floor, seven points near walls give a drawn corner, the green line or nothing when tracing an LCP, and wall centres or strata lines when tracing non-habitable; an LCP started 1.5 units off the green line with two rough clicks in the open comes out square with its wall side on the blue line (4 + 5 checks). The garage cut and the earlier LCP checks are unchanged. Scripted browser, not by hand in Chrome.
+- **To know:** LCPs traced in 1.43.1 keep the edges they were given; re-trace them, or drag the side once in Move.
+
+## Build 1.43.3 — 2026-11-18
+Two fixes from the first run of 1.43.1 (1.43.2 was filed but not uploaded; its change is the first one here).
+- **Strata › Separate blocks joined by a thin strip (fix).** On the Delta upper floor the picked outline runs across between the two units along the bottom, 0.15 m (one wall thickness) above the outside line, so the blocks were joined by a sliver and the app asked for a party wall. A strip under 0.6 m wide is now closed up and the floor is read as separate blocks, one lot each, with no party wall to pick.
+  - Before, the blocks had to meet at a line of no width (within 2 cm).
+  - A link 0.6 m or wider is left as one outline, since it could be a passage.
+  - The confirm message reads "2 separate blocks on this floor, so no party wall is needed".
+- **What's new card (fix).** The card on the first screen showed the section headings and sub-points of the release notes run together with their markdown marks. Sub-points are now listed under their item, headings and marks are left out, and the test notes are not shown.
+- **New in 1.43 (details under Build 1.43.1 in CHANGELOG.md):**
+  - Points › Map: a UTM 10 points file over an aerial photo, control highlighted.
+  - PM: a pasted tracker row is checked against the jobs master, and one click makes it a sub-quote of the existing job's quote without clearing anything.
+  - Design calc: drop the plan, then the app's DXF, to reopen a strata or building layout job.
+  - Strata: cut a garage out of a lot by drawing only the dividing wall; corners go to wall centres; one label per area; TA and THA; labels and dimensions kept clear; CSV for lots only.
+- **Checked:** the Delta upper floor with the strip at 0.15, 0.30 and 0.55 m gives two lots of 65.8 m² each; at 0.9 m it stays one outline (10 checks). The card was rendered from this file. All earlier checks unchanged. Scripted browser, not by hand in Chrome.
+
 ## Build 1.43.1 — 2026-11-18
 Ten things asked for over the last two days, built together. Builds 1.42.4 and 1.43.0 never needed uploading; everything in them is in here (1.43.1 only adds the last CSV change below).
 
