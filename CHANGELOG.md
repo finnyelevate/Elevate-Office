@@ -1,5 +1,33 @@
 # Elevate Office — changelog
 
+## Build 1.44.1 — 2026-11-19
+What Strata plan gained in 1.43, brought to Building layout where it applies. Includes 1.44.0 below.
+- **Building layout › Undo takes back any step (new).** Undo on the toolbar used to cover outline edits, post lines and excavation edits only, and only in the step they belonged to. It now takes back the last change on the page whatever step it was in: scale, outline, confirming the outline, each post, confirming posts, the lot pick, setback rows and placement, the excavation and edits to it. It works from the Plan and the Site view, up to 60 steps back.
+  - A drag, or a burst of typing in one box, counts as one step.
+  - The house position is worked out again from the setbacks after an Undo, so it always matches what is on screen.
+  - Turning the plan or changing page starts a fresh list.
+- **Building layout › Always clear which step is on (new).** The same strip as Strata plan, above the plan: 1 Scale · 2 Outline · 3 Posts · 4 Lot · 5 Setbacks · 6 Excavation · 7 Output. The step that is on is solid blue, finished steps are ticked, steps not yet reachable are grey. Click one to go there.
+  - Only the card of the step that is on is open; the rest are folded to their heading. The floor-elevations card opens and closes on its own as before.
+  - Clicking a step's heading always makes it the step that is on.
+- **Building layout › Dimensions keep clear of more linework (change).** The building dimensions already kept off the house lines, each other and the elevation block. They now also keep off posts, post lines, the excavation line and the lot lines, and a dimension slides along its side when the middle is taken. Any that still can't be placed clear are listed in the save message so they can be moved in CAD.
+- **Not carried over, because they don't apply:** wall-centre snapping and cutting areas out of a lot (Building layout works to the outside face of the foundation), separate blocks, floors and automatic floor saving, the Adding switch. Reopening a job from the plan and the app's DXF has covered Building layout since 1.43.
+- **Checked:** a job taken through scale, outline, two posts, lot, setbacks and excavation, then undone one step at a time back to an empty page, with nothing put back on the list by undoing; strip and card headings; a post standing where a dimension would go, and the dimension placed clear of it (16 checks). All earlier Building layout and Strata checks unchanged. Scripted browser, not by hand in Chrome.
+- **To know:** Undo does not bring back a lot drawing that was loaded and then replaced, or a plan that was turned; it covers what was worked out on the page, not which files are open.
+
+## Build 1.44.0 — 2026-11-19
+- **PM › Job map with lot lines (new).** The map preview under a quote's site address now opens on a map the app draws itself, instead of the Google job map.
+  - **Background:** aerial photo or street map, with **ParcelMap BC lot lines** over it (tick box to turn them off).
+  - **This quote's address:** a green pin.
+  - **Our jobs:** a blue pin for every job in the jobs master that has a position, labelled with its job number when zoomed in.
+  - **Click a job pin:** job number, quote number, address, how far it is from this quote's address, and *Make this a sub-quote of …* (the same button as under *Existing job*).
+  - Drag to move, wheel or + / − to zoom, *Re-centre* to come back.
+  - **Google job map** is one click away on the same bar, and the choice is remembered. *Open in My Maps* is unchanged.
+  - Job pins need Job Files - Documents connected under *Folders on this computer*; without it the map still shows, with a line saying so.
+- **Jobs master now has coordinates (data, not the app).** All 2,678 rows of `Elev_Jobs_Master` carry a latitude and longitude as of today, so the *Existing job* check finds a job within 75 m on any street, not only on the same street. The weekly job map task fills them in for new jobs.
+- **Checked:** with the real jobs master, a quote at 14040 103A Avenue shows the pin for job 21-1664 next door; clicking it gives "Job 21-1664 · quote 21-736 … 14 m from this quote's address" and the sub-quote button; lot-line and photo tiles are requested for the area; switching to the Google map and back; with Job Files not connected (11 checks). All earlier checks unchanged. Scripted browser, not by hand in Chrome.
+- **Not checked:** that the photo and lot lines actually load in this view; they could not be loaded where the build is tested. They use the same sources as Points › Map, which is reported working.
+- **To know:** 137 jobs are positioned along their block rather than on the lot (marked in the master's Notes column), so their pins can sit a few lots off. Lot lines are ParcelMap BC's and the photo is good to a metre or two: a guide, not a survey. Only site addresses are sent to the BC address finder; job pins are drawn from the file on this computer.
+
 ## Build 1.43.5 — 2026-11-18
 From running the Delta job through three floors on 1.43.1. Includes everything in 1.43.4 and 1.43.3 below, which were not uploaded.
 - **Strata › Floors no longer overwrite each other (fix).** Two pages could both be given the name "Floor 2", and saving the second replaced the first: the upper floor took the main floor's place and the totals lost a floor. A saved floor now belongs to the outline it was made from, not to its name.
