@@ -1,5 +1,82 @@
 # Elevate Office — changelog
 
+## Build 1.45.1 — 2026-11-20
+Two more things asked for before 1.45.0 was uploaded. Includes everything in 1.45.0 below.
+- **PM › Services filled from the request (new).** A quote that comes in from a tracker row or an email block now arrives with its service already loaded when Services Provided names one of the plain cases. The approved library wording is used; hours and prices are never set.
+  - **Topo / topographic survey:** Topographic survey. If the request is for an **addition or renovation**, House details is switched on. For a **development or subdivision**, Current Legal property line + Area calculation and Visible utilities + Inverts are switched on (and the two plain lines they replace are switched off). For a **new house**, Visible utilities + Inverts.
+  - **Property line survey / PL survey:** Property line survey (fencing).
+  - **A neighbour issue or dispute, or property corners to be installed:** PL survey & posting plan when it goes with a property line survey or a dispute; Posting plan to set permanent legal markers when it is only corners or posting. "Posting plan for permit" loads that one.
+  - **New construction:** New House Construction (the Vancouver version for a Vancouver address, New Construction for multi-family or commercial). "Topo and new construction" loads both.
+  - A blue line above the services says what was filled and why, with **Remove** beside each.
+  - Things mentioned only in the task details (a building location, for example) are offered as buttons and never added by themselves.
+  - Only a quote whose services are still empty is filled. A quote typed by hand gets the same services as buttons to click, not filled for you.
+- **PM › Client suggestions for repeat clients (new).** Typing in Client, or in Email, lists matching clients from the client list, newest first, with their email and client number. Picking one fills the client name, and the email if the Email box is empty.
+  - Nothing already in a box is replaced: an email that is there stays, and a note says the list has a different one. A quote pasted from the tracker is left exactly as pasted.
+  - The note under the box gives the client number and the dashboard's remark for that client.
+  - The list is read from `Quotes - Documents › Client List` on this computer. The app keeps no copy and sends none of it anywhere.
+- **Checked:** 27 checks on the services, run against the real library: the carport request on Nov 20 loads Topographic survey with House details on and offers the building location as a button; "Topo, Posting, and New House Construction" at a Vancouver address loads all three; subdivision, plain topo, PL survey, dispute, corners, permit; "neighbour" on its own is not treated as a dispute; a quote with services is never changed. 12 checks on client suggestions with a made-up list. All earlier checks unchanged. Scripted browser, not by hand in Chrome.
+- **To know:** the phrases it recognises are a first list. If a request you'd expect to be caught isn't, or one is caught wrongly, tell me the wording and it is a one-line change.
+
+## Build 1.45.0 — 2026-11-20
+The ten items noted on Nov 20, built together. Most are on the PM tab; the last is in Coordinate design.
+- **PM › The address check now reads everything (fix).** A request that was already in To Do Quotes, with its quote folder made and the quote sent, came back as "not quoted before". Two gaps caused it: tracker rows with no quote number were skipped, and a quote folder newer than the quotes master was never looked at. The check now covers:
+  - **To Do Quotes rows with or without a quote number.** A row with no number shows as "In To Do Quotes, no quote # yet", with the client, the date requested and who it is assigned to.
+  - **The last 25 quote folders.** Any that the master doesn't hold yet are read for their site address (job details file, else the app's Word quote).
+  - **The quotes master**, as before.
+  - The heading reads **Being quoted now** when the match is a tracker row or a new folder, **Quoted before** when it is from the master.
+  - The line says what was checked, for example "quotes master (4,981 quotes, to 26-686) · To Do Quotes (39 rows) · the last 25 quote folders (to 26-691)", and names any new folder it could not compare because it has no address on file yet. "Not quoted before" is no longer claimed.
+  - The request you are quoting is not flagged against its own tracker row (same email, or same client or contact name).
+- **PM › Warning before a quote folder is created (new).** *Create next quote folder* looks again, fresh, at that moment. If any address on the quote already has a quote or a job it stops and says "There is already a quote with that site address" (or "…a job at that site address"), lists what it found, and asks "Are you sure you want to proceed?".
+  - Buttons: **Cancel** (the default), **Belongs to an existing quote…** and **Create anyway**.
+  - Nothing is created until you choose. A quote with several addresses is warned for any one of them, and the address is named.
+- **PM › Site address suggestions (new).** Typing in Site Address lists matches after a few characters: our own jobs and quotes that start the same way first (marked with their number), then the BC Address Geocoder. Arrow keys and Enter, or click. Picking one puts in the tidy address and its map position, so the checks and the job map run straight away. Works on every property line of a quote.
+- **PM › PID from ParcelMap BC (new).** After an address is picked, the PID of the parcel under it is filled in from the public ParcelMap BC layer, with a note giving the plan number and "public record, confirm against title".
+  - A PID already in the box is never replaced; a difference is pointed out with a button to use the other.
+  - Several parcels under the address: you choose. An address typed by hand gets a **Find PID** button instead of an automatic fill.
+- **PM › Legal description from LTSA, by copy and paste (new).** The research button is now **LTSA map — this lot** and opens LTSA's map centred on the lot (sign in to LTSA first). Click the lot there, copy the Parcel Summary, and use **Paste LTSA parcel summary** (or paste straight into the PID or Legal Desc. box): the PID and the full Legal Description are filled from it.
+  - If the pasted PID isn't the parcel ParcelMap BC shows under the address, it says "Check the lot".
+- **PM › Job map: every address, and a job's points (new).**
+  - **Several addresses:** each property of the quote gets its own green point, labelled with its address, and the map opens to fit them. An address that can't be placed is named under the map.
+  - **Drop a .msz on the map** (or *Add points (.msz)…*): the control and found pins of a nearby job are drawn with their point numbers — a triangle for survey control, a dot for pins and posts — using the same control-layer list as Points › Map. *Show every point* shows the rest. Click a point for its number, description, file and coordinates. Several files can be on at once, each in its own colour.
+  - **UTM only:** a file that isn't in UTM, or mixes UTM with other coordinates, is refused by name and nothing is drawn. A UTM file more than 2 km from the address is held back with the distance until you say *Show it anyway*.
+  - **Save map image:** a picture of the map as it stands (photo, lot lines, pins, points, scale bar), with the quote number, address and date on it. *Also save it into the quote folder* writes that one file when clicked.
+  - The points are on the map for the session only; nothing is added to the quote.
+- **PM › Scope page: mark up the aerial (new).** Each scope page has **Mark up…**: Cloud (the default, in red), Outline, Line, Arrow, Box, Text and Move, in red, blue or black, with Undo (Ctrl+Z), Delete and Clear all. The marked-up picture is what goes into the Word quote as the scope page. The untouched picture is kept with it, so *Edit marks* reopens the same marks later.
+  - **More ways to bring the picture in:** pictures and PDFs found in the quote's folder are listed under the panel (click one to add it and mark it up), and **+ From the job map** takes the map as you have it. Pasting a screenshot, a picture file and a PDF page work as before.
+  - **Crew copy (PDF):** the page as a one-page PDF titled SCOPE OF WORK with the quote number, address, client and date. It is saved into the quote folder when clicked (downloaded if the folder isn't found), so it is copied to the job's Office folder with the rest when the quote becomes a job.
+- **PM › New quote from an email (new).** *New from an email…* gives an instruction to copy into Claude or ChatGPT with the request email under it. The assistant answers with a short labelled block; paste the block (Ctrl+V anywhere on the PM tab) and the quote is started with client, contact, email, phone, site address or addresses, services, task details and date. A quote number, hours or a price in a block are ignored. All the address checks then run as usual.
+- **PM › Go to box and links (new).** A box at the top of the PM tab:
+  - **A quote number** opens its draft, or reads it from its quote folder if it isn't on this computer.
+  - **A job number** shows its address, quote and where its folder is, and whether the folder exists.
+  - **An address** is checked against the quotes, To Do Quotes, the newest folders and the jobs master, without starting a quote.
+  - **"convert 26-691 to 26-3688"** opens the job conversion with both numbers filled. Nothing is created until *Create job folder* is pressed.
+  - The same as links: `#quote=26-690`, `#job=21-1664`, `#convert=26-691&job=26-3688`, `#find=<address>` on the end of the app's address.
+- **PM › Jobs: is the client already in the dashboard? (new).** Converting a quote now shows a client step first. The quote's email and name are compared with the client list (`Quotes - Documents › Client List › Elev_Clients_Master.csv`, kept up to date by the daily task).
+  - Matches by email (capitals ignored, every address in the box), then by the company's own email domain, then by name, including near-misses in spelling. Each match shows the client number and why it matched, with a button to copy the number.
+  - An email shared by several clients lists all of them. Nobody found: "New client", with the name and email ready to copy into the dashboard.
+  - The list is read on this computer when needed. The app keeps no copy of it and sends none of it anywhere.
+- **PM › Jobs: job number from the dashboard's CSV (new).** *Read the job # from the dashboard's CSV…* takes the Job list's Download CSV file and fills Job # from the row whose Contract is this quote (003687 with an order date in 2026 becomes 26-3687; contract 26-135-B matches quote 26-135B). It says so if the address differs from the quote's, or if no job has that contract yet.
+- **Coordinate design › Lines as polylines (new).** *Lines as polylines (.dxf)* writes each picked line (gutter line, centre line and so on) with its design elevations:
+  - **A 3D polyline** through the line's design points, with the **BC, midpoint and EC** of every curve. These are the same positions and elevations as the INTERP points in the points file.
+  - **The same line in 2D with true arcs**, for offsets.
+  - **Optional:** a 3D copy with the curves chorded to within 1 cm of the arc, on its own layer.
+  - Calculated elevations are straight-line between the design values on either side, by distance along the line, and are labelled CALC in the drawing. Nothing is extrapolated: a stretch before the first or after the last design value is left out of the 3D line and reported ("NO ELEVATION for 5.0 m at the start").
+  - The panel lists each line before saving, and the Summary lists every polyline point with its source.
+- **Checked:** by script in a test browser, 145 new checks, with the earlier ones unchanged.
+  - Address check and warning (21): a tracker row with no number and a folder newer than the master are both found; own request not flagged; warning on a quote, on a job, on the second of two addresses; Cancel creates nothing.
+  - Suggestions, PID, LTSA paste, several addresses (23). The three outside services were also tried from Chrome on a real address: suggestions returned, and the PID matched the one LTSA shows for that lot.
+  - Client check and job CSV (17), against the real client list and the real Job list export.
+  - Points on the job map (19): control and pins found, a point lands 13.0 m from the address where the test file puts it, local and mixed files refused, far file held back.
+  - Mark-up and crew PDF (27): every tool, Undo, Move, Delete; the cloud bulges outward whichever way round it is clicked; the PDF opens as one letter page.
+  - Email block, Go to box and links (23).
+  - Polylines (15): on a line with a 90° curve of radius 10, BC, MID and EC are on the true arc with the right elevations; the DXF was opened in a second program, which read the arc back as centre 20,10 radius 10.
+- **Not checked:** none of this has been run by hand in Chrome yet. In particular: pasting a real Parcel Summary copied from LTSA (the reader was written from a screenshot of the panel); *Save map image* and *+ From the job map* end to end (the photo and lot-line sources do allow copying, tried from Chrome); the polyline DXF opened in MicroSurvey; a real .msz from a UTM job.
+- **To know:**
+  - Only the address text typed, and one map position, are sent out (to the BC Address Geocoder and ParcelMap BC). Nothing about the client or the quote is.
+  - The PID comes from the public parcel map, not from title. The legal description only ever comes from what you paste from LTSA.
+  - The client heads-up is as current as the client list file. It says "as of" with the list's date.
+  - A new quote folder with nothing in it yet can't be compared by address; it is named on the "Not compared" line until its job details file is saved.
+
 ## Build 1.44.1 — 2026-11-19
 What Strata plan gained in 1.43, brought to Building layout where it applies. Includes 1.44.0 below.
 - **Building layout › Undo takes back any step (new).** Undo on the toolbar used to cover outline edits, post lines and excavation edits only, and only in the step they belonged to. It now takes back the last change on the page whatever step it was in: scale, outline, confirming the outline, each post, confirming posts, the lot pick, setback rows and placement, the excavation and edits to it. It works from the Plan and the Site view, up to 60 steps back.

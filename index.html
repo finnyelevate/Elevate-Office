@@ -848,8 +848,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.44.1";
-const NEWS=["Building layout: Undo now takes back any step (scale, outline, posts, lot, setbacks, excavation); a step strip above the plan shows the step that is on; dimensions keep clear of posts, the excavation line and the lot.", "PM › Job map: the preview under a quote’s address now opens on an aerial photo with ParcelMap BC lot lines, the quote’s address and our jobs as pins. Click a pin for its job and quote. The Google job map is one click away.", "Points › Map (new): a UTM 10 points file over an aerial photo, control highlighted. Click a point for its number and coordinates.", "PM: a pasted tracker row is checked against the jobs master — if there is already a job at or beside the address it says so, and one click makes the draft the next sub-quote of that job’s quote without clearing anything.", "Design calc: the DXF the app writes now carries the working data. Drop the plan, then that DXF, and the job reopens where it was left (Strata plan and Building layout).", "Strata plan: cut a garage out of a lot by drawing only the dividing wall; corners go to wall centres; upper floors where the units are separate blocks; one label per area; TA and THA; labels and dimensions kept clear of each other.", "Design calc (new tab): Coordinate design, Building layout and Strata plan have moved out of Points into their own tab. Pick the tool, then drop the engineer’s or architect’s drawing. Points keeps the points-file tools, including Design vs Field.", "Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
+const BUILD="1.45.1";
+const NEWS=["PM › Services suggested from the request: a tracker row or email block that says topo, PL survey, posting or new construction comes in with that service already loaded (approved wording, no hours or price). Topo for an addition, a new house or a development switches on the matching scope lines.", "PM › address check now reads everything: To Do Quotes rows that have no quote number yet, the last 25 quote folders (the master is a day behind at best) and the quotes master. The line under the address says what was checked.", "PM › Create next quote folder: a warning first if the site address already has a quote or a job. Cancel is the default.", "PM › Site Address: suggestions as you type (our jobs and quotes first, then the BC Address Geocoder). Picking one fills the PID from ParcelMap BC.", "PM › “LTSA map — this lot” opens LTSA at the lot; copy its Parcel Summary and paste it back to fill the PID and Legal Description.", "PM › Job map: every address of the quote gets its own green point. Drop a nearby job’s .msz on the map to see its control and found pins (UTM jobs). Save map image.", "PM › Scope page: Mark up… (cloud, lot outline, arrow, text), pictures from the quote folder or the job map, and a Crew copy (PDF).", "PM › New from an email…: Claude or ChatGPT fills in a short block from the request email; paste it and the quote is started.", "PM › Go to box: type a quote number, a job number or an address. Links work too (#quote=26-690, #job=21-1664, #find=address).", "PM › Jobs: a heads-up when the client is already in the dashboard’s client list, and the job number can be read from the dashboard’s Job list CSV.", "Coordinate design: Lines as polylines (.dxf) — each picked line as a 3D polyline with BC, MID and EC of its curves, plus the same line with true arcs.", "Building layout: Undo now takes back any step (scale, outline, posts, lot, setbacks, excavation); a step strip above the plan shows the step that is on; dimensions keep clear of posts, the excavation line and the lot.", "PM › Job map: the preview under a quote’s address now opens on an aerial photo with ParcelMap BC lot lines, the quote’s address and our jobs as pins. Click a pin for its job and quote. The Google job map is one click away.", "Points › Map (new): a UTM 10 points file over an aerial photo, control highlighted. Click a point for its number and coordinates.", "PM: a pasted tracker row is checked against the jobs master — if there is already a job at or beside the address it says so, and one click makes the draft the next sub-quote of that job’s quote without clearing anything.", "Design calc: the DXF the app writes now carries the working data. Drop the plan, then that DXF, and the job reopens where it was left (Strata plan and Building layout).", "Strata plan: cut a garage out of a lot by drawing only the dividing wall; corners go to wall centres; upper floors where the units are separate blocks; one label per area; TA and THA; labels and dimensions kept clear of each other.", "Design calc (new tab): Coordinate design, Building layout and Strata plan have moved out of Points into their own tab. Pick the tool, then drop the engineer’s or architect’s drawing. Points keeps the points-file tools, including Design vs Field.", "Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -2592,14 +2592,14 @@ function pmrStripHtml(q,i,p){if(pmrIsSub(q)||!(p.site||"").trim())return "<div c
  var btn=function(lab,url,copy,tip){return "<a class='btn pmr-b' href='"+E(url)+"' target='_blank' rel='noopener'"+(copy?" data-copy='"+E(copy)+"'":"")+" title='"+E(tip)+"'>"+E(lab)+"</a>";};
  var h="<span class='pmr-lab'>Research</span>";
  h+=C.length?C.map(function(c){return btn("City GIS — "+c.name,c.url,a,"opens "+c.name+"’s map; the address is copied — paste it into the map’s search");}).join(""):"<span class='hint pmr-nocity' style='margin:0'>city not recognised — see Resources for the GIS list</span>";
- h+=btn("ParcelMap BC",PMR_PARCEL,pid||a,"opens ParcelMap BC (LTSA); "+(pid?"the PID":"the address")+" is copied — paste it into the search");
+ h+=btn(geo&&geo.exact?"LTSA map — this lot":"ParcelMap BC",geo&&geo.exact?PMR_PARCEL+"?center="+geo.lng+","+geo.lat+"&zoom=21":PMR_PARCEL,pid||a,(geo&&geo.exact?"opens LTSA’s ParcelMap BC at this lot (sign in to LTSA first); ":"opens ParcelMap BC (LTSA); ")+(pid?"the PID":"the address")+" is copied — paste it into the search");
  h+=btn("Job map",geo&&geo.exact?"https://www.google.com/maps/d/viewer?mid="+PMR_MID+"&ll="+geo.lat+","+geo.lng+"&z=19":"https://www.google.com/maps/d/viewer?mid="+PMR_MID,geo&&geo.exact?"":a,"your job map (Google My Maps)"+(geo&&geo.exact?", at this address":"; the address is copied"));
  h+=btn("Google Maps","https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a),"","street view and aerial for this address");
  /* 1.37: BC Assessment (assessed values, property details) — its search takes the address */
  h+=btn("BC Assessment",PMR_BCA,a,"opens BC Assessment; the address is copied \u2014 paste it into the search");
  h+=btn("ALR",PMR_ALR,pid?pid.replace(/[^0-9]/g,""):a,"opens the ALC\u2019s \u201cIs My Property in the ALR?\u201d map; "+(pid?"the PID (no dashes)":"the address")+" is copied \u2014 paste it into its search");
  h+="<button class='btn pmr-b' data-pmap='"+i+"' title='show your job map here, with this address pinned'>"+(PM.mapOpen&&PM.mapAt===i&&pmrMapOn()?"Hide job map":"Job map preview")+"</button><span class='hint pmr-msg' style='margin:0'></span>";
- if(typeof pmhSlot==="function")h+=pmhSlot(q,i);if(typeof pmkSlot==="function")h+=pmkSlot(q,i); /* 1.39: previous quotes at this address */
+ if(typeof pmhSlot==="function")h+=pmhSlot(q,i);if(typeof pmkSlot==="function")h+=pmkSlot(q,i);h+=pmaSlot(q,i); /* 1.39: previous quotes at this address */
  return "<div class='pmr-strip' data-pr='"+i+"'>"+h+"</div>";}
 function pmrMapOn(){try{return sget("eo:pmmap")!=="0";}catch(e){return true;}}
 function pmrMapHtml(q){if(pmrIsSub(q))return "";return "<div class='pmr-map' id='pmr-map' style='display:none'></div>";}
@@ -2625,7 +2625,7 @@ function pmrRefresh(look){var q=pmCurQ();if(!q)return;var P=pmProps(q);
  P.forEach(function(p,i){var el=document.querySelector(".pmr-strip[data-pr='"+i+"']");if(!el)return;var d=document.createElement("div");d.innerHTML=pmrStripHtml(q,i,p);el.replaceWith(d.firstChild);
   if(look&&!pmrIsSub(q)&&(p.site||"").trim()&&!pmrGeoGet(p.site))pmrGeocode(p.site).then(function(g){if(g){var s=document.querySelector(".pmr-strip[data-pr='"+i+"']");if(s){var e=document.createElement("div");e.innerHTML=pmrStripHtml(q,i,pmProps(q)[i]||p);s.replaceWith(e.firstChild);pmrWire();}if(PM.mapOpen&&(PM.mapAt||0)===i)pmrMapDraw(q);}});});
  pmrWire();if(PM.mapOpen)pmrMapDraw(q);if(typeof pmhCheck==="function")pmhCheck(false);if(typeof pmkCheck==="function")pmkCheck(false);}
-function pmrWire(){
+function pmrWire(){pmaWire();
  document.querySelectorAll(".pmr-strip a[data-copy]").forEach(function(a){a.onclick=function(){var t=a.dataset.copy,m=a.parentNode.querySelector(".pmr-msg");try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(function(){});}catch(e){}if(m){m.textContent="“"+t+"” copied — paste it into the search (Ctrl+V)";setTimeout(function(){m.textContent="";},6000);}};});
  document.querySelectorAll("[data-pmap]").forEach(function(b){b.onclick=function(){var i=+b.dataset.pmap,q=pmCurQ();if(!q)return;if(PM.mapOpen&&(PM.mapAt||0)===i){PM.mapOpen=false;sset("eo:pmmap","0");}else{PM.mapOpen=true;PM.mapAt=i;sset("eo:pmmap","1");}pmrRefresh(false);pmrMapDraw(q);var box=document.getElementById("pmr-map");if(PM.mapOpen&&box&&box.scrollIntoView)box.scrollIntoView({block:"nearest"});};});
 }
@@ -2667,12 +2667,12 @@ function pmscAddFile(q,file){if(!file)return Promise.resolve();if(/pdf$/i.test(f
 /* the panel under Quote document */
 function pmscHtml(q){var L=pmscList(q),E=pmEsc;
  var h="<div class='pm-h'>Scope page <span class='hint' style='margin:0;text-transform:none;letter-spacing:0;font-weight:400'>(optional — a marked-up plan on its own page after the quote, before the rate sheet)</span></div><div class='pmsc'>";
- h+=L.map(function(s,i){var u=pmscUrl(s.id);return "<div class='pmsc-row' data-sc='"+i+"'><div class='pmsc-img'>"+(u?"<img src='"+u+"' alt='scope page "+(i+1)+"'>":"<span class='cu-idwarn' style='margin:0'>picture not on this computer — remove and add it again</span>")+"</div><div class='pmsc-side'><b>Scope page "+(i+1)+"</b><span class='hint' style='margin:0'>"+E(s.src||"")+"</span><label class='pm-f'><span>Caption (optional)</span><input type='text' class='pmsc-cap' data-sc='"+i+"' value='"+E(s.caption||"")+"' placeholder='e.g. Scope of work — highlighted area to be surveyed'></label><div class='row' style='gap:6px'>"+(L.length>1?"<button class='pmq-mini' data-scup='"+i+"' title='move up'>↑</button><button class='pmq-mini' data-scdn='"+i+"' title='move down'>↓</button>":"")+"<button class='btn pmr-b' data-scrm='"+i+"'>Remove</button></div></div></div>";}).join("");
- h+="<div class='pmsc-add' tabindex='0' id='pmsc-zone' title='click here, then Ctrl+V to paste a screenshot — or drop a PDF / picture'><label class='btn pmr-b'>"+(L.length?"+ another page from a PDF…":"+ From a PDF…")+"<input type='file' id='pmsc-pdf' accept='.pdf,application/pdf' style='display:none'></label><label class='btn pmr-b'>+ From a picture…<input type='file' id='pmsc-imgf' accept='image/*' style='display:none'></label><span class='hint' style='margin:0'>or click here and paste a screenshot (Ctrl+V), or drop a file here</span><span class='hint pmsc-msg' id='pmsc-msg' style='margin:0'></span></div><div id='pmsc-pick' class='pmsc-pick' style='display:none'></div>";
+ h+=L.map(function(s,i){var u=pmscUrl(s.id);return "<div class='pmsc-row' data-sc='"+i+"'><div class='pmsc-img'>"+(u?"<img src='"+u+"' alt='scope page "+(i+1)+"'>":"<span class='cu-idwarn' style='margin:0'>picture not on this computer — remove and add it again</span>")+"</div><div class='pmsc-side'><b>Scope page "+(i+1)+"</b><span class='hint' style='margin:0'>"+E(s.src||"")+"</span><label class='pm-f'><span>Caption (optional)</span><input type='text' class='pmsc-cap' data-sc='"+i+"' value='"+E(s.caption||"")+"' placeholder='e.g. Scope of work — highlighted area to be surveyed'></label><div class='row' style='gap:6px'>"+(L.length>1?"<button class='pmq-mini' data-scup='"+i+"' title='move up'>↑</button><button class='pmq-mini' data-scdn='"+i+"' title='move down'>↓</button>":"")+""+pmuRowBtns(i,s)+"<button class='btn pmr-b' data-scrm='"+i+"'>Remove</button></div></div></div>";}).join("");
+ h+="<div class='pmsc-add' tabindex='0' id='pmsc-zone' title='click here, then Ctrl+V to paste a screenshot — or drop a PDF / picture'><label class='btn pmr-b'>"+(L.length?"+ another page from a PDF…":"+ From a PDF…")+"<input type='file' id='pmsc-pdf' accept='.pdf,application/pdf' style='display:none'></label><label class='btn pmr-b'>+ From a picture…<input type='file' id='pmsc-imgf' accept='image/*' style='display:none'></label>"+pmuAddBtns()+"<span class='hint' style='margin:0'>or click here and paste a screenshot (Ctrl+V), or drop a file here</span><span class='hint pmsc-msg' id='pmsc-msg' style='margin:0'></span></div><div id='pmu-folder'></div><div id='pmsc-pick' class='pmsc-pick' style='display:none'></div>";
  return h+"</div>";}
-function pmscWire(q){if(!q)return;var L=pmscList(q),save=function(){q.updated=Date.now();pmQuotesSave();pmFlagUnsaved(q);pmUpdate();};
+function pmscWire(q){if(!q)return;pmuWireMain(q);var L=pmscList(q),save=function(){q.updated=Date.now();pmQuotesSave();pmFlagUnsaved(q);pmUpdate();};
  document.querySelectorAll(".pmsc-cap").forEach(function(el){el.oninput=function(){var s=L[+el.dataset.sc];if(s){s.caption=el.value;save();}};});
- document.querySelectorAll("[data-scrm]").forEach(function(b){b.onclick=function(){var i=+b.dataset.scrm,s=L[i];if(!s||!confirm("Remove scope page "+(i+1)+" from this quote?"))return;L.splice(i,1);pmscDel(s.id);save();pmRender();};});
+ document.querySelectorAll("[data-scrm]").forEach(function(b){b.onclick=function(){var i=+b.dataset.scrm,s=L[i];if(!s||!confirm("Remove scope page "+(i+1)+" from this quote?"))return;L.splice(i,1);pmscDel(s.id);if(s.orig)pmscDel(s.id+"-o");save();pmRender();};});
  document.querySelectorAll("[data-scup]").forEach(function(b){b.onclick=function(){var i=+b.dataset.scup;if(i>0){L.splice(i-1,0,L.splice(i,1)[0]);save();pmRender();}};});
  document.querySelectorAll("[data-scdn]").forEach(function(b){b.onclick=function(){var i=+b.dataset.scdn;if(i<L.length-1){L.splice(i+1,0,L.splice(i,1)[0]);save();pmRender();}};});
  var fp=document.getElementById("pmsc-pdf");if(fp)fp.onchange=function(){var f=fp.files[0];fp.value="";pmscAddFile(q,f);};
@@ -3169,14 +3169,14 @@ function pmjRender(host){
  h+="<div class='pm-step'><b>1</b> Accepted quote</div><div class='row'><label class='pm-f'><span>Quote #</span><input type='text' id='pm-jqn' class='mono' value='"+pmEsc(J.qn)+"' placeholder='26-561' style='width:140px'></label> <button class='btn pri' id='pm-jfind' style='align-self:flex-end' title='it also searches by itself once a full quote number is typed'>"+(J.folder?"Search again":"Find quote folder")+"</button></div><div id='pm-jchoose' style='display:none' class='cu-sfhit'></div>";
  if(J.folder)h+="<div class='pm-jfold'>Quote folder: <b>"+pmEsc(J.folder.name)+"</b> — "+J.files.length+" item"+(J.files.length===1?"":"s")+" to copy into Office"+(J.files.length?": <span class='hint' style='margin:0'>"+J.files.map(function(x){return pmEsc(x.name)+(x.name===pmjPickJobTxt(J.files.map(function(y){return y.name;}),J.f.qn||J.qn)&&R?" → "+pmEsc(R.job)+"-job details.txt":"");}).join(" · ")+"</span>":"")+"</div>";
  if(J.folder||J.src){var sm=[J.f.client,J.f.addr].map(function(v){return String(v||"").trim();}).filter(Boolean);h+="<p class='hint' style='margin:4px 0'>"+(sm.length?"<b>"+sm.map(pmEsc).join(" · ")+"</b> — from "+pmEsc(J.src)+". Check it’s the right quote.":"No draft or job details found in the folder — check the folder is the right quote.")+"</p>";}
- h+="<div class='pm-step'><b>2</b> Job number</div><div class='row'><label class='pm-f'><span>Job # (from the online app)</span><input type='text' id='pm-jno' class='mono' value='"+pmEsc(J.job)+"' placeholder='26-3466' style='width:140px'></label></div><p class='hint' style='margin:4px 0'>Enter the job in the online app first — it issues the job number.</p>"+(J.aliasNo?"<div class='cu-idwarn'>Job folder <b>"+pmEsc(J.aliasNo)+"</b> already has these last digits \u2014 check the Job #. A second folder for the same job number won\u2019t be created.</div>":"")+pmjExistHtml(J);
+ h+=pmcHtml(J);h+="<div class='pm-step'><b>2</b> Job number</div><div class='row'><label class='pm-f'><span>Job # (from the online app)</span><input type='text' id='pm-jno' class='mono' value='"+pmEsc(J.job)+"' placeholder='26-3466' style='width:140px'></label></div><p class='hint' style='margin:4px 0'>Enter the job in the online app first — it issues the job number.</p>"+pmcJobHtml(J)+(J.aliasNo?"<div class='cu-idwarn'>Job folder <b>"+pmEsc(J.aliasNo)+"</b> already has these last digits \u2014 check the Job #. A second folder for the same job number won\u2019t be created.</div>":"")+pmjExistHtml(J);
  h+="<div class='pm-step'><b>3</b> Job folder</div><div class='row'><label class='pm-f'><span>Approval date</span><input type='date' id='pm-jappr' value='"+pmEsc(J.appr)+"'></label></div>";
  h+="<pre class='pm-pre pm-tree'>"+(R?"Job Files - Documents › "+R.th+" › "+R.hu+" › "+R.job+"\n":"Job Files - Documents › … › (job #)\n")+"  Field\n    Data\n    Uploads\n  Office\n    "+(J.folder?"("+J.files.length+" item"+(J.files.length===1?"":"s")+" from the quote folder)\n    ":"")+"Obsolete\n    Requests\n      "+pmEsc(pmjApprName(J.appr)||"yy-mm-dd-approval")+"</pre>";
  h+="<div class='cu-dl'><button class='btn pri' id='pm-jcreate'"+(why.length?" disabled title='"+pmEsc("To do: "+why.join("; "))+"'":"")+">"+(J.exist&&J.exist.path?"Add to existing job":"Create job folder")+"</button><span class='hint' style='margin:0'>"+(why.length?"To do: "+pmEsc(why.join("; ")):"only adds folders and copies files — never deletes or overwrites")+"</span></div>";
  if(J.err)h+="<div class='cu-err' style='display:block'>"+pmEsc(J.err)+"</div>";
  if(J.out){var o=J.out,rp=o.rep;h+="<div class='cu-sfhit pm-jdone'><b>"+(o.existing?"Added to existing job folder:":"Job folder created:")+"</b> Job Files - Documents › "+pmEsc(o.path)+(o.newRange?" (new range folder "+pmEsc(o.newRange)+")":"")+"<ul><li>Field › Data, Uploads · Office › Obsolete, Requests</li><li>"+rp.copied.length+" file"+(rp.copied.length===1?"":"s")+" copied into Office"+(rp.copied.length?": "+rp.copied.map(pmEsc).join(" · "):"")+"</li>"+(rp.skipped.length?"<li>Already there, left as is: "+rp.skipped.map(pmEsc).join(" · ")+"</li>":"")+(rp.failed.length?"<li class='cu-idbad'>Couldn’t copy: "+rp.failed.map(pmEsc).join(" · ")+"</li>":"")+"<li>Save the acceptance into Office › Requests › <b>"+pmEsc(o.appr)+"</b></li></ul>OneDrive uploads it in the background. <button class='btn' id='pm-jnext'>Convert another quote</button></div>";}
  h+=pmjFoldersHtml();
- host.innerHTML=h;pmWireMode(host);pmjWireFolders(host);
+ host.innerHTML=h;pmWireMode(host);pmjWireFolders(host);pmcWire();pmcJobWire();pmcCheck(false);
  var qi=document.getElementById("pm-jqn");qi.oninput=function(){J.qn=qi.value;pmjQnTyped(J);};qi.onkeydown=function(e){if(e.key==="Enter"){clearTimeout(PMJ.qt);pmjFind();}};qi.onblur=function(){if(PMJ.qt){clearTimeout(PMJ.qt);PMJ.qt=null;pmjAutoFind(J,false);}};
  if(PMJ.refocus){PMJ.refocus=false;qi.focus();try{var n=qi.value.length;qi.setSelectionRange(n,n);}catch(e){}}
  document.getElementById("pm-jfind").onclick=pmjFind;
@@ -3196,8 +3196,8 @@ async function pmjAutoFind(J,keepFocus){var v=J.qn.trim();if(PMJ.j!==J||!pmjQnFu
  var h=PMJ.dirs.quotes;if(!h)return;try{if(h.queryPermission&&await h.queryPermission({mode:"readwrite"})!=="granted")return;}catch(e){return;}
  var el=document.getElementById("pm-jqn");PMJ.refocus=!!(keepFocus&&el&&document.activeElement===el);J.autoBusy=v;
  try{await pmjFind();}finally{J.autoBusy="";}}
-function pmModeBar(){return "<div class='pm-mode seg'><button data-mode='quotes' class='"+(PM.mode!=="jobs"?"on":"")+"'>Quotes</button><button data-mode='jobs' class='"+(PM.mode==="jobs"?"on":"")+"'>Jobs</button></div>";}
-function pmWireMode(host){host.querySelectorAll("[data-mode]").forEach(function(b){b.onclick=function(){PM.mode=b.dataset.mode;sset("eo:pmmode",PM.mode);pmRender();};});}
+function pmModeBar(){return "<div class='pm-mode seg'><button data-mode='quotes' class='"+(PM.mode!=="jobs"?"on":"")+"'>Quotes</button><button data-mode='jobs' class='"+(PM.mode==="jobs"?"on":"")+"'>Jobs</button></div>"+pmxBar();}
+function pmWireMode(host){pmxWire();pmeWire();pmvWire();host.querySelectorAll("[data-mode]").forEach(function(b){b.onclick=function(){PM.mode=b.dataset.mode;sset("eo:pmmode",PM.mode);pmRender();};});}
 function pmjStartFromQuote(){var q=pmCurQ();if(!q)return;PMJ.j=pmjNew();PMJ.j.qn=(q.f.qn||"").trim();pmjFillFrom(PMJ.j,q,"the draft on this computer");PM.mode="jobs";sset("eo:pmmode","jobs");pmRender();if(PMJ.j.qn&&PMJ.dirs.quotes)pmjFind();}
 window.pmjDropFile=pmjDropFile;window.pmjQnTyped=pmjQnTyped;window.pmjAutoFind=pmjAutoFind;window.pmjCheckJob=pmjCheckJob;window.pmjTidyJob=pmjTidyJob;window.pmjSaveToQuoteFolder=pmjSaveToQuoteFolder;window.pmjStartFromQuote=pmjStartFromQuote;window.PMJ=PMJ;window.pmjRanges=pmjRanges;window.pmjFind=pmjFind;window.pmjCreate=pmjCreate;window.pmjSaveDir=pmjSaveDir;
 /* ---- Quotes view: create the next quote folder (only on the PM's click + confirmation; never automatic) ---- */
@@ -3258,7 +3258,7 @@ function pmjQfHtml(q){
  if(q.qfolder)h+="<span class='pm-dok'>Quote folder: "+pmEsc(q.qfolder)+"</span>";
  else if(!P)h+="<button class='btn' id='pm-qfnew' title='finds the next free quote number in Quotes - Documents and creates its folder — only after you confirm'>"+((q.f.qn||"").trim()?"Create quote folder for "+pmEsc(q.f.qn.trim()):"Create next quote folder")+"</button><span class='hint' id='pm-qfhint' style='margin:0"+(pmjShortName(q)?";display:none":"")+"'>needs the client or contact name</span>";
  else{h+="<div class='cu-sfhit'>Create <b>Quotes - Documents › "+pmEsc(pmjQfName(P.qn,""))+"</b><input type='text' id='pm-qfshort' value='"+pmEsc(P.short)+"' style='width:200px'> ? <button class='btn pri' id='pm-qfok'>Create folder</button> <button class='btn' id='pm-qfno'>Cancel</button>"+pmjByHtml(q)+(P.note?"<div class='hint' style='margin:4px 0 0'>"+pmEsc(P.note)+"</div>":"")+(P.warn?"<div class='cu-idwarn' id='pm-qfwarn' style='margin:6px 0 0'>"+pmEsc(P.warn)+" <button class='btn' id='pm-qfalt'>Use "+pmEsc(P.alt)+" instead</button></div>":"");
-  (P.tidy||[]).concat(P.year||[]).forEach(function(t,i){var first=t.items[0].name.replace(/^Elev\. Survey Quotes /,""),last=t.items[t.items.length-1].name.replace(/^Elev\. Survey Quotes /,"");
+  h+=pmdWarnHtml(P);(P.tidy||[]).concat(P.year||[]).forEach(function(t,i){var first=t.items[0].name.replace(/^Elev\. Survey Quotes /,""),last=t.items[t.items.length-1].name.replace(/^Elev\. Survey Quotes /,"");
    h+="<label class='cu-cb' style='margin-top:6px'><input type='checkbox' class='pm-qftidy' data-i='"+i+"' checked> Also tidy up as usual: move "+t.items.length+" folder"+(t.items.length===1?"":"s")+" ("+pmEsc(first)+(t.items.length>1?" … "+pmEsc(last):"")+") into <b>"+pmEsc(t.dest)+"</b>"+(P.top.some(function(e){return e.h.name.toLowerCase()===t.dest.toLowerCase();})?"":" (creates it)")+"</label>";});
   h+="</div>";}
  if(PMJ.qfMsg){h+="<div class='"+(PMJ.qfMsg.bad?"cu-err":"hint")+"' style='display:block;margin:4px 0 0'>"+PMJ.qfMsg.t+"</div>";PMJ.qfMsg=null;}
@@ -3298,7 +3298,7 @@ async function pmjMoveInto(root,t){
   try{await h.move(dest);done++;}catch(e){why=e&&(e.name==="NotSupportedError"||e.name==="NotAllowedError"||e.name==="InvalidModificationError")?"this browser can’t move folders":((e&&e.message)||String(e));left.push(h.name);}}
  return {dest:t.dest,made:!had,done:done,left:left,why:why};
 }
-async function pmjQfCreate(){
+async function pmjQfCreate0(){
  var q=pmCurQ(),P=PMJ.qf;if(!q||!P)return;var short=(document.getElementById("pm-qfshort").value||"").replace(/[\\\/:*?"<>|]+/g,"").trim();
  if(!short){PMJ.qfMsg={bad:true,t:"Give the folder a name (client or contact)."};pmRender();return;}
  var picks=[].slice.call(document.querySelectorAll(".pm-qftidy")).filter(function(c){return c.checked;}).map(function(c){return (P.tidy||[]).concat(P.year||[])[+c.dataset.i];});
@@ -3317,7 +3317,7 @@ async function pmjQfCreate(){
  }catch(e){PMJ.qfMsg={bad:true,t:pmEsc(e&&e.message||String(e))};}
  pmRender();
 }
-function pmjWireQf(host){host.querySelectorAll("input[name='pm-qfby']").forEach(function(r){r.onchange=function(){var q=pmCurQ();if(!q)return;q.nameBy=r.value;pmQuotesSave();var el=document.getElementById("pm-qfshort");if(el)el.value=pmjNameFor(q,r.value);if(PMJ.qf)PMJ.qf.short=pmjNameFor(q,r.value);var dn=document.getElementById("pm-docname");if(dn&&!dn.value)dn.placeholder=pmqDefaultName(q);};});var a=document.getElementById("pm-qfnew");if(a)a.onclick=pmjQfStart;var rb=document.getElementById("pm-renum");if(rb)rb.onclick=pmjRenumber;var b=document.getElementById("pm-qfok");if(b)b.onclick=pmjQfCreate;var al=document.getElementById("pm-qfalt");if(al)al.onclick=pmjQfAlt;var c=document.getElementById("pm-qfno");if(c)c.onclick=function(){PMJ.qf=null;pmRender();};var s=document.getElementById("pm-qfshort");if(s)s.onkeydown=function(e){if(e.key==="Enter")pmjQfCreate();};}
+function pmjWireQf(host){pmdWarnWire();host.querySelectorAll("input[name='pm-qfby']").forEach(function(r){r.onchange=function(){var q=pmCurQ();if(!q)return;q.nameBy=r.value;pmQuotesSave();var el=document.getElementById("pm-qfshort");if(el)el.value=pmjNameFor(q,r.value);if(PMJ.qf)PMJ.qf.short=pmjNameFor(q,r.value);var dn=document.getElementById("pm-docname");if(dn&&!dn.value)dn.placeholder=pmqDefaultName(q);};});var a=document.getElementById("pm-qfnew");if(a)a.onclick=pmjQfStart;var rb=document.getElementById("pm-renum");if(rb)rb.onclick=pmjRenumber;var b=document.getElementById("pm-qfok");if(b)b.onclick=pmjQfCreate;var al=document.getElementById("pm-qfalt");if(al)al.onclick=pmjQfAlt;var c=document.getElementById("pm-qfno");if(c)c.onclick=function(){PMJ.qf=null;pmRender();};var s=document.getElementById("pm-qfshort");if(s)s.onkeydown=function(e){if(e.key==="Enter")pmjQfCreate();};}
 window.pmjQfStart=pmjQfStart;window.pmjQfCreate=pmjQfCreate;window.pmjRenumber=pmjRenumber;
 /* ---------- 1.39: start a new quote from a past quote; previous quotes at this address ---------- */
 /* Start from a past quote: a past Word quote (app-made) or job details .txt is read as a sample. The PM ticks what comes across:
@@ -3440,9 +3440,9 @@ async function pmhXlsx(buf){
     else{var vv=(body.match(/<v>([\s\S]*?)<\/v>/)||[])[1];if(vv!=null)v=t==="s"?(SS[+vv]||""):pmqdUnesc(vv);}
     var ix=ref?pmhColIx(ref):row.length;if(ix>=0)row[ix]=v;return m;});rows.push(row);});
   var hi=-1,H={};for(var r=0;r<Math.min(rows.length,15)&&hi<0;r++){var hr=rows[r]||[],qi=-1,si=-1;for(var c=0;c<hr.length;c++){var v=String(hr[c]||"").trim();if(qi<0&&/^quote\s*(#|no\.?|number)?$/i.test(v))qi=c;if(si<0&&/^site\s*address/i.test(v))si=c;}
-   if(qi>=0&&si>=0){hi=r;H.qn=qi;H.site=si;for(c=0;c<hr.length;c++){v=String(hr[c]||"").trim();if(H.client==null&&/^client(\s*name)?$/i.test(v))H.client=c;if(H.year==null&&/^year$/i.test(v))H.year=c;if(H.folder==null&&/folder/i.test(v))H.folder=c;}}}
+   if(qi>=0&&si>=0){hi=r;H.qn=qi;H.site=si;for(c=0;c<hr.length;c++){v=String(hr[c]||"").trim();if(H.client==null&&/^client(\s*name)?$/i.test(v))H.client=c;if(H.year==null&&/^year$/i.test(v))H.year=c;if(H.folder==null&&/folder/i.test(v))H.folder=c;if(H.email==null&&/e-?mail/i.test(v))H.email=c;if(H.date==null&&/^date/i.test(v))H.date=c;if(H.asg==null&&/^assigned/i.test(v))H.asg=c;}}}
   if(hi<0)continue;
-  var out=[];rows.slice(hi+1).forEach(function(rw){var g=function(k){return H[k]==null?"":String(rw[H[k]]==null?"":rw[H[k]]).trim();},qn=g("qn"),site=g("site");if(!qn&&!site)return;out.push({qn:qn,site:site,client:g("client"),year:g("year"),folder:g("folder")});});
+  var out=[];rows.slice(hi+1).forEach(function(rw){var g=function(k){return H[k]==null?"":String(rw[H[k]]==null?"":rw[H[k]]).trim();},qn=g("qn"),site=g("site");if(!qn&&!site)return;out.push({qn:qn,site:site,client:g("client"),year:g("year"),folder:g("folder"),email:g("email"),date:g("date"),asg:g("asg")});});
   return {sheet:sheets[s].name,rows:out};}
  return null;
 }
@@ -3459,7 +3459,7 @@ async function pmhSources(ask){
  var p=h.queryPermission?await h.queryPermission({mode:"read"}):"granted";
  if(p!=="granted"){if(!ask||!h.requestPermission)return {off:"perm"};p=await h.requestPermission({mode:"read"});if(p!=="granted")return {off:"perm"};}
  var M=await pmhFile(h,PMH_MASTER),D=await pmhFile(h,PMH_TODO);
- return {master:M,todo:D&&D.rows?D:null};
+ return {master:M,todo:D&&D.rows?D:null,recent:await pmdRecent(h,M)};
 }
 function pmhFind(q,site,S){
  var cur=pmjQnParts(q.f.qn),curK=pmjQnKey(q.f.qn),out=[],seen={};
@@ -3599,7 +3599,7 @@ function pmVisibleQuotes(){if(PM.showAllQ)return PM.quotes.slice().sort(function
  var by=PM.quotes.slice().sort(function(a,b){return (b.updated||0)-(a.updated||0);}),top=by.slice(0,PM_QSHOW);
  return by.filter(function(x){return top.indexOf(x)>=0||x.id===PM.cur||pmUnsaved(x);});}
 /* 1.36: a removed draft's scope pictures leave this browser too */
-function pmscDropFor(x){(x&&x.scope||[]).forEach(function(s){if(!PM.quotes.some(function(o){return o!==x&&(o.scope||[]).some(function(t){return t.id===s.id;});}))pmscDel(s.id);});}
+function pmscDropFor(x){(x&&x.scope||[]).forEach(function(s){if(!PM.quotes.some(function(o){return o!==x&&(o.scope||[]).some(function(t){return t.id===s.id;});})){pmscDel(s.id);if(s.orig)pmscDel(s.id+"-o");}});}
 function pmCompletedQuotes(){return PM.quotes.filter(function(x){return !pmUnsaved(x)&&x.id!==PM.cur;});}
 function pmClearCompleted(){var C=pmCompletedQuotes();if(!C.length)return;
  if(!confirm("Clear "+C.length+" completed quote"+(C.length>1?"s":"")+" from this computer?\n\n"+C.map(function(x){return (x.f.qn||"(no quote #)")+(x.f.client?" \u00b7 "+x.f.client:"");}).slice(0,15).join("\n")+(C.length>15?"\n\u2026":"")+"\n\nThese are saved and unchanged since. Their Word quote and job details stay in the quote folders \u2014 reopen any with \u201cOpen a quote\u201d. Quotes marked NOT SAVED and the one open now are kept."))return;
@@ -3760,12 +3760,12 @@ function pmAutoUnlock(){
 function pmLock(){PM.key=null;PM.vault=null;sdel("eo:pmkey");PM.err="";pmRender();}
 function pmRenderMain(host){
  var V=PM.vault,q=pmCurQ();
- var h=pmModeBar()+"<div class='pm-bar'><button class='btn pri' onclick='pmNewQ()'>New quote</button><button class='btn' onclick='pmPasteBox()' title='select the row(s) in To Do Quotes, Ctrl+C, then Ctrl+V here'>New from tracker row</button>";
+ var h=pmModeBar()+"<div class='pm-bar'><button class='btn pri' onclick='pmNewQ()'>New quote</button><button class='btn' onclick='pmPasteBox()' title='select the row(s) in To Do Quotes, Ctrl+C, then Ctrl+V here'>New from tracker row</button><button class='btn' onclick='pmeBox()' title='Claude or ChatGPT reads the request email and fills in a short block; paste the block here'>New from an email…</button>";
  /* 1.35: the 5 most recently edited, plus the open quote and every NOT SAVED one; Show all for the rest */
  var QV=pmVisibleQuotes(),qHid=PM.quotes.length-QV.length;
  h+=QV.map(function(x){return "<span class='cu-src"+(x.id===PM.cur?" on":"")+"' data-q='"+x.id+"'>"+pmEsc(x.f.qn||"(no quote #)")+(x.f.client?" · "+pmEsc(x.f.client.slice(0,24)):"")+" "+(pmUnsaved(x)?"<b class='pm-unsaved' title='not downloaded since the last change'>NOT SAVED</b> ":"")+"<button class='cu-srcx' data-q='"+x.id+"' title='delete this draft'>✕</button></span>";}).join("")+(qHid>0?"<button class='btn pm-qall' onclick='PM.showAllQ=true;pmRender()'>Show all ("+PM.quotes.length+")</button>":(PM.showAllQ&&PM.quotes.length>PM_QSHOW?"<button class='btn pm-qall' onclick='PM.showAllQ=false;pmRender()'>Show fewer</button>":""));
  h+="<button class='btn' onclick='pmjStartFromQuote()' title='quote accepted: create the job folder from this quote'>Convert to job…</button><button class='btn' onclick='pmqdSubQuote()' title='a blank sub-quote of this quote: job details copied; services, hours and prices start empty, e.g. 26-586B'>Duplicate as sub-quote</button><button class='btn' onclick='pmkAttachAsk()' title='this request belongs to a job that was quoted before: the draft becomes the next sub-quote of that quote and keeps everything already in it'>Belongs to an existing quote…</button><label class='btn'>Open a quote (.docx or .txt)<input type='file' id='pm-imp' accept='.docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' style='display:none'></label><label class='btn' title='a new quote that uses a past quote as the sample \u2014 you choose what comes across; the past file isn\u2019t changed'>Start from a past quote\u2026<input type='file' id='pm-past' accept='.docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' style='display:none'></label><span style='flex:1'></span>"+(pmCompletedQuotes().length?"<button class='btn' onclick='pmClearCompleted()' title='removes quotes that are saved and unchanged since from this computer \u2014 their Word quote and job details stay in the quote folders; reopen any with Open a quote'>Clear completed quotes ("+pmCompletedQuotes().length+")</button>":"")+"<button class='btn' onclick='pmLock()'>Lock</button></div>";
- h+="<div id='pm-rowbox' class='cu-sfhit' style='display:none'>In To Do Quotes, select the whole row (click the row number; several rows make several quotes), press <b>Ctrl+C</b>, then click in the box and press <b>Ctrl+V</b>. Tip: you can also just press Ctrl+V anywhere on this tab.<textarea id='pm-rowta' rows='2' class='pm-ta' placeholder='paste the row here'></textarea><div class='hint' id='pm-rowmsg' style='margin:0'></div></div>";
+ h+=pmeBoxHtml();h+="<div id='pm-rowbox' class='cu-sfhit' style='display:none'>In To Do Quotes, select the whole row (click the row number; several rows make several quotes), press <b>Ctrl+C</b>, then click in the box and press <b>Ctrl+V</b>. Tip: you can also just press Ctrl+V anywhere on this tab.<textarea id='pm-rowta' rows='2' class='pm-ta' placeholder='paste the row here'></textarea><div class='hint' id='pm-rowmsg' style='margin:0'></div></div>";
  if(PM.past)h+=pmpBoxHtml();
  if(PM.rowMsg){h+="<div class='cu-sfhit' id='pm-rowdone'>"+pmEsc(PM.rowMsg)+"</div>";PM.rowMsg="";}
  h+="<div class='pm-savedrow'>"+pmUnsavedCount()+(PM.cleared?"<span class='hint' style='margin:0 0 0 12px'>"+PM.cleared+" completed quote"+(PM.cleared>1?"s":"")+" cleared from this computer \u2014 the files in the quote folders remain the record.</span>":"")+(PM.tidied?"<span class='hint' style='margin:0 0 0 12px'>"+PM.tidied+" quote"+(PM.tidied>1?"s":"")+" saved to "+(PM.tidied>1?"their folders":"its folder")+" and untouched for 30+ days "+(PM.tidied>1?"were":"was")+" tidied off this computer \u2014 the downloaded files remain the record.</span>":"")+"</div>";
@@ -3781,7 +3781,7 @@ function pmRenderMain(host){
  h+="<div class='pm-grid'>"+PM_FIELDS.map(function(fd){if(fd[0]==="legal"||fd[0]==="pid")return "";if(fd[0]==="site")return pmPropsHtml(q);var v=q.f[fd[0]]||"";return "<label class='pm-f"+(fd[3]?" wide":"")+"'><span>"+fd[1]+(fd[0]==="qn"?" <b class='pm-req'>required to save</b>":"")+"</span>"+(fd[3]?"<textarea data-f='"+fd[0]+"' rows='3'>"+pmEsc(v)+"</textarea>":"<input type='text' data-f='"+fd[0]+"' value='"+pmEsc(v)+"' placeholder='"+pmEsc(fd[2])+"'"+(fd[0]==="qn"?" id='pm-qn' class='mono'":"")+">")+"</label>";}).join("")+"</div>";
  var pv=pmqPrevOn();h+="<div class='pmq-wrap"+(pv?" pv":"")+"'><div class='pmq-main'>";
  h+="<div class='pm-h'>Services &amp; rate calculation <label class='pmq-pvtog' title='show the quote as it will print, beside the services'><input type='checkbox' id='pm-pvtog'"+(pv?" checked":"")+"> Show preview</label></div><p class='hint' style='margin:0 0 8px'>Each service is one numbered item on the Word quote and one section of the job details calculation. Pick a job type to load the approved wording; everything can then be edited for this quote.</p>";
- q.secs.forEach(function(s,ix){pmqNorm(s);h+=pmqCardHtml(q,s,ix);});
+ h+=pmvStrip(q);q.secs.forEach(function(s,ix){pmqNorm(s);h+=pmqCardHtml(q,s,ix);});
  h+="<div class='row' style='gap:8px;flex-wrap:wrap'><button class='btn' onclick='pmAddSec()'>+ Add service</button><span style='flex:1'></span><button class='btn' onclick='pmqSaveSet()' title='save all these services (wording, Included / Optional / Option, and optionally hours) as one set, to load on a future quote from the first dropdown \u2192 My quote sets'>Save these services as a set\u2026</button></div>";
  h+="<div class='pm-h'>Disbursements</div><div class='pm-disb'>"+(V.disb||[]).map(function(d){return "<label><span>"+pmEsc(d.label.replace(/^./,function(c){return c.toUpperCase();}))+" "+pmMoney(d.price,false)+"</span><input type='number' min='0' step='1' class='pm-dn' data-d='"+d.id+"' value='"+pmEsc(q.disb[d.id]||0)+"'></label>";}).join("")+""+pmOthersHtml(q)+"</div>";
  h+="<div class='pm-tot' id='pm-tot'></div>";
@@ -3878,7 +3878,7 @@ function pmNewFromRows(text){
  vals.forEach(function(v){
   var qn=v.qn,ex=qn?PM.quotes.find(function(x){return (x.f.qn||"").trim().toUpperCase()===qn.toUpperCase();}):null,q;
   if(ex&&confirm("A draft for "+qn+" already exists.\n\nOK = fill its empty fields from this row\nCancel = make a separate new draft")){q=ex;PM_ROWCOLS.forEach(function(k){if(v[k]&&!(q.f[k]||"").trim())q.f[k]=v[k];});upd++;}
-  else{q=pmNewQuote();PM_ROWCOLS.forEach(function(k){if(v[k])q.f[k]=v[k];});if(v.xp&&v.xp.length)q.xp=v.xp;made++;}
+  else{q=pmNewQuote();PM_ROWCOLS.forEach(function(k){if(v[k])q.f[k]=v[k];});if(v.xp&&v.xp.length)q.xp=v.xp;pmvAuto(q);made++;}
   q.updated=Date.now();last=q;});
  if(last){PM.cur=last.id;pmQuotesSave();PM.rowMsg=(made?made+" new quote"+(made>1?"s":"")+" from the tracker"+(merged?" (rows for the same client joined into one quote with several properties)":""):"")+(made&&upd?", ":"")+(upd?upd+" draft"+(upd>1?"s":"")+" filled in":"")+" — check the fields"+(last.f.qn?"":" and enter the Quote #")+"."+(PMJ.dirs.quotes&&!last.qfolder?" If it needs a quote folder, use "+(last.f.qn?"Create quote folder for "+last.f.qn:"Create next quote folder (it also sets the Quote #)")+" below the fields — optional.":"");pmRender();if(typeof pmkAfterPaste==="function")pmkAfterPaste();}
  return made+upd;
@@ -3887,7 +3887,7 @@ function pmPasteBox(){var b=document.getElementById("pm-rowbox");if(b){b.style.d
 document.addEventListener("paste",function(e){
  if(!PM.key||PM.mode==="jobs"||!pmOnView||!pmOnView())return;var a=document.activeElement,box=a&&a.id==="pm-rowta";
  if(!box&&a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable))return;
- var t=(e.clipboardData||window.clipboardData).getData("text");if(!pmRowsFromText(t).length){if(box){e.preventDefault();var m=document.getElementById("pm-rowmsg");if(m)m.textContent="That doesn’t look like a row copied from To Do Quotes (Excel copies cells separated by tabs).";}return;}
+ var t=(e.clipboardData||window.clipboardData).getData("text");if(pmeIsBlock(t)){e.preventDefault();pmeNew(t);return;}if(!pmRowsFromText(t).length){if(box){e.preventDefault();var m=document.getElementById("pm-rowmsg");if(m)m.textContent="That doesn’t look like a row copied from To Do Quotes (Excel copies cells separated by tabs).";}return;}
  e.preventDefault();pmNewFromRows(t);});
 function pmNewQ(){pmNewQuote();pmRender();var el=document.getElementById("pm-qn");if(el)el.focus();}
 function pmAddSec(){var q=pmCurQ();if(!q)return;q.secs.push(pmqNorm({name:"",hrs:{}}));q.updated=Date.now();pmQuotesSave();pmRender();}
@@ -7789,11 +7789,11 @@ function pmmView(){try{return localStorage.getItem("eo:pmmview")==="google"?"goo
 function pmmSetView(v){try{localStorage.setItem("eo:pmmview",v);}catch(e){}var b=document.getElementById("pmr-map");if(b){b.innerHTML="";b.dataset.pmm="";}PMM.imgs={};var q=pmCurQ();if(q)pmrMapDraw(q);}
 function pmmSet(k,v){PMM[k]=v;if(k==="base"){PMM.fail=0;PMM.ok=0;try{localStorage.setItem("eo:pmmbase",v);}catch(e){}}if(k==="lots"){try{localStorage.setItem("eo:pmmlots",v?"1":"0");}catch(e){}}var b=document.getElementById("pmr-map");if(b)b.dataset.pmm="";var q=pmCurQ();if(q)pmrMapDraw(q);}
 function pmmSwitch(view){return "<span class='seg'><button class='"+(view==="own"?"on":"")+"' onclick='pmmSetView(\"own\")' title='aerial photo with lot lines and our jobs, drawn by the app'>Lot lines</button><button class='"+(view==="google"?"on":"")+"' onclick='pmmSetView(\"google\")' title='the Google My Maps job map'>Google job map</button></span>";}
-function pmmShow(box,q,p,geo){var key=geo.lat+","+geo.lng+"|"+PMM.base+"|"+PMM.lots;PMM.geo=geo;
- if(box.dataset.pmm!==key||!document.getElementById("pmm-map")){box.dataset.pmm=key;PMM.imgs={};PMM.sel=null;if(PMM.key!==geo.lat+","+geo.lng){PMM.key=geo.lat+","+geo.lng;PMM.c=cumW(geo.lat,geo.lng);PMM.z=19;}
-  box.innerHTML="<div class='pmr-mh' style='flex-wrap:wrap;gap:6px'><b>Job map</b> — "+pmEsc(geo.full||p.site)+" "+pmmSwitch("own")+"<span class='seg'>"+["esri","osm"].map(function(k){return "<button class='"+(PMM.base===k?"on":"")+"' onclick='pmmSet(\"base\",\""+k+"\")'>"+CUM_BASE[k].n+"</button>";}).join("")+"</span><label class='cu-cb'><input type='checkbox' "+(PMM.lots?"checked":"")+" onchange='pmmSet(\"lots\",this.checked)'> Lot lines (ParcelMap BC)</label><span style='flex:1'></span><button class='btn pmr-b' onclick='pmmZoom(1)'>+</button><button class='btn pmr-b' onclick='pmmZoom(-1)'>−</button><button class='btn pmr-b' onclick='pmmCentre()'>Re-centre</button><a class='btn pmr-b' target='_blank' rel='noopener' href='https://www.google.com/maps/d/viewer?mid="+PMR_MID+"&ll="+geo.lat+","+geo.lng+"&z=19'>Open in My Maps</a></div>"+
+function pmmShow(box,q,p,geo){var key=geo.lat+","+geo.lng+"|"+PMM.base+"|"+PMM.lots;PMM.geo=geo;pmaProps(q);
+ if(box.dataset.pmm!==key||!document.getElementById("pmm-map")){box.dataset.pmm=key;PMM.imgs={};PMM.sel=null;if(PMM.key!==geo.lat+","+geo.lng){PMM.key=geo.lat+","+geo.lng;PMM.c=cumW(geo.lat,geo.lng);PMM.z=19;pmaFit(box);}
+  box.innerHTML="<div class='pmr-mh' style='flex-wrap:wrap;gap:6px'><b>Job map</b> — "+pmEsc(geo.full||p.site)+" "+pmmSwitch("own")+"<span class='seg'>"+["esri","osm"].map(function(k){return "<button class='"+(PMM.base===k?"on":"")+"' onclick='pmmSet(\"base\",\""+k+"\")'>"+CUM_BASE[k].n+"</button>";}).join("")+"</span><label class='cu-cb'><input type='checkbox' "+(PMM.lots?"checked":"")+" onchange='pmmSet(\"lots\",this.checked)'> Lot lines (ParcelMap BC)</label><span style='flex:1'></span><button class='btn pmr-b' onclick='pmmZoom(1)'>+</button><button class='btn pmr-b' onclick='pmmZoom(-1)'>−</button><button class='btn pmr-b' onclick='pmmCentre()'>Re-centre</button>"+pmsBtns()+"<a class='btn pmr-b' target='_blank' rel='noopener' href='https://www.google.com/maps/d/viewer?mid="+PMR_MID+"&ll="+geo.lat+","+geo.lng+"&z=19'>Open in My Maps</a></div>"+
    "<div id='pmm-map' style='position:relative;height:440px;overflow:hidden;background:#e5e7eb;cursor:grab;touch-action:none;user-select:none'><div id='pmm-tiles' style='position:absolute;left:0;top:0'></div><canvas id='pmm-cv' style='position:absolute;left:0;top:0;pointer-events:none'></canvas><div id='pmm-by' style='position:absolute;right:0;bottom:0;background:rgba(255,255,255,.8);font-size:10px;padding:1px 5px;color:#333'></div><div id='pmm-note' style='position:absolute;left:6px;top:6px;background:rgba(255,255,255,.92);font-size:12px;padding:3px 7px;display:none'></div></div>"+
-   "<div class='hint' id='pmm-leg' style='margin:4px 0 0'></div><div id='pmm-info' class='cu-sfhit' style='display:none;margin-top:6px'></div>";
+   "<div class='hint' id='pma-miss' style='margin:4px 0 0;display:none'></div><div class='hint' id='pmm-leg' style='margin:4px 0 0'></div><div id='pmm-info' class='cu-sfhit' style='display:none;margin-top:6px'></div><div id='pms-leg'></div>";
   pmmWire();}
  pmmDraw();
  if(!PMM.jobs&&!PMM.jobsBusy){PMM.jobsBusy=true;pmkSource(false).then(function(S){PMM.jobsBusy=false;if(S&&S.rows){PMM.jobs=S.rows.filter(function(r){return r.lat!==null&&r.lng!==null;}).map(function(r){return {job:r.job,qn:r.qn,site:r.site,lat:r.lat,lng:r.lng,w:cumW(r.lat,r.lng)};});PMM.jobsAll=S.rows.length;PMM.jobsOff="";}else{PMM.jobs=[];PMM.jobsOff=S&&S.off==="conn"?"Connect Job Files - Documents (Folders on this computer, below) to see our jobs on this map.":S&&S.off==="perm"?"perm":S&&S.miss?PMK_FILE+" isn’t in Job Files - Documents, so no jobs are shown.":"The jobs master couldn’t be read, so no jobs are shown.";}pmmDraw();},function(){PMM.jobsBusy=false;});}}
@@ -7812,19 +7812,19 @@ function pmmDraw(){var box=document.getElementById("pmm-map"),tl=document.getEle
   var pin=function(q,fill,r,lab){g.beginPath();g.moveTo(q[0],q[1]);g.bezierCurveTo(q[0]-r*1.1,q[1]-r*1.3,q[0]-r,q[1]-r*2.6,q[0],q[1]-r*2.6);g.bezierCurveTo(q[0]+r,q[1]-r*2.6,q[0]+r*1.1,q[1]-r*1.3,q[0],q[1]);g.closePath();g.fillStyle=fill;g.fill();g.lineWidth=2;g.strokeStyle="#fff";g.stroke();g.beginPath();g.arc(q[0],q[1]-r*1.65,r*0.36,0,7);g.fillStyle="#fff";g.fill();
    if(lab){g.font="bold 12px sans-serif";g.textBaseline="middle";g.lineWidth=3;g.strokeStyle="rgba(0,0,0,.85)";g.strokeText(lab,q[0]+r+3,q[1]-r*1.7);g.fillStyle="#fff";g.fillText(lab,q[0]+r+3,q[1]-r*1.7);}};
   (PMM.jobs||[]).forEach(function(j){var q=pmmXY(j.w,W,H);if(q[0]<-30||q[1]<-10||q[0]>W+30||q[1]>H+40)return;inView++;pin(q,PMM.sel===j?"#f59e0b":"#0288d1",10,PMM.z>=17?j.job:"");});
-  pin(pmmXY(cumW(PMM.geo.lat,PMM.geo.lng),W,H),"#16a34a",13,"this quote");
+  pmsDraw(g,W,H);pmaPins(pin,W,H);
   var lat=cumLLofW(PMM.c),mpp=156543.03392*Math.cos(lat*Math.PI/180)/Math.pow(2,PMM.z),nice=[1,2,5,10,20,50,100,200,500,1000,2000,5000],len=nice[0];nice.forEach(function(v){if(v/mpp<=140)len=v;});var bw=len/mpp;g.fillStyle="rgba(255,255,255,.85)";g.fillRect(8,H-26,bw+12,20);g.fillStyle="#111";g.fillRect(14,H-12,bw,3);g.font="11px sans-serif";g.textBaseline="alphabetic";g.fillText(len>=1000?len/1000+" km":len+" m",14,H-16);}
  else (PMM.jobs||[]).forEach(function(j){var q=pmmXY(j.w,W,H);if(!(q[0]<-30||q[1]<-10||q[0]>W+30||q[1]>H+40))inView++;});
  PMM.inView=inView;var lg=document.getElementById("pmm-leg");if(lg)lg.innerHTML="<span style='color:#16a34a;font-weight:700'>● this quote’s address</span> · "+(PMM.jobsOff==="perm"?"<button class='btn pmr-b' onclick='pmmJobsAsk()'>Show our jobs</button> (the browser needs your OK to read Job Files - Documents again)":PMM.jobsOff?"<span class='cd-amb'>"+pmEsc(PMM.jobsOff)+"</span>":PMM.jobs?"<span style='color:#0288d1;font-weight:700'>● our jobs</span>: "+inView+" in view ("+PMM.jobs.length.toLocaleString("en-CA")+" of the "+(PMM.jobsAll||PMM.jobs.length).toLocaleString("en-CA")+" jobs in the master have a position) — click one for its job and quote number":"reading the jobs master …")+". Drag to move, wheel to zoom. Lot lines are ParcelMap BC’s and the photo is good to a metre or two — a guide, not a survey.";}
 function pmmNote(){var el=document.getElementById("pmm-note");if(!el)return;if(PMM.fail>3&&!PMM.ok){el.style.display="block";el.textContent="The background isn’t loading (no internet, or this network blocks it) — try Street map, or switch to Google job map.";}else el.style.display="none";}
 function pmmJobsAsk(){pmkSource(true).then(function(){PMM.jobs=null;PMM.jobsOff="";var q=pmCurQ();if(q)pmrMapDraw(q);});}
-function pmmWire(){var box=document.getElementById("pmm-map");if(!box)return;var drag=null,moved=false,pos=function(e){var r=box.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top];};
+function pmmWire(){var box=document.getElementById("pmm-map");if(!box)return;pmsWire(box);var drag=null,moved=false,pos=function(e){var r=box.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top];};
  box.onpointerdown=function(e){drag={at:pos(e),c:PMM.c.slice()};moved=false;box.style.cursor="grabbing";try{box.setPointerCapture(e.pointerId);}catch(x){}};
  box.onpointermove=function(e){if(!drag)return;var p=pos(e),s=Math.pow(2,PMM.z),dx=p[0]-drag.at[0],dy=p[1]-drag.at[1];if(Math.abs(dx)+Math.abs(dy)>3)moved=true;PMM.c=[drag.c[0]-dx/s,drag.c[1]-dy/s];pmmDraw();};
  box.onpointerup=function(e){var p=pos(e);box.style.cursor="grab";if(drag&&!moved)pmmPick(p);drag=null;};box.onpointercancel=function(){drag=null;};
  box.onwheel=function(e){e.preventDefault();pmmZoom(e.deltaY<0?0.5:-0.5,pos(e));};box.ondblclick=function(e){pmmZoom(1,pos(e));};}
 /* a pin is hit on its head (above its point) */
-function pmmPick(at){var box=document.getElementById("pmm-map"),info=document.getElementById("pmm-info");if(!box)return;var W=box.clientWidth||900,H=box.clientHeight||440,best=null,bd=18;(PMM.jobs||[]).forEach(function(j){var q=pmmXY(j.w,W,H),d=Math.hypot(q[0]-at[0],q[1]-16-at[1]);if(d<bd){bd=d;best=j;}});PMM.sel=best;
+function pmmPick(at){var box=document.getElementById("pmm-map"),info=document.getElementById("pmm-info");if(!box)return;if(pmsPick(at))return;var W=box.clientWidth||900,H=box.clientHeight||440,best=null,bd=18;(PMM.jobs||[]).forEach(function(j){var q=pmmXY(j.w,W,H),d=Math.hypot(q[0]-at[0],q[1]-16-at[1]);if(d<bd){bd=d;best=j;}});PMM.sel=best;
  if(info){if(best){var here=PMM.jobs.filter(function(j){return Math.abs(j.lat-best.lat)<1e-6&&Math.abs(j.lng-best.lng)<1e-6;}),q=pmCurQ(),m=PMM.geo?pmkDist(PMM.geo,best):null;info.style.display="block";
    info.innerHTML=here.map(function(j){var ok=pmkQnOk(j.qn)&&q&&!pmrIsSub(q);return "<div><b>Job "+pmEsc(j.job)+"</b>"+(j.qn?" · quote "+pmEsc(j.qn):" · no quote number on record")+" — "+pmEsc(j.site.replace(/,\s*BC,\s*Canada\s*$/i,""))+(m!==null?" <span class='hint' style='margin:0'>("+(m<1?"at this quote’s address":Math.round(m)+" m from this quote’s address")+")</span>":"")+(ok?" <button class='btn pmr-b' onclick='pmkAttach(\""+pmEsc(j.qn)+"\",\""+pmEsc(j.job)+"\")' title='this draft becomes the next sub-quote of "+pmEsc(j.qn)+" — everything in it stays'>Make this a sub-quote of "+pmEsc(j.qn)+"</button>":"")+"</div>";}).join("");}else info.style.display="none";}pmmDraw();}
 (function(){try{var b=localStorage.getItem("eo:pmmbase");if(b&&CUM_BASE[b]&&b!=="none")PMM.base=b;if(localStorage.getItem("eo:pmmlots")==="0")PMM.lots=false;}catch(e){}})();
@@ -8428,6 +8428,709 @@ function bcsWire(host){var S=bcS,T=S.st,g=function(id){return document.getElemen
  host.querySelectorAll(".bcs-ru").forEach(function(el){el.onchange=function(){T.regs[+el.dataset.r].unit=+el.value;bcRender();setTimeout(bcDraw,0);};});}
 ["bcbGo","bcsGoStep","bcsUndo","bcsClearAll","bcsDivFinish","bcsRegSwap","bcsGarageAdd","bcsMeasure","bcsOkW","bcsMode","bcsPwFinish","bcsPwUndo","bcsPwDel","bcsOk","bcsSaveFloor","bcsFloorDel","bcsSave","bcsRegDel","bcsTraceFinish","bcsTraceUndo"].forEach(function(n){window[n]=eval(n);});
 
+
+/* ===================== 1.45.0 ===================== */
+/* ---------- PM: the address check reads everything a quote could be hiding in ----------
+   the quotes master, To Do Quotes (rows with or without a quote number) and the newest quote folders (the master is a day behind at best).
+   The same lookup runs again, fresh, before a quote folder is created. Read only: nothing here writes to the tracker, the masters or a folder. */
+var PMD={rec:{},N:25};
+var PMD_MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function pmdDate(v){var s=String(v==null?"":v).trim();if(!s)return "";if(/^\d{5}(\.\d+)?$/.test(s)){var d=new Date(Date.UTC(1899,11,30)+Math.round(parseFloat(s))*864e5);return PMD_MON[d.getUTCMonth()]+" "+d.getUTCDate();}
+ var m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return PMD_MON[+m[2]-1]+" "+(+m[3]);return s;}
+function pmdEmails(s){return (String(s||"").toLowerCase().match(/[a-z0-9._%+'-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+/g)||[]).filter(function(e,i,a){return a.indexOf(e)===i;});}
+function pmdNm(s){return String(s||"").toLowerCase().replace(/\([^)]*\)/g," ").replace(/&/g," and ").replace(/[^a-z0-9]+/g," ").replace(/\b(ltd|limited|inc|incorporated|corp|corporation|co|company|the)\b/g," ").replace(/\s+/g," ").trim();}
+/* the newest quote folders of this year that the master doesn't hold yet: their site address comes from the job details file, else the app's Word quote */
+async function pmdRecent(root,M){
+ var out={rows:[],n:0,top:"",blank:[]};
+ try{var yy=pmjYY(),all=await pmjYearQuotes(root,yy,null);all.sort(function(a,b){return b.n-a.n;});var L=all.slice(0,PMD.N);
+  out.n=L.length;if(L.length)out.top=yy+"-"+pmjPad(L[0].n);
+  var inM={};if(M&&M.rows)M.rows.forEach(function(r){if(!r.site)return;var P=pmjQnParts(r.qn);if(P)inM[P.base]=1;});
+  for(var i=0;i<L.length;i++){var x=L[i],qn=yy+"-"+pmjPad(x.n);if(inM[yy+"-"+x.n])continue;
+   var c=PMD.rec[x.h.name];
+   if(!c||(!c.site&&Date.now()-c.t>60000)){c={t:Date.now(),site:"",client:""};
+    try{var files=await pmjList(x.h),txt=files.filter(function(h){return h.kind==="file"&&pmjJobTxtRe().test(h.name)&&!/^~\$/.test(h.name);}),q=null;
+     for(var j=0;j<txt.length&&!(q&&q.f&&q.f.site);j++){try{q=pmParseJob(await (await txt[j].getFile()).text());}catch(e){}}
+     if(!q||!q.f||!q.f.site){var d=null;try{d=await pmjDetailsFrom(files,qn);}catch(e){}if(d&&d.q&&d.q.f&&d.q.f.site)q=d.q;}
+     if(q&&q.f){c.site=[q.f.site||""].concat((q.xp||[]).map(function(p){return p.site||"";})).filter(Boolean).join(" & ");c.client=q.f.client||q.f.contact||"";}
+    }catch(e){}
+    PMD.rec[x.h.name]=c;}
+   var who=c.client||x.h.name.replace(/^.*?\d{2}-\d+\s*-?\s*/,"");
+   if(!c.site){out.blank.push(qn);continue;}
+   out.rows.push({qn:qn,site:c.site,client:who,folder:x.h.name,src:"folder"});}
+ }catch(e){out.err=true;}
+ return out;
+}
+function pmhFind(q,site,S){
+ var cur=pmjQnParts(q.f.qn),curK=pmjQnKey(q.f.qn),out=[],seen={};
+ var skip=function(qn){var P=pmjQnParts(qn);if(cur&&P)return P.base===cur.base;return curK&&pmjQnKey(qn)===curK;};
+ /* a tracker row with no number that is this very request (same email, or same client / contact) is not a duplicate of itself */
+ var mine=function(r){var e=pmdEmails(q.f.email),re=pmdEmails(r.email);if(e.length&&re.some(function(x){return e.indexOf(x)>=0;}))return true;
+  var b=pmdNm(r.client);if(!b)return false;return [q.f.client,q.f.contact].some(function(a){a=pmdNm(a);return a&&a===b;});};
+ var add=function(r,src){if(!r.site)return;
+  if(r.qn){if(skip(r.qn))return;var k=pmjQnKey(r.qn);if(seen[k])return;if(!pmhMatch(site,r.site))return;seen[k]=1;out.push(Object.assign({},r,{src:src}));return;}
+  if(src!=="todo"||!pmhMatch(site,r.site)||mine(r))return;var k2="todo|"+pmdNm(r.client)+"|"+pmjQnKey(r.site);if(seen[k2])return;seen[k2]=1;out.push(Object.assign({},r,{src:"todo",noqn:true}));};
+ if(S.master&&S.master.rows){S.master.rows.forEach(function(r){add(r,"master");});S.master.rows.forEach(function(r){seen[pmjQnKey(r.qn)]=1;});}
+ if(S.recent&&S.recent.rows)S.recent.rows.forEach(function(r){add(r,"folder");});
+ if(S.todo)S.todo.rows.forEach(function(r){add(r,"todo");});
+ var key=function(r){if(r.noqn)return 1e9;var P=pmjQnParts(r.qn);return P?(+P.yy)*1e5+P.n*10+(P.sub?1:0):0;};
+ out.sort(function(a,b){return key(b)-key(a);});return out;
+}
+/* what the check covered, in words */
+function pmdReach(S){var a=[],rows=S.master&&S.master.rows||[],yy=pmjYY(),top=0;rows.forEach(function(r){var P=pmjQnParts(r.qn);if(P&&P.yy===yy&&P.n>top)top=P.n;});
+ a.push("quotes master ("+rows.length.toLocaleString("en-CA")+" quotes"+(top?", to "+yy+"-"+pmjPad(top):"")+")");
+ a.push(S.todo?"To Do Quotes ("+S.todo.rows.length+" row"+(S.todo.rows.length===1?"":"s")+")":"To Do Quotes could not be read");
+ var R=S.recent;if(R&&!R.err&&R.n)a.push("the last "+R.n+" quote folder"+(R.n===1?"":"s")+(R.top?" (to "+R.top+")":""));else a.push("the quote folders could not be listed");
+ return a;}
+function pmdBlankNote(S){var R=S.recent;if(!R||!R.blank||!R.blank.length)return "";var b=R.blank.slice().sort();
+ return " <span class='pmh-blank' title='these folders are newer than the master and have no job details file or app-made Word quote with a site address yet, so their address could not be compared'>Not compared — no site address on file yet: "+b.slice(0,8).map(pmEsc).join(", ")+(b.length>8?" and "+(b.length-8)+" more":"")+".</span>";}
+function pmhHtml(q,i,site,S){var E=pmEsc;
+ if(S.off==="conn")return pmjFsOk()?"<span class='hint pmh-off'>Previous quotes: connect Quotes - Documents (Folders on this computer, below) to check this address.</span>":"";
+ if(S.off==="perm")return "<button class='btn pmr-b pmh-ask' data-ph='"+i+"' title='the browser needs your OK to read Quotes - Documents again'>Check previous quotes at this address</button>";
+ if(S.master&&S.master.miss)return "<span class='hint pmh-off'>Previous quotes: "+PMH_MASTER+" isn’t in Quotes - Documents.</span>";
+ if(S.master&&S.master.err)return "<span class='hint pmh-off'>Previous quotes: "+PMH_MASTER+" "+E(S.master.err)+".</span>";
+ var L=pmhFind(q,site,S),reach=pmdReach(S);
+ if(!L.length)return "<span class='hint pmh-off pmh-none'>✓ No quote at this address in: "+E(reach.join(" · "))+"."+pmdBlankNote(S)+"</span>";
+ var MAX=8,more=L.length-MAX,now=L.some(function(r){return r.noqn||r.src==="folder"||r.src==="todo";}),old=L.some(function(r){return r.src==="master";});
+ return "<span class='pmh-lab"+(now?" pmh-now":"")+"'>"+(now&&old?"Being quoted now / quoted before:":now?"Being quoted now:":"Quoted before:")+"</span>"+L.slice(0,MAX).map(function(r){
+  if(r.noqn){var bits=[r.client,r.date?"requested "+pmdDate(r.date):"",r.asg?"assigned "+r.asg:"not assigned yet"].filter(Boolean).join(", ");
+   return "<span class='pmh-it pmh-todo' title='"+E(r.site)+"'><b>In To Do Quotes, no quote # yet</b>"+(bits?" ("+E(bits)+")":"")+"</span>";}
+  var who=[r.client,r.src==="master"?r.year:""].filter(Boolean).join(", ");
+  return "<span class='pmh-it'><button class='pmh-q' data-qn='"+E(r.qn)+"' title='"+E(r.site+(r.folder?"\n"+r.folder:""))+"\nclick to copy the quote number'>"+E(r.qn)+"</button>"+(who?" ("+E(who)+")":"")+(r.src==="todo"?" <i class='hint' style='margin:0'>in To Do Quotes (not in the master yet)</i>":r.src==="folder"?" <i class='hint' style='margin:0'>quote folder exists (not in the master yet)</i>":"")+
+   " <button class='btn pmr-b pmh-start' data-qn='"+E(r.qn)+"' data-fold='"+E(r.folder||"")+"' title='a new quote from this one: same site, new client — you choose what comes across'>Start from this one</button></span>";}).join("")+(more>0?"<span class='hint' style='margin:0'>…and "+more+" more</span>":"")+
+  "<span class='hint pmh-msg' style='margin:0'></span><span class='hint pmh-reach' style='margin:0;display:block'>Checked: "+E(reach.join(" · "))+"."+pmdBlankNote(S)+"</span>";
+}
+/* ---- the second warning: before a quote folder is created, look again (fresh) for a quote or a job at any of this quote's addresses ---- */
+async function pmdHits(q){var out=[];if(pmrIsSub(q))return out;var P=pmProps(q).map(function(p){return (p.site||"").trim();}).filter(Boolean);if(!P.length)return out;
+ var S=null,J=null;try{S=await pmhSources(true);}catch(e){}try{J=await pmkSource(true);}catch(e){}
+ P.forEach(function(site){
+  if(S&&S.master&&S.master.rows)pmhFind(q,site,S).forEach(function(r){out.push({kind:"quote",site:site,qn:r.qn||"",noqn:!!r.noqn,who:r.client||"",src:r.src,asg:r.asg||"",date:r.date||"",folder:r.folder||""});});
+  if(J&&J.rows)pmkFind(site,J.rows).same.forEach(function(c){out.push({kind:"job",site:site,job:c.r.job,qn:c.r.qn||""});});});
+ out.forEach(function(w){w.multi=P.length>1;});return out;}
+function pmdWarnHtml(P){var E=pmEsc,W=P&&P.dup;if(!W||!W.length)return "<div id='pm-qfdup'></div>";
+ var many=W.some(function(w){return w.multi;}),Q=W.filter(function(w){return w.kind==="quote";}),J=W.filter(function(w){return w.kind==="job";});
+ var line=function(w){var at=many?" <span class='hint' style='margin:0'>("+E(w.site)+")</span>":"";
+  if(w.kind==="job")return "<li><b>Job "+E(w.job)+"</b>"+(w.qn?" · quote "+E(w.qn):"")+at+"</li>";
+  if(w.noqn)return "<li><b>In To Do Quotes, no quote # yet</b>"+(w.who?" — "+E(w.who):"")+(w.date?", requested "+E(pmdDate(w.date)):"")+(w.asg?", assigned "+E(w.asg):"")+at+"</li>";
+  return "<li><b>Quote "+E(w.qn)+"</b>"+(w.who?" — "+E(w.who):"")+(w.src==="folder"?" <span class='hint' style='margin:0'>(quote folder exists)</span>":w.src==="todo"?" <span class='hint' style='margin:0'>(in To Do Quotes)</span>":"")+at+"</li>";};
+ var h="<div id='pm-qfdup'><div class='cu-idwarn pm-dupwarn' role='alert'>";
+ if(Q.length)h+="<div><b>There is already a quote with that site address.</b></div><ul>"+Q.slice(0,6).map(line).join("")+(Q.length>6?"<li>…and "+(Q.length-6)+" more</li>":"")+"</ul>";
+ if(J.length)h+="<div><b>There is already a job at that site address.</b></div><ul>"+J.slice(0,6).map(line).join("")+(J.length>6?"<li>…and "+(J.length-6)+" more</li>":"")+"</ul>";
+ h+="<div>Are you sure you want to proceed?</div><div class='pm-dupbtns'><button class='btn pri' id='pm-dupno'>Cancel</button> <button class='btn' id='pm-dupsub' title='this request belongs to one of those: make it the next sub-quote instead of a new number'>Belongs to an existing quote…</button> <button class='btn' id='pm-dupyes'>Create anyway</button></div></div></div>";
+ return h;}
+function pmdWarnWire(){var no=document.getElementById("pm-dupno"),yes=document.getElementById("pm-dupyes"),sub=document.getElementById("pm-dupsub"),ok=document.getElementById("pm-qfok");
+ if(!no)return;if(ok)ok.style.display="none";
+ no.onclick=function(){PMJ.qf=null;pmRender();};
+ yes.onclick=function(){if(PMJ.qf){PMJ.qf.dupOk=true;PMJ.qf.dup=null;}var b=document.getElementById("pm-qfdup");if(b)b.innerHTML="";if(ok)ok.style.display="";pmjQfCreate();};
+ sub.onclick=function(){var W=PMJ.qf&&PMJ.qf.dup||[],w=W.filter(function(x){return x.qn&&pmkQnOk(x.qn);})[0];PMJ.qf=null;pmRender();if(w&&W.filter(function(x){return x.qn;}).length===1)pmkAttach(w.qn,w.job||"");else pmkAttachAsk();};
+ try{no.focus();}catch(e){}}
+async function pmjQfCreate (){var q=pmCurQ(),P=PMJ.qf;if(!q||!P)return;
+ if(!P.dupOk){if(P.busy)return;P.busy=true;var W=[];try{W=await pmdHits(q);}catch(e){}P.busy=false;if(PMJ.qf!==P)return;
+  if(W.length){P.dup=W;var s=document.getElementById("pm-qfshort");if(s)P.short=s.value;var box=document.getElementById("pm-qfdup");
+   if(box){var t=document.createElement("div");t.innerHTML=pmdWarnHtml(P);box.parentNode.replaceChild(t.firstChild,box);pmdWarnWire();}else pmRender();return;}}
+ return pmjQfCreate0();}
+window.pmjQfCreate=pmjQfCreate;
+(function(){var st=document.createElement("style");st.textContent=".pmh-now{color:#a4281c}.pmh-todo b{color:#a4281c}.pmh-blank{color:#8a5a00}.pm-dupwarn{margin:8px 0 0;padding:10px 12px;border-left:4px solid #a4281c}.pm-dupwarn ul{margin:4px 0 8px 18px;padding:0}.pm-dupbtns{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}";document.head.appendChild(st);})();
+
+/* ---------- PM: site address suggestions, PID from ParcelMap BC, LTSA parcel summary pasted in, every address of the quote on the map ----------
+   Sent out: only the address text typed (BC Address Geocoder) and one map position (ParcelMap BC public layer). Nothing about the client or the quote. */
+var PMA={seq:0,pid:{},touched:{},ltsa:{},box:null,t:null,open:null};
+var PMA_GEO="https://geocoder.api.gov.bc.ca/addresses.json";
+var PMA_WFS="https://openmaps.gov.bc.ca/geo/pub/WHSE_CADASTRE.PMBC_PARCEL_FABRIC_POLY_SVW/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=pub%3AWHSE_CADASTRE.PMBC_PARCEL_FABRIC_POLY_SVW&outputFormat=application%2Fjson&count=12&propertyName=PID%2CPLAN_NUMBER%2CPARCEL_NAME%2CPARCEL_CLASS%2COWNER_TYPE&CQL_FILTER=";
+function pmaTidy(full){return String(full||"").replace(/,\s*BC\s*$/i,"").trim();}
+function pmaPidFmt(s){var d=String(s||"").replace(/\D/g,"");return d.length===9?d.slice(0,3)+"-"+d.slice(3,6)+"-"+d.slice(6):String(s||"").trim();}
+function pmaPropIx(el){return el.dataset.f?0:(+el.dataset.xp+1);}
+function pmaInput(i,k){return i===0?document.querySelector("#pmhost [data-f='"+k+"']"):document.querySelector("#pmhost [data-xp='"+(i-1)+"'][data-k='"+k+"']");}
+function pmaSetProp(q,i,k,v){if(i===0)q.f[k]=v;else if(q.xp&&q.xp[i-1])q.xp[i-1][k]=v;var el=pmaInput(i,k);if(el)el.value=v;q.updated=Date.now();if(typeof pmFlagUnsaved==="function")pmFlagUnsaved(q);pmQuotesSave();}
+/* our own addresses that start the same way (from the masters already read on this computer) */
+function pmaOwn(txt){var t=pmrGeoKey(txt),m=t.match(/^(\d+[a-z]?)\s+([a-z0-9]{1,})/);if(!m)return [];var pre=m[1]+" "+m[2],out=[],seen={};
+ var push=function(site,tag){var k=pmrGeoKey(site);if(k.indexOf(pre)!==0)return;var s=String(site).replace(/,\s*(BC|British Columbia)?,?\s*Canada\s*$/i,"").replace(/,\s*BC\s*$/i,"").trim(),kk=pmrGeoKey(s);if(seen[kk]){if(seen[kk].tags.length<3)seen[kk].tags.push(tag);return;}seen[kk]={v:s,tags:[tag],own:true};out.push(seen[kk]);};
+ try{var K=pmkS();if(K.file&&K.file.v&&K.file.v.rows)K.file.v.rows.forEach(function(r){if(out.length<40)push(r.site,"job "+r.job);});}catch(e){}
+ try{var M=PMH.files[PMH_MASTER];if(M&&M.v&&M.v.rows)M.v.rows.slice().reverse().forEach(function(r){if(out.length<40&&r.site&&r.qn)push(r.site,"quote "+r.qn);});}catch(e){}
+ return out.slice(0,3);}
+function pmaSuggest(txt){if(typeof fetch==="undefined")return Promise.resolve([]);
+ return fetch(PMA_GEO+"?autoComplete=true&maxResults=6&outputSRS=4326&echo=false&addressString="+encodeURIComponent(txt)).then(function(r){return r.ok?r.json():null;}).then(function(j){
+  return (j&&j.features||[]).map(function(f){var P=f.properties||{},c=f.geometry&&f.geometry.coordinates;var mp=P.matchPrecision||"",sc=P.score||0;if(!c||!(/CIVIC_NUMBER|UNIT|SITE/i.test(mp)&&sc>=60||/BLOCK/i.test(mp)&&sc>=70))return null;
+   var exact=/CIVIC_NUMBER|BLOCK|SITE|UNIT/i.test(P.matchPrecision||"")&&(P.score||0)>=70;
+   return {v:pmaTidy(P.fullAddress),geo:{lat:c[1],lng:c[0],full:P.fullAddress||"",loc:P.localityName||"",ltype:P.localityType||"",exact:exact,score:P.score||0},approx:!/CIVIC_NUMBER|UNIT|SITE/i.test(mp)};}).filter(function(x){return x&&x.v;});}).catch(function(){return [];});}
+function pmaClose(){if(PMA.box&&PMA.box.parentNode)PMA.box.parentNode.removeChild(PMA.box);PMA.box=null;PMA.open=null;}
+function pmaShow(el,list){pmaClose();if(!list.length||document.activeElement!==el)return;var b=document.createElement("div");b.className="pma-sug";b.setAttribute("role","listbox");
+ b.innerHTML=list.map(function(s,i){return "<div class='pma-it' role='option' data-i='"+i+"'><span>"+pmEsc(s.v)+"</span>"+(s.own?"<i>"+pmEsc(s.tags.join(", "))+"</i>":s.approx?"<i>block, not the exact number</i>":"")+"</div>";}).join("")+"<div class='pma-by'>Suggestions: our jobs and quotes, then the BC Address Geocoder</div>";
+ var lab=el.closest("label")||el.parentNode;lab.style.position="relative";lab.appendChild(b);PMA.box=b;PMA.open={el:el,list:list,at:-1};
+ b.onmousedown=function(e){var it=e.target.closest&&e.target.closest(".pma-it");if(!it)return;e.preventDefault();pmaPick(el,list[+it.dataset.i]);};}
+function pmaPick(el,s){pmaClose();if(!s)return;var q=pmCurQ();if(!q)return;var i=pmaPropIx(el);PMA.skip=pmrGeoKey(s.v);clearTimeout(PMA.t);PMA.seq++;el.value=s.v;try{el.dispatchEvent(new Event("input",{bubbles:true}));}catch(e){if(el.oninput)el.oninput();}
+ if(s.geo)pmrGeoPut(s.v,s.geo);PMA.touched[q.id+"|"+i]=1;PMA.skip=pmrGeoKey(s.v);
+ if(typeof pmrRefresh==="function")pmrRefresh(true);pmaPid(i,false);}
+function pmaType(el){var txt=el.value.trim();clearTimeout(PMA.t);var q=pmCurQ();if(q)PMA.touched[q.id+"|"+pmaPropIx(el)]=1;
+ if(txt.length<4||!/\d/.test(txt)||!/[a-z]/i.test(txt)||pmrGeoKey(txt)===PMA.skip){pmaClose();return;}
+ var my=++PMA.seq,own=pmaOwn(txt);if(own.length)pmaShow(el,own);
+ PMA.t=setTimeout(function(){pmaSuggest(txt).then(function(L){if(my!==PMA.seq||el.value.trim()!==txt)return;var seen={};own.forEach(function(o){seen[pmrGeoKey(o.v)]=1;});
+   pmaShow(el,own.concat(L.filter(function(s){var k=pmrGeoKey(s.v);if(seen[k])return false;seen[k]=1;return true;})).slice(0,8));});},260);}
+function pmaKey(el,e){var O=PMA.open;if(!O||O.el!==el)return;var n=O.list.length;
+ if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();O.at=(O.at+(e.key==="ArrowDown"?1:-1)+n+1)%(n+1);if(O.at===n)O.at=-1;[].forEach.call(PMA.box.querySelectorAll(".pma-it"),function(x,i){x.classList.toggle("on",i===O.at);});}
+ else if(e.key==="Enter"&&O.at>=0){e.preventDefault();(O.pick||pmaPick)(el,O.list[O.at]);}
+ else if(e.key==="Escape"){pmaClose();}}
+/* ---- PID from the public ParcelMap BC layer: the parcel under the address's parcel point ---- */
+function pmaParcelPoint(site){if(typeof fetch==="undefined")return Promise.resolve(null);
+ return fetch(PMA_GEO+"?maxResults=1&outputSRS=4326&echo=false&locationDescriptor=parcelPoint&addressString="+encodeURIComponent(String(site).replace(/\s*\n\s*/g," ")+(/\bbc\b|british columbia/i.test(site)?"":", BC"))).then(function(r){return r.ok?r.json():null;}).then(function(j){var f=j&&j.features&&j.features[0];if(!f||!f.geometry)return null;var P=f.properties||{};
+   if(!/CIVIC_NUMBER|SITE|UNIT/i.test(P.matchPrecision||"")||(P.score||0)<70)return null;return {lat:f.geometry.coordinates[1],lng:f.geometry.coordinates[0],full:P.fullAddress||""};}).catch(function(){return null;});}
+function pmaParcels(g){return fetch(PMA_WFS+encodeURIComponent("INTERSECTS(SHAPE,SRID=4326;POINT("+g.lng+" "+g.lat+"))")).then(function(r){if(!r.ok)throw new Error("http");return r.json();}).then(function(j){var seen={},out=[];
+  (j&&j.features||[]).forEach(function(f){var x=f.properties||{},pid=pmaPidFmt(x.PID||x.PARCEL_NAME);if(!/^\d{3}-\d{3}-\d{3}$/.test(pid)||seen[pid])return;seen[pid]=1;out.push({pid:pid,plan:x.PLAN_NUMBER||"",cls:x.PARCEL_CLASS||""});});return out;});}
+async function pmaPid(i,force){var q=pmCurQ();if(!q||pmrIsSub(q))return;var p=pmProps(q)[i],site=p&&(p.site||"").trim();if(!site||typeof fetch==="undefined")return;var key=pmrGeoKey(site);
+ if(PMA.pid[key]&&!force){pmaSlotDraw(i);return;}var R={state:"busy"};PMA.pid[key]=R;pmaSlotDraw(i);
+ try{var g=await pmaParcelPoint(site);if(!g){R.state="noaddr";}else{R.list=await pmaParcels(g);R.state=R.list.length?"ok":"none";}}catch(e){R.state="err";}
+ var q2=pmCurQ();if(!q2||q2.id!==q.id)return;var p2=pmProps(q2)[i];if(!p2||pmrGeoKey(p2.site)!==key)return;
+ if(R.state==="ok"&&R.list.length===1&&!(p2.pid||"").trim()){pmaSetProp(q2,i,"pid",R.list[0].pid);R.filled=true;}
+ pmaSlotDraw(i);}
+function pmaSlotHtml(q,i){var p=pmProps(q)[i],site=p&&(p.site||"").trim(),E=pmEsc;if(!site||pmrIsSub(q))return "";var key=pmrGeoKey(site),R=PMA.pid[key],T=PMA.ltsa[q.id+"|"+i],pid=(p.pid||"").trim(),h="";
+ if(R){if(R.state==="busy")h+="<span class='hint' style='margin:0'>Looking up the PID on ParcelMap BC…</span>";
+  else if(R.state==="ok"&&R.list.length===1){var one=R.list[0];
+   if(pmaPidFmt(pid)===one.pid)h+="<span class='hint' style='margin:0'>PID "+E(one.pid)+(R.filled?" filled":" matches")+" from ParcelMap BC"+(one.plan?" (plan "+E(one.plan)+")":"")+" — public record, confirm against title.</span>";
+   else if(pid)h+="<span class='pma-warn'>ParcelMap BC shows PID "+E(one.pid)+" at this address; the box has "+E(pid)+".</span> <button class='btn pmr-b' data-pidset='"+i+"' data-pid='"+E(one.pid)+"'>Use "+E(one.pid)+"</button>";
+   else h+="<button class='btn pmr-b' data-pidset='"+i+"' data-pid='"+E(one.pid)+"'>Use PID "+E(one.pid)+"</button>";}
+  else if(R.state==="ok")h+="<span class='pmh-lab'>Several parcels at this address — choose the PID:</span>"+R.list.slice(0,10).map(function(x){return "<button class='btn pmr-b' data-pidset='"+i+"' data-pid='"+E(x.pid)+"' title='"+E([x.plan,x.cls].filter(Boolean).join(" · "))+"'>"+E(x.pid)+(x.plan?" · "+E(x.plan):"")+"</button>";}).join("");
+  else if(R.state==="none")h+="<span class='hint' style='margin:0'>No titled parcel found on ParcelMap BC under this address — enter the PID by hand.</span>";
+  else if(R.state==="noaddr")h+="<span class='hint' style='margin:0'>PID lookup needs an exact address match — pick the address from the suggestions, or enter the PID by hand.</span>";
+  else h+="<span class='hint' style='margin:0'>ParcelMap BC couldn’t be reached for the PID.</span> <button class='btn pmr-b' data-pidfind='"+i+"'>Try again</button>";}
+ else if(!pid)h+="<button class='btn pmr-b' data-pidfind='"+i+"' title='looks up the parcel under this address on the public ParcelMap BC layer'>Find PID</button>";
+ h+=" <button class='btn pmr-b' data-ltsa='"+i+"' title='in LTSA’s map, click the lot, select the Parcel Summary text and copy it — then paste it here: PID and Legal Description are filled from it'>Paste LTSA parcel summary</button>";
+ if(T&&T.open)h+="<div class='pma-paste'><textarea rows='3' class='pm-ta' data-ltsata='"+i+"' placeholder='Paste the Parcel Summary copied from LTSA here (Ctrl+V)'></textarea></div>";
+ if(T&&T.msg)h+="<div class='"+(T.bad?"pma-warn":"hint")+"' style='margin:4px 0 0;display:block'>"+T.msg+"</div>";
+ return h;}
+function pmaSlot(q,i){return "<div class='pmh-row pma-row' data-pa='"+i+"'>"+pmaSlotHtml(q,i)+"</div>";}
+function pmaSlotDraw(i){var q=pmCurQ(),el=document.querySelector(".pma-row[data-pa='"+i+"']");if(!q||!el)return;el.innerHTML=pmaSlotHtml(q,i);pmaWire();}
+/* the Parcel Summary panel of maps.ltsa.ca, as copied text */
+function pmaLtsaParse(text){var t=String(text||"").replace(/\r\n?/g,"\n"),out={pid:"",legal:"",plan:""};
+ var m=t.match(/Parcel Identifier\s*\(PID\)\s*:?\s*\n?\s*(\d{3}-\d{3}-\d{3})/i)||t.match(/\bParcel\s*:\s*(\d{3}-\d{3}-\d{3})/i)||t.match(/\bPID\b[^\d\n]{0,12}(\d{3}-\d{3}-\d{3})/i);if(m)out.pid=m[1];
+ var LAB="Parcel Identifier|Parcel Identification Number|Parcel Type|Parcel Summary|Plan Number|Jurisdiction and Roll Number|Jurisdiction|Regional District|Municipality|Land District|Title|Owner Type|Parcel Class|Parcel Status|Area|Details|Parcel Info|Request Title";
+ m=t.match(new RegExp("Legal Description\\s*:?\\s*\\n?([\\s\\S]*?)(?=\\n\\s*(?:"+LAB+")\\b|$)","i"));if(m)out.legal=m[1].split("\n").map(function(x){return x.trim();}).filter(Boolean).join(" ").replace(/\s+/g," ").trim();
+ m=t.match(/Plan Number\s*:?\s*\n?\s*([A-Z]{0,4}\d[A-Z0-9]*)/i);if(m)out.plan=m[1].toUpperCase();
+ return out.pid||out.legal?out:null;}
+function pmaLtsaApply(i,text){var q=pmCurQ();if(!q)return false;var X=pmaLtsaParse(text),T=PMA.ltsa[q.id+"|"+i]=PMA.ltsa[q.id+"|"+i]||{};
+ if(!X){T.bad=true;T.msg="That doesn’t look like an LTSA Parcel Summary — it should include “Parcel Identifier (PID)” and “Legal Description”.";pmaSlotDraw(i);return false;}
+ var p=pmProps(q)[i],old=(p.legal||"").trim(),did=[],E=pmEsc;
+ if(X.pid){var was=(p.pid||"").trim();pmaSetProp(q,i,"pid",X.pid);did.push("PID "+E(X.pid)+(was&&pmaPidFmt(was)!==X.pid?" (the box had "+E(was)+")":""));}
+ if(X.legal){if(!old||old===X.legal||window.confirm("Replace the Legal Desc. in the box with the one from LTSA?\n\nNow: "+old+"\n\nLTSA: "+X.legal)){pmaSetProp(q,i,"legal",X.legal);did.push("Legal Description");}}
+ T.open=false;T.bad=false;T.msg="Filled from the LTSA parcel summary: "+did.join(" and ")+(X.plan?" · plan "+E(X.plan):"")+".";
+ var R=PMA.pid[pmrGeoKey(p.site)];if(X.pid&&R&&R.state==="ok"&&!R.list.some(function(x){return x.pid===X.pid;})){T.bad=true;T.msg+=" <b>Check the lot:</b> ParcelMap BC shows "+R.list.map(function(x){return E(x.pid);}).join(", ")+" under this address, not "+E(X.pid)+".";}
+ pmaSlotDraw(i);if(typeof pmUpdate==="function")try{pmUpdate();}catch(e){}return true;}
+function pmaWire(){var host=document.getElementById("pmhost");if(!host)return;pmnWire(host);
+ host.querySelectorAll("input[data-f='site'],input[data-xp][data-k='site']").forEach(function(el){if(el._pma)return;el._pma=1;el.setAttribute("autocomplete","off");
+  el.addEventListener("input",function(e){if(e&&e.isTrusted===false&&PMA.skip===pmrGeoKey(el.value))return;pmaType(el);});el.addEventListener("keydown",function(e){pmaKey(el,e);});el.addEventListener("blur",function(){setTimeout(pmaClose,180);});});
+ host.querySelectorAll("[data-f='pid'],[data-f='legal'],[data-xp][data-k='pid'],[data-xp][data-k='legal']").forEach(function(el){if(el._pmal)return;el._pmal=1;
+  el.addEventListener("paste",function(e){var t="";try{t=(e.clipboardData||window.clipboardData).getData("text");}catch(x){}if(/Legal Description/i.test(t)&&/\d{3}-\d{3}-\d{3}/.test(t)){e.preventDefault();pmaLtsaApply(pmaPropIx(el),t);}});});
+ host.querySelectorAll("[data-pidfind]").forEach(function(b){b.onclick=function(){pmaPid(+b.dataset.pidfind,true);};});
+ host.querySelectorAll("[data-pidset]").forEach(function(b){b.onclick=function(){var q=pmCurQ(),i=+b.dataset.pidset;if(!q)return;pmaSetProp(q,i,"pid",b.dataset.pid);var R=PMA.pid[pmrGeoKey(pmProps(q)[i].site)];if(R){R.list=R.list.filter(function(x){return x.pid===b.dataset.pid;});R.filled=true;}pmaSlotDraw(i);};});
+ host.querySelectorAll("[data-ltsa]").forEach(function(b){b.onclick=function(){var q=pmCurQ(),i=+b.dataset.ltsa;if(!q)return;var T=PMA.ltsa[q.id+"|"+i]=PMA.ltsa[q.id+"|"+i]||{};T.open=!T.open;T.msg="";pmaSlotDraw(i);var ta=host.querySelector("[data-ltsata='"+i+"']");if(ta)ta.focus();};});
+ host.querySelectorAll("[data-ltsata]").forEach(function(ta){ta.onpaste=function(e){var t="";try{t=(e.clipboardData||window.clipboardData).getData("text");}catch(x){}if(t){e.preventDefault();pmaLtsaApply(+ta.dataset.ltsata,t);}};ta.onchange=function(){if(ta.value.trim())pmaLtsaApply(+ta.dataset.ltsata,ta.value);};});}
+/* ---- every address of the quote on the job map ---- */
+function pmaProps(q){var old={};(PMM.props||[]).forEach(function(x){old[x.site]=x;});
+ PMM.props=pmProps(q).map(function(p,i){var s=(p.site||"").trim();if(!s)return null;var x=old[s]||{site:s};x.i=i;x.geo=pmrGeoGet(s)||x.geo||null;return x;}).filter(Boolean);
+ PMM.props.forEach(function(x){if(!x.geo&&!x.busy){x.busy=1;pmrGeocode(x.site).then(function(g){x.geo=g||{none:true};x.busy=0;pmaFit(document.getElementById("pmr-map"));pmmDraw();});}});}
+function pmaExact(){return (PMM.props||[]).filter(function(x){return x.geo&&x.geo.exact;});}
+function pmaFit(box){var L=pmaExact();if(L.length<2)return;var W=(box&&box.clientWidth)||900,H=440,xs=[],ys=[];L.forEach(function(x){var w=cumW(x.geo.lat,x.geo.lng);xs.push(w[0]);ys.push(w[1]);});
+ var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);PMM.c=[(x0+x1)/2,(y0+y1)/2];
+ var dx=Math.max(x1-x0,1e-9),dy=Math.max(y1-y0,1e-9),z=Math.log(Math.min(W*0.6/dx,H*0.6/dy))/Math.LN2;PMM.z=Math.max(12,Math.min(19,Math.floor(z*2)/2));}
+function pmaPins(pin,W,H){var L=pmaExact(),multi=(PMM.props||[]).length>1;
+ var one="this quote";if(!L.length)pin(pmmXY(cumW(PMM.geo.lat,PMM.geo.lng),W,H),"#16a34a",13,one);
+ else L.forEach(function(x){pin(pmmXY(cumW(x.geo.lat,x.geo.lng),W,H),"#16a34a",13,multi?x.site.split(",")[0].trim():one);});
+ var el=document.getElementById("pma-miss");if(el){var miss=(PMM.props||[]).filter(function(x){return x.geo&&!x.geo.exact;});
+  el.style.display=miss.length?"block":"none";el.innerHTML=miss.length?"<b>Not on the map</b> (no exact address match): "+miss.map(function(x){return pmEsc(x.site);}).join("; "):"";}}
+(function(){var st=document.createElement("style");st.textContent=".pma-sug{position:absolute;left:0;right:0;top:100%;z-index:40;background:#fff;border:1px solid #1f2937;box-shadow:0 6px 18px rgba(0,0,0,.18);max-height:300px;overflow:auto;font-size:14px}.pma-it{padding:6px 10px;cursor:pointer;display:flex;gap:10px;justify-content:space-between;align-items:baseline}.pma-it:hover,.pma-it.on{background:#e8eefb}.pma-it i{font-size:12px;color:#5b6472;white-space:nowrap}.pma-by{padding:3px 10px;font-size:11px;color:#6b7280;border-top:1px solid #e5e7eb}.pma-warn{color:#a4281c}.pma-paste{margin-top:6px}";document.head.appendChild(st);})();
+
+/* ---------- PM › Jobs: is the client already in the dashboard?  +  job number from the dashboard's Job list export ----------
+   The client list is Quotes - Documents › Client List › Elev_Clients_Master.csv (kept up to date by the daily task). It is read on this computer only;
+   nothing from it is stored by the app or sent anywhere. */
+var PMC={file:null,res:null,seq:0,csv:null};
+var PMC_DIR="Client List",PMC_FILE="Elev_Clients_Master.csv";
+var PMC_PUBLIC=/^(gmail|googlemail|hotmail|outlook|live|msn|yahoo|ymail|icloud|me|mac|aol|shaw|telus|telusplanet|rogers|uniserve|protonmail|proton|163|qq|126|bell|sympatico|eastlink|gmx|mail)\./;
+var PMC_SKIP=/^(demo client|my new client|sick days\b|professional development\b|\d{4}\s+non[\s-]?billable)/i;
+async function pmcSource(ask){if(!PMJ.dirs.quotes)return {off:"conn"};var h=PMJ.dirs.quotes,p=h.queryPermission?await h.queryPermission({mode:"read"}):"granted";
+ if(p!=="granted"){if(!ask||!h.requestPermission)return {off:"perm"};p=await h.requestPermission({mode:"read"});if(p!=="granted")return {off:"perm"};}
+ var dir=await pmjFindCI(h,PMC_DIR,"dir");if(!dir)return {miss:true};var fh=await pmjFindCI(dir,PMC_FILE,"file");if(!fh)return {miss:true};var file;try{file=await fh.getFile();}catch(e){return {err:"couldn’t be read (open or syncing?)"};}
+ var k=file.lastModified+"|"+file.size;if(PMC.file&&PMC.file.k===k)return PMC.file.v;var v;
+ try{var R=pmkCsv(await file.text()),H=(R[0]||[]).map(function(x){return String(x).trim().toLowerCase();}),ix=function(re){for(var i=0;i<H.length;i++)if(re.test(H[i]))return i;return -1;},cn=ix(/^client\s*(#|no\.?|number)$/),cm=ix(/^client\s*name$|^name$/),ce=ix(/e-?mail/),cr=ix(/^remark/);
+  if(cn<0||cm<0)v={err:"has no Client # and Client Name columns"};else{var rows=[];R.slice(1).forEach(function(r){var no=String(r[cn]||"").trim(),nm=String(r[cm]||"").trim();if(!no||!nm||PMC_SKIP.test(nm))return;
+    rows.push({no:no,name:nm,emails:pmdEmails(ce>=0?r[ce]:"").filter(function(e){return !/@elevatelandsurveying\.com$/.test(e);}),remark:cr>=0?String(r[cr]||"").trim():"",key:pmdNm(nm)});});v={rows:rows,when:file.lastModified};}
+ }catch(e){v={err:"couldn’t be read"};}
+ PMC.file={k:k,v:v};return v;}
+function pmcLev(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var p=[],i,j;for(j=0;j<=b.length;j++)p[j]=j;for(i=1;i<=a.length;i++){var c=[i],lo=i;for(j=1;j<=b.length;j++){c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));if(c[j]<lo)lo=c[j];}if(lo>max)return max+1;p=c;}return p[b.length];}
+function pmcDom(e){var d=e.split("@")[1]||"";return PMC_PUBLIC.test(d)?"":d;}
+/* who in the client list could be this quote's client: by email first, then the company's own email domain, then the name */
+function pmcMatch(f,rows){var em=pmdEmails(f.email),doms=em.map(pmcDom).filter(Boolean),names=[f.client,f.contact].map(pmdNm).filter(function(x){return x&&x.length>=3;}),out=[];
+ rows.forEach(function(r){var hit=em.filter(function(e){return r.emails.indexOf(e)>=0;}),why=[],score=0;
+  if(hit.length){score=100+hit.length*10+(em.length>1&&hit.length===em.length?5:0);why.push(em.length>1&&hit.length===em.length?(em.length===2?"both emails match":"all "+em.length+" emails match"):hit.length===1?(em.length>1?"one email matches ("+hit[0]+")":"email matches"):hit.length+" emails match");}
+  var nmSame=names.some(function(n){return n===r.key;}),nmNear=!nmSame&&names.some(function(n){return n.length>=8&&r.key.length>=8&&pmcLev(n,r.key,2)<=2;}),nmIn=!nmSame&&!nmNear&&names.some(function(n){return n.length>=6&&r.key.length>=6&&(r.key.indexOf(n)>=0||n.indexOf(r.key)>=0);});
+  if(nmSame){score+=60;why.push("same name");}else if(nmNear){score+=40;why.push("name nearly the same");}else if(nmIn){score+=25;why.push("name is part of the other");}
+  if(!hit.length){var dh=doms.filter(function(d){return r.emails.some(function(e){return e.split("@")[1]===d;});});if(dh.length){score+=30;why.push("same company email (@"+dh[0]+")");}}
+  if(score>0)out.push({no:r.no,name:r.name,emails:r.emails,why:why.join(", "),score:score,sure:hit.length>0||nmSame});});
+ out.sort(function(a,b){return b.score-a.score||b.no.localeCompare(a.no);});return out;}
+function pmcWhen(t){var d=new Date(t);return isFinite(d)?PMD_MON[d.getMonth()]+" "+d.getDate():"";}
+function pmcBody(J,S){var E=pmEsc,f=J.f||{};
+ if(S.off==="conn")return "<span class='hint' style='margin:0'>Connect Quotes - Documents (Folders on this computer, below) to check the client against the client list.</span>";
+ if(S.off==="perm")return "<button class='btn pmr-b' id='pmc-ask' title='the browser needs your OK to read Quotes - Documents again'>Check the client list</button>";
+ if(S.miss)return "<span class='hint' style='margin:0'>"+E(PMC_DIR+" › "+PMC_FILE)+" isn’t in Quotes - Documents, so the client can’t be checked here — search the dashboard’s Client list.</span>";
+ if(S.err)return "<span class='hint' style='margin:0'>The client list "+E(S.err)+" — search the dashboard’s Client list.</span>";
+ if(!pmdEmails(f.email).length&&!pmdNm(f.client)&&!pmdNm(f.contact))return "<span class='hint' style='margin:0'>Find the quote first — its client name and email are compared with the client list.</span>";
+ var L=pmcMatch(f,S.rows),as="client list of "+S.rows.length.toLocaleString("en-CA")+(S.when?", as of "+pmcWhen(S.when):""),who=[f.client,f.contact].filter(Boolean).join(" / "),em=pmdEmails(f.email);
+ var cp=function(lab,v){return v?"<span class='pmc-cp'><span class='hint' style='margin:0'>"+lab+":</span> <b>"+E(v)+"</b> <button class='btn pmr-b' data-pmccopy='"+E(v)+"'>Copy</button></span>":"";};
+ if(!L.length)return "<div class='pmc-new'><b>New client</b> — nobody in the "+E(as)+" has this email, company email or name. Create the client in the dashboard’s Client list, then the job.</div>"+cp("Client name",f.client||f.contact)+cp("Email",em.join(", "))+"<span class='hint pmc-msg' style='margin:0'></span>";
+ var sure=L.filter(function(x){return x.sure;}),MAX=6;
+ return "<div class='"+(sure.length?"pmc-have":"pmc-maybe")+"'><b>"+(sure.length?"This client may already exist":"Possible match — check before creating a new client")+"</b> <span class='hint' style='margin:0'>("+E(who||em.join(", "))+" · "+E(as)+")</span></div><ul class='pmc-list'>"+L.slice(0,MAX).map(function(x){
+   return "<li><b>"+E(x.no)+"</b> "+E(x.name)+" <span class='hint' style='margin:0'>— "+E(x.why)+"</span> <button class='btn pmr-b' data-pmccopy='"+E(x.no)+"' title='copy the client number, to search it in the dashboard'>Copy "+E(x.no)+"</button></li>";}).join("")+(L.length>MAX?"<li class='hint'>…and "+(L.length-MAX)+" more</li>":"")+"</ul>"+
+  "<div class='hint' style='margin:0'>Use one of these in the dashboard, or create a new client only if none is the same person or company.</div><span class='hint pmc-msg' style='margin:0'></span>";}
+function pmcHtml(J){return "<div class='pm-step'><b>·</b> Client — already in the dashboard?</div><div id='pmc-box' class='pmc-box'>"+(PMC.res&&PMC.res.k===pmcKey(J)?PMC.res.h:"<span class='hint' style='margin:0'>Checking the client list…</span>")+"</div>";}
+function pmcKey(J){var f=J.f||{};return [f.client,f.contact,f.email].join("|");}
+function pmcWire(){var box=document.getElementById("pmc-box");if(!box)return;var a=document.getElementById("pmc-ask");if(a)a.onclick=function(){pmcCheck(true);};
+ box.querySelectorAll("[data-pmccopy]").forEach(function(b){b.onclick=function(){var t=b.dataset.pmccopy,m=box.querySelector(".pmc-msg");try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(function(){});}catch(e){}if(m){m.textContent="“"+t+"” copied";setTimeout(function(){m.textContent="";},4000);}};});}
+function pmcCheck(ask){var J=PMJ.j;if(!J||!document.getElementById("pmc-box"))return Promise.resolve();var my=++PMC.seq;
+ return pmcSource(!!ask).then(function(S){if(my!==PMC.seq||PMJ.j!==J)return;var h=pmcBody(J,S);PMC.res={k:pmcKey(J),h:h};var box=document.getElementById("pmc-box");if(box){box.innerHTML=h;pmcWire();}},function(){var box=document.getElementById("pmc-box");if(box)box.innerHTML="<span class='hint' style='margin:0'>The client list couldn’t be read.</span>";});}
+/* ---- job number from the dashboard's Job list "Download CSV": the row whose Contract is this quote ---- */
+function pmcJobCsv(text,qn){var R=pmkCsv(text),H=(R[0]||[]).map(function(x){return String(x).trim().toLowerCase();}),ix=function(re){for(var i=0;i<H.length;i++)if(re.test(H[i]))return i;return -1;},cj=ix(/^job\s*number$/),cs=ix(/^site\s*address/),cd=ix(/^order\s*date/),cc=ix(/^contract/);
+ if(cj<0||cc<0)return {err:"That isn’t the dashboard’s Job list export (it needs Job Number and Contract columns)."};
+ var norm=function(s){return pmjQnKey(String(s||"").replace(/(\d)\s*-\s*([A-Za-z])$/,"$1$2"));},want=norm(qn),P=pmjQnParts(qn),base=P?pmjQnKey(P.base):"",rows=[];
+ R.slice(1).forEach(function(r){var n=String(r[cj]||"").trim();if(!/^\d+$/.test(n))return;var y=(String(cd>=0?r[cd]:"").match(/(\d{4})/)||[])[1]||String(new Date().getFullYear());
+  rows.push({job:y.slice(2)+"-"+parseInt(n,10),contract:String(r[cc]||"").trim(),site:cs>=0?String(r[cs]||"").replace(/,\s*British Columbia\s*,?\s*$/i,"").replace(/\s*,\s*$/,"").trim():"",raw:n});});
+ if(!rows.length)return {err:"No jobs in that file."};
+ var hit=rows.filter(function(r){return norm(r.contract)===want;});if(!hit.length&&base)hit=rows.filter(function(r){var Q=pmjQnParts(r.contract.replace(/(\d)\s*-\s*([A-Za-z])$/,"$1$2"));return Q&&pmjQnKey(Q.base)===base;}).map(function(r){return Object.assign({loose:true},r);});
+ var nums=rows.map(function(r){return +r.raw;});return {rows:rows,hit:hit,lo:Math.min.apply(null,nums),hi:Math.max.apply(null,nums)};}
+function pmcJobHtml(J){var E=pmEsc,M=PMC.csv,h="<div class='pmc-job'><label class='btn pmr-b' title='in the dashboard’s Job list press Download CSV, then choose that file here: the job whose Contract is this quote fills the Job # box'>Read the job # from the dashboard’s CSV…<input type='file' id='pmc-jobcsv' accept='.csv,text/csv' style='display:none'></label>";
+ if(M&&M.qn===(J.qn||"")&&M.msg)h+=" <span class='"+(M.bad?"pma-warn":"hint")+"' style='margin:0'>"+M.msg+"</span>";return h+"</div>";}
+async function pmcJobFile(file){var J=PMJ.j;if(!J||!file)return;var M=PMC.csv={qn:J.qn||"",msg:"",bad:false},E=pmEsc;
+ if(!(J.qn||"").trim()){M.bad=true;M.msg="Enter the Quote # first.";pmRender();return;}
+ var X;try{X=pmcJobCsv(await file.text(),J.qn);}catch(e){X={err:"That file couldn’t be read."};}
+ if(X.err){M.bad=true;M.msg=E(X.err);}
+ else if(X.hit.length===1){var r=X.hit[0];J.job=r.job;M.msg="Job <b>"+E(r.job)+"</b> has contract "+E(r.contract)+(r.loose?" (a sub-quote of "+E(J.qn)+")":"")+(r.site?" — "+E(r.site):"")+". Check it against the quote.";
+  if(r.site&&J.f.addr&&!pmhMatch(J.f.addr,r.site)){M.bad=true;M.msg+=" <b>The address differs from the quote’s</b> ("+E(J.f.addr)+").";}}
+ else if(X.hit.length>1){M.bad=true;M.msg="More than one job has contract "+E(J.qn)+": "+X.hit.map(function(r){return E(r.job);}).join(", ")+" — type the right one.";}
+ else{M.bad=true;M.msg="No job with contract "+E(J.qn)+" in that file (it lists jobs "+X.lo+" to "+X.hi+"). Create the job in the dashboard first, or download the page that has it.";}
+ pmRender();if(X.hit&&X.hit.length===1&&typeof pmjCheckJob==="function")try{pmjCheckJob(true);}catch(e){}}
+function pmcJobWire(){var i=document.getElementById("pmc-jobcsv");if(i)i.onchange=function(){if(i.files&&i.files[0])pmcJobFile(i.files[0]);};}
+(function(){var st=document.createElement("style");st.textContent=".pmc-box{margin:4px 0 10px}.pmc-have b:first-child,.pmc-maybe b:first-child{color:#a4281c}.pmc-new b:first-child{color:#166534}.pmc-list{margin:4px 0 6px 18px;padding:0}.pmc-list li{margin:3px 0}.pmc-cp{display:inline-block;margin:4px 14px 0 0}.pmc-job{margin:6px 0}";document.head.appendChild(st);})();
+
+/* ---------- PM › Job map: a job's points file (.msz / .mbz / points text) dropped on the map — control and found pins, with their numbers ----------
+   Only UTM zone 10 files are shown (same test as Points › Map). The points live on the map for this session only; nothing is saved into the quote. */
+var PMS_COL=["#d6336c","#7048e8","#e8590c","#0b7285","#5c940d","#862e9c"];
+function pmsSets(){return PMM.sets||(PMM.sets=[]);}
+function pmsRows(text){var out=[];String(text||"").replace(/\r/g,"").split("\n").forEach(function(l){if(!l.trim())return;var f=l.split(",").length>=4?l.split(","):l.trim().split(/\s+/);if(f.length<4)return;var N=parseFloat(f[1]),E=parseFloat(f[2]),Z=parseFloat(f[3]);if(isNaN(N)||isNaN(E))return;out.push({pt:String(f[0]).trim(),N:N,E:E,Z:Z,desc:f.slice(4).join(",").trim()});});return out;}
+async function pmsRead(file){var name=file.name||"points";
+ if(/\.msd$/i.test(name))throw new Error("is a legacy .msd project — open it once in MicroSurvey CAD to convert it to .msz");
+ if(/\.(msz|mbz)$/i.test(name)){var buf=await pmjReadBuf(file),ents=cuZipEntries(buf),prim=ents.filter(function(e){return /(^|\/)db_coord\.dbf$/i.test(e.name);})[0];if(!prim)throw new Error("has no coordinate database (db_coord.dbf) inside");
+  return pmsRows(cuDbfToPnezd(cuParseDbf(await cuZipRead(buf,prim))));}
+ if(/\.(txt|csv|asc)$/i.test(name))return pmsRows(await pmjReadText(file));
+ throw new Error("isn’t a points file — drop a .msz / .mbz, or a points .txt / .csv / .asc");}
+function pmsBuild(name,rows){var pts=rows.map(function(r){var d=String(r.desc||"").trim(),code=((typeof cuKnownLead==="function"&&cuKnownLead(d))||d.split(/[\s,]+/)[0]||"").toUpperCase();return {pt:r.pt,N:r.N,E:r.E,Z:r.Z,desc:d,code:code,cls:CU_CONTROLSET[code]?(CUM_PINS[code]?"pin":"ctl"):"topo"};});
+ if(!pts.length)return {err:"has no points"};
+ var es=pts.map(function(p){return p.E;}).sort(function(a,b){return a-b;}),ns=pts.map(function(p){return p.N;}).sort(function(a,b){return a-b;}),mE=es[es.length>>1],mN=ns[ns.length>>1];
+ if(!(mE>250000&&mE<750000&&mN>5300000&&mN<6700000))return {err:"isn’t in UTM, so it can’t be shown on the map"};
+ var off=0;pts.forEach(function(p){if(Math.abs(p.E-mE)>20000||Math.abs(p.N-mN)>20000){p.far=true;off++;return;}var g=cumLL(p.E,p.N,10);p.lat=g.lat;p.lng=g.lng;p.w=cumW(g.lat,g.lng);});
+ if(off>pts.length*0.2)return {err:"mixes UTM and other coordinates ("+off+" of "+pts.length+" points are somewhere else), so it isn’t shown"};
+ var c=cumLL(mE,mN,10);return {name:name,pts:pts.filter(function(p){return p.w;}),n:pts.length,off:off,lat:c.lat,lng:c.lng,nc:pts.filter(function(p){return p.w&&p.cls==="ctl";}).length,np:pts.filter(function(p){return p.w&&p.cls==="pin";}).length};}
+async function pmsAdd(files){var S=pmsSets(),msgs=[],E=pmEsc;
+ for(var i=0;i<files.length;i++){var f=files[i],nm=f.name||"points";
+  try{var X=pmsBuild(nm,await pmsRead(f));if(X.err){msgs.push({bad:true,t:"<b>"+E(nm)+"</b> "+E(X.err)+"."});continue;}
+   var km=PMM.geo?pmkDist(PMM.geo,X)/1000:0;X.km=km;X.col=PMS_COL[S.filter(function(s){return s.name!==nm;}).length%PMS_COL.length];
+   var at=-1;S.forEach(function(s,j){if(s.name===nm)at=j;});if(at>=0){X.col=S[at].col;S[at]=X;}else S.push(X);
+   if(km>2){X.hold=true;msgs.push({bad:true,t:"<b>"+E(nm)+"</b> is in UTM but its points are about "+(km<10?km.toFixed(1):Math.round(km))+" km from this quote’s address — is it the right job’s file? <button class='btn pmr-b' data-pmsshow='"+E(nm)+"'>Show it anyway</button> <button class='btn pmr-b' data-pmsx='"+E(nm)+"'>Remove</button>"});}
+   else if(!X.nc&&!X.np)msgs.push({t:"<b>"+E(nm)+"</b>: "+X.n+" points, none on the control layer — tick “Show every point” to see them."});
+  }catch(e){msgs.push({bad:true,t:"<b>"+E(nm)+"</b> "+E(e&&e.message||"couldn’t be read")+"."});}}
+ PMM.pmsMsg=msgs;pmsLeg();pmmDraw();}
+function pmsLeg(){var el=document.getElementById("pms-leg");if(!el)return;var S=pmsSets(),E=pmEsc,h="";
+ if(S.length){h+="<span class='pmh-lab'>Points on the map:</span>"+S.map(function(s){return "<span class='pms-chip'><i style='background:"+s.col+"'></i>"+E(s.name)+" — "+s.nc+" control, "+s.np+" pin"+(s.np===1?"":"s")+" <span class='hint' style='margin:0'>(of "+s.n+" points"+(s.off?", "+s.off+" far off ignored":"")+(s.hold?", not shown":"")+")</span> <button class='cu-srcx' data-pmsx='"+E(s.name)+"' title='take these points off the map'>✕</button></span>";}).join("")+
+   "<label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='pms-all' "+(PMM.pmsAll?"checked":"")+"> Show every point</label> <span class='hint' style='margin:0'>▲ control · ● pin / post · click one for its details</span>";}
+ else h+="<span class='hint' style='margin:0'>Drop a nearby job’s <b>.msz</b> on the map (UTM jobs) to see its control and found pins here.</span>";
+ (PMM.pmsMsg||[]).forEach(function(m){h+="<div class='"+(m.bad?"pma-warn":"hint")+"' style='margin:4px 0 0;display:block'>"+m.t+"</div>";});
+ if(PMM.pmsSave)h+="<div class='"+(PMM.pmsSave.bad?"pma-warn":"hint")+"' style='margin:4px 0 0;display:block'>"+PMM.pmsSave.t+"</div>";
+ el.innerHTML=h;
+ var a=document.getElementById("pms-all");if(a)a.onchange=function(){PMM.pmsAll=a.checked;pmmDraw();};
+ el.querySelectorAll("[data-pmsx]").forEach(function(b){b.onclick=function(){PMM.sets=pmsSets().filter(function(s){return s.name!==b.dataset.pmsx;});PMM.pmsMsg=[];PMM.pmsSel=null;pmsLeg();pmmDraw();};});
+ el.querySelectorAll("[data-pmsshow]").forEach(function(b){b.onclick=function(){var s=pmsSets().filter(function(x){return x.name===b.dataset.pmsshow;})[0];if(!s)return;s.hold=false;PMM.pmsMsg=[];var w=cumW(s.lat,s.lng),g=cumW(PMM.geo.lat,PMM.geo.lng),box=document.getElementById("pmm-map"),W=(box&&box.clientWidth)||900;PMM.c=[(w[0]+g[0])/2,(w[1]+g[1])/2];PMM.z=Math.max(8,Math.min(19,Math.floor(Math.log(W*0.6/Math.max(Math.abs(w[0]-g[0]),Math.abs(w[1]-g[1]),1e-9))/Math.LN2)));pmsLeg();pmmDraw();};});}
+function pmsVisible(){var out=[];pmsSets().forEach(function(s){if(s.hold)return;s.pts.forEach(function(p){if(PMM.pmsAll||p.cls!=="topo")out.push({p:p,s:s});});});return out;}
+function pmsDraw(g,W,H){if(!g)return;var L=pmsVisible(),rank={topo:0,pin:1,ctl:2};L.sort(function(a,b){return rank[a.p.cls]-rank[b.p.cls];});var lab=PMM.z>=18;
+ L.forEach(function(x){var p=x.p,q=pmmXY(p.w,W,H);if(q[0]<-20||q[1]<-20||q[0]>W+20||q[1]>H+20)return;var sel=PMM.pmsSel===p;
+  g.lineWidth=sel?3:1.5;g.strokeStyle=sel?"#111":"#fff";g.fillStyle=x.s.col;g.beginPath();
+  if(p.cls==="ctl"){g.moveTo(q[0],q[1]-7);g.lineTo(q[0]+6.5,q[1]+5);g.lineTo(q[0]-6.5,q[1]+5);g.closePath();}else g.arc(q[0],q[1],p.cls==="pin"?4.5:2.2,0,7);
+  g.fill();if(p.cls!=="topo"||sel)g.stroke();
+  if(p.cls!=="topo"&&(lab||sel)){var t=p.pt+(PMM.z>=19.5&&p.code?" "+p.code:"");g.font="bold 11px sans-serif";g.textBaseline="middle";g.lineWidth=3;g.strokeStyle="rgba(0,0,0,.85)";g.strokeText(t,q[0]+8,q[1]);g.fillStyle="#fff";g.fillText(t,q[0]+8,q[1]);}});}
+function pmsPick(at){var box=document.getElementById("pmm-map"),info=document.getElementById("pmm-info");if(!box||!pmsSets().length)return false;var W=box.clientWidth||900,H=box.clientHeight||440,best=null,bd=11,rank={ctl:0,pin:1,topo:2};
+ pmsVisible().forEach(function(x){var q=pmmXY(x.p.w,W,H),d=Math.hypot(q[0]-at[0],q[1]-at[1]);if(d<=11&&(!best||rank[x.p.cls]<rank[best.p.cls]||(rank[x.p.cls]===rank[best.p.cls]&&d<bd))){best=x;bd=d;}});
+ PMM.pmsSel=best?best.p:null;if(!best)return false;PMM.sel=null;
+ if(info){var p=best.p,m=PMM.geo?pmkDist(PMM.geo,p):null;info.style.display="block";info.innerHTML="<b>"+pmEsc(String(p.pt))+"</b> "+pmEsc(p.desc||"(no description)")+" — "+(p.cls==="ctl"?"survey control":p.cls==="pin"?"found pin / post":"shot")+" · from <b>"+pmEsc(best.s.name)+"</b>"+(m!==null?" <span class='hint' style='margin:0'>("+Math.round(m)+" m from this quote’s address)</span>":"")+"<br><span class='mono'>N "+p.N.toFixed(3)+"  E "+p.E.toFixed(3)+(isFinite(p.Z)?"  Z "+p.Z.toFixed(3):"")+"</span>";}
+ pmmDraw();return true;}
+function pmsBtns(){return "<label class='btn pmr-b' title='a nearby job’s MicroSurvey package or points file (UTM jobs): its control and found pins are drawn on this map'>Add points (.msz)…<input type='file' id='pms-file' accept='.msz,.mbz,.txt,.csv,.asc' multiple style='display:none'></label><button class='btn pmr-b' id='pms-save' title='a picture of this map as it is now — aerial, lot lines, pins and points — for the quote folder'>Save map image</button>";}
+function pmsWire(box){var f=document.getElementById("pms-file");if(f)f.onchange=function(){if(f.files&&f.files.length)pmsAdd([].slice.call(f.files));f.value="";};
+ var sv=document.getElementById("pms-save");if(sv)sv.onclick=function(){pmsSave();};
+ box.ondragover=function(e){e.preventDefault();box.style.outline="3px dashed #2456A6";};box.ondragleave=function(){box.style.outline="";};
+ box.ondrop=function(e){e.preventDefault();e.stopPropagation();box.style.outline="";var fl=e.dataTransfer&&e.dataTransfer.files;if(fl&&fl.length)pmsAdd([].slice.call(fl));};pmsLeg();}
+/* ---- a picture of the map: the tiles are loaded again in a form the browser lets us copy, then the pins and points go on top ---- */
+function pmsCompose(plain){var box=document.getElementById("pmm-map"),cv=document.getElementById("pmm-cv");if(!box||!cv)return Promise.reject(new Error("no map"));var W=box.clientWidth||900,H=box.clientHeight||440,sc=2,out=document.createElement("canvas");out.width=W*sc;out.height=H*sc;var g=out.getContext("2d");
+ g.fillStyle="#e5e7eb";g.fillRect(0,0,W*sc,H*sc);var keys=Object.keys(PMM.imgs).sort(function(a,b){return (a.charAt(0)==="b"?0:1)-(b.charAt(0)==="b"?0:1);}),lost=0;
+ return Promise.all(keys.map(function(k){var im=PMM.imgs[k];return new Promise(function(res){var c=new Image();c.crossOrigin="anonymous";c.onload=function(){res({k:k,im:im,c:c});};c.onerror=function(){lost++;res(null);};c.src=im.src;});})).then(function(L){
+  L.forEach(function(x){if(!x)return;g.globalAlpha=x.k.charAt(0)==="l"?0.8:1;g.drawImage(x.c,parseFloat(x.im.style.left)*sc,parseFloat(x.im.style.top)*sc,parseFloat(x.im.style.width)*sc,parseFloat(x.im.style.height)*sc);});g.globalAlpha=1;
+  g.drawImage(cv,0,0,W*sc,H*sc);
+  var by=(document.getElementById("pmm-by")||{}).textContent||"";if(by){g.font=(10*sc)+"px sans-serif";var tw=g.measureText(by).width+10*sc;g.fillStyle="rgba(255,255,255,.85)";g.fillRect(W*sc-tw,H*sc-15*sc,tw,15*sc);g.fillStyle="#222";g.textBaseline="middle";g.fillText(by,W*sc-tw+5*sc,H*sc-7.5*sc);}
+  var q=pmCurQ(),ttl=[q&&q.f.qn?"Quote "+q.f.qn:"",q?pmPropJoin(q,"site"):"",new Date().toISOString().slice(0,10)].filter(Boolean).join("  ·  ");
+  if(ttl&&!plain){g.font="bold "+(13*sc)+"px sans-serif";var w2=g.measureText(ttl).width+16*sc;g.fillStyle="rgba(255,255,255,.9)";g.fillRect(0,0,Math.min(w2,W*sc),24*sc);g.fillStyle="#111";g.textBaseline="middle";g.fillText(ttl,8*sc,12*sc);}
+  return new Promise(function(res,rej){try{out.toBlob(function(b){b?res({blob:b,lost:lost,canvas:out}):rej(new Error("no image"));},"image/png");}catch(e){rej(e);}});});}
+function pmsName(q){var qn=(q&&q.f.qn||"").trim();return (qn?"quote-"+qn:"quote")+"-job-map-"+new Date().toISOString().slice(0,10)+".png";}
+async function pmsSave(){var q=pmCurQ(),E=pmEsc;PMM.pmsSave={t:"Making the picture…"};pmsLeg();
+ try{var R=await pmsCompose(),name=pmsName(q),note=R.lost?" ("+R.lost+" background tile"+(R.lost===1?"":"s")+" could not be copied and "+(R.lost===1?"is":"are")+" blank)":"";PMM.pmsBlob={blob:R.blob,name:name};
+  var a=document.createElement("a");a.href=URL.createObjectURL(R.blob);a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
+  PMM.pmsSave={t:"Saved <b>"+E(name)+"</b> to your downloads"+note+"."+(q&&(q.f.qn||"").trim()&&PMJ.dirs.quotes?" <button class='btn pmr-b' id='pms-tofolder' title='writes this one picture into the quote’s folder in Quotes - Documents'>Also save it into the quote folder</button>":"")};
+ }catch(e){PMM.pmsSave={bad:true,t:"The browser wouldn’t let the map be copied into a picture ("+E(e&&e.name||"blocked")+") — take a screenshot of the map instead."};}
+ pmsLeg();var b=document.getElementById("pms-tofolder");if(b)b.onclick=pmsToFolder;}
+async function pmsToFolder(){var q=pmCurQ(),B=PMM.pmsBlob,E=pmEsc;if(!q||!B)return;
+ try{var list=await pmjFindQuoteFolders(q.f.qn,q.f.client,true);if(list.length!==1||list.ask){PMM.pmsSave={bad:true,t:(list.length?"More than one folder could be quote "+E(q.f.qn):"No quote folder for "+E(q.f.qn)+" was found in Quotes - Documents")+" — the picture is in your downloads; move it in by hand."};pmsLeg();return;}
+  var dir=list[0];await pmjPerm(dir,true);var name=B.name,k=2;while(await pmjChild(dir,name,"file")){name=B.name.replace(/\.png$/," ("+k+").png");k++;}
+  await pmjWrite(dir,name,B.blob);PMM.pmsSave={t:"Saved into Quotes - Documents › "+E(dir.name)+" › <b>"+E(name)+"</b>."};}
+ catch(e){PMM.pmsSave={bad:true,t:"Couldn’t save into the quote folder ("+E(e&&e.message||String(e))+") — the picture is in your downloads."};}
+ pmsLeg();}
+(function(){var st=document.createElement("style");st.textContent=".pms-chip{display:inline-flex;align-items:center;gap:5px;margin:0 10px 2px 0}.pms-chip i{display:inline-block;width:11px;height:11px;border-radius:2px}#pms-leg{margin:6px 0 0}";document.head.appendChild(st);})();
+
+/* ---------- PM › Scope page: mark up an aerial (cloud, lot outline, arrows, text); a crew copy as a PDF ----------
+   The picture comes from a screenshot pasted in, a file in the quote folder, or the app's own job map. The untouched picture is kept beside the
+   marked-up one, so the marks stay editable. Files are written into the quote folder only when a button is clicked. */
+var PMU={s:null,img:null,marks:[],tool:"cloud",col:"#e02424",cur:null,sel:-1,drag:null,scan:{}};
+var PMU_COLS=[["#e02424","Red"],["#1e88e5","Blue"],["#111111","Black"]];
+var PMU_TOOLS=[["cloud","Cloud","click round the area; double-click (or click the first point) to close it"],["outline","Outline","a closed line, e.g. the lot: click each corner; double-click to close"],["line","Line","click each point; double-click to finish"],["arrow","Arrow","press at the tail, release at the head"],["box","Box","drag a rectangle"],["text","Text","click where the note goes"],["move","Move","drag a mark to move it; click one to select it, then Delete"]];
+function pmuLw(w,h){return Math.max(2,Math.round(Math.max(w,h)/420));}
+function pmuArea(P){var a=0;for(var i=0;i<P.length;i++){var p=P[i],q=P[(i+1)%P.length];a+=p[0]*q[1]-q[0]*p[1];}return a/2;}
+/* a revision cloud round a polygon: half-circle scallops along each side, bulging outward */
+function pmuCloud(g,P,r){if(P.length<2)return;var closed=P.length>2,sgn=pmuArea(P)>=0?1:-1,n=closed?P.length:P.length-1;g.beginPath();
+ for(var i=0;i<n;i++){var a=P[i],b=P[(i+1)%P.length],dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy);if(len<1e-6)continue;var k=Math.max(1,Math.round(len/(1.8*r))),ux=dx/len,uy=dy/len,nx=uy*sgn,ny=-ux*sgn,st=len/k;
+  for(var j=0;j<k;j++){var p0=[a[0]+ux*st*j,a[1]+uy*st*j],p1=[a[0]+ux*st*(j+1),a[1]+uy*st*(j+1)],cx=(p0[0]+p1[0])/2,cy=(p0[1]+p1[1])/2,a0=Math.atan2(p0[1]-cy,p0[0]-cx),a1=Math.atan2(p1[1]-cy,p1[0]-cx),tx=Math.cos(a0+Math.PI/2),ty=Math.sin(a0+Math.PI/2);
+   g.moveTo(p0[0],p0[1]);g.arc(cx,cy,st/2,a0,a1,!(tx*nx+ty*ny>0));}}
+ g.stroke();}
+function pmuDrawMark(g,m,w,h,sel){var lw=pmuLw(w,h);g.save();g.lineJoin="round";g.lineCap="round";g.strokeStyle=m.col;g.fillStyle=m.col;g.lineWidth=lw*(sel?1.6:1);var P=m.p||[];
+ if(m.t==="cloud")pmuCloud(g,P,Math.max(7,Math.max(w,h)/95));
+ else if(m.t==="outline"||m.t==="line"){if(P.length>1){g.beginPath();P.forEach(function(p,i){i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]);});if(m.t==="outline"&&P.length>2&&!m.open)g.closePath();g.stroke();}}
+ else if(m.t==="box"){if(P.length>1){g.beginPath();g.rect(Math.min(P[0][0],P[1][0]),Math.min(P[0][1],P[1][1]),Math.abs(P[1][0]-P[0][0]),Math.abs(P[1][1]-P[0][1]));g.stroke();}}
+ else if(m.t==="arrow"){if(P.length>1){var a=P[0],b=P[1],ang=Math.atan2(b[1]-a[1],b[0]-a[0]),hd=lw*5.5;g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0]-Math.cos(ang)*hd*0.8,b[1]-Math.sin(ang)*hd*0.8);g.stroke();g.beginPath();g.moveTo(b[0],b[1]);g.lineTo(b[0]-Math.cos(ang-0.42)*hd,b[1]-Math.sin(ang-0.42)*hd);g.lineTo(b[0]-Math.cos(ang+0.42)*hd,b[1]-Math.sin(ang+0.42)*hd);g.closePath();g.fill();}}
+ else if(m.t==="text"){var fs=Math.max(15,Math.round(Math.max(w,h)/52));g.font="bold "+fs+"px Arial, sans-serif";g.textBaseline="top";g.lineWidth=Math.max(3,fs/5);g.strokeStyle="#fff";String(m.s||"").split("\n").forEach(function(l,i){g.strokeText(l,P[0][0],P[0][1]+i*fs*1.2);g.fillText(l,P[0][0],P[0][1]+i*fs*1.2);});}
+ g.restore();}
+function pmuRender(cv,img,marks,cur,sel){var g=cv.getContext("2d");if(!g)return;g.clearRect(0,0,cv.width,cv.height);if(img)try{g.drawImage(img,0,0,cv.width,cv.height);}catch(e){}
+ marks.forEach(function(m,i){pmuDrawMark(g,m,cv.width,cv.height,i===sel);});if(cur){pmuDrawMark(g,cur,cv.width,cv.height,false);var r=pmuLw(cv.width,cv.height)*1.6;g.fillStyle=cur.col;(cur.p||[]).forEach(function(p){g.beginPath();g.arc(p[0],p[1],r,0,7);g.fill();});}}
+function pmuBox(m,w,h){var P=m.p||[];if(m.t==="text"){var fs=Math.max(15,Math.round(Math.max(w,h)/52)),ls=String(m.s||"").split("\n"),tw=Math.max.apply(null,ls.map(function(l){return l.length;}))*fs*0.6;return [P[0][0],P[0][1],P[0][0]+tw,P[0][1]+ls.length*fs*1.2];}
+ var xs=P.map(function(p){return p[0];}),ys=P.map(function(p){return p[1];});return [Math.min.apply(null,xs),Math.min.apply(null,ys),Math.max.apply(null,xs),Math.max.apply(null,ys)];}
+function pmuHit(at,marks,w,h){var tol=Math.max(10,Math.max(w,h)/90),best=-1,bd=1e9;
+ var seg=function(p,a,b){var dx=b[0]-a[0],dy=b[1]-a[1],L=dx*dx+dy*dy,t=L?Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/L)):0;return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy);};
+ marks.forEach(function(m,i){var d=1e9,P=m.p||[];if(m.t==="text"||m.t==="box"){var B=pmuBox(m,w,h);if(m.t==="text")d=(at[0]>=B[0]-tol&&at[0]<=B[2]+tol&&at[1]>=B[1]-tol&&at[1]<=B[3]+tol)?0:1e9;else{var C=[[B[0],B[1]],[B[2],B[1]],[B[2],B[3]],[B[0],B[3]]];for(var k=0;k<4;k++)d=Math.min(d,seg(at,C[k],C[(k+1)%4]));}}
+  else{var n=(m.t==="cloud"||(m.t==="outline"&&!m.open))&&P.length>2?P.length:P.length-1;for(var j=0;j<n;j++)d=Math.min(d,seg(at,P[j],P[(j+1)%P.length]));}
+  if(d<=tol*(m.t==="cloud"?1.6:1)&&d<=bd){bd=d;best=i;}});return best;}
+function pmuOpen(q,s){if(!q||!s)return Promise.resolve();
+ return pmscGet(s.orig?s.id+"-o":s.id).then(function(m){return m||pmscGet(s.id);}).then(function(m){if(!m)throw new Error("The picture isn’t on this computer — remove the page and add it again.");
+  return new Promise(function(res,rej){var im=new Image(),url=URL.createObjectURL(new Blob([m.u8],{type:m.type}));im.onload=function(){res({im:im,m:m});};im.onerror=function(){rej(new Error("The picture couldn’t be opened."));};im.src=url;});}).then(function(X){
+  PMU.s=s;PMU.q=q;PMU.img=X.im;PMU.base=X.m;PMU.marks=JSON.parse(JSON.stringify(s.marks||[]));PMU.hist=[];PMU.cur=null;PMU.sel=-1;PMU.tool="cloud";PMU.col=PMU_COLS[0][0];pmuShow();},function(e){pmscErr(e);});}
+function pmuShow(){var old=document.getElementById("pmu");if(old)old.parentNode.removeChild(old);var s=PMU.s,E=pmEsc,d=document.createElement("div");d.id="pmu";
+ d.innerHTML="<div class='pmu-in'><div class='pmu-bar'><b>Mark up the scope page</b><span class='seg' id='pmu-tools'>"+PMU_TOOLS.map(function(t){return "<button data-t='"+t[0]+"' title='"+E(t[2])+"'>"+t[1]+"</button>";}).join("")+"</span><span class='seg' id='pmu-cols'>"+PMU_COLS.map(function(c){return "<button data-c='"+c[0]+"' title='"+c[1]+"'><i style='background:"+c[0]+"'></i></button>";}).join("")+"</span>"+
+  "<button class='btn pmr-b' id='pmu-undo' title='takes back the last step (Ctrl+Z)'>Undo</button><button class='btn pmr-b' id='pmu-del' title='removes the selected mark (Delete)'>Delete</button><button class='btn pmr-b' id='pmu-clear'>Clear all</button><span style='flex:1'></span><button class='btn' id='pmu-cancel'>Cancel</button><button class='btn pri' id='pmu-done'>Done</button></div>"+
+  "<div class='pmu-tip hint' id='pmu-tip'></div><div class='pmu-stage'><canvas id='pmu-cv' width='"+s.w+"' height='"+s.h+"'></canvas></div></div>";
+ document.body.appendChild(d);pmuWire();pmuPaint();}
+function pmuPaint(){var cv=document.getElementById("pmu-cv");if(!cv)return;pmuRender(cv,PMU.img,PMU.marks,PMU.cur,PMU.sel);
+ [].forEach.call(document.querySelectorAll("#pmu-tools button"),function(b){b.classList.toggle("on",b.dataset.t===PMU.tool);});[].forEach.call(document.querySelectorAll("#pmu-cols button"),function(b){b.classList.toggle("on",b.dataset.c===PMU.col);});
+ var t=PMU_TOOLS.filter(function(x){return x[0]===PMU.tool;})[0],tip=document.getElementById("pmu-tip");if(tip)tip.textContent=(t?t[1]+": "+t[2]+". ":"")+(PMU.cur&&PMU.cur.p.length?"Esc cancels this shape; Backspace takes back its last point.":"")+" "+PMU.marks.length+" mark"+(PMU.marks.length===1?"":"s")+".";
+ var u=document.getElementById("pmu-undo");if(u)u.disabled=!PMU.hist.length&&!PMU.cur;var dl=document.getElementById("pmu-del");if(dl)dl.disabled=PMU.sel<0;}
+function pmuKeep(){PMU.hist.push(JSON.stringify(PMU.marks));if(PMU.hist.length>80)PMU.hist.shift();}
+function pmuUndo(){if(PMU.cur){if(PMU.cur.p.length>1&&/cloud|outline|line/.test(PMU.cur.t))PMU.cur.p.pop();else PMU.cur=null;pmuPaint();return;}if(!PMU.hist.length)return;PMU.marks=JSON.parse(PMU.hist.pop());PMU.sel=-1;pmuPaint();}
+function pmuFinish(){var c=PMU.cur;PMU.cur=null;if(!c)return;var need=c.t==="line"?2:3;if(c.p.length<need){pmuPaint();return;}pmuKeep();PMU.marks.push(c);pmuPaint();}
+function pmuAt(e){var cv=document.getElementById("pmu-cv"),r=cv.getBoundingClientRect(),kx=cv.width/(r.width||cv.width),ky=cv.height/(r.height||cv.height);return [Math.round((e.clientX-r.left)*kx*10)/10,Math.round((e.clientY-r.top)*ky*10)/10];}
+function pmuDown(at){var T=PMU.tool,cv=document.getElementById("pmu-cv");
+ if(T==="cloud"||T==="outline"||T==="line"){if(!PMU.cur||PMU.cur.t!==T)PMU.cur={t:T,col:PMU.col,p:[]};var P=PMU.cur.p,tol=Math.max(10,Math.max(cv.width,cv.height)/90);
+  if(T!=="line"&&P.length>2&&Math.hypot(at[0]-P[0][0],at[1]-P[0][1])<=tol){pmuFinish();return;}
+  if(P.length&&Math.hypot(at[0]-P[P.length-1][0],at[1]-P[P.length-1][1])<2)return;P.push(at);pmuPaint();return;}
+ if(T==="arrow"||T==="box"){PMU.cur={t:T,col:PMU.col,p:[at,at]};PMU.drag={kind:"new"};pmuPaint();return;}
+ if(T==="text"){var s=window.prompt("Note to put on the picture:","");if(s&&s.trim()){pmuKeep();PMU.marks.push({t:"text",col:PMU.col,p:[at],s:s.trim()});}pmuPaint();return;}
+ if(T==="move"){var i=pmuHit(at,PMU.marks,cv.width,cv.height);PMU.sel=i;PMU.drag=i>=0?{kind:"move",at:at,orig:JSON.stringify(PMU.marks[i].p),moved:false}:null;pmuPaint();}}
+function pmuMove(at){var D=PMU.drag;if(!D)return;if(D.kind==="new"&&PMU.cur){PMU.cur.p[1]=at;pmuPaint();return;}
+ if(D.kind==="move"&&PMU.sel>=0){var dx=at[0]-D.at[0],dy=at[1]-D.at[1];if(!D.moved&&Math.abs(dx)+Math.abs(dy)>2){D.moved=true;pmuKeep();}if(D.moved){PMU.marks[PMU.sel].p=JSON.parse(D.orig).map(function(p){return [p[0]+dx,p[1]+dy];});pmuPaint();}}}
+function pmuUp(){var D=PMU.drag;PMU.drag=null;if(D&&D.kind==="new"&&PMU.cur){var c=PMU.cur;PMU.cur=null;if(Math.hypot(c.p[1][0]-c.p[0][0],c.p[1][1]-c.p[0][1])>6){pmuKeep();PMU.marks.push(c);}pmuPaint();}}
+function pmuClose(){var el=document.getElementById("pmu");if(el)el.parentNode.removeChild(el);document.removeEventListener("keydown",pmuKey,true);PMU.s=null;PMU.img=null;PMU.cur=null;}
+function pmuKey(e){if(!document.getElementById("pmu"))return;var k=e.key;
+ if(k==="Escape"){e.preventDefault();e.stopPropagation();if(PMU.cur){PMU.cur=null;pmuPaint();}return;}
+ if(k==="Enter"&&PMU.cur){e.preventDefault();pmuFinish();return;}
+ if((k==="z"||k==="Z")&&(e.ctrlKey||e.metaKey)){e.preventDefault();e.stopPropagation();pmuUndo();return;}
+ if(k==="Backspace"&&PMU.cur){e.preventDefault();pmuUndo();return;}
+ if((k==="Delete"||k==="Backspace")&&PMU.sel>=0&&!PMU.cur){e.preventDefault();pmuKeep();PMU.marks.splice(PMU.sel,1);PMU.sel=-1;pmuPaint();}}
+function pmuWire(){var cv=document.getElementById("pmu-cv");
+ cv.onpointerdown=function(e){e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(x){}pmuDown(pmuAt(e));};cv.onpointermove=function(e){if(PMU.drag)pmuMove(pmuAt(e));};cv.onpointerup=function(){pmuUp();};cv.ondblclick=function(e){e.preventDefault();if(PMU.cur)pmuFinish();};
+ [].forEach.call(document.querySelectorAll("#pmu-tools button"),function(b){b.onclick=function(){if(PMU.cur)pmuFinish();PMU.tool=b.dataset.t;PMU.sel=-1;pmuPaint();};});
+ [].forEach.call(document.querySelectorAll("#pmu-cols button"),function(b){b.onclick=function(){PMU.col=b.dataset.c;if(PMU.cur)PMU.cur.col=PMU.col;else if(PMU.sel>=0){pmuKeep();PMU.marks[PMU.sel].col=PMU.col;}pmuPaint();};});
+ document.getElementById("pmu-undo").onclick=pmuUndo;document.getElementById("pmu-del").onclick=function(){if(PMU.sel<0)return;pmuKeep();PMU.marks.splice(PMU.sel,1);PMU.sel=-1;pmuPaint();};
+ document.getElementById("pmu-clear").onclick=function(){if(!PMU.marks.length)return;pmuKeep();PMU.marks=[];PMU.sel=-1;pmuPaint();};
+ document.getElementById("pmu-cancel").onclick=function(){if((PMU.hist.length||PMU.cur)&&!window.confirm("Close without keeping these marks?"))return;pmuClose();};
+ document.getElementById("pmu-done").onclick=function(){pmuDone();};document.addEventListener("keydown",pmuKey,true);}
+/* Done: the untouched picture is kept (once) beside the page, the marks are stored with the page, and the page's picture becomes picture + marks */
+function pmuDone(){if(PMU.cur)pmuFinish();var s=PMU.s,q=PMU.q,cv=document.createElement("canvas");cv.width=s.w;cv.height=s.h;PMU.sel=-1;pmuRender(cv,PMU.img,PMU.marks,null,-1);
+ var keep=s.orig?Promise.resolve():pmscPut(s.id+"-o",PMU.base.u8,PMU.base.type).then(function(){s.orig=true;});
+ return keep.then(function(){return new Promise(function(res){cv.toBlob(function(b){if(b&&b.size<=1800000)return res(b);cv.toBlob(function(j){res(j||b);},"image/jpeg",0.92);},"image/png");});}).then(function(b){if(!b)throw new Error("Couldn’t make the picture.");return b.arrayBuffer().then(function(ab){var old=PMSC_IMG[s.id];if(old&&old.url)try{URL.revokeObjectURL(old.url);}catch(e){}return pmscPut(s.id,new Uint8Array(ab),b.type).then(function(){s.type=b.type;});});})
+  .then(function(){s.marks=JSON.parse(JSON.stringify(PMU.marks));q.updated=Date.now();pmQuotesSave();if(typeof pmFlagUnsaved==="function")pmFlagUnsaved(q);pmuClose();var y=window.scrollY;pmRender();try{window.scrollTo(0,y);}catch(e){}},function(e){alert((e&&e.message)||String(e));});}
+/* ---- more ways to get the picture in: the quote folder, the app's job map ---- */
+function pmuIsPic(n){return /\.(png|jpe?g|webp|bmp|gif|pdf)$/i.test(n)&&!/^~\$/.test(n)&&!/^Elev\.?\s*Survey\s*Quote/i.test(n)&&!/scope-area|job-map-\d{4}/i.test(n);}
+async function pmuFolder(q){var qn=(q.f.qn||"").trim();if(!qn||!PMJ.dirs.quotes)return null;var h=PMJ.dirs.quotes,p=h.queryPermission?await h.queryPermission({mode:"read"}):"granted";if(p!=="granted")return null;
+ var list=await pmjFindQuoteFolders(qn,q.f.client,false);if(list.length!==1||list.ask)return null;var files=(await pmjList(list[0])).filter(function(x){return x.kind==="file"&&pmuIsPic(x.name);});
+ files.sort(function(a,b){var ra=/aerial|ortho|air\s*photo|scope|site|map|screenshot|capture/i.test(a.name)?0:1,rb=/aerial|ortho|air\s*photo|scope|site|map|screenshot|capture/i.test(b.name)?0:1;return ra-rb||a.name.localeCompare(b.name);});return {dir:list[0],files:files};}
+function pmuScan(q){var box=document.getElementById("pmu-folder");if(!box||!q)return;var key=q.id+"|"+(q.f.qn||""),C=PMU.scan[key];
+ var show=function(F){var b=document.getElementById("pmu-folder");if(!b)return;if(!F||!F.files.length){b.innerHTML="";return;}var used={};pmscList(q).forEach(function(s){used[s.src]=1;});
+  b.innerHTML="<span class='pmh-lab'>In the quote folder:</span>"+F.files.slice(0,8).map(function(f,i){return "<button class='btn pmr-b' data-pmuf='"+i+"' title='add this file as a scope page and open it for marking up'>"+pmEsc(f.name)+(used[f.name]?" ✓":"")+"</button>";}).join("")+(F.files.length>8?"<span class='hint' style='margin:0'>…and "+(F.files.length-8)+" more</span>":"")+"<span class='hint' style='margin:0'>click one to add it and mark it up</span>";
+  b.querySelectorAll("[data-pmuf]").forEach(function(btn){btn.onclick=function(){var fh=F.files[+btn.dataset.pmuf];fh.getFile().then(function(file){var n0=pmscList(q).length;return pmscAddFile(q,file).then(function(){pmuAfterAdd(q,n0);});}).catch(pmscErr);};});};
+ if(C&&Date.now()-C.t<30000){show(C.F);return;}pmuFolder(q).then(function(F){PMU.scan[key]={t:Date.now(),F:F};if(pmCurQ()===q)show(F);},function(){});}
+/* a picture was just added by a button here: open it for marking up (a PDF first asks which page, so nothing is opened then) */
+function pmuAfterAdd(q,n0){var L=pmscList(q);if(L.length===n0+1)pmuOpen(q,L[L.length-1]);}
+function pmuFromMap(q){if(!document.getElementById("pmm-map")){pmscErr(new Error("Open the Job map preview (the button under the site address) first — the picture is taken from the map as you have it."));return;}
+ var m=document.getElementById("pmsc-msg");if(m)m.textContent="Taking the picture from the job map…";var n0=pmscList(q).length;
+ pmsCompose(true).then(function(R){return pmscFromCanvas(q,R.canvas,"job map"+(R.lost?" ("+R.lost+" tile"+(R.lost===1?"":"s")+" missing)":""));}).then(function(){pmuAfterAdd(q,n0);},function(e){pmscErr(new Error("The browser wouldn’t let the map be copied ("+(e&&e.name||"blocked")+") — paste a screenshot of it instead."));});}
+function pmuRowBtns(i,s){return "<button class='btn pmr-b' data-pmumark='"+i+"' title='cloud the area, outline the lot, add arrows and notes'>"+(s.marks&&s.marks.length?"Edit marks ("+s.marks.length+")":"Mark up…")+"</button><button class='btn pmr-b' data-pmupdf='"+i+"' title='this page as a one-page PDF with the quote number, address and date on it — for the field crew'>Crew copy (PDF)</button>";}
+function pmuAddBtns(){return "<button class='btn pmr-b' id='pmu-frommap' title='the job map under the site address, as you have it now (aerial, lot lines, pins)'>+ From the job map</button>";}
+function pmuWireMain(q){if(!q)return;var L=pmscList(q);
+ document.querySelectorAll("[data-pmumark]").forEach(function(b){b.onclick=function(){pmuOpen(q,L[+b.dataset.pmumark]);};});
+ document.querySelectorAll("[data-pmupdf]").forEach(function(b){b.onclick=function(){pmuPdfSave(q,+b.dataset.pmupdf);};});
+ var fm=document.getElementById("pmu-frommap");if(fm)fm.onclick=function(){pmuFromMap(q);};pmuScan(q);}
+/* ---- the crew copy: one page, the picture with a title strip, as a PDF (a JPEG inside a minimal PDF) ---- */
+function pmuPdfBytes(jpeg,pxW,pxH,ptW,ptH){var enc=new TextEncoder(),parts=[],offs=[],len=0,push=function(x){var u=typeof x==="string"?enc.encode(x):x;parts.push(u);len+=u.length;},obj=function(n,body){offs[n]=len;push(n+" 0 obj\n"+body+"\nendobj\n");};
+ push("%PDF-1.4\n%âãÏÓ\n");obj(1,"<< /Type /Catalog /Pages 2 0 R >>");obj(2,"<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+ obj(3,"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+ptW+" "+ptH+"] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>");
+ offs[4]=len;push("4 0 obj\n<< /Type /XObject /Subtype /Image /Width "+pxW+" /Height "+pxH+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+jpeg.length+" >>\nstream\n");push(jpeg);push("\nendstream\nendobj\n");
+ var c="q "+ptW+" 0 0 "+ptH+" 0 0 cm /Im0 Do Q";obj(5,"<< /Length "+c.length+" >>\nstream\n"+c+"\nendstream");
+ var xref=len,x="xref\n0 6\n0000000000 65535 f \n";for(var i=1;i<=5;i++)x+=("0000000000"+offs[i]).slice(-10)+" 00000 n \n";push(x+"trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n"+xref+"\n%%EOF\n");
+ var out=new Uint8Array(len),o=0;parts.forEach(function(u){out.set(u,o);o+=u.length;});return out;}
+function pmuPage(q,s,img){var land=s.w>=s.h,ptW=land?792:612,ptH=land?612:792,k=2.4,W=Math.round(ptW*k),H=Math.round(ptH*k),cv=document.createElement("canvas");cv.width=W;cv.height=H;var g=cv.getContext("2d"),mg=Math.round(30*k),th=Math.round(44*k);
+ g.fillStyle="#fff";g.fillRect(0,0,W,H);g.fillStyle="#111";g.textBaseline="middle";g.font="bold "+Math.round(15*k)+"px Arial, sans-serif";
+ var qn=(q.f.qn||"").trim(),ttl="SCOPE OF WORK"+(qn?"  —  Quote "+qn:""),site=pmPropJoin(q,"site");g.fillText(ttl,mg,mg+th*0.28);g.font=Math.round(11*k)+"px Arial, sans-serif";
+ var line2=[site,q.f.client||"",new Date().toISOString().slice(0,10)].filter(Boolean).join("   ·   ");while(line2.length>10&&g.measureText(line2).width>W-2*mg)line2=line2.slice(0,-2);g.fillText(line2,mg,mg+th*0.76);
+ g.strokeStyle="#111";g.lineWidth=Math.max(1,k);g.beginPath();g.moveTo(mg,mg+th);g.lineTo(W-mg,mg+th);g.stroke();
+ var cap=(s.caption||"").trim(),ch=cap?Math.round(20*k):0,aw=W-2*mg,ah=H-2*mg-th-Math.round(10*k)-ch,sc=Math.min(aw/s.w,ah/s.h),iw=s.w*sc,ih=s.h*sc,ix=mg+(aw-iw)/2,iy=mg+th+Math.round(8*k);
+ if(img)try{g.drawImage(img,ix,iy,iw,ih);}catch(e){}g.strokeStyle="#888";g.lineWidth=1;g.strokeRect(ix,iy,iw,ih);
+ if(cap){g.font="italic "+Math.round(10.5*k)+"px Arial, sans-serif";g.fillStyle="#222";g.fillText(cap,ix,iy+ih+ch*0.6);}
+ g.font=Math.round(8*k)+"px Arial, sans-serif";g.fillStyle="#555";g.fillText("Elevate Land Surveying Ltd. — area to be covered; check against the quote.",mg,H-mg*0.5);
+ return {cv:cv,ptW:ptW,ptH:ptH};}
+function pmuPdfName(q,i){var qn=(q.f.qn||"").trim();return (qn?"quote-"+qn:"quote")+"-scope-area"+(pmscList(q).length>1?"-"+(i+1):"")+".pdf";}
+function pmuPdfMake(q,i){var s=pmscList(q)[i];if(!s)return Promise.reject(new Error("No such page."));
+ return pmscGet(s.id).then(function(m){if(!m)throw new Error("The picture isn’t on this computer.");return new Promise(function(res,rej){var im=new Image(),url=URL.createObjectURL(new Blob([m.u8],{type:m.type}));im.onload=function(){res(im);};im.onerror=function(){rej(new Error("The picture couldn’t be opened."));};im.src=url;});}).then(function(im){var P=pmuPage(q,s,im);
+  return new Promise(function(res,rej){P.cv.toBlob(function(b){if(!b)return rej(new Error("Couldn’t make the page."));b.arrayBuffer().then(function(ab){res({bytes:pmuPdfBytes(new Uint8Array(ab),P.cv.width,P.cv.height,P.ptW,P.ptH),name:pmuPdfName(q,i)});},rej);},"image/jpeg",0.92);});});}
+async function pmuPdfSave(q,i){var m=document.getElementById("pmsc-msg"),say=function(t){var el=document.getElementById("pmsc-msg");if(el)el.innerHTML=t;},E=pmEsc;say("Making the crew copy…");
+ try{var R=await pmuPdfMake(q,i),blob=new Blob([R.bytes],{type:"application/pdf"}),dir=null,qn=(q.f.qn||"").trim();
+  if(qn&&PMJ.dirs.quotes){try{var list=await pmjFindQuoteFolders(qn,q.f.client,true);if(list.length===1&&!list.ask){dir=list[0];await pmjPerm(dir,true);}}catch(e){dir=null;}}
+  if(dir){var had=!!(await pmjChild(dir,R.name,"file"));if(had&&!window.confirm(R.name+" is already in the quote folder. Replace it with this one?")){say("Left the existing "+E(R.name)+" as it is.");return;}
+   await pmjWrite(dir,R.name,blob);say("Crew copy saved: Quotes - Documents › "+E(dir.name)+" › <b>"+E(R.name)+"</b>"+(had?" (replaced)":"")+". It is copied to the job’s Office folder with the rest when the quote becomes a job.");}
+  else{var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=R.name;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);say("Crew copy downloaded as <b>"+E(R.name)+"</b>"+(qn?" — its quote folder wasn’t found, so put it there by hand.":" — enter the Quote # and create its folder to have it saved there."));}
+ }catch(e){say(E((e&&e.message)||String(e)));}}
+(function(){var st=document.createElement("style");st.textContent="#pmu{position:fixed;inset:0;z-index:9000;background:rgba(17,24,39,.72);display:flex;align-items:stretch;justify-content:center;padding:14px}.pmu-in{background:#fff;display:flex;flex-direction:column;width:100%;max-width:1500px;border:2px solid #111}.pmu-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #d1d5db}.pmu-tip{padding:4px 10px;margin:0}.pmu-stage{flex:1;min-height:0;overflow:auto;background:#374151;display:flex;align-items:flex-start;justify-content:center;padding:10px}#pmu-cv{max-width:100%;max-height:100%;background:#fff;cursor:crosshair;touch-action:none}#pmu-cols button i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle}#pmu-folder{margin:6px 0 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}";document.head.appendChild(st);})();
+
+/* ---------- PM: a new quote from an email, by way of a block any assistant (Claude, ChatGPT) can write ----------
+   The assistant reads the email and answers with a short labelled block; the block is pasted here (Ctrl+V anywhere on the PM tab works).
+   The app never sees the email and sends nothing anywhere. Quote number, hours and prices are never taken from a block. */
+var PME_LABELS=[["client",/^client(\s*name)?$/i],["contact",/^contact(\s*name)?$/i],["email",/^(client\s*)?e-?mail$/i],["phone",/^(client\s*)?(phone|tel(ephone)?|cell|mobile)(\s*(number|#))?$/i],["site",/^(site|job|project|property)\s*address(\s*\d+)?$/i],["services",/^services?(\s*(provided|needed|requested))?$/i],["task",/^(additional\s*)?(task|job)\s*details$/i],["date",/^date[\s-]*(requested|received)?$/i],["pmc",/^(additional\s*)?pm\s*comments(\s*\/\s*reviewed)?$/i]];
+var PME_PROMPT="Read the email below. It is from someone asking Elevate Land Surveying for a survey quote.\nReply with ONLY the block below, filled in from the email. Keep the labels exactly as they are.\nIf the email does not give something, leave that line empty after the colon. Do not guess.\nDo not add a quote number, hours or a price.\n\nELEVATE QUOTE REQUEST\nClient: \nContact Name: \nEmail: \nPhone: \nSite Address: \nServices Provided: \nAdditional Task Details: \nDate Requested: \nAdditional PM Comments: \n\nNotes for filling it in:\n- Client is the company, or the person if there is no company. Contact Name is the person.\n- Site Address is one line: street address, city. For a second property add a line \"Site Address 2:\".\n- Services Provided is the kind of survey asked for (for example: Topographic Survey; Building Location Certificate; Posting; Building Layout).\n- Additional Task Details: what they need and why, in one or two sentences, with any deadline.\n- Date Requested is the date of the email, like Nov 20.\n- Additional PM Comments: anything else useful, such as attachments mentioned or who referred them.\n\nEMAIL:\n";
+function pmeParse(text){var t=String(text||"").replace(/\r\n?/g,"\n"),cut=t.search(/^\s*EMAIL\s*:\s*$/mi);if(cut>0)t=t.slice(0,cut);var f={},sites=[],last=null,n=0,head=/ELEVATE QUOTE REQUEST/i.test(t);
+ t.split("\n").forEach(function(raw){var l=raw.replace(/^\s*(?:[-*•]|\d+[.)])\s+/,"").replace(/\*\*/g,"").replace(/^`+|`+$/g,"").trim();if(!l||/^ELEVATE QUOTE REQUEST$/i.test(l)||/^```/.test(l)){if(!l)last=null;return;}
+  var m=l.match(/^([A-Za-z][A-Za-z0-9 #\/.-]{2,40}?)\s*:\s*(.*)$/),key=null;if(m){for(var i=0;i<PME_LABELS.length;i++)if(PME_LABELS[i][1].test(m[1].trim())){key=PME_LABELS[i][0];break;}}
+  if(key){var v=m[2].trim();if(/^\(.*\)$/.test(v)||/^(n\/?a|none|not (given|provided|stated|mentioned)|unknown|-+)\.?$/i.test(v))v="";n++;
+   if(key==="site"){if(v)sites.push(v);last="site";}else{f[key]=v;last=key;}return;}
+  if(m&&/^(quote\s*(#|number)|hours|price|fee|total|estimate)/i.test(m[1])){last=null;return;}
+  if(last&&last!=="site"&&last!=="email"&&last!=="phone"&&last!=="date"&&!/^notes for filling/i.test(l))f[last]=(f[last]?f[last]+" ":"")+l;else last=null;});
+ if(!(head&&n>=2)&&!(n>=4&&(sites.length||f.client||f.email)))return null;
+ f.site=sites[0]||"";return {f:f,more:sites.slice(1),n:n};}
+function pmeIsBlock(text){var t=String(text||"");if(t.indexOf("\t")>=0&&!/ELEVATE QUOTE REQUEST/i.test(t))return false;if(/^\s*quote\s*#/mi.test(t)&&!/ELEVATE QUOTE REQUEST/i.test(t))return false;return !!pmeParse(t);}
+function pmeNew(text){if(!PM.key)return null;var X=pmeParse(text);if(!X){var m=document.getElementById("pme-msg");if(m)m.textContent="That isn’t a quote-request block — it should start with ELEVATE QUOTE REQUEST and have labelled lines (Client:, Site Address:, …).";return null;}
+ var q=pmNewQuote();["client","contact","email","phone","site","services","task","date","pmc"].forEach(function(k){if(X.f[k])q.f[k]=X.f[k];});
+ if(!q.f.date)q.f.date=PMD_MON[new Date().getMonth()]+" "+new Date().getDate();if(X.more.length)q.xp=X.more.map(function(s){return {site:s,legal:"",pid:""};});
+ q.fromBlock=true;var nsv=pmvAuto(q);q.updated=Date.now();PM.cur=q.id;PM.mode="quotes";pmQuotesSave();var got=["client","contact","email","phone","site","services","task"].filter(function(k){return q.f[k];}).length;
+ PM.rowMsg="New quote from the email block ("+got+" of 7 fields filled"+(X.more.length?", "+(X.more.length+1)+" properties":"")+") — check every field against the email. No quote number, hours or price were taken from it."+(nsv?" "+nsv+" service"+(nsv===1?" was":"s were")+" loaded from Services Provided — see the blue line above the services.":"");PM.pmeOpen=false;
+ pmRender();if(typeof pmkAfterPaste==="function")try{pmkAfterPaste();}catch(e){}return q;}
+function pmeBox(){PM.pmeOpen=!PM.pmeOpen;var b=document.getElementById("pme-box");if(b){b.style.display=PM.pmeOpen?"block":"none";var t=document.getElementById("pme-ta");if(t&&PM.pmeOpen)t.focus();}}
+function pmeBoxHtml(){return "<div id='pme-box' class='cu-sfhit' style='display:"+(PM.pmeOpen?"block":"none")+"'><b>New quote from an email</b> — with Claude or ChatGPT: <button class='btn pmr-b' id='pme-copy' title='copies the instruction; paste it into Claude or ChatGPT, then paste the email under it'>1 · Copy the instruction</button> <span class='hint' style='margin:0'>2 · paste it into your assistant with the email under it &nbsp; 3 · copy its answer and paste it below</span>"+
+ "<textarea id='pme-ta' rows='3' class='pm-ta' placeholder='Paste the assistant’s block here (it starts with ELEVATE QUOTE REQUEST). Ctrl+V anywhere on this tab works too.'></textarea><div class='hint' id='pme-msg' style='margin:0'></div></div>";}
+function pmeWire(){var c=document.getElementById("pme-copy");if(c)c.onclick=function(){pmCopy(PME_PROMPT,"pme-msg");var m=document.getElementById("pme-msg");if(m)m.textContent="Instruction copied — paste it into Claude or ChatGPT, then paste the email under it.";};
+ var ta=document.getElementById("pme-ta");if(ta){ta.onpaste=function(e){var t="";try{t=(e.clipboardData||window.clipboardData).getData("text");}catch(x){}if(t){e.preventDefault();e.stopPropagation();pmeNew(t);}};ta.onchange=function(){if(ta.value.trim())pmeNew(ta.value);};}}
+
+/* ---------- PM: a "go to" box and links ----------
+   Box: a quote number opens its draft (or reads it from its quote folder), a job number shows the job and its folder, "convert 26-691 26-3688" starts the
+   job conversion, anything else is checked as an address against the quotes, To Do Quotes, the newest quote folders and the jobs master.
+   Links: …/Elevate-Office/#quote=26-690 · #job=21-1664 · #convert=26-691&job=26-3688 · #find=7654 Fraser St, Vancouver */
+var PMX={out:"",pending:null,busy:false,val:""};
+function pmxBar(){if(!PM.key)return "";return "<div class='pmx'><input type='text' id='pmx-in' value='"+pmEsc(PMX.val)+"' placeholder='Go to: quote # (26-690), job # (26-3687), or an address to check' autocomplete='off'><button class='btn' id='pmx-go'>Go</button><button class='btn pmr-b' id='pmx-clear' style='"+(PMX.out?"":"display:none")+"'>Clear</button><div id='pmx-out' class='pmx-out' style='"+(PMX.out?"":"display:none")+"'>"+PMX.out+"</div></div>";}
+function pmxSay(h){PMX.out=h||"";var o=document.getElementById("pmx-out"),c=document.getElementById("pmx-clear");if(o){o.innerHTML=PMX.out;o.style.display=PMX.out?"":"none";}if(c)c.style.display=PMX.out?"":"none";pmxWireOut();}
+function pmxParse(txt){var t=String(txt||"").trim(),m;if(!t)return null;
+ if((m=t.match(/^convert\s+(?:quote\s+)?(\d{2}-\d{1,4}[A-Za-z]?)(?:\s+(?:to\s+)?(?:job\s+)?(\d{2}-\d{3,5}))?$/i)))return {k:"convert",qn:m[1].toUpperCase(),job:m[2]||""};
+ if((m=t.match(/^(?:job\s*#?\s*)(\d{2}-\d{3,5})$/i))||(m=t.match(/^(\d{2}-\d{4,5})$/)))return {k:"job",job:m[1]};
+ if((m=t.match(/^(?:quote\s*#?\s*)?(\d{2}-\d{1,3}(?:\s*-?\s*[A-Za-z]|-\d{1,2})?)$/i)))return {k:"quote",qn:m[1].replace(/\s+/g,"").toUpperCase()};
+ if((m=t.match(/^(?:find|check|address)\s*:?\s+(.+)$/i)))return {k:"addr",a:m[1].trim()};
+ return {k:"addr",a:t};}
+async function pmxGo(txt){var C=pmxParse(txt);if(!C)return;PMX.val=String(txt).trim();PMX.busy=true;pmxSay("<span class='hint' style='margin:0'>Looking…</span>");
+ try{if(C.k==="quote")await pmxQuote(C.qn);else if(C.k==="job")await pmxJob(C.job);else if(C.k==="convert")pmxConvert(C.qn,C.job);else await pmxAddr(C.a);}catch(e){pmxSay("<span class='pma-warn'>"+pmEsc((e&&e.message)||String(e))+"</span>");}PMX.busy=false;}
+async function pmxQuote(qn){var E=pmEsc,key=pmjQnKey(qn),ex=PM.quotes.find(function(x){return pmjQnKey(x.f.qn)===key;});
+ if(ex){PM.cur=ex.id;PM.mode="quotes";sset("eo:pmmode","quotes");PMX.out="<span class='hint' style='margin:0'>Opened the draft of <b>"+E(qn)+"</b> that is on this computer.</span>";pmRender();return;}
+ if(!PMJ.dirs.quotes){pmxSay("No draft of <b>"+E(qn)+"</b> on this computer. Connect Quotes - Documents (Folders on this computer, below) and it can be read from its quote folder.");return;}
+ var list=await pmjFindQuoteFolders(qn,"",false);if(!list.length){pmxSay("No draft of <b>"+E(qn)+"</b> on this computer, and no folder for it in Quotes - Documents.");return;}
+ var want=pmjQnNorm(qn),found=null,where="";for(var i=0;i<list.length&&!found;i++){var files=(await pmjList(list[i])).filter(function(h){return h.kind==="file"&&!/^~\$/.test(h.name);});where=list[i].name;
+  found=files.filter(function(h){return /\.docx$/i.test(h.name)&&pmjFileQn(h.name)===want;})[0]||files.filter(function(h){return pmjJobTxtRe().test(h.name)&&pmjFileQn(h.name)===want;})[0]||(files.filter(function(h){return pmjJobTxtRe().test(h.name);}).length===1?files.filter(function(h){return pmjJobTxtRe().test(h.name);})[0]:null);}
+ if(!found){pmxSay("Quote folder <b>"+E(where)+"</b> is there, but it has no Word quote or job details file for "+E(qn)+" to open.");return;}
+ PM.mode="quotes";sset("eo:pmmode","quotes");PMX.out="<span class='hint' style='margin:0'>Read <b>"+E(found.name)+"</b> from Quotes - Documents › "+E(where)+".</span>";pmImportFile(await found.getFile());}
+async function pmxJob(job){var E=pmEsc,R=pmjRanges(job),h="<b>Job "+E(job)+"</b>",S=null;try{S=await pmkSource(true);}catch(e){}
+ var rows=S&&S.rows?S.rows.filter(function(r){return r.job===job;}):[];
+ if(rows.length)h+=" — "+rows.map(function(r){return E(r.site.replace(/,\s*(BC|British Columbia)?,?\s*Canada\s*$/i,""));}).join("; ")+(rows[0].qn?" · quote <b>"+E(rows[0].qn)+"</b>":" · no quote number on record");
+ else if(S&&S.rows)h+=" — not in the jobs master ("+S.rows.length.toLocaleString("en-CA")+" jobs)";
+ var X=null;if(PMJ.dirs.jobs&&R){try{X=await pmjJobDir(job,false);}catch(e){}}
+ if(R)h+="<br>Folder: Job Files - Documents › "+E(R.th)+" › "+E(R.hu)+" › <b>"+E(X?X.R.job:R.job)+"</b> "+(!PMJ.dirs.jobs?"<span class='hint' style='margin:0'>(connect Job Files - Documents to check it exists)</span>":X?"<span class='pm-dok'>exists</span>"+(X.alias?" <span class='hint' style='margin:0'>(filed as "+E(X.R.job)+")</span>":""):"<span class='pma-warn'>no folder yet</span>")+" <button class='btn pmr-b' data-pmxcopy='"+E(X?X.R.job:job)+"' title='copy the job number, to paste into File Explorer’s search in Job Files - Documents'>Copy "+E(X?X.R.job:job)+"</button>";
+ if(rows.length&&rows[0].qn&&pmkQnOk(rows[0].qn))h+=" <button class='btn pmr-b' data-pmxgo='"+E(rows[0].qn)+"'>Open quote "+E(rows[0].qn)+"</button>";
+ pmxSay(h+"<span class='hint pmx-msg' style='margin:0'></span>");}
+function pmxConvert(qn,job){PMJ.j=pmjNew();PMJ.j.qn=qn;if(job)PMJ.j.job=job;var d=PM.quotes.find(function(x){return pmjQnKey(x.f.qn)===pmjQnKey(qn);});if(d)pmjFillFrom(PMJ.j,d,"the draft on this computer");
+ PM.mode="jobs";sset("eo:pmmode","jobs");PMX.out="<span class='hint' style='margin:0'>Converting quote <b>"+pmEsc(qn)+"</b>"+(job?" to job <b>"+pmEsc(job)+"</b>":"")+" — check the steps below; nothing is created until you press Create job folder.</span>";pmRender();if(PMJ.dirs.quotes)pmjFind();}
+async function pmxAddr(a){var E=pmEsc;if(!/\d/.test(a)||pmhParse(a).length===0){pmxSay("Type a quote number (26-690), a job number (26-3687), or a street address with its number.");return;}
+ var S=null,J=null;try{S=await pmhSources(true);}catch(e){}try{J=await pmkSource(true);}catch(e){}
+ var fake={id:"pmx",f:{qn:"",email:"",client:"",contact:""}},h="<b>"+E(a)+"</b>";
+ if(S&&S.master&&S.master.rows){var L=pmhFind(fake,a,S);
+  h+=L.length?"<div><span class='pmh-lab'>Quotes at this address:</span>"+L.slice(0,8).map(function(r){return r.noqn?"<span class='pmh-it pmh-todo'><b>In To Do Quotes, no quote # yet</b> ("+E([r.client,r.date?"requested "+pmdDate(r.date):"",r.asg?"assigned "+r.asg:""].filter(Boolean).join(", "))+")</span>":"<span class='pmh-it'><button class='btn pmr-b' data-pmxgo='"+E(r.qn)+"'>"+E(r.qn)+"</button> ("+E([r.client,r.src==="master"?r.year:r.src==="folder"?"quote folder, not in the master yet":"in To Do Quotes"].filter(Boolean).join(", "))+")</span>";}).join("")+(L.length>8?"<span class='hint' style='margin:0'>…and "+(L.length-8)+" more</span>":"")+"</div>":"<div class='hint' style='margin:2px 0'>✓ No quote at this address in: "+E(pmdReach(S).join(" · "))+"."+pmdBlankNote(S)+"</div>";}
+ else h+="<div class='hint' style='margin:2px 0'>Quotes not checked — "+(S&&S.off?"connect Quotes - Documents (Folders on this computer, below)":"the quotes master couldn’t be read")+".</div>";
+ if(J&&J.rows){var F=pmkFind(a,J.rows);try{F=await pmkNear(a,F,J.rows);}catch(e){}var K=F.same.concat(F.near);
+  h+=K.length?"<div><span class='pmh-lab'>"+(F.same.length?"Jobs at this address:":"Jobs close by:")+"</span>"+K.slice(0,8).map(function(c){var how=c.how==="same"?"same address":c.m!==undefined?Math.round(c.m)+" m away":"same street, "+c.dc+" number"+(c.dc===1?"":"s")+" apart";return "<span class='pmh-it'><b>"+E(c.r.job)+"</b>"+(c.r.qn?" · quote "+E(c.r.qn):"")+" <span class='hint' style='margin:0'>("+E(how)+": "+E(c.r.site.replace(/,\s*(BC|British Columbia)?,?\s*Canada\s*$/i,""))+")</span></span>";}).join("")+"</div>":"<div class='hint' style='margin:2px 0'>✓ No job at this address or close by on the same street (jobs master, "+J.rows.length.toLocaleString("en-CA")+" jobs).</div>";}
+ else h+="<div class='hint' style='margin:2px 0'>Jobs not checked — "+(J&&J.off?"connect Job Files - Documents (Folders on this computer, below)":"the jobs master couldn’t be read")+".</div>";
+ h+="<div style='margin-top:4px'><button class='btn pmr-b' data-pmxnew='"+E(a)+"'>Start a new quote at this address</button></div>";pmxSay(h);}
+function pmxWireOut(){var o=document.getElementById("pmx-out");if(!o)return;
+ o.querySelectorAll("[data-pmxgo]").forEach(function(b){b.onclick=function(){pmxGo(b.dataset.pmxgo);};});
+ o.querySelectorAll("[data-pmxcopy]").forEach(function(b){b.onclick=function(){var t=b.dataset.pmxcopy,m=o.querySelector(".pmx-msg");try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(function(){});}catch(e){}if(m)m.textContent=" “"+t+"” copied";};});
+ o.querySelectorAll("[data-pmxnew]").forEach(function(b){b.onclick=function(){var q=pmNewQuote();q.f.site=b.dataset.pmxnew;PM.mode="quotes";sset("eo:pmmode","quotes");PMX.out="";pmQuotesSave();pmRender();};});}
+function pmxWire(){var i=document.getElementById("pmx-in"),g=document.getElementById("pmx-go"),c=document.getElementById("pmx-clear");if(!i)return;
+ g.onclick=function(){pmxGo(i.value);};i.onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();pmxGo(i.value);}};i.oninput=function(){PMX.val=i.value;};if(c)c.onclick=function(){PMX.val="";i.value="";pmxSay("");};pmxWireOut();
+ if(PMX.pending&&PM.key){var p=PMX.pending;PMX.pending=null;setTimeout(function(){pmxGo(p);},0);}}
+/* links: #quote=26-690 · #job=21-1664 · #convert=26-691&job=26-3688 · #find=<address>  (opened on the PM tab; they wait for the passphrase if it is locked) */
+function pmxHash(){var h="";try{h=decodeURIComponent(String(location.hash||"").replace(/^#/,""));}catch(e){return;}if(!h||!/^(quote|job|convert|find)=/i.test(h))return;var P={};h.split("&").forEach(function(kv){var i=kv.indexOf("=");if(i>0)P[kv.slice(0,i).toLowerCase()]=kv.slice(i+1).replace(/\+/g," ").trim();});
+ var cmd=P.convert?"convert "+P.convert+(P.job?" "+P.job:""):P.quote?"quote "+P.quote:P.job?"job "+P.job:P.find?"find "+P.find:"";if(!cmd)return;
+ try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}
+ PMX.pending=cmd;var b=document.querySelector("nav button[data-v='pm']");if(b&&!(typeof pmOnView==="function"&&pmOnView()))b.click();else if(PM.key)pmRender();}
+window.addEventListener("hashchange",pmxHash);if(document.readyState==="complete")setTimeout(pmxHash,50);else window.addEventListener("load",function(){setTimeout(pmxHash,50);});
+["pmeBox","pmeNew","pmxGo"].forEach(function(n){window[n]=eval(n);});
+(function(){var st=document.createElement("style");st.textContent=".pmx{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 10px}.pmx input{flex:1;min-width:260px;max-width:560px}.pmx-out{flex-basis:100%;border-left:4px solid #2456A6;padding:6px 10px;background:#f3f6fb}#pme-box{margin:6px 0}#pme-ta{margin-top:6px}";document.head.appendChild(st);})();
+
+/* ---------- Coordinate design: the picked lines as polylines that carry the design elevations ----------
+   For each picked line (gutter line, centre line, …): a 3D polyline through its design points with BC, midpoint and EC of every curve (three points fix a
+   curve for the crew), a 2D polyline of the same line with true arcs (for offsets), and — only if ticked — a 3D copy with the curves chorded.
+   Elevations between design values are straight-line by distance along the line, the same rule as the INTERP curve points. Nothing is extrapolated:
+   a stretch before the first or after the last design value gets no elevation and is reported. */
+function cdlBuild(S,chord){var R=S.res,out=[];if(!R)return out;
+ (S.lines||[]).forEach(function(L,li){var C=L.C;if(!C||!C.P||C.P.length<2)return;var cvs=(L.curves||[]).slice().sort(function(a,b){return a.s0-b.s0;}),closed=C.P.length>3&&cdHyp(C.P[0],C.P[C.P.length-1])<0.05,LL=C.L;
+  var on=[],calc=[];R.rows.forEach(function(r){if(r.interp){if(r.interp.li===li)calc.push({s:r.interp.s,z:r.Z,W:[r.E,r.N],src:r.interp.k==="MC"?"MID":r.interp.k,pt:r.pt,pr:2});return;}
+   var p=r.b&&R.per[r.b.id];if(!p||!p.on||!p.line||p.line.li!==li||r.desc==="MEET")return;on.push({s:p.line.s,z:r.Z,W:[r.E,r.N],src:"design",pt:r.pt,pr:3});});
+  on.sort(function(a,b){return a.s-b.s;});
+  var X={name:L.name||("LINE "+(li+1)),li:li,closed:closed,len:LL,V:[],Vc:[],arc:[],none:[],nDesign:on.length,curves:cvs.length,why:""};
+  /* the line as drawn, with true arcs: BC carries the bulge to EC; points the tracer put inside a curve are left out */
+  var inCurve=function(s){return cvs.some(function(c){return s>c.s0+1e-6&&s<c.s1-1e-6;});},A=[];
+  C.P.forEach(function(p,i){if(!inCurve(C.st[i]))A.push({s:C.st[i],W:p,b:0});});
+  cvs.forEach(function(c){var bc=c.bc||cdAtSta(C,c.s0),ec=c.ec||cdAtSta(C,c.s1);A=A.filter(function(a){return Math.abs(a.s-c.s0)>1e-4&&Math.abs(a.s-c.s1)>1e-4;});A.push({s:c.s0,W:bc,b:Math.tan(c.sweep/4)});A.push({s:c.s1,W:ec,b:0,ec:true});});
+  A.sort(function(a,b){return a.s-b.s||((a.ec?0:1)-(b.ec?0:1));});
+  /* an EC that is also the next BC keeps the next curve's bulge */
+  for(var i=A.length-1;i>0;i--)if(Math.abs(A[i].s-A[i-1].s)<1e-4&&cdHyp(A[i].W,A[i-1].W)<1e-3){A[i-1].b=A[i].b||A[i-1].b;A.splice(i,1);}
+  if(closed&&A.length>2&&cdHyp(A[0].W,A[A.length-1].W)<0.05)A.pop();X.arc=A;
+  if(on.length<2){X.why=on.length?"only one design value on this line — two are needed to carry elevations along it":"no design value on this line";X.none.push({from:0,to:LL,len:LL});out.push(X);return;}
+  var s0=on[0].s,s1=on[on.length-1].s;
+  var zAt=function(s){var a=null,b=null;for(var k=0;k<on.length;k++){if(on[k].s<=s+1e-9)a=on[k];if(on[k].s>=s-1e-9&&!b)b=on[k];}
+   if(closed){if(!a){var l=on[on.length-1];a={s:l.s-LL,z:l.z};}if(!b){var f=on[0];b={s:f.s+LL,z:f.z};}}
+   if(!a||!b)return null;return b.s>a.s?a.z+(b.z-a.z)*(s-a.s)/(b.s-a.s):a.z;};
+  var make=function(withChords){var V=on.concat(calc.map(function(c){return {s:c.s,z:c.z,W:c.W,src:c.src,pt:c.pt,pr:c.pr};}));
+   /* BC / MID / EC that the points run skipped (a design point sits on it) are not needed; a curve end with no point near it still gets one */
+   cvs.forEach(function(c){[["BC",c.s0,c.bc||cdAtSta(C,c.s0)],["MID",(c.s0+c.s1)/2,cdArcMid(c,C)],["EC",c.s1,c.ec||cdAtSta(C,c.s1)]].forEach(function(k){if(V.some(function(v){return cdHyp(v.W,k[2])<0.5;}))return;var z=zAt(k[1]);if(z===null)return;V.push({s:k[1],z:z,W:k[2],src:k[0],pr:2});});
+    if(withChords){var th=Math.abs(c.sweep),dth=Math.max(Math.PI/180,Math.min(10*Math.PI/180,2*Math.acos(Math.max(-1,1-0.01/Math.max(c.r,0.02))))),n=Math.max(2,Math.ceil(th/dth)),bc=c.bc||cdAtSta(C,c.s0),a0=Math.atan2(bc[1]-c.c[1],bc[0]-c.c[0]);
+     for(var j=1;j<n;j++){var t=j/n,s=c.s0+(c.s1-c.s0)*t,z=zAt(s);if(z===null)continue;V.push({s:s,z:z,W:[c.c[0]+c.r*Math.cos(a0+c.sweep*t),c.c[1]+c.r*Math.sin(a0+c.sweep*t)],src:"chord",pr:1});}}});
+   /* corners of the line between curves */
+   C.P.forEach(function(p,i){var s=C.st[i];if(inCurve(s))return;if(i>0&&i<C.P.length-1){var u=cdSub(p,C.P[i-1]),v=cdSub(C.P[i+1],p),den=Math.hypot(u[0],u[1])*Math.hypot(v[0],v[1]);if(den>0&&Math.abs(cdCross(u,v))/den<0.002)return;}
+    var z=zAt(s);if(z===null)return;V.push({s:s,z:z,W:p,src:"corner",pr:0});});
+   V=V.filter(function(v){return closed||(v.s>=s0-1e-6&&v.s<=s1+1e-6);});V.sort(function(a,b){return a.s-b.s||b.pr-a.pr;});
+   var K=[];V.forEach(function(v){var l=K[K.length-1];if(l&&(Math.abs(v.s-l.s)<0.02||cdHyp(v.W,l.W)<0.02)){if(v.pr>l.pr)K[K.length-1]=v;return;}K.push(v);});
+   if(closed&&K.length>2&&cdHyp(K[0].W,K[K.length-1].W)<0.02)K.pop();return K;};
+  X.V=make(false);if(chord&&cvs.length)X.Vc=make(true);
+  if(!closed){if(s0>0.05)X.none.push({from:0,to:s0,len:s0});if(LL-s1>0.05)X.none.push({from:s1,to:LL,len:LL-s1});}
+  out.push(X);});
+ return out;}
+function cdlDxf(lines,layer,chord){var base=String(layer).replace(/\s*PTS\s*$/i," LINES"),L3=base+"-3D",LA=base+"-ARCS",LC=base+"-3D-CHORDS",LT=base+"-LABELS",o=[],f=function(v){return (+v).toFixed(4);};
+ var poly3=function(V,lay,closed){if(V.length<2)return;o.push("0","POLYLINE","8",lay,"66","1","10","0.0","20","0.0","30","0.0","70",String(8+(closed?1:0)));V.forEach(function(v){o.push("0","VERTEX","8",lay,"10",f(v.W[0]),"20",f(v.W[1]),"30",f(v.z),"70","32");});o.push("0","SEQEND","8",lay);};
+ lines.forEach(function(X){
+  if(X.arc.length>1){o.push("0","POLYLINE","8",LA,"66","1","10","0.0","20","0.0","30","0.0","70",X.closed?"1":"0");X.arc.forEach(function(a){o.push("0","VERTEX","8",LA,"10",f(a.W[0]),"20",f(a.W[1]),"30","0.0");if(a.b)o.push("42",(+a.b).toFixed(8));});o.push("0","SEQEND","8",LA);}
+  poly3(X.V,L3,X.closed);if(chord&&X.Vc.length)poly3(X.Vc,LC,X.closed);
+  X.V.forEach(function(v){if(v.src==="design"||v.src==="corner")return;o.push("0","TEXT","8",LT,"10",f(v.W[0]+0.3),"20",f(v.W[1]+0.1),"30","0.0","40","0.3000","1",v.src+" "+v.z.toFixed(3)+" CALC");});});
+ var lay=function(n,c){return ["0","LAYER","2",n,"70","0","62",String(c),"6","CONTINUOUS"];};
+ return ["0","SECTION","2","HEADER","9","$ACADVER","1","AC1009","9","$INSUNITS","70","6","0","ENDSEC","0","SECTION","2","TABLES","0","TABLE","2","LAYER","70","4"].concat(lay(L3,1),lay(LA,5),lay(LC,3),lay(LT,7),["0","ENDTAB","0","ENDSEC","0","SECTION","2","ENTITIES"],o,["0","ENDSEC","0","EOF"]).join("\r\n")+"\r\n";}
+function cdlWords(X){var c=X.V.filter(function(v){return v.src!=="design";}).length;
+ if(!X.V.length)return X.name+": no elevated polyline — "+X.why+" (the true-arc line is still written, at elevation 0).";
+ return X.name+": 3D polyline of "+X.V.length+" points — "+X.nDesign+" design, "+c+" calculated"+(X.curves?" (BC, MID and EC of "+X.curves+" curve"+(X.curves===1?"":"s")+(X.V.some(function(v){return v.src==="corner";})?", and corners":"")+")":X.V.some(function(v){return v.src==="corner";})?" (corners)":"")+(X.closed?", closed":"")+
+  (X.none.length?". NO ELEVATION for "+X.none.map(function(n){return n.len.toFixed(1)+" m "+(n.from<0.05?"at the start":"at the end");}).join(" and ")+" — no design value beyond; that part is not in the 3D polyline":"")+".";}
+function cdlSummary(S){var Ls=cdlBuild(S,false);if(!Ls.length)return "";var T=["","Lines as polylines (DESIGN-LINES.dxf):"];
+ Ls.forEach(function(X){T.push("  "+cdlWords(X));X.V.forEach(function(v){T.push("    "+("     "+v.s.toFixed(2)).slice(-8)+" m  N "+v.W[1].toFixed(3)+"  E "+v.W[0].toFixed(3)+"  Z "+v.z.toFixed(3)+"  "+(v.src==="design"?"design"+(v.pt?" (pt "+v.pt+")":""):v.src+" — calculated"+(v.pt?" (pt "+v.pt+")":"")));});});
+ T.push("  Calculated elevations are straight-line between the design values on either side, by distance along the line.");return T.join("\r\n")+"\r\n";}
+function cdlHtml(){var S=cdS;if(!S||!S.res||!(S.lines||[]).length)return "";var Ls=cdlBuild(S,false),E=esc;if(!Ls.length)return "";
+ return "<div class='cu-manual cu-mt' style='margin-top:8px'><b>Lines as polylines</b> <span class='hint' style='margin:0'>— each picked line with its design elevations, for offsets in the field: a 3D polyline (design points plus BC, MID and EC of each curve), and the same line in 2D with true arcs.</span><ul style='margin:4px 0 4px 18px;padding:0'>"+Ls.map(function(X){var bad=!X.V.length||X.none.length;return "<li"+(bad?" class='cu-idbad'":"")+">"+E(cdlWords(X))+"</li>";}).join("")+"</ul>"+
+  "<label class='cu-cb'><input type='checkbox' "+(S.o.chord?"checked":"")+" onchange='cdS.o.chord=this.checked'> also write a 3D copy with the curves chorded (extra layer, about 1 cm off the arc at most)</label></div>";}
+
+/* ===================== 1.45.1 ===================== */
+/* ---------- PM: services suggested from the request ----------
+   Services Provided (and, for the purpose of a topo and for disputes / corners, Additional Task Details) is read for a few plain cases and the matching
+   library service is loaded with its approved wording. Never hours, never a price. It only fills a quote whose services are still empty, and only
+   when the quote comes in (tracker row, email block); typed quotes get the same suggestions as buttons. The PM can remove or change anything. */
+var PMV_NAMES={topo:"Topographic survey",pl:"Property line survey",pl_post:"PL survey & posting plan",post_legal:"Posting plan to set permanent legal markers",post_permit:"Posting plan for permit",con_house:"New house construction",con_vanc:"New house construction (Vancouver)",con_multi:"New construction",blc:"Building Location Certificate",forms:"Forms Location Certificate"};
+function pmvRead(q){var f=q.f||{},S=String(f.services||"").toLowerCase(),T=String(f.task||"").toLowerCase(),A=S+" \n "+T,site=pmPropJoin(q,"site").toLowerCase(),add=[],offer=[],has=function(id){return add.some(function(x){return x.id===id;});};
+ var RE={topo:/\btopo(graph\w*)?\b|\bsite survey\b/,pl:/\bproperty[\s-]*lines?\b|\bp\.?\s?l\.?\s+survey\b|\bboundary survey\b|\blot lines?\b|\bfenc(e|ing)\s+(line|survey)\b/,
+  con:/\bnew\s+(house\s+|home\s+)?construction\b|\bconstruction\s+(package|services|layout)\b|\b(foundation|excavation|building)\s+layout\b|\bnew\s+(house|home)\s+(package|layout|services)\b/,
+  post:/\bposting\b|\b(set|sett?ing|install\w*|plac\w*|replac\w*|re-?establish\w*|reset\w*|re-?set\w*)\b[^.\n]{0,30}\b(pins?|posts?|corners?|monuments?|markers?)\b|\b(missing|lost)\s+(property\s+)?(pins?|posts?|corners?|markers?)\b|\b(pins?|posts?|corners?|markers?)\b[^.\n]{0,20}\b(installed|set|placed|replaced|re-?established)\b/,
+  disp:/\bdisput\w*|\bdisagree\w*|\bencroach\w*|\bneighbou?r\w*\b[^.\n]{0,60}\b(issue|problem|claim\w*|says?|said|built|building|fence|over|complain\w*|conflict|argu\w*|unhappy|upset|lawyer)\b|\b(issue|problem|conflict|trouble)s?\b[^.\n]{0,40}\bneighbou?r\w*/,
+  addn:/\b(addition|add-on|extension|extend\w*|reno|renos|renovat\w+|carport|enclos\w+|garage conversion|deck|second stor(e)?y|2nd stor(e)?y|interior)\b/,
+  dev:/\b(subdivi\w+|develop\w+|rezon\w+|townhouse\w*|multi-?family|apartment\w*|consolidat\w+|land assembly)\b/,
+  newh:/\bnew\s+(house|home|build|sfd|single[\s-]family|duplex|construction)\b|\brebuild\w*\b|\bdemo(lition)?\b[^.\n]{0,40}\bnew\b/,
+  multi:/\b(townhouse\w*|multi-?family|apartment\w*|commercial|industrial|warehouse|mixed[\s-]use|complex)\b/,blc:/\bbuilding location\b|\bblc\b/,permit:/\bpermit\b/};
+ var disp=RE.disp.test(A),post=RE.post.test(S),postT=RE.post.test(T);
+ if(RE.topo.test(S)){var on=[],off=[],why=[];
+  if(RE.addn.test(A)){on.push("House details");why.push("an addition or renovation: house details");}
+  if(RE.dev.test(A)){on.push("Current Legal property line + Area calculation","Visible utilities + Inverts");off.push("Existing Property lines","Visible utilities");why.push("a development or subdivision: legal property line and area calculation, visible utilities and inverts");}
+  else if(RE.newh.test(A)||RE.con.test(S)){on.push("Visible utilities + Inverts");off.push("Visible utilities");why.push("a new house: visible utilities and inverts");}
+  add.push({id:"topo",on:on,off:off,why:"Services Provided says topo"+(why.length?" — for "+why.join("; "):"")});}
+ if(RE.pl.test(S)||(post&&disp)){if(disp||post)add.push({id:"pl_post",why:RE.pl.test(S)?"a property line survey"+(disp?" with a neighbour issue or dispute mentioned":" with corners to be set"):"posting with a neighbour issue or dispute mentioned"});else add.push({id:"pl",why:"Services Provided says property line / PL survey"});}
+ else if(post)add.push({id:RE.permit.test(S)?"post_permit":"post_legal",why:RE.permit.test(S)?"Services Provided says a posting plan for permit":"Services Provided asks for posting / property corners to be set"});
+ else if(disp)add.push({id:"pl_post",why:"a neighbour issue or dispute is mentioned — a posting plan is needed"});
+ else if(postT)add.push({id:"post_legal",why:"the task details ask for property corners to be set"});
+ if(RE.con.test(S))add.push({id:/\bvancouver\b/.test(site)&&!/north vancouver|west vancouver/.test(site)?"con_vanc":RE.multi.test(A)?"con_multi":"con_house",why:"Services Provided says new construction"});
+ /* only in the task details: offered, never added */
+ if(!has("topo")&&RE.topo.test(T))offer.push({id:"topo",why:"the task details mention a topo"});
+ if(!has("pl")&&!has("pl_post")&&RE.pl.test(T))offer.push({id:"pl",why:"the task details mention property lines"});
+ if(!add.some(function(x){return /^con_/.test(x.id);})&&RE.con.test(T))offer.push({id:"con_house",why:"the task details mention construction layout"});
+ if(RE.blc.test(A))offer.push({id:"blc",why:"a building location is mentioned"});
+ return {add:add,offer:offer.filter(function(o){return pmqLibById(o.id);})};}
+function pmvSec(q,x){var e=pmqLibById(x.id);if(!e)return null;var s=pmqApplyLib(pmqNorm({name:"",hrs:{}}),e);s.price="";
+ var isOn=function(t){return (x.on||[]).some(function(o){return t===o||t.indexOf(o+" (")===0;});},got=(s.lines||[]).some(function(l){return isOn((l.t||"").trim());});
+ (s.lines||[]).forEach(function(l){var t=(l.t||"").trim();if(isOn(t))l.on=true;else if(got&&(x.off||[]).indexOf(t)>=0)l.on=false;});
+ s.auto=x.why;return s;}
+function pmvEmpty(q){return (q.secs||[]).every(pmqBlankSec);}
+/* when a quote comes in: fill the services if they are still empty */
+function pmvAuto(q){if(!q||!PM.vault||!pmqLib().length||!pmvEmpty(q)||pmrIsSub(q))return 0;var R=pmvRead(q),L=R.add.map(function(x){return pmvSec(q,x);}).filter(Boolean);if(!L.length)return 0;q.secs=L;q.svcAuto=true;q.updated=Date.now();return L.length;}
+function pmvStrip(q){if(!q||pmrIsSub(q)||!pmqLib().length)return "";var E=pmEsc,R=pmvRead(q),auto=(q.secs||[]).filter(function(s){return s.auto;}),have={};(q.secs||[]).forEach(function(s){if(s.type)have[s.type]=1;});
+ var todo=R.add.filter(function(x){return !have[x.id]&&pmqLibById(x.id)&&!(x.id==="pl_post"&&(have.pl||have.post_legal))&&!(x.id==="pl"&&have.pl_post);}),offer=R.offer.filter(function(x){return !have[x.id];}),h="";
+ if(auto.length)h+="<div class='pmv-line'><b>Filled from the request</b> — check the scope; no hours or price were set:"+auto.map(function(s){var ix=q.secs.indexOf(s);return " <span class='pmv-it'>"+E(PMV_NAMES[s.type]||s.name)+" <span class='hint' style='margin:0'>("+E(s.auto)+")</span> <button class='btn pmr-b' data-pmvrm='"+ix+"' title='take this service off the quote'>Remove</button></span>";}).join("")+"</div>";
+ if(todo.length)h+="<div class='pmv-line'><b>Suggested from the request:</b>"+todo.map(function(x,i){return " <button class='btn pmr-b' data-pmvadd='"+E(x.id)+"' title='"+E(x.why)+" — loads the approved wording; no hours or price'>+ "+E(PMV_NAMES[x.id]||x.id)+"</button>";}).join("")+" <span class='hint' style='margin:0'>"+E(todo.map(function(x){return x.why;}).join("; "))+"</span></div>";
+ if(offer.length)h+="<div class='pmv-line'><span class='hint' style='margin:0'>Also mentioned in the task details — add only if it is part of this quote:</span>"+offer.map(function(x){return " <button class='btn pmr-b' data-pmvadd='"+E(x.id)+"' data-offer='1' title='"+E(x.why)+"'>+ "+E(PMV_NAMES[x.id]||x.id)+"</button>";}).join("")+"</div>";
+ return h?"<div class='pmv' id='pmv'>"+h+"</div>":"";}
+function pmvWire(){var box=document.getElementById("pmv");if(!box)return;var q=pmCurQ();if(!q)return;var done=function(){q.updated=Date.now();pmQuotesSave();if(typeof pmFlagUnsaved==="function")pmFlagUnsaved(q);var y=window.scrollY;pmRender();try{window.scrollTo(0,y);}catch(e){}};
+ box.querySelectorAll("[data-pmvadd]").forEach(function(b){b.onclick=function(){var R=pmvRead(q),x=R.add.concat(R.offer).filter(function(o){return o.id===b.dataset.pmvadd;})[0];if(!x)return;var s=pmvSec(q,x);if(!s)return;if(pmvEmpty(q))q.secs=[s];else q.secs.push(s);done();};});
+ box.querySelectorAll("[data-pmvrm]").forEach(function(b){b.onclick=function(){var i=+b.dataset.pmvrm,s=q.secs[i];if(!s||!s.auto)return;var touched=Object.keys(s.hrs||{}).some(function(k){return pmNum(s.hrs[k])>0;})||String(s.price||"").trim();if(touched&&!window.confirm("This service has hours or a price on it. Remove it from the quote?"))return;q.secs.splice(i,1);if(!q.secs.length)q.secs=[pmqNorm({name:"",hrs:{}})];done();};});}
+(function(){var st=document.createElement("style");st.textContent=".pmv{border-left:4px solid #2456A6;background:#f3f6fb;padding:6px 10px;margin:0 0 10px}.pmv-line{margin:2px 0}.pmv-it{display:inline-block;margin:2px 10px 2px 0}";document.head.appendChild(st);})();
+
+/* ---------- PM: client suggestions from the client list (repeat clients) ----------
+   Typing in Client (or Email) lists matching clients from Quotes - Documents › Client List. Picking one fills the client name, and the email only if the
+   Email box is empty. Nothing already in a box is replaced. The list is read on this computer; the app keeps no copy. */
+function pmnFind(txt,rows,byEmail){var t=String(txt||"").trim().toLowerCase();if(t.length<2)return [];var out=[];
+ if(byEmail){rows.forEach(function(r){var hit=r.emails.filter(function(e){return e.indexOf(t)===0;});if(hit.length)out.push({r:r,rank:0});else if(t.length>=4&&r.emails.some(function(e){return e.indexOf(t)>0;}))out.push({r:r,rank:1});});}
+ else{var k=pmdNm(txt),ws=k.split(" ").filter(Boolean);if(!ws.length)return [];rows.forEach(function(r){var words=r.key.split(" ");if(r.key.indexOf(k)===0)out.push({r:r,rank:0});else if(ws.every(function(x){return words.some(function(y){return y.indexOf(x)===0;});}))out.push({r:r,rank:1});else if(k.length>=4&&r.key.indexOf(k)>0)out.push({r:r,rank:2});});}
+ out.sort(function(a,b){return a.rank-b.rank||b.r.no.localeCompare(a.r.no);});return out.slice(0,8).map(function(x){return x.r;});}
+function pmnShow(el,list,byEmail){pmaClose();if(!list.length||document.activeElement!==el)return;var b=document.createElement("div");b.className="pma-sug";b.setAttribute("role","listbox");
+ b.innerHTML=list.map(function(r,i){return "<div class='pma-it' role='option' data-i='"+i+"'><span>"+pmEsc(r.name)+"</span><i>"+pmEsc((r.emails.slice(0,2).join(", ")+(r.emails.length>2?" +"+(r.emails.length-2):""))||"no email")+" · "+pmEsc(r.no)+"</i></div>";}).join("")+"<div class='pma-by'>From the client list (dashboard clients) — pick one to fill the client"+(byEmail?"":" and email")+"</div>";
+ var lab=el.closest("label")||el.parentNode;lab.style.position="relative";lab.appendChild(b);PMA.box=b;PMA.open={el:el,list:list,at:-1,pick:pmnPick};
+ b.onmousedown=function(e){var it=e.target.closest&&e.target.closest(".pma-it");if(!it)return;e.preventDefault();pmnPick(el,list[+it.dataset.i]);};}
+function pmnPick(el,r){pmaClose();var q=pmCurQ();if(!q||!r)return;var host=document.getElementById("pmhost"),ce=host.querySelector("[data-f='client']"),ee=host.querySelector("[data-f='email']"),did=[],fire=function(x){try{x.dispatchEvent(new Event("input",{bubbles:true}));}catch(e){if(x.oninput)x.oninput();}};
+ PMA.nskipT=Date.now();var byEmail=el===ee;
+ if(ce&&(!byEmail||!ce.value.trim())){if(ce.value!==r.name){ce.value=r.name;fire(ce);did.push("client");}}
+ if(ee&&r.emails.length){if(!ee.value.trim()||(byEmail&&r.emails.some(function(e){return e.indexOf(ee.value.trim().toLowerCase())===0;}))){ee.value=r.emails.join(", ");fire(ee);did.push("email");}}
+ var kept=ee&&ee.value.trim()&&did.indexOf("email")<0&&r.emails.length&&!r.emails.some(function(e){return pmdEmails(ee.value).indexOf(e)>=0;});
+ var n=document.getElementById("pmn-note");if(!n){n=document.createElement("div");n.id="pmn-note";n.className="hint";n.style.margin="2px 0 0";var lab=(ce||el).closest("label");if(lab)lab.appendChild(n);}
+ n.innerHTML="Client <b>"+pmEsc(r.no)+"</b> from the client list"+(did.length?" — "+did.join(" and ")+" filled":"")+(kept?". The email already in the box was kept (the list has "+pmEsc(r.emails.join(", "))+")":"")+(r.remark?". Remark: "+pmEsc(r.remark):"")+".";}
+function pmnType(el,byEmail){var txt=el.value,my=++PMA.seq;clearTimeout(PMA.t);if(PMA.nskipT&&Date.now()-PMA.nskipT<400){pmaClose();return;}if(String(txt).trim().length<2){pmaClose();return;}
+ PMA.t=setTimeout(function(){pmcSource(false).then(function(S){if(my!==PMA.seq||el.value!==txt||!S||!S.rows)return;pmnShow(el,pmnFind(txt,S.rows,byEmail),byEmail);},function(){});},140);}
+function pmnWire(host){["client","email"].forEach(function(k){var el=host.querySelector("[data-f='"+k+"']");if(!el||el._pmn)return;el._pmn=1;el.setAttribute("autocomplete","off");
+ el.addEventListener("input",function(){pmnType(el,k==="email");});el.addEventListener("keydown",function(e){pmaKey(el,e);});el.addEventListener("blur",function(){setTimeout(function(){if(PMA.open&&PMA.open.el===el)pmaClose();},180);});});}
 /* ---------- Design calc tab (1.42): everything that starts from a drawing — Coordinate design, Building layout, Strata plan ---------- */
 var DC_TOOLS=[["cd","Coordinate design","Coordinates the engineer’s design elevation bubbles from their CAD file or PDF.","Drop the engineer’s design drawing (.dxf / .dwg / .pdf) here."],
  ["bc","Building layout","A new building from the architect’s plan: outline, posts, fitted to our lot by setbacks, excavation, points and DXF.","Drop the architect’s plan (.dxf / .dwg / .pdf) here, then our lot drawing (.dxf / .dwg) once the outline and posts are confirmed."],
@@ -8556,7 +9259,7 @@ function cdLayGet(){try{return localStorage.getItem("eo:cdlay")||"CALC {date} DE
 function cdSave(which){var S=cdS,R=S.res;if(cdBlocked())return;var B=cdBase()+"-DESIGN-PTS",txt,fn,type="text/plain";
  if(which==="txt"){txt=cdPnezd(R.rows);fn=B+".txt";}
  else if(which==="dxf"){txt=cdPointsDxf(R.rows,bcLayName(cdLayGet()),parseFloat(S.o.th)||0.5);fn=B+".dxf";type="application/dxf";}
- else{txt=cdSummary();fn=B+"-SUMMARY.txt";}
+ else if(which==="lines"){txt=cdlDxf(cdlBuild(S,!!S.o.chord),bcLayName(cdLayGet()),!!S.o.chord);fn=cdBase()+"-DESIGN-LINES.dxf";type="application/dxf";}else{txt=cdSummary()+cdlSummary(S);fn=B+"-SUMMARY.txt";}
  cuSaveText(txt,fn,type);S.msg="Saved "+fn+".";cdRender();}
 function cdSummary(){var S=cdS,R=S.res;if(!R)return "";var L=[],st=S.st,cnt={ok:0,fix:0,drop:0};Object.keys(S.sel).forEach(function(id){var x=st[id];if(x&&cnt[x.s]!==undefined)cnt[x.s]++;});
  L.push("Coordinate design — "+(S.file?S.file.name:"")+(S.src.kind==="pdf"?" (page "+S.src.page+")":"")+" — "+new Date().toISOString().slice(0,10));
@@ -8634,8 +9337,8 @@ function cdRender(){var host=document.getElementById("cu-cd");if(!host)return;if
   if(R.interp.length){h+="<table class='cu-mtt'><tr><th>Pt</th><th>Line</th><th>Point</th><th>R</th><th>N</th><th>E</th><th>Elev</th><th>Between</th></tr>"+R.interp.map(function(q){return "<tr><td>"+q.pt+"</td><td>"+E(q.line)+"</td><td>"+q.k+"</td><td>"+q.r.toFixed(2)+"</td><td>"+q.W[1].toFixed(3)+"</td><td>"+q.W[0].toFixed(3)+"</td><td>"+q.z.toFixed(3)+"</td><td>"+q.z0+" → "+q.z1+" ("+(q.grade>=0?"+":"")+q.grade.toFixed(2)+"%)</td></tr>";}).join("")+"</table>";}
   if(R.notes.length)h+="<div class='hint'>"+R.notes.map(E).join("<br>")+"</div>";h+="</div></details>";}
  var bl=cdBlocked();
- h+="<div class='cu-dl' style='margin-top:10px'><button class='btn pri' onclick='cdSave(\"txt\")'"+(bl?" disabled":"")+">Points file (.txt)</button><button class='btn' onclick='cdSave(\"dxf\")'"+(bl?" disabled":"")+">Points for the drawing (.dxf)</button><button class='btn' onclick='cdSave(\"sum\")'"+(bl?" disabled":"")+">Summary (.txt)</button><button class='btn' onclick='cdToDvf()'"+(bl?" disabled":"")+">Send to Design vs Field</button>"+(bl?"<span class='hint' style='margin:0'>"+E(bl)+"</span>":"")+"</div>";
- h+="<div class='row' style='margin-top:6px'><label>DXF layer</label> <input type='text' id='cd-lay' value='"+E(cdLayGet())+"' style='width:240px'> <span class='hint' style='margin:0'>{date} = "+bcDate()+" · remembered</span></div>";
+ h+="<div class='cu-dl' style='margin-top:10px'><button class='btn pri' onclick='cdSave(\"txt\")'"+(bl?" disabled":"")+">Points file (.txt)</button><button class='btn' onclick='cdSave(\"dxf\")'"+(bl?" disabled":"")+">Points for the drawing (.dxf)</button><button class='btn' onclick='cdSave(\"lines\")'"+(bl||!(S.lines||[]).length?" disabled":"")+" title='each picked line as polylines carrying the design elevations'>Lines as polylines (.dxf)</button><button class='btn' onclick='cdSave(\"sum\")'"+(bl?" disabled":"")+">Summary (.txt)</button><button class='btn' onclick='cdToDvf()'"+(bl?" disabled":"")+">Send to Design vs Field</button>"+(bl?"<span class='hint' style='margin:0'>"+E(bl)+"</span>":"")+"</div>";
+ h+=cdlHtml();h+="<div class='row' style='margin-top:6px'><label>DXF layer</label> <input type='text' id='cd-lay' value='"+E(cdLayGet())+"' style='width:240px'> <span class='hint' style='margin:0'>{date} = "+bcDate()+" · remembered</span></div>";
  host.innerHTML=h;cdWire(host);}
 function cdFocusHtml(){var S=cdS,E=esc,id=S.focus,b=id!==null&&id!==undefined?S.B[id]:null;if(!b||!S.res)return "<div class='hint' style='margin:0 0 8px'>Click a bubble on the drawing, or a row below.</div>";
  var p=S.res.per[b.id],st=S.st[b.id]||{},h="<div class='cd-card'><div><b>"+E(b.meet?"MEET":b.unread?"(couldn’t read)":b.s)+"</b>"+(b.conf<1?" <span class='cd-amb'>(read from the PDF — check)</span>":"")+"</div>";
