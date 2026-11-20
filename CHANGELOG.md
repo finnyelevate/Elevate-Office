@@ -1,5 +1,13 @@
 # Elevate Office — changelog
 
+## Build 1.45.2 — 2026-11-20
+Three things from the first minutes on 1.45.1.
+- **PM › Job map: our job pins were missing (fix).** When a quote was open as the page loaded, the map could be drawn before the app had read which folders are connected. It then showed "Connect Job Files - Documents…" with no blue pins, and never looked again. It now looks again each time the map is shown, so the pins come up by themselves a moment later. If Job Files - Documents really isn't connected on that computer, the line still says so.
+- **PM › Services Provided typed by hand (fix).** In 1.45.1 a service was only loaded for quotes coming in from a tracker row or an email block; typing "topo" did nothing visible. Now, when you leave the Services Provided box (or the task details) and the quote's services are still empty, the matching service is loaded, with the same blue line and Remove. Nothing moves while you are typing. It happens once per quote: after a Remove, the service is offered as a button and not loaded again by itself.
+- **PM › Job map: street names (new).** Over the aerial photo the map now shows street names and road lines (tick box *Street names*, on by default, remembered). The street map view already has its own.
+- **Checked:** pins appear after the folders are read, on a test that fails on 1.45.1; typed "topo" loads Topographic survey on leaving the box, the cursor stays in the box moved to, and it is not loaded twice; street-name tiles are requested and removed with the tick box (7 + 5 new checks). All earlier checks unchanged. Scripted browser, not by hand in Chrome.
+- **Not checked:** how the street names look on the real map. The source was tried from Chrome and returns road tiles for Surrey down to one zoom step short of the closest view, so at the closest zoom the names are enlarged and may look soft.
+
 ## Build 1.45.1 — 2026-11-20
 Two more things asked for before 1.45.0 was uploaded. Includes everything in 1.45.0 below.
 - **PM › Services filled from the request (new).** A quote that comes in from a tracker row or an email block now arrives with its service already loaded when Services Provided names one of the plain cases. The approved library wording is used; hours and prices are never set.
