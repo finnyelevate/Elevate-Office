@@ -1,5 +1,15 @@
 # Elevate Office — changelog
 
+## Build 1.46.1 — 2026-11-24
+One fix from the first look at 1.46.0.
+- **PM › Job map: destroyed monuments were shown (fix).** Every monument in the province's list was drawn as a green triangle, including the ones recorded as destroyed (around Surrey and Langley, more than a third of them). Now:
+  - **Green** = published geodetic control monument (the province's "GPS" and "terrestrial only" classes).
+  - **Purple** = published vertical benchmark (provincial or federal).
+  - **Not shown:** destroyed monuments, and unpublished ones (low horizontal accuracy, preliminary).
+  - Clicking a triangle says which kind it is. The line under the map gives the colours.
+  - The public list has no "anomalous" flag, so a monument the province lists as published but notes as disturbed still shows green. Open its record from the button to read the condition notes before relying on it.
+- **Checked:** 7 new scripted checks on the filter (each of the province's seven classes, a blank class, and the older MASCOT layer); the 143 checks from 1.46.0 unchanged. The class codes were read from the province's own map legend for the layer. Not checked by hand in Chrome.
+
 ## Build 1.46.0 — 2026-11-24
 The PM and job map items noted Nov 20 to 24, built together. The Strata plan work for townhouses is held for a later build.
 - **PM › Job map: house numbers (new).** Each lot shows its civic number (for example 16168), from the BC Address Geocoder, lettered above the PID and plan. Tick box *Addresses*, on by default and remembered; shown once zoomed in to about a block; carried onto *Save map image*.
