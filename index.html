@@ -848,8 +848,8 @@ kbd{background:var(--na-soft);border:1px solid var(--hair);border-radius:3px;pad
 </main>
 <script>
 "use strict";
-const BUILD="1.45.2";
-const NEWS=["PM › Job map: street names over the aerial photo (tick box, on by default).", "PM › Services Provided typed by hand: the service loads when you leave the box (fix).", "PM › Job map: our job pins were missing when the map opened before the folders had been read (fix).", "PM › Services suggested from the request: a tracker row or email block that says topo, PL survey, posting or new construction comes in with that service already loaded (approved wording, no hours or price). Topo for an addition, a new house or a development switches on the matching scope lines.", "PM › address check now reads everything: To Do Quotes rows that have no quote number yet, the last 25 quote folders (the master is a day behind at best) and the quotes master. The line under the address says what was checked.", "PM › Create next quote folder: a warning first if the site address already has a quote or a job. Cancel is the default.", "PM › Site Address: suggestions as you type (our jobs and quotes first, then the BC Address Geocoder). Picking one fills the PID from ParcelMap BC.", "PM › “LTSA map — this lot” opens LTSA at the lot; copy its Parcel Summary and paste it back to fill the PID and Legal Description.", "PM › Job map: every address of the quote gets its own green point. Drop a nearby job’s .msz on the map to see its control and found pins (UTM jobs). Save map image.", "PM › Scope page: Mark up… (cloud, lot outline, arrow, text), pictures from the quote folder or the job map, and a Crew copy (PDF).", "PM › New from an email…: Claude or ChatGPT fills in a short block from the request email; paste it and the quote is started.", "PM › Go to box: type a quote number, a job number or an address. Links work too (#quote=26-690, #job=21-1664, #find=address).", "PM › Jobs: a heads-up when the client is already in the dashboard’s client list, and the job number can be read from the dashboard’s Job list CSV.", "Coordinate design: Lines as polylines (.dxf) — each picked line as a 3D polyline with BC, MID and EC of its curves, plus the same line with true arcs.", "Building layout: Undo now takes back any step (scale, outline, posts, lot, setbacks, excavation); a step strip above the plan shows the step that is on; dimensions keep clear of posts, the excavation line and the lot.", "PM › Job map: the preview under a quote’s address now opens on an aerial photo with ParcelMap BC lot lines, the quote’s address and our jobs as pins. Click a pin for its job and quote. The Google job map is one click away.", "Points › Map (new): a UTM 10 points file over an aerial photo, control highlighted. Click a point for its number and coordinates.", "PM: a pasted tracker row is checked against the jobs master — if there is already a job at or beside the address it says so, and one click makes the draft the next sub-quote of that job’s quote without clearing anything.", "Design calc: the DXF the app writes now carries the working data. Drop the plan, then that DXF, and the job reopens where it was left (Strata plan and Building layout).", "Strata plan: cut a garage out of a lot by drawing only the dividing wall; corners go to wall centres; upper floors where the units are separate blocks; one label per area; TA and THA; labels and dimensions kept clear of each other.", "Design calc (new tab): Coordinate design, Building layout and Strata plan have moved out of Points into their own tab. Pick the tool, then drop the engineer’s or architect’s drawing. Points keeps the points-file tools, including Design vs Field.", "Points \u203a Building calc (new): the architect\u2019s plan (.dxf, .dwg or vector PDF) \u2192 confirm the scale \u2192 click the foundation for its outline (squared) \u2192 posts \u2192 click inside our lot \u2192 setbacks \u2192 Calculate fits the house \u2192 4 ft excavation held to the lot \u2192 points + DXF, all metric.", "Points tools are grouped: Clean up a topo \u00b7 Scale & move points \u00b7 Design & stakeout \u2014 each group lists what\u2019s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
+const BUILD="1.46.0";
+const NEWS=["PM › Job map: house numbers, lot labels (PID and plan number) and provincial control monuments, each with its own tick box.", "PM › Job map: click one of our job pins for the .msz files in its folder; Add points opens in that folder.", "PM › Job map: a job at the quote’s own address is ringed on the green pin, new jobs appear without a refresh, and points reset for each quote (Remove, Clear all points).", "PM › Quotes: Copy folder path, to paste into File Explorer.", "PM › Job details: **existing client #…** and **existing job …** notes for whoever takes the file over.", "PM › Go to: an older quote opens from its job folder when its quote folder has nothing to open.", "PM › City GIS button: Cultus Lake and the other Fraser Valley Regional District areas now open the FVRD web map (fix).", "Training: four new videos linked (Points › Map, Building layout, Strata plan, PM job map with a job’s .msz); the tree-sizes video link is repaired.", "PM › Address search: answers from the quotes master and jobs master straight away, then looks in the newest quote folders; it can no longer sit on “Looking…” (fix).", "PM › Job map: street names over the aerial photo (tick box, on by default).", "PM › Services Provided typed by hand: the service loads when you leave the box (fix).", "PM › Job map: our job pins were missing when the map opened before the folders had been read (fix).", "PM › Services suggested from the request: a tracker row or email block that says topo, PL survey, posting or new construction comes in with that service already loaded (approved wording, no hours or price). Topo for an addition, a new house or a development switches on the matching scope lines.", "PM › address check now reads everything: To Do Quotes rows that have no quote number yet, the last 25 quote folders (the master is a day behind at best) and the quotes master. The line under the address says what was checked.", "PM › Create next quote folder: a warning first if the site address already has a quote or a job. Cancel is the default.", "PM › Site Address: suggestions as you type (our jobs and quotes first, then the BC Address Geocoder). Picking one fills the PID from ParcelMap BC.", "PM › “LTSA map — this lot” opens LTSA at the lot; copy its Parcel Summary and paste it back to fill the PID and Legal Description.", "PM › Job map: every address of the quote gets its own green point. Drop a nearby job’s .msz on the map to see its control and found pins (UTM jobs). Save map image.", "PM › Scope page: Mark up… (cloud, lot outline, arrow, text), pictures from the quote folder or the job map, and a Crew copy (PDF).", "PM › New from an email…: Claude or ChatGPT fills in a short block from the request email; paste it and the quote is started.", "PM › Go to box: type a quote number, a job number or an address. Links work too (#quote=26-690, #job=21-1664, #find=address).", "PM › Jobs: a heads-up when the client is already in the dashboard’s client list, and the job number can be read from the dashboard’s Job list CSV.", "Coordinate design: Lines as polylines (.dxf) — each picked line as a 3D polyline with BC, MID and EC of its curves, plus the same line with true arcs.", "Building layout: Undo now takes back any step (scale, outline, posts, lot, setbacks, excavation); a step strip above the plan shows the step that is on; dimensions keep clear of posts, the excavation line and the lot.", "PM › Job map: the preview under a quote’s address now opens on an aerial photo with ParcelMap BC lot lines, the quote’s address and our jobs as pins. Click a pin for its job and quote. The Google job map is one click away.", "Points › Map (new): a UTM 10 points file over an aerial photo, control highlighted. Click a point for its number and coordinates.", "PM: a pasted tracker row is checked against the jobs master — if there is already a job at or beside the address it says so, and one click makes the draft the next sub-quote of that job’s quote without clearing anything.", "Design calc: the DXF the app writes now carries the working data. Drop the plan, then that DXF, and the job reopens where it was left (Strata plan and Building layout).", "Strata plan: cut a garage out of a lot by drawing only the dividing wall; corners go to wall centres; upper floors where the units are separate blocks; one label per area; TA and THA; labels and dimensions kept clear of each other.", "Design calc (new tab): Coordinate design, Building layout and Strata plan have moved out of Points into their own tab. Pick the tool, then drop the engineer’s or architect’s drawing. Points keeps the points-file tools, including Design vs Field.", "Points › Building calc (new): the architect’s plan (.dxf, .dwg or vector PDF) → confirm the scale → click the foundation for its outline (squared) → posts → click inside our lot → setbacks → Calculate fits the house → 4 ft excavation held to the lot → points + DXF, all metric.", "Points tools are grouped: Clean up a topo · Scale & move points · Design & stakeout — each group lists what’s in it, and it remembers where you were.", "Coordinate design: the DXF layer name is yours to set ({date} fills in) and is remembered.", "Training: the Design vs Field cut / fill example video is linked."];
 
 /* ================= CHECKLIST CONTENT — verbatim from the 2026 source PDFs (plus items added on request at the end of a section, so saved ticks keep their place) ================= */
 const CHECKLISTS=[
@@ -2567,8 +2567,9 @@ var PMR_CITY=[
  [/\bnew\s*west(minster)?\b/,["New Westminster"]],[/\bwhite\s*rock\b/,["White Rock"]],
  [/\b(surrey|cloverdale|fleetwood|newton|guildford|whalley|south surrey)\b/,["Surrey"]],
  [/\b(delta|ladner|tsawwassen)\b/,["Delta"]],[/\bburnaby\b/,["Burnaby"]],[/\brichmond\b/,["Richmond"]],[/\bvancouver\b/,["Vancouver"]],
- [/\bmaple\s*ridge\b/,["Maple Ridge"]],[/\bpitt\s*meadows\b/,["Pitt Meadows"]],[/\babbotsford\b/,["Abbotsford"]],[/\bchilliwack\b/,["Chilliwack"]],[/\bmission\b/,["Mission"]]];
-function pmrCities(addr,geo){var a=String(addr||"").toLowerCase(),c=a.indexOf(",")>=0?a.slice(a.indexOf(",")+1):a,hit=null;
+ [/\bmaple\s*ridge\b/,["Maple Ridge"]],[/\bpitt\s*meadows\b/,["Pitt Meadows"]],[/\babbotsford\b/,["Abbotsford"]],[/\bchilliwack\b/,["Chilliwack"]],[/\bmission\b/,["Mission"]],
+ [/\b(cultus lake|lindell beach|deroche|lake errock|harrison mills|hemlock valley|sasquatch mountain|sunshine valley|boston bar|spuzzum|popkum|bridal falls|chilliwack river valley|fraser valley regional district|fvrd)\b/,["Fraser Valley"]]];
+function pmrCities(addr,geo){if(geo&&/^FVRD\b/i.test(geo.ea||"")){var gf=(typeof GIS!=="undefined"?GIS:[]).find(function(x){return x[0]==="Fraser Valley";});if(gf)return [{name:"Fraser Valley",url:gf[1]}];}var a=String(addr||"").toLowerCase(),c=a.indexOf(",")>=0?a.slice(a.indexOf(",")+1):a,hit=null;
  PMR_CITY.some(function(r){if(r[0].test(c)){hit=r[1];return true;}return false;});
  if(!hit)PMR_CITY.some(function(r){if(r[0].test(a)){hit=r[1];return true;}return false;});
  /* the geocoder's municipality (e.g. "District of North Vancouver") settles City vs District / Township, or finds the city when none was typed */
@@ -2582,11 +2583,11 @@ var PMR_GEO={};
 function pmrGeoKey(a){return String(a||"").trim().toLowerCase().replace(/\s+/g," ");}
 function pmrGeoGet(a){var k=pmrGeoKey(a);if(!k)return null;if(PMR_GEO[k])return PMR_GEO[k];try{var c=JSON.parse(sget("eo:geo")||"{}");if(c[k]){PMR_GEO[k]=c[k];return c[k];}}catch(e){}return null;}
 function pmrGeoPut(a,v){var k=pmrGeoKey(a);PMR_GEO[k]=v;try{var c=JSON.parse(sget("eo:geo")||"{}"),ks=Object.keys(c);if(ks.length>300)ks.slice(0,100).forEach(function(x){delete c[x];});c[k]=v;sset("eo:geo",JSON.stringify(c));}catch(e){}}
-function pmrGeocode(a){var k=pmrGeoKey(a);if(!k||k.length<6||!/\d/.test(k))return Promise.resolve(null);var have=pmrGeoGet(a);if(have)return Promise.resolve(have);if(typeof fetch==="undefined")return Promise.resolve(null);
+function pmrGeocode(a){var k=pmrGeoKey(a);if(!k||k.length<6||!/\d/.test(k))return Promise.resolve(null);var have=pmrGeoGet(a);if(have&&have.ea!==undefined)return Promise.resolve(have);if(typeof fetch==="undefined")return Promise.resolve(null);
  var u="https://geocoder.api.gov.bc.ca/addresses.json?maxResults=1&outputSRS=4326&addressString="+encodeURIComponent(String(a).replace(/\s*\n\s*/g," ")+(/\bbc\b|british columbia/i.test(a)?"":", BC"));
- return fetch(u).then(function(r){return r.ok?r.json():null;}).then(function(j){var f=j&&j.features&&j.features[0];if(!f)return null;var P=f.properties||{},c=f.geometry&&f.geometry.coordinates;
+ return pmzFetch(u,7000).then(function(r){return r.ok?r.json():null;}).then(function(j){var f=j&&j.features&&j.features[0];if(!f)return null;var P=f.properties||{},c=f.geometry&&f.geometry.coordinates;
   var exact=/CIVIC_NUMBER|BLOCK|SITE|UNIT/i.test(P.matchPrecision||"")&&(P.score||0)>=70;
-  var v={lat:c[1],lng:c[0],full:P.fullAddress||"",loc:P.localityName||"",ltype:P.localityType||"",exact:exact,score:P.score||0};pmrGeoPut(a,v);return v;}).catch(function(){return null;});}
+  var v={lat:c[1],lng:c[0],full:P.fullAddress||"",loc:P.localityName||"",ltype:P.localityType||"",exact:exact,score:P.score||0,ea:P.electoralArea||""};pmrGeoPut(a,v);return v;}).catch(function(){return null;});}
 function pmrStripHtml(q,i,p){if(pmrIsSub(q)||!(p.site||"").trim())return "<div class='pmr-strip' data-pr='"+i+"'></div>";
  var geo=pmrGeoGet(p.site),C=pmrCities(p.site,geo),pid=(p.pid||"").trim(),a=String(p.site).replace(/\s*\n\s*/g," ").trim(),E=pmEsc;
  var btn=function(lab,url,copy,tip){return "<a class='btn pmr-b' href='"+E(url)+"' target='_blank' rel='noopener'"+(copy?" data-copy='"+E(copy)+"'":"")+" title='"+E(tip)+"'>"+E(lab)+"</a>";};
@@ -2900,7 +2901,7 @@ async function pmjYearQuotes(root,yy,n,top){
 function pmjQnParts(qn){var m=String(qn||"").trim().match(/^(\d{2})\s*-\s*(\d{1,4})(?:\s*[- ]?\s*([A-Za-z])|\s*[- ]\s*(\d{1,2}))?$/);return m?{yy:m[1],n:+m[2],sub:m[3]?m[3].toUpperCase():(m[4]?String(+m[4]):""),num:!!m[4],base:m[1]+"-"+m[2]}:null;}
 /* the quote number a file name refers to, normalised ("Elev. Survey Quote 24-165-1  Rajan.docx" -> "24-165-1", "quote-26-586C-job_details.txt" -> "26-586C") */
 function pmjFileQn(name){var m=String(name).replace(/\.[^.]+$/,"").match(/(^|[^0-9])(\d{2})\s*-\s*(\d{1,4})(?![0-9])(?:\s*[- ]?\s*([A-Za-z])(?![A-Za-z])|\s*[- ]\s*(\d{1,2})(?![0-9]))?/);if(!m)return null;return m[2]+"-"+(+m[3])+(m[4]?m[4].toUpperCase():(m[5]?"-"+(+m[5]):""));}
-function pmjQnNorm(qn){var Q=pmjQnParts(qn);return Q?Q.base+(Q.sub?(Q.num?"-"+Q.sub:Q.sub):""):String(qn||"").trim().toUpperCase();}
+function pmjQnNorm(qn){var Q=pmjQnParts(qn);return Q?Q.yy+"-"+Q.n+(Q.sub?(Q.num?"-"+Q.sub:Q.sub):""):String(qn||"").trim().toUpperCase();}
 function pmjQnKey(s){return String(s||"").toUpperCase().replace(/[^0-9A-Z]/g,"");}
 async function pmjFindQuoteFolders(qn,client,rw){
  var root=await pmjDir("quotes",!!rw),Q=pmjQnParts(qn);
@@ -2940,7 +2941,7 @@ async function pmjSaveToQuoteFolder(){
  var q=pmCurQ();if(!q)return;var box=document.getElementById("pm-qsave"),say=function(html,bad){if(box){box.style.display="block";box.className=bad?"cu-err":"cu-sfhit";box.innerHTML=html;}};
  var iss=pmqCheck(q);if(iss.length){var wb=document.getElementById("pm-qwarn");if(wb){wb.style.display="block";wb.innerHTML="<b>Can’t build the quote yet:</b><ul>"+iss.map(function(i){return "<li>"+pmEsc(i)+"</li>";}).join("")+"</ul>";}if(!(q.f.qn||"").trim())pmNeedQn();return;}
  try{
-  var list=await pmjFindQuoteFolders(q.f.qn,q.f.client,true);
+  await pmzNotes(q);var list=await pmjFindQuoteFolders(q.f.qn,q.f.client,true);
   if(!list.length){list=[];list.ask=true;}
   var dir=await pmjChoose("pm-qsave",list,!list.length?"Couldn’t find a quote folder for "+q.f.qn+" in Quotes - Documents. Choose it with “Choose another folder…”, or create it with “Create quote folder” at the top of the quote and save again.":(list.ask?"Not sure which folder is quote "+q.f.qn+" (the files inside name a different quote) — which one?":"More than one folder could be quote "+q.f.qn+" — which one?"),list.length>1||!!list.ask);if(!dir)return;
   await pmjPerm(dir,true);
@@ -3682,9 +3683,9 @@ function pmTimeSvc(C,kind,L){
 }
 function pmJobText(q){
  var f=q.f,C=pmCalc(q),L=[],g=function(k){return (f[k]||"").trim();};
- L.push("Client: "+g("client"));L.push("Contact Name: "+g("contact"));L.push("Email: "+g("email"));L.push("Phone: "+g("phone"));
+ L.push("Client: "+g("client")+pmzNoteC(q));L.push("Contact Name: "+g("contact"));L.push("Email: "+g("email"));L.push("Phone: "+g("phone"));
  L.push("Site Address: "+pmPropJoin(q,"site"));L.push("Quote# "+g("qn"));L.push("Legal Desc. "+pmPropJoin(q,"legal"));L.push("PID: "+pmPropJoin(q,"pid"));
- L.push("Relevant plans: "+g("plans"));L.push("Services Provided: "+g("services"));L.push("Additional Task Details: "+g("task").replace(/\s*\n\s*/g," "));
+ L.push("Relevant plans: "+g("plans"));L.push("Services Provided: "+g("services"));L.push("Additional Task Details: "+g("task").replace(/\s*\n\s*/g," ")+pmzNoteJ(q));
  L.push("Additional PM comments: "+g("pmc").replace(/\s*\n\s*/g," "));L.push("Zoning: "+g("zoning"));
  L.push("Estimated Field Time: "+pmTimeLine(C,"field"));pmTimeSvc(C,"field",L);L.push("Estimated Draft Time: "+pmTimeLine(C,"office"));pmTimeSvc(C,"office",L);
  L.push("Disbursements: "+(C.disbParts.length?C.disbParts.join(" + ")+" = "+pmMoney(C.disb,false):""));
@@ -3788,7 +3789,7 @@ function pmRenderMain(host){
  h+="</div><aside class='pmq-prev' id='pm-qprev'"+(pv?"":" style='display:none'")+"></aside></div>";
  h+="<div class='pm-h'>Field Crew Instructions</div><div class='row'>"+((V.fci||[]).length?"<select id='pm-fcisel'>"+V.fci.map(function(o,i){return "<option value='"+i+"'>"+pmEsc(o.label)+"</option>";}).join("")+"</select> <button class='btn' id='pm-fciins'>Insert</button>":"")+"<span class='hint' style='margin:0 0 0 8px'>options are edited under Rates &amp; crew instructions</span></div><textarea id='pm-fci' rows='6' class='pm-ta'>"+pmEsc(q.fci)+"</textarea>";
  h+="<div class='pm-h'>Notes appended after the fields</div><textarea id='pm-notes' rows='4' class='pm-ta' placeholder='Date received, source, transcription of the request…'>"+pmEsc(q.notes)+"</textarea>";
- h+="<div class='pm-h'>Quote document</div><div class='row'><label class='pm-f' style='flex:1;max-width:560px'><span>Word file name</span><input type='text' id='pm-docname' value='"+pmEsc(q.f.docname||"")+"' placeholder='"+pmEsc(pmqDefaultName(q))+"'></label></div><div class='cu-dl'><button class='btn pri' onclick='pmjSaveToQuoteFolder()' title='saves the Word quote and the job details file into this quote’s folder in Quotes - Documents'>Save both to quote folder (Word quote + job details)</button><button class='btn' onclick='pmqDownloadDocx()'>Download quote (.docx)</button><span class='hint' style='margin:0'>date, GST, disbursements, signatory and contract fill in automatically</span></div><div class='cu-idwarn' id='pm-disbrem' style='display:"+(pmqDisbLine(q)?"none":"block")+"'>No disbursements selected \u2014 title, plans, checklist or filing fee? (Not required \u2014 just a reminder.)</div><div class='row'><label class='cu-sfhit' style='margin:0'><input type='checkbox' id='pm-rs'"+(q.rs?" checked":"")+"> Attach rate sheet (page 2) \u2014 hourly rates, fees &amp; deliverables for "+new Date().getFullYear()+", from the current rates</label></div><div class='cu-err' id='pm-qwarn' style='display:none'></div><div id='pm-qsave' style='display:none'></div>"+pmscHtml(q);
+ h+="<div class='pm-h'>Quote document</div><div class='row'><label class='pm-f' style='flex:1;max-width:560px'><span>Word file name</span><input type='text' id='pm-docname' value='"+pmEsc(q.f.docname||"")+"' placeholder='"+pmEsc(pmqDefaultName(q))+"'></label></div><div class='cu-dl'><button class='btn pri' onclick='pmjSaveToQuoteFolder()' title='saves the Word quote and the job details file into this quote’s folder in Quotes - Documents'>Save both to quote folder (Word quote + job details)</button><button class='btn' onclick='pmqDownloadDocx()'>Download quote (.docx)</button><button class='btn' onclick='pmzCopyPath()' title='copies the path of this quote’s folder on this computer, to paste into File Explorer’s address bar'>Copy folder path</button><span class='hint' style='margin:0'>date, GST, disbursements, signatory and contract fill in automatically</span></div><div class='cu-idwarn' id='pm-disbrem' style='display:"+(pmqDisbLine(q)?"none":"block")+"'>No disbursements selected \u2014 title, plans, checklist or filing fee? (Not required \u2014 just a reminder.)</div><div class='row'><label class='cu-sfhit' style='margin:0'><input type='checkbox' id='pm-rs'"+(q.rs?" checked":"")+"> Attach rate sheet (page 2) \u2014 hourly rates, fees &amp; deliverables for "+new Date().getFullYear()+", from the current rates</label></div><div class='cu-err' id='pm-qwarn' style='display:none'></div><div id='pm-qsave' style='display:none'></div>"+pmscHtml(q);
  h+="<div class='pm-h'>Job details file</div><div class='cu-dl'><button class='btn pri' onclick='pmDownload()'>Download job details (.txt)</button><button class='btn' onclick='pmCopyJob()' title='copies the job details text, to paste into an email or Teams'>Copy job details</button><button class='btn' onclick='pmCopyRow()' title='one row, columns A–K, to paste into To Do Quotes \u2014 click column A of an empty row, then paste'>Copy tracker row</button><span class='hint' id='pm-copied' style='margin:0'></span></div><div class='jobnote' id='pm-qnote' style='display:none'>Enter the Quote # before saving the job details file.</div>";
  h+="<details class='cu-scman'><summary>Preview</summary><pre class='pm-pre' id='pm-pre'></pre></details>";
  h+=pmRatesHtml()+pmqFavsHtml()+pmqHPsHtml()+pmqSetsHtml();
@@ -3833,7 +3834,7 @@ function pmUpdate(){
  var t=document.getElementById("pm-tot");
  if(t)t.innerHTML="<div><span>Field time (included services)</span><b>"+pmEsc(pmTimeLine(C,"field")||"—")+"</b></div><div><span>Draft time (included services)</span><b>"+pmEsc(pmTimeLine(C,"office")||"—")+"</b></div>"+(C.secs.some(function(x){return x.status==="inc";})||!pmOptTotals(C).length?"<div><span>Total labour</span><b>"+pmMoney(C.labour)+"</b></div>":"")+(C.anyQuote?"<div><span>Total quoted</span><b>"+pmMoney(C.quoted)+"</b></div>":"")+"<div><span>Disbursements</span><b>"+pmMoney(C.disb)+"</b></div>"+(function(){var OT=pmOptTotals(C),inc=C.secs.some(function(x){return x.status==="inc";});return (inc||!OT.length?"<div class='pm-grand'><span>Total before GST</span><b>"+pmMoney(C.total)+"</b></div>":"")+OT.map(function(o){return "<div class='pm-grand'><span>Option "+o.n+" total before GST"+(o.name?" \u2014 "+pmEsc(o.name):"")+"</span><b>"+pmMoney(o.total)+"</b></div>";}).join("");})();
  document.querySelectorAll(".pmq-price input.pmq-f").forEach(function(el){var sc=C.secs[+el.dataset.s],m=/^pl:(\d+):price$/.exec(el.dataset.p||"");if(sc&&m)sc=sc.extra[+m[1]];else if(el.dataset.p!=="price")return;if(sc)el.placeholder=sc.total>0?"calculated "+pmMoney(sc.total):"calculated";});
- var p=document.getElementById("pm-pre");if(p)p.textContent=pmJobText(q);
+ var p=document.getElementById("pm-pre");if(p)p.textContent=pmJobText(q);pmzSoon(q);
  pmqPreviewSoon();
  /* 1.35: research links follow the site address as it's typed */
  var rk=pmProps(q).map(function(p){return p.site+"|"+p.pid;}).join("\n")+"|"+q.f.qn;if(rk!==PM.prKey){var first=PM.prKey==null||PM.prQ!==q.id;PM.prKey=rk;PM.prQ=q.id;if(!first)pmrRefreshSoon();}
@@ -3910,7 +3911,8 @@ function pmRole(txt){
  var c=list.filter(function(x){return t.indexOf(x.n)>=0;})[0];return c?c.id:null;
 }
 var PM_LABELS=[["client",/^client\s*:/i],["contact",/^contact(\s*name)?\s*:/i],["email",/^e-?mail\s*:/i],["phone",/^phone\s*:/i],["site",/^site\s*address\s*:?/i],["qn",/^quote\s*#\s*:?/i],["legal",/^legal\s*desc\.?\s*:?/i],["pid",/^pid\s*:/i],["plans",/^relevant\s*plans\s*:/i],["services",/^services\s*provided\s*:/i],["task",/^additional\s*task\s*details\s*:/i],["pmc",/^additional\s*pm\s*comments\s*:/i],["zoning",/^zoning\s*:/i],["_eft",/^estimated\s*field\s*time\s*:/i],["_edt",/^estimated\s*draft\s*time\s*:/i],["_disb",/^disbursements\s*:/i],["pm",/^project\s*manager\s*:/i],["_task",/^task\s*#\s*:?/i]];
-function pmParseJob(text){
+function pmParseJob(text){return pmzStripQ(pmParseJob0(text));}
+function pmParseJob0(text){
  var lines=text.replace(/^﻿/,"").replace(/\r\n?/g,"\n").split("\n"),f={},raw={},i=0,last=null,fciAt=-1;
  for(;i<lines.length;i++){
   var l=lines[i],tl=l.trim();
@@ -4357,7 +4359,7 @@ function cuRender(){
 }
 /* ---------- Points tab tool buttons (1.31): one tool shown at a time; the file shelf stays on top ---------- */
 var CU_TOOLS=[["clean","Clean-up"],["scale","Scale"],["match","Match points"],["cd","Coordinate design"],["dvf","Design vs Field"],["bc","Building calc"],["mon","Monitoring"],["tree","Tree table"],["hc","Height check"],["tf","Transform"],["map","Map"]];
-var CU_TOOL_VIDS={clean:["Fixing tree sizes to imperial (Points tab)","Points upload for crew \u2014 example","RW5 file to points for a topo in feet (Points tab)"],match:["Points matching (Match points tab)","Points matching \u2014 PL sample"],dvf:["Design vs Field \u2014 comparing cut / fills (Points tab)","Design vs Field \u2014 cut / fill example (Points tab)","Design vs Field \u2014 comparing residuals (Points tab)"],bc:["House calc for new subdivision (Delta)"],tree:["Tree table (Points tab)"],hc:["Height check (Points tab)"]};
+var CU_TOOL_VIDS={map:["Map — points over the aerial photo (Points tab)"],clean:["Fixing tree sizes to imperial (Points tab)","Points upload for crew \u2014 example","RW5 file to points for a topo in feet (Points tab)"],match:["Points matching (Match points tab)","Points matching \u2014 PL sample"],dvf:["Design vs Field \u2014 comparing cut / fills (Points tab)","Design vs Field \u2014 cut / fill example (Points tab)","Design vs Field \u2014 comparing residuals (Points tab)"],bc:["House calc for new subdivision (Delta)"],tree:["Tree table (Points tab)"],hc:["Height check (Points tab)"]};
 var cuTool=(function(){try{var t=localStorage.getItem("eo:cutool");return CU_TOOLS.some(function(x){return x[0]===t;})&&t!=="cd"&&t!=="bc"?t:"clean";}catch(e){return "clean";}})();
 function cuHasTrees(){try{return cuTreeRows().length>0;}catch(e){return false;}}
 function cuVidsHtml(t){var names=CU_TOOL_VIDS[t]||[];if(!names.length||typeof TRAINING==="undefined")return "";var all=[];TRAINING.forEach(function(g){all=all.concat(g.videos);});
@@ -7789,14 +7791,14 @@ function pmmView(){try{return localStorage.getItem("eo:pmmview")==="google"?"goo
 function pmmSetView(v){try{localStorage.setItem("eo:pmmview",v);}catch(e){}var b=document.getElementById("pmr-map");if(b){b.innerHTML="";b.dataset.pmm="";}PMM.imgs={};var q=pmCurQ();if(q)pmrMapDraw(q);}
 function pmmSet(k,v){PMM[k]=v;if(k==="base"){PMM.fail=0;PMM.ok=0;try{localStorage.setItem("eo:pmmbase",v);}catch(e){}}if(k==="lots"){try{localStorage.setItem("eo:pmmlots",v?"1":"0");}catch(e){}}var b=document.getElementById("pmr-map");if(b)b.dataset.pmm="";var q=pmCurQ();if(q)pmrMapDraw(q);}
 function pmmSwitch(view){return "<span class='seg'><button class='"+(view==="own"?"on":"")+"' onclick='pmmSetView(\"own\")' title='aerial photo with lot lines and our jobs, drawn by the app'>Lot lines</button><button class='"+(view==="google"?"on":"")+"' onclick='pmmSetView(\"google\")' title='the Google My Maps job map'>Google job map</button></span>";}
-function pmmShow(box,q,p,geo){var key=geo.lat+","+geo.lng+"|"+PMM.base+"|"+PMM.lots;PMM.geo=geo;pmaProps(q);
+function pmmShow(box,q,p,geo){var key=geo.lat+","+geo.lng+"|"+PMM.base+"|"+PMM.lots;PMM.geo=geo;pmzReset(q);pmaProps(q);
  if(box.dataset.pmm!==key||!document.getElementById("pmm-map")){box.dataset.pmm=key;PMM.imgs={};PMM.sel=null;if(PMM.key!==geo.lat+","+geo.lng){PMM.key=geo.lat+","+geo.lng;PMM.c=cumW(geo.lat,geo.lng);PMM.z=19;pmaFit(box);}
-  box.innerHTML="<div class='pmr-mh' style='flex-wrap:wrap;gap:6px'><b>Job map</b> — "+pmEsc(geo.full||p.site)+" "+pmmSwitch("own")+"<span class='seg'>"+["esri","osm"].map(function(k){return "<button class='"+(PMM.base===k?"on":"")+"' onclick='pmmSet(\"base\",\""+k+"\")'>"+CUM_BASE[k].n+"</button>";}).join("")+"</span><label class='cu-cb'><input type='checkbox' "+(PMM.lots?"checked":"")+" onchange='pmmSet(\"lots\",this.checked)'> Lot lines (ParcelMap BC)</label>"+pmaNamesBox()+"<span style='flex:1'></span><button class='btn pmr-b' onclick='pmmZoom(1)'>+</button><button class='btn pmr-b' onclick='pmmZoom(-1)'>−</button><button class='btn pmr-b' onclick='pmmCentre()'>Re-centre</button>"+pmsBtns()+"<a class='btn pmr-b' target='_blank' rel='noopener' href='https://www.google.com/maps/d/viewer?mid="+PMR_MID+"&ll="+geo.lat+","+geo.lng+"&z=19'>Open in My Maps</a></div>"+
+  box.innerHTML="<div class='pmr-mh' style='flex-wrap:wrap;gap:6px'><b>Job map</b> — "+pmEsc(geo.full||p.site)+" "+pmmSwitch("own")+"<span class='seg'>"+["esri","osm"].map(function(k){return "<button class='"+(PMM.base===k?"on":"")+"' onclick='pmmSet(\"base\",\""+k+"\")'>"+CUM_BASE[k].n+"</button>";}).join("")+"</span><label class='cu-cb'><input type='checkbox' "+(PMM.lots?"checked":"")+" onchange='pmmSet(\"lots\",this.checked)'> Lot lines (ParcelMap BC)</label>"+pmaNamesBox()+pmzBoxes()+"<span style='flex:1'></span><button class='btn pmr-b' onclick='pmmZoom(1)'>+</button><button class='btn pmr-b' onclick='pmmZoom(-1)'>−</button><button class='btn pmr-b' onclick='pmmCentre()'>Re-centre</button>"+pmsBtns()+"<a class='btn pmr-b' target='_blank' rel='noopener' href='https://www.google.com/maps/d/viewer?mid="+PMR_MID+"&ll="+geo.lat+","+geo.lng+"&z=19'>Open in My Maps</a></div>"+
    "<div id='pmm-map' style='position:relative;height:440px;overflow:hidden;background:#e5e7eb;cursor:grab;touch-action:none;user-select:none'><div id='pmm-tiles' style='position:absolute;left:0;top:0'></div><canvas id='pmm-cv' style='position:absolute;left:0;top:0;pointer-events:none'></canvas><div id='pmm-by' style='position:absolute;right:0;bottom:0;background:rgba(255,255,255,.8);font-size:10px;padding:1px 5px;color:#333'></div><div id='pmm-note' style='position:absolute;left:6px;top:6px;background:rgba(255,255,255,.92);font-size:12px;padding:3px 7px;display:none'></div></div>"+
    "<div class='hint' id='pma-miss' style='margin:4px 0 0;display:none'></div><div class='hint' id='pmm-leg' style='margin:4px 0 0'></div><div id='pmm-info' class='cu-sfhit' style='display:none;margin-top:6px'></div><div id='pms-leg'></div>";
   pmmWire();}
  pmmDraw();
- if(!PMM.jobs&&!PMM.jobsBusy){PMM.jobsBusy=true;pmkSource(false).then(function(S){PMM.jobsBusy=false;if(S&&S.rows){PMM.jobs=S.rows.filter(function(r){return r.lat!==null&&r.lng!==null;}).map(function(r){return {job:r.job,qn:r.qn,site:r.site,lat:r.lat,lng:r.lng,w:cumW(r.lat,r.lng)};});PMM.jobsAll=S.rows.length;PMM.jobsOff="";}else{PMM.jobs=S&&S.off?null:[];PMM.jobsOff=S&&S.off==="conn"?"Connect Job Files - Documents (Folders on this computer, below) to see our jobs on this map.":S&&S.off==="perm"?"perm":S&&S.miss?PMK_FILE+" isn’t in Job Files - Documents, so no jobs are shown.":"The jobs master couldn’t be read, so no jobs are shown.";}pmmDraw();},function(){PMM.jobsBusy=false;});}}
+ pmzLoadJobs();}
 function pmmXY(w,W,H){var s=Math.pow(2,PMM.z);return [(w[0]-PMM.c[0])*s+W/2,(w[1]-PMM.c[1])*s+H/2];}
 function pmmCentre(){if(!PMM.geo)return;PMM.c=cumW(PMM.geo.lat,PMM.geo.lng);PMM.z=19;pmmDraw();}
 function pmmZoom(d,at){var box=document.getElementById("pmm-map");if(!box||!PMM.c)return;var W=box.clientWidth||900,H=box.clientHeight||440,z0=PMM.z,z1=Math.max(9,Math.min(21,z0+d));if(z1===z0)return;if(at){var s0=Math.pow(2,z0),s1=Math.pow(2,z1),wx=PMM.c[0]+(at[0]-W/2)/s0,wy=PMM.c[1]+(at[1]-H/2)/s0;PMM.c=[wx-(at[0]-W/2)/s1,wy-(at[1]-H/2)/s1];}PMM.z=z1;pmmDraw();}
@@ -7807,11 +7809,11 @@ function pmmDraw(){var box=document.getElementById("pmm-map"),tl=document.getEle
  if((x1-x0+1)*(y1-y0+1)<=80)for(var x=x0;x<=x1;x++)for(var y=y0;y<=y1;y++){if(y<0||y>=nmax)continue;var xx=((x%nmax)+nmax)%nmax;put("b|"+PMM.base+"|"+tz+"|"+x+"|"+y,B.u.replace("{z}",tz).replace("{x}",xx).replace("{y}",y),x,y,1);
    if(PMM.lots&&tz>=15){var m=20037508.342789244,w0=2*m/nmax;put("l|"+tz+"|"+x+"|"+y,CUM_LOTS+[(-m+xx*w0).toFixed(3),(m-(y+1)*w0).toFixed(3),(-m+(xx+1)*w0).toFixed(3),(m-y*w0).toFixed(3)].join("%2C"),x,y,0.8);}}
  pmaNames(tl,W,H,want);Object.keys(PMM.imgs).forEach(function(k){if(!want[k]){var im=PMM.imgs[k];if(im.parentNode)im.parentNode.removeChild(im);delete PMM.imgs[k];}});
- var by=document.getElementById("pmm-by");if(by)by.textContent=[B.by,PMM.lots?"Lot lines: ParcelMap BC, Open Government Licence – British Columbia":"",typeof pmaNamesOn==="function"&&pmaNamesOn()?"Street names: Esri":""].filter(Boolean).join(" · ");
+ var by=document.getElementById("pmm-by");if(by)by.textContent=[B.by,PMM.lots?"Lot lines: ParcelMap BC, Open Government Licence – British Columbia":"",typeof pmaNamesOn==="function"&&pmaNamesOn()?"Street names: Esri":"",pmzBy()].filter(Boolean).join(" · ");
  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}var g=cv.getContext&&cv.getContext("2d"),inView=0;if(g){g.clearRect(0,0,W,H);
   var pin=function(q,fill,r,lab){g.beginPath();g.moveTo(q[0],q[1]);g.bezierCurveTo(q[0]-r*1.1,q[1]-r*1.3,q[0]-r,q[1]-r*2.6,q[0],q[1]-r*2.6);g.bezierCurveTo(q[0]+r,q[1]-r*2.6,q[0]+r*1.1,q[1]-r*1.3,q[0],q[1]);g.closePath();g.fillStyle=fill;g.fill();g.lineWidth=2;g.strokeStyle="#fff";g.stroke();g.beginPath();g.arc(q[0],q[1]-r*1.65,r*0.36,0,7);g.fillStyle="#fff";g.fill();
    if(lab){g.font="bold 12px sans-serif";g.textBaseline="middle";g.lineWidth=3;g.strokeStyle="rgba(0,0,0,.85)";g.strokeText(lab,q[0]+r+3,q[1]-r*1.7);g.fillStyle="#fff";g.fillText(lab,q[0]+r+3,q[1]-r*1.7);}};
-  (PMM.jobs||[]).forEach(function(j){var q=pmmXY(j.w,W,H);if(q[0]<-30||q[1]<-10||q[0]>W+30||q[1]>H+40)return;inView++;pin(q,PMM.sel===j?"#f59e0b":"#0288d1",10,PMM.z>=17?j.job:"");});
+  pmzDraw(g,W,H);(PMM.jobs||[]).forEach(function(j){var q=pmmXY(j.w,W,H);if(q[0]<-30||q[1]<-10||q[0]>W+30||q[1]>H+40)return;inView++;pin(q,PMM.sel===j?"#f59e0b":"#0288d1",10,PMM.z>=17?j.job:"");});
   pmsDraw(g,W,H);pmaPins(pin,W,H);
   var lat=cumLLofW(PMM.c),mpp=156543.03392*Math.cos(lat*Math.PI/180)/Math.pow(2,PMM.z),nice=[1,2,5,10,20,50,100,200,500,1000,2000,5000],len=nice[0];nice.forEach(function(v){if(v/mpp<=140)len=v;});var bw=len/mpp;g.fillStyle="rgba(255,255,255,.85)";g.fillRect(8,H-26,bw+12,20);g.fillStyle="#111";g.fillRect(14,H-12,bw,3);g.font="11px sans-serif";g.textBaseline="alphabetic";g.fillText(len>=1000?len/1000+" km":len+" m",14,H-16);}
  else (PMM.jobs||[]).forEach(function(j){var q=pmmXY(j.w,W,H);if(!(q[0]<-30||q[1]<-10||q[0]>W+30||q[1]>H+40))inView++;});
@@ -8613,7 +8615,7 @@ function pmaLtsaApply(i,text){var q=pmCurQ();if(!q)return false;var X=pmaLtsaPar
  T.open=false;T.bad=false;T.msg="Filled from the LTSA parcel summary: "+did.join(" and ")+(X.plan?" · plan "+E(X.plan):"")+".";
  var R=PMA.pid[pmrGeoKey(p.site)];if(X.pid&&R&&R.state==="ok"&&!R.list.some(function(x){return x.pid===X.pid;})){T.bad=true;T.msg+=" <b>Check the lot:</b> ParcelMap BC shows "+R.list.map(function(x){return E(x.pid);}).join(", ")+" under this address, not "+E(X.pid)+".";}
  pmaSlotDraw(i);if(typeof pmUpdate==="function")try{pmUpdate();}catch(e){}return true;}
-function pmaWire(){var host=document.getElementById("pmhost");if(!host)return;pmnWire(host);
+function pmaWire(){var host=document.getElementById("pmhost");if(!host)return;pmnWire(host);pmzWire(host);
  host.querySelectorAll("input[data-f='site'],input[data-xp][data-k='site']").forEach(function(el){if(el._pma)return;el._pma=1;el.setAttribute("autocomplete","off");
   el.addEventListener("input",function(e){if(e&&e.isTrusted===false&&PMA.skip===pmrGeoKey(el.value))return;pmaType(el);});el.addEventListener("keydown",function(e){pmaKey(el,e);});el.addEventListener("blur",function(){setTimeout(pmaClose,180);});});
  host.querySelectorAll("[data-f='pid'],[data-f='legal'],[data-xp][data-k='pid'],[data-xp][data-k='legal']").forEach(function(el){if(el._pmal)return;el._pmal=1;
@@ -8985,7 +8987,7 @@ async function pmxAddr(a){var E=pmEsc;if(!/\d/.test(a)||pmhParse(a).length===0){
   h+=K.length?"<div><span class='pmh-lab'>"+(F.same.length?"Jobs at this address:":"Jobs close by:")+"</span>"+K.slice(0,8).map(function(c){var how=c.how==="same"?"same address":c.m!==undefined?Math.round(c.m)+" m away":"same street, "+c.dc+" number"+(c.dc===1?"":"s")+" apart";return "<span class='pmh-it'><b>"+E(c.r.job)+"</b>"+(c.r.qn?" · quote "+E(c.r.qn):"")+" <span class='hint' style='margin:0'>("+E(how)+": "+E(c.r.site.replace(/,\s*(BC|British Columbia)?,?\s*Canada\s*$/i,""))+")</span></span>";}).join("")+"</div>":"<div class='hint' style='margin:2px 0'>✓ No job at this address or close by on the same street (jobs master, "+J.rows.length.toLocaleString("en-CA")+" jobs).</div>";}
  else h+="<div class='hint' style='margin:2px 0'>Jobs not checked — "+(J&&J.off?"connect Job Files - Documents (Folders on this computer, below)":"the jobs master couldn’t be read")+".</div>";
  h+="<div style='margin-top:4px'><button class='btn pmr-b' data-pmxnew='"+E(a)+"'>Start a new quote at this address</button></div>";pmxSay(h);}
-function pmxWireOut(){var o=document.getElementById("pmx-out");if(!o)return;
+function pmxWireOut(){pmzWireOpen();var o=document.getElementById("pmx-out");if(!o)return;
  o.querySelectorAll("[data-pmxgo]").forEach(function(b){b.onclick=function(){pmxGo(b.dataset.pmxgo);};});
  o.querySelectorAll("[data-pmxcopy]").forEach(function(b){b.onclick=function(){var t=b.dataset.pmxcopy,m=o.querySelector(".pmx-msg");try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(function(){});}catch(e){}if(m)m.textContent=" “"+t+"” copied";};});
  o.querySelectorAll("[data-pmxnew]").forEach(function(b){b.onclick=function(){var q=pmNewQuote();q.f.site=b.dataset.pmxnew;PM.mode="quotes";sset("eo:pmmode","quotes");PMX.out="";pmQuotesSave();pmRender();};});}
@@ -9594,13 +9596,16 @@ const TRAINING=[
   {t:"Points matching (Match points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20matching.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Points matching \u2014 PL sample",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20matching-PL%20SAMPLE.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Points upload for crew \u2014 example",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20upload%20for%20crew%20example.mp4",h:"SharePoint",x:null,xh:null},
-  {t:"Fixing tree sizes to imperial (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/fixing%20trees%20sizes%20to%20imperial.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Fixing tree sizes to imperial (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/Points%20tab-fixing%20trees%20sizes%20to%20imperial.mp4",h:"SharePoint",x:null,xh:null},
   {t:"RW5 file to points for a topo in feet (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/rw5%20file%20to%20points%20for%20topo%20in%20feet.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Design vs Field \u2014 comparing cut / fills (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/POINTS%20TAB-COMPARING%20DESIGN%2BFIELD%20CUT-FILLS.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Design vs Field \u2014 cut / fill example (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20tab-cut%2Bfill%20example.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Design vs Field \u2014 comparing residuals (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/POINTS%20TAB-COMPARING%20DESIGN%2BFIELD%20RESIDUALS.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Tree table (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/POINTS%20TAB-TREE%20TABLE.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Height check (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20tab-height%20check.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Map — points over the aerial photo (Points tab)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20tab-map.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Building layout — first test (Design calc)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/points%20tab-building%20calc-initial%20test.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Strata plan — duplex units (Design calc)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/design%20calc-strata%20duplex%20units.mp4",h:"SharePoint",x:null,xh:null},
 ]},
 {group:"Elevate Office app \u2014 PM tab",videos:[
   {t:"Cert quote on the PM tab",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/cert%20quote%20on%20PM%20tab.mp4",h:"SharePoint",x:null,xh:null},
@@ -9609,6 +9614,7 @@ const TRAINING=[
   {t:"Setting up the connection to the Quotes + Jobs folders",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/setting%20up%20connection%20to%20quotes%2Bjobs%20folder.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Topo + posting option",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/topo%2Bposting%20option.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Pasting a tracker row",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/pm%20tab-tracker%20row%20paste.mp4",h:"SharePoint",x:null,xh:null},
+  {t:"Job map — a job’s .msz for control and legal",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/pm%20tab-using%20msz%20file%20to%20see%20control%2Blegal.mp4",h:"SharePoint",x:null,xh:null},
   {t:"Topo + posting + new construction + strata sample (multi-service)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/Elevate%20office%20app/PM%20tab/topo%2Bposting%2Bnewconstruction%2Bstrata%20sample.mp4",h:"SharePoint",x:null,xh:null}]},
 {group:"LISP commands",videos:[
   {t:"Cert in metres to feet (ELVFEET-CERT)",u:"https://elevatelandsurveying.sharepoint.com/sites/ElevateOffice/Shared%20Documents/Training%20Videos/LISP%20COMMANDS/CERT%20IN%20METERS%20TO%20FEET.mp4",h:"SharePoint",x:null,xh:null},
@@ -10179,6 +10185,341 @@ function copyText(txt,elId){
 }
 addSide();
 addAccRow();addAccRow();
+
+/* ================= 1.46.0: PM › job map and quote items noted Nov 20–24 =================
+   Job map: points reset per quote, Remove / Clear all, a job's .msz files listed from its folder, the jobs master re-read when it changes,
+   a job at the quote's own address ringed on the green pin, lot labels (PID + plan) and provincial control monuments.
+   Quotes: Copy folder path, notes in the job details (existing client / existing job), Go to falling back to the job folder for older quotes. */
+var PMZ={lab:{on:null,f:[],box:null,seq:0,t:0,err:"",failAt:0},mon:{on:null,f:[],box:null,seq:0,t:0,err:"",failAt:0,lay:0},open:[],msz:[],nt:0};
+var PMZ_WFS="https://openmaps.gov.bc.ca/geo/pub/";
+var PMZ_LAY={lab:["WHSE_CADASTRE.PMBC_PARCEL_FABRIC_POLY_SVW"],mon:["WHSE_REFERENCE.SRV_GEODETIC_CONTROL_SP","WHSE_REFERENCE.MASCOT_GEODETIC_CONTROL"]};
+var PMZ_MINZ={lab:18,mon:15},PMZ_MAX={lab:1200,mon:500};
+
+/* ---- points and messages belong to the quote they were added on ---- */
+function pmzReset(q){var id=q&&q.id||"";if(PMM.qid===id)return;var first=PMM.qid===undefined;PMM.qid=id;if(first&&!(PMM.sets&&PMM.sets.length)&&!(PMM.pmsMsg&&PMM.pmsMsg.length))return;
+ PMM.sets=[];PMM.pmsMsg=[];PMM.pmsSel=null;PMM.pmsSave=null;PMM.sel=null;PMZ.msz=[];PMM.lastDir=null;}
+
+/* ---- our job pins: read again whenever the jobs master file has changed ---- */
+function pmzLoadJobs(force){if(PMM.jobsBusy)return;if(PMM.jobs&&!force&&PMM.jobsAt&&Date.now()-PMM.jobsAt<8000)return;PMM.jobsBusy=true;
+ pmkSource(false).then(function(S){PMM.jobsBusy=false;PMM.jobsAt=Date.now();
+  if(S&&S.rows){if(PMM.jobsSrc===S.rows&&PMM.jobs)return;PMM.jobsSrc=S.rows;var sj=PMM.sel&&PMM.sel.job;
+   PMM.jobs=S.rows.filter(function(r){return r.lat!==null&&r.lng!==null;}).map(function(r){return {job:r.job,qn:r.qn,site:r.site,lat:r.lat,lng:r.lng,w:cumW(r.lat,r.lng)};});
+   PMM.sel=sj?PMM.jobs.filter(function(j){return j.job===sj;})[0]||null:null;PMM.jobsAll=S.rows.length;PMM.jobsOff="";}
+  else{PMM.jobsSrc=null;PMM.jobs=S&&S.off?null:[];PMM.jobsOff=S&&S.off==="conn"?"Connect Job Files - Documents (Folders on this computer, below) to see our jobs on this map.":S&&S.off==="perm"?"perm":S&&S.miss?PMK_FILE+" isn’t in Job Files - Documents, so no jobs are shown.":"The jobs master couldn’t be read, so no jobs are shown.";}
+  pmmDraw();},function(){PMM.jobsBusy=false;});}
+function pmzTick(){if(document.getElementById("pmm-map")&&(typeof pmOnView!=="function"||pmOnView()))pmzLoadJobs(true);}
+try{setInterval(pmzTick,30000);window.addEventListener("focus",pmzTick);}catch(e){}
+
+/* ---- a job at the quote's own address would sit under the green pin: ring it and name it ---- */
+function pmzJobsAt(geo){var out=[];(PMM.jobs||[]).forEach(function(j){if(pmkDist(geo,j)<3&&!out.some(function(x){return x.job===j.job;}))out.push(j);});return out;}
+function pmaPins(pin,W,H){var L=pmaExact(),multi=(PMM.props||[]).length>1,cv=document.getElementById("pmm-cv"),g=cv&&cv.getContext&&cv.getContext("2d"),r=13;
+ var at=function(geo,lab){var q=pmmXY(cumW(geo.lat,geo.lng),W,H),J=pmzJobsAt(geo);
+  if(J.length&&g){g.beginPath();g.arc(q[0],q[1]-r*1.5,r+5,0,7);g.lineWidth=6;g.strokeStyle="#fff";g.stroke();g.beginPath();g.arc(q[0],q[1]-r*1.5,r+5,0,7);g.lineWidth=3.5;g.strokeStyle="#0288d1";g.stroke();}
+  pin(q,"#16a34a",r,lab+(J.length?" · job "+J[0].job+(J.length>1?" +"+(J.length-1)+" more":""):""));};
+ if(!L.length)at(PMM.geo,"this quote");else L.forEach(function(x){at(x.geo,multi?x.site.split(",")[0].trim():"this quote");});
+ var el=document.getElementById("pma-miss");if(el){var miss=(PMM.props||[]).filter(function(x){return x.geo&&!x.geo.exact;});
+  el.style.display=miss.length?"block":"none";el.innerHTML=miss.length?"<b>Not on the map</b> (no exact address match): "+miss.map(function(x){return pmEsc(x.site);}).join("; "):"";}}
+
+/* ---- Points on the map: Remove per file, Clear all ---- */
+function pmsLeg(){var el=document.getElementById("pms-leg");if(!el)return;var S=pmsSets(),E=pmEsc,h="";
+ if(S.length){h+="<span class='pmh-lab'>Points on the map:</span>"+S.map(function(s){return "<span class='pms-chip'><i style='background:"+s.col+"'></i>"+E(s.name)+" — "+s.nc+" control, "+s.np+" pin"+(s.np===1?"":"s")+" <span class='hint' style='margin:0'>(of "+s.n+" points"+(s.off?", "+s.off+" far off ignored":"")+(s.hold?", not shown":"")+")</span> <button class='btn pmr-b' data-pmsx='"+E(s.name)+"' title='take these points off the map'>Remove</button></span>";}).join("")+
+   (S.length>1?" <button class='btn pmr-b' id='pms-clear' title='take every added file off the map'>Clear all points</button>":"")+
+   "<label class='cu-cb' style='margin-left:8px'><input type='checkbox' id='pms-all' "+(PMM.pmsAll?"checked":"")+"> Show every point</label> <span class='hint' style='margin:0'>▲ control · ● pin / post · click one for its details</span>";}
+ else h+="<span class='hint' style='margin:0'>Click one of our job pins for the <b>.msz</b> files in its folder, or drop a nearby job’s .msz on the map (UTM jobs), to see its control and found pins here."+pmzVid("Job map \u2014 a job\u2019s .msz for control and legal")+"</span>";
+ (PMM.pmsMsg||[]).forEach(function(m){h+="<div class='"+(m.bad?"pma-warn":"hint")+"' style='margin:4px 0 0;display:block'>"+m.t+"</div>";});
+ if(PMM.pmsSave)h+="<div class='"+(PMM.pmsSave.bad?"pma-warn":"hint")+"' style='margin:4px 0 0;display:block'>"+PMM.pmsSave.t+"</div>";
+ el.innerHTML=h;
+ var a=document.getElementById("pms-all");if(a)a.onchange=function(){PMM.pmsAll=a.checked;pmmDraw();};
+ var c=document.getElementById("pms-clear");if(c)c.onclick=function(){PMM.sets=[];PMM.pmsMsg=[];PMM.pmsSel=null;pmsLeg();pmmDraw();};
+ el.querySelectorAll("[data-pmsx]").forEach(function(b){b.onclick=function(){PMM.sets=pmsSets().filter(function(s){return s.name!==b.dataset.pmsx;});PMM.pmsMsg=[];PMM.pmsSel=null;pmsLeg();pmmDraw();};});
+ el.querySelectorAll("[data-pmsshow]").forEach(function(b){b.onclick=function(){var s=pmsSets().filter(function(x){return x.name===b.dataset.pmsshow;})[0];if(!s)return;s.hold=false;PMM.pmsMsg=[];var w=cumW(s.lat,s.lng),g=cumW(PMM.geo.lat,PMM.geo.lng),box=document.getElementById("pmm-map"),W=(box&&box.clientWidth)||900;PMM.c=[(w[0]+g[0])/2,(w[1]+g[1])/2];PMM.z=Math.max(8,Math.min(19,Math.floor(Math.log(W*0.6/Math.max(Math.abs(w[0]-g[0]),Math.abs(w[1]-g[1]),1e-9))/Math.LN2)));pmsLeg();pmmDraw();};});}
+
+/* ---- Add points: the picker opens in the folder of the last job clicked on the map (or Job Files - Documents) ---- */
+function pmsBtns(){return "<button class='btn pmr-b' onclick='pmzPickFiles()' title='a nearby job’s MicroSurvey package or points file (UTM jobs): its control and found pins are drawn on this map. Opens in the folder of the last job pin you clicked.'>Add points (.msz)…</button><input type='file' id='pms-file' accept='.msz,.mbz,.txt,.csv,.asc' multiple style='display:none'><button class='btn pmr-b' id='pms-save' title='a picture of this map as it is now — aerial, lot lines, pins and points — for the quote folder'>Save map image</button>";}
+async function pmzPickFiles(){var inp=document.getElementById("pms-file");if(typeof window.showOpenFilePicker!=="function"){if(inp)inp.click();return;}
+ var o={multiple:true,types:[{description:"MicroSurvey package or points file",accept:{"application/octet-stream":[".msz",".mbz"],"text/plain":[".txt",".csv",".asc"]}}]},st=PMM.lastDir||PMJ.dirs.jobs,hs=null;if(st)o.startIn=st;
+ try{hs=await window.showOpenFilePicker(o);}catch(e){if(e&&e.name==="AbortError")return;try{delete o.startIn;hs=await window.showOpenFilePicker(o);}catch(e2){if(!(e2&&e2.name==="AbortError")&&inp)inp.click();return;}}
+ var fs=[];for(var i=0;i<hs.length;i++){try{fs.push(await hs[i].getFile());}catch(e){}}if(fs.length)pmsAdd(fs);}
+
+/* ---- the .msz files in a job's folder, read from Job Files - Documents on this computer ---- */
+function pmzDay(t){var d=new Date(t);return isFinite(d)?d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2):"";}
+async function pmzMszIn(dir){var out=[],n=0,walk=async function(d,path,depth){if(n>2500)return;var l=await pmjList(d);
+  for(var i=0;i<l.length;i++){var h=l[i];n++;if(h.kind==="file"){if(/\.msz$/i.test(h.name)&&!/^~\$/.test(h.name))out.push({h:h,path:path.slice(),old:path.some(function(p){return /^obsolete$/i.test(p);})});}
+   else if(depth<4&&!/\.msj$/i.test(h.name)&&!/_archive_\d/i.test(h.name))await walk(h,path.concat(h.name),depth+1);}};
+ await walk(dir,[],0);out=out.slice(0,60);
+ for(var i=0;i<out.length;i++){try{var f=await out[i].h.getFile();out[i].t=f.lastModified;out[i].size=f.size;}catch(e){out[i].t=0;}}
+ out.sort(function(a,b){return (a.old?1:0)-(b.old?1:0)||b.t-a.t;});return out;}
+function pmzMszSay(h){var b=document.getElementById("pmz-files");if(b){b.innerHTML=h||"";b.style.display=h?"block":"none";}}
+async function pmzJobMsz(job){var E=pmEsc;
+ if(!PMJ.dirs.jobs){pmzMszSay("<span class='hint' style='margin:0'>Connect Job Files - Documents (Folders on this computer, below) to list this job’s files.</span>");return;}
+ pmzMszSay("<span class='hint' style='margin:0'>Looking in the folder of "+E(job)+" …</span>");var X=null;
+ try{X=await pmjJobDir(job,false);}catch(e){pmzMszSay("<span class='pma-warn'>"+E(e&&e.message||String(e))+"</span>");return;}
+ if(!X){pmzMszSay("<span class='hint' style='margin:0'>There is no folder for <b>"+E(job)+"</b> in Job Files - Documents on this computer.</span>");return;}
+ PMM.lastDir=X.dir;var L=[];try{L=await pmzMszIn(X.dir);}catch(e){pmzMszSay("<span class='pma-warn'>The folder of "+E(job)+" couldn’t be read ("+E(e&&e.message||String(e))+").</span>");return;}
+ PMZ.msz=L;PMZ.mszJob=X.R.job;
+ if(!L.length){pmzMszSay("<span class='hint' style='margin:0'>No .msz found in the folder of <b>"+E(X.R.job)+"</b>. <b>Add points (.msz)…</b> now opens in that folder if the file is somewhere else in it.</span>");return;}
+ pmzMszSay("<span class='pmh-lab'>.msz files in "+E(X.R.job)+":</span> "+L.map(function(x,i){return "<span class='pms-chip'><button class='btn pmr-b' data-pmzadd='"+i+"' title='put its control and found pins on this map'>"+E(x.h.name)+"</button> <span class='hint' style='margin:0'>"+E([x.path.join(" › "),pmzDay(x.t)].filter(Boolean).join(" · "))+"</span></span>";}).join(" ")+" <span class='hint' style='margin:0'>click one to add it</span>");
+ var b=document.getElementById("pmz-files");if(b)b.querySelectorAll("[data-pmzadd]").forEach(function(bt){bt.onclick=async function(){var x=PMZ.msz[+bt.dataset.pmzadd];if(!x)return;bt.disabled=true;try{await pmsAdd([await x.h.getFile()]);}catch(e){PMM.pmsMsg=[{bad:true,t:"<b>"+pmEsc(x.h.name)+"</b> couldn’t be opened ("+pmEsc(e&&e.message||String(e))+")."}];pmsLeg();}bt.disabled=false;};});}
+
+/* ---- a pin is hit on its head (above its point); monuments and added points are hit on themselves ---- */
+function pmmPick(at){var box=document.getElementById("pmm-map"),info=document.getElementById("pmm-info");if(!box)return;if(pmsPick(at))return;if(pmzMonPick(at))return;var W=box.clientWidth||900,H=box.clientHeight||440,best=null,bd=18;(PMM.jobs||[]).forEach(function(j){var q=pmmXY(j.w,W,H),d=Math.hypot(q[0]-at[0],q[1]-16-at[1]);if(d<bd){bd=d;best=j;}});PMM.sel=best;PMZ.monSel=null;
+ if(info){if(best){var here=PMM.jobs.filter(function(j){return Math.abs(j.lat-best.lat)<1e-6&&Math.abs(j.lng-best.lng)<1e-6;}),q=pmCurQ(),m=PMM.geo?pmkDist(PMM.geo,best):null,E=pmEsc;info.style.display="block";
+   info.innerHTML=here.map(function(j){var ok=pmkQnOk(j.qn)&&q&&!pmrIsSub(q);return "<div><b>Job "+E(j.job)+"</b>"+(j.qn?" · quote "+E(j.qn):" · no quote number on record")+" — "+E(j.site.replace(/,\s*BC,\s*Canada\s*$/i,""))+(m!==null?" <span class='hint' style='margin:0'>("+(m<1?"at this quote’s address":Math.round(m)+" m from this quote’s address")+")</span>":"")+(ok?" <button class='btn pmr-b' onclick='pmkAttach(\""+E(j.qn)+"\",\""+E(j.job)+"\")' title='this draft becomes the next sub-quote of "+E(j.qn)+" — everything in it stays'>Make this a sub-quote of "+E(j.qn)+"</button>":"")+" <button class='btn pmr-b' data-pmzmsz='"+E(j.job)+"' title='lists the .msz files in this job’s folder on this computer — one click puts its control and pins on the map'>Points from this job’s folder</button></div>";}).join("")+"<div id='pmz-files' style='display:none;margin-top:4px'></div>";
+   info.querySelectorAll("[data-pmzmsz]").forEach(function(b){b.onclick=function(){pmzJobMsz(b.dataset.pmzmsz);};});}else info.style.display="none";}pmmDraw();}
+
+/* ---- lot labels (PID + plan) and provincial control monuments, read from the province's public map server for the area in view ---- */
+function pmzOn(k){var o=PMZ[k];if(o.on===null){o.on=true;try{if(localStorage.getItem("eo:pmz"+k)==="0")o.on=false;}catch(e){}}return o.on;}
+function pmzSet(k,v){PMZ[k].on=!!v;try{localStorage.setItem("eo:pmz"+k,v?"1":"0");}catch(e){}pmmDraw();}
+function pmzBoxes(){return "<label class='cu-cb' title='PID and plan number on each lot, from ParcelMap BC — shown when zoomed in'><input type='checkbox' "+(pmzOn("lab")?"checked":"")+" onchange='pmzSet(\"lab\",this.checked)'> Lot labels</label><label class='cu-cb' title='provincial geodetic control monuments with their numbers — click one for its record'><input type='checkbox' "+(pmzOn("mon")?"checked":"")+" onchange='pmzSet(\"mon\",this.checked)'> Monuments</label>";}
+function pmzBy(){var o=[];if(pmzOn("mon")&&PMM.z>=PMZ_MINZ.mon)o.push(PMZ.mon.err?"Monuments couldn’t be loaded":"Monuments: GeoBC"+(PMZ.mon.more?" (zoom in to see them all)":""));if(pmzOn("lab")&&PMM.z>=PMZ_MINZ.lab&&PMZ.lab.err)o.push("Lot labels couldn’t be loaded");return o.join(" · ");}
+function pmzLL(w){return [cumLLofW(w),w[0]/256*360-180];}
+function pmzView(W,H){var s=Math.pow(2,PMM.z),a=pmzLL([PMM.c[0]-W/2/s,PMM.c[1]+H/2/s]),b=pmzLL([PMM.c[0]+W/2/s,PMM.c[1]-H/2/s]);return [a[0],a[1],b[0],b[1]];}
+function pmzRingIn(p,R){var c=false;for(var i=0,j=R.length-1;i<R.length;j=i++){if((R[i][1]>p[1])!==(R[j][1]>p[1])&&p[0]<(R[j][0]-R[i][0])*(p[1]-R[i][1])/(R[j][1]-R[i][1])+R[i][0])c=!c;}return c;}
+function pmzRingArea(R){var a=0;for(var i=0,j=R.length-1;i<R.length;j=i++)a+=R[j][0]*R[i][1]-R[i][0]*R[j][1];return a/2;}
+/* where the label goes: the centroid if it is inside the lot, else the middle of the widest stretch inside at that height */
+function pmzLabelPt(R){var a=0,cx=0,cy=0;for(var i=0,j=R.length-1;i<R.length;j=i++){var f=R[j][0]*R[i][1]-R[i][0]*R[j][1];a+=f;cx+=(R[j][0]+R[i][0])*f;cy+=(R[j][1]+R[i][1])*f;}
+ if(Math.abs(a)<1e-18)return R[0].slice();var c=[cx/(3*a),cy/(3*a)];if(pmzRingIn(c,R))return c;
+ var xs=[];for(var i2=0,j2=R.length-1;i2<R.length;j2=i2++){if((R[i2][1]>c[1])!==(R[j2][1]>c[1]))xs.push((R[j2][0]-R[i2][0])*(c[1]-R[i2][1])/(R[j2][1]-R[i2][1])+R[i2][0]);}
+ xs.sort(function(p,q){return p-q;});var best=null;for(var k=0;k+1<xs.length;k+=2){if(!best||xs[k+1]-xs[k]>best[1]-best[0])best=[xs[k],xs[k+1]];}return best?[(best[0]+best[1])/2,c[1]]:c;}
+function pmzParse(k,J){var out=[];(J&&J.features||[]).forEach(function(f){var p=f.properties||{},g=f.geometry;if(!g)return;
+  if(k==="mon"){if(g.type!=="Point")return;var lng=g.coordinates[0],lat=g.coordinates[1];if(!isFinite(lat)||!isFinite(lng))return;
+   out.push({gcm:String(p.GCM_NUMBER==null?"":p.GCM_NUMBER).trim(),tab:String(p.TABLET_MARKING||"").trim(),tag:String(p.MARKER_TAG||"").trim(),mun:String(p.MUNICIPALITY_NAME||"").trim(),url:String(p.GEONETBC_GCM_QUERY_URL||p.MASCOTW_GCM_QUERY_URL||"").trim(),lat:lat,lng:lng,w:cumW(lat,lng)});return;}
+  var cls=String(p.PARCEL_CLASS||"").trim(),pid=String(p.PID_FORMATTED||"").trim(),plan=String(p.PLAN_NUMBER||"").trim(),strata=/strata/i.test(cls);if(!pid&&!strata)return;
+  var polys=g.type==="Polygon"?[g.coordinates]:g.type==="MultiPolygon"?g.coordinates:[],bestR=null,bestA=0;
+  polys.forEach(function(P){if(!P||!P[0]||P[0].length<4)return;var R=P[0].map(function(c){return cumW(c[1],c[0]);}),a=Math.abs(pmzRingArea(R));if(a>bestA){bestA=a;bestR=R;}});if(!bestR)return;
+  var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;bestR.forEach(function(c){if(c[0]<x0)x0=c[0];if(c[0]>x1)x1=c[0];if(c[1]<y0)y0=c[1];if(c[1]>y1)y1=c[1];});
+  out.push({l1:strata&&!pid?cls:pid,l2:plan,w:pmzLabelPt(bestR),bw:x1-x0,bh:y1-y0});});return out;}
+function pmzUrl(k,lay,bb){return PMZ_WFS+lay+"/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=pub:"+lay+"&outputFormat=application%2Fjson&count="+PMZ_MAX[k]+"&srsName=EPSG:4326&bbox="+bb.map(function(v){return v.toFixed(6);}).join(",")+",urn:ogc:def:crs:EPSG::4326";}
+function pmzNeed(k,W,H){var o=PMZ[k],v=pmzView(W,H),inb=function(B){return B&&v[0]>=B[0]&&v[1]>=B[1]&&v[2]<=B[2]&&v[3]<=B[3];};if(inb(o.box)||inb(o.want))return;if(o.failAt&&Date.now()-o.failAt<20000)return;
+ var dy=(v[2]-v[0])*0.5,dx=(v[3]-v[1])*0.5,bb=[v[0]-dy,v[1]-dx,v[2]+dy,v[3]+dx];o.want=bb;
+ clearTimeout(o.t);var my=++o.seq;o.t=setTimeout(function(){if(my!==o.seq)return;if(typeof fetch!=="function"||!pmzOn(k)||PMM.z<PMZ_MINZ[k]){o.want=null;return;}var lays=PMZ_LAY[k];
+  var go=function(i){return fetch(pmzUrl(k,lays[i],bb)).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();}).then(function(J){if(!J||!J.features)throw new Error("no features");return J;}).catch(function(e){if(i+1<lays.length)return go(i+1);throw e;});};
+  go(0).then(function(J){if(my!==o.seq)return;o.want=null;o.f=pmzParse(k,J);o.more=(J.features||[]).length>=PMZ_MAX[k];o.box=bb;o.err="";o.failAt=0;pmmDraw();},function(e){if(my!==o.seq)return;o.want=null;o.err=String(e&&e.message||e);o.failAt=Date.now();pmmDraw();});},350);}
+function pmzText(g,t,x,y,dark){g.lineWidth=3;g.strokeStyle=dark?"rgba(255,255,255,.9)":"rgba(0,0,0,.85)";g.strokeText(t,x,y);g.fillStyle=dark?"#111":"#fff";g.fillText(t,x,y);}
+function pmzDraw(g,W,H){if(!g||!PMM.c)return;var s=Math.pow(2,PMM.z),dark=PMM.base!=="esri";
+ if(pmzOn("lab")&&PMM.z>=PMZ_MINZ.lab){pmzNeed("lab",W,H);g.save();g.font="bold 11px sans-serif";g.textAlign="center";g.textBaseline="middle";
+  PMZ.lab.f.forEach(function(f){var q=pmmXY(f.w,W,H);if(q[0]<-40||q[1]<-20||q[0]>W+40||q[1]>H+20)return;var wp=f.bw*s,hp=f.bh*s,L=[f.l1,f.l2].filter(Boolean);if(!L.length)return;
+   var tw=Math.max.apply(null,L.map(function(t){return g.measureText(t).width;}))+6,th=L.length*13+2;
+   if(wp>=tw&&hp>=th){L.forEach(function(t,i){pmzText(g,t,q[0],q[1]+(i-(L.length-1)/2)*13,dark);});}
+   else if(hp>=tw&&wp>=th){g.save();g.translate(q[0],q[1]);g.rotate(-Math.PI/2);L.forEach(function(t,i){pmzText(g,t,0,(i-(L.length-1)/2)*13,dark);});g.restore();}
+   else if(wp>=tw&&hp>=15)pmzText(g,L[0],q[0],q[1],dark);
+   else if(hp>=tw&&wp>=15){g.save();g.translate(q[0],q[1]);g.rotate(-Math.PI/2);pmzText(g,L[0],0,0,dark);g.restore();}});g.restore();}
+ if(pmzOn("mon")&&PMM.z>=PMZ_MINZ.mon){pmzNeed("mon",W,H);g.save();g.font="bold 11px sans-serif";g.textAlign="left";g.textBaseline="middle";
+  PMZ.mon.f.forEach(function(m){var q=pmmXY(m.w,W,H);if(q[0]<-20||q[1]<-20||q[0]>W+20||q[1]>H+20)return;var r=PMZ.monSel===m?9:7;
+   g.beginPath();g.moveTo(q[0],q[1]-r);g.lineTo(q[0]+r*0.9,q[1]+r*0.7);g.lineTo(q[0]-r*0.9,q[1]+r*0.7);g.closePath();g.fillStyle="#22c55e";g.fill();g.lineWidth=PMZ.monSel===m?2.5:1.5;g.strokeStyle=PMZ.monSel===m?"#111":"#064e3b";g.stroke();
+   if(PMM.z>=17){var t=m.tab||m.gcm;if(t)pmzText(g,t,q[0]+r+3,q[1],dark);}});g.restore();}}
+function pmzMonPick(at){if(!pmzOn("mon")||PMM.z<PMZ_MINZ.mon||!PMZ.mon.f.length)return false;var box=document.getElementById("pmm-map"),info=document.getElementById("pmm-info");if(!box)return false;var W=box.clientWidth||900,H=box.clientHeight||440,best=null,bd=11;
+ PMZ.mon.f.forEach(function(m){var q=pmmXY(m.w,W,H),d=Math.hypot(q[0]-at[0],q[1]-at[1]);if(d<=bd){bd=d;best=m;}});if(!best)return false;PMZ.monSel=best;PMM.sel=null;PMM.pmsSel=null;
+ if(info){var E=pmEsc,d=PMM.geo?pmkDist(PMM.geo,best):null,u=/^https:\/\//i.test(best.url)?best.url:"";info.style.display="block";
+  info.innerHTML="<b>Monument "+E(best.tab||best.gcm)+"</b>"+(best.gcm&&best.tab?" · GCM "+E(best.gcm):"")+(best.tag?" · "+E(best.tag):"")+(best.mun?" · "+E(best.mun):"")+(d!==null?" <span class='hint' style='margin:0'>("+Math.round(d)+" m from this quote’s address)</span>":"")+(u?" <a class='btn pmr-b' target='_blank' rel='noopener' href='"+E(u)+"'>Open its record</a>":"")+" <span class='hint' style='margin:0'>provincial control monument — coordinates and elevation are on its record</span>";}
+ pmmDraw();return true;}
+
+/* ---- Copy folder path: the quote's folder as a path to paste into File Explorer (the browser cannot open Explorer itself) ---- */
+function pmzRoot(){try{return localStorage.getItem("eo:pmzqroot")||"";}catch(e){return "";}}
+function pmzPathSay(h,bad){var b=document.getElementById("pmz-path");if(!b){var row=document.getElementById("pm-qsave");if(!row||!row.parentNode)return;b=document.createElement("div");b.id="pmz-path";row.parentNode.insertBefore(b,row.nextSibling);}
+ b.className=bad?"cu-err":"cu-sfhit";b.style.display=h?"block":"none";b.innerHTML=h||"";}
+function pmzPutClip(t){try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).catch(function(){});return;}}catch(e){}
+ try{var ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();}catch(e){}}
+function pmzAskRoot(){var cur=pmzRoot(),nm=PMJ.dirs.quotes?PMJ.dirs.quotes.name:"Quotes - Documents";
+ pmzPathSay("Where is <b>"+pmEsc(nm)+"</b> on this computer? Open it in File Explorer, click the address bar, copy the path and paste it here. Asked once on each computer.<br><input type='text' id='pmz-root' style='width:min(560px,90%);margin-top:4px' value='"+pmEsc(cur)+"' placeholder='C:\\Users\\you\\Elevate Land Surveying Ltd\\Quotes - Documents'> <button class='btn pmr-b' onclick='pmzSaveRoot()'>Save and copy</button>");
+ var i=document.getElementById("pmz-root");if(i){i.onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();pmzSaveRoot();}};try{i.focus();}catch(e){}}}
+function pmzSaveRoot(){var i=document.getElementById("pmz-root");if(!i)return;var v=i.value.trim().replace(/^["']+|["']+$/g,"").replace(/[\\\/]+$/,"");
+ if(!/[\\\/]/.test(v)||v.length<4){pmzPathSay("That doesn’t look like a folder path — it should read like C:\\Users\\you\\…\\Quotes - Documents. <button class='btn pmr-b' onclick='pmzAskRoot()'>Try again</button>",true);return;}
+ try{localStorage.setItem("eo:pmzqroot",v);}catch(e){}pmzDoCopy();}
+function pmzDoCopy(){var root=pmzRoot(),P=PMZ.pathParts||[];if(!root){pmzAskRoot();return;}var sep=root.indexOf("\\")>=0||root.indexOf("/")<0?"\\":"/",path=root+sep+P.join(sep),nm=PMJ.dirs.quotes?PMJ.dirs.quotes.name:"",last=root.split(/[\\\/]/).pop();
+ pmzPutClip(path);pmzPathSay("Copied: <span class='mono'>"+pmEsc(path)+"</span><br>In File Explorer click the address bar (or press Ctrl+L), paste, and press Enter."+(nm&&last.toLowerCase()!==nm.toLowerCase()?" <span class='pma-warn'>The path saved for this computer ends in “"+pmEsc(last)+"”, but the connected folder is “"+pmEsc(nm)+"” — if Explorer can’t find it, change the path.</span>":"")+((PMZ.pathMore||[]).length?" Other folders that could be this quote: "+PMZ.pathMore.map(pmEsc).join(", ")+".":"")+" <button class='btn pmr-b' onclick='pmzAskRoot()' title='the location of Quotes - Documents on this computer'>Change the saved location</button>");}
+async function pmzCopyPath(){var q=pmCurQ();if(!q)return;var qn=(q.f.qn||"").trim();
+ if(!qn){pmzPathSay("Give the quote its number first.",true);return;}
+ if(!PMJ.dirs.quotes){pmzPathSay("Connect Quotes - Documents (Folders on this computer, below) first.",true);return;}
+ var list=[];try{list=await pmjFindQuoteFolders(qn,q.f.client,false);}catch(e){pmzPathSay(pmEsc(e&&e.message||String(e)),true);return;}
+ if(!list.length){pmzPathSay("There is no folder for "+pmEsc(qn)+" in Quotes - Documents yet — create it with the Create quote folder button at the top of the quote.",true);return;}
+ var parts=null;try{if(PMJ.dirs.quotes.resolve)parts=await PMJ.dirs.quotes.resolve(list[0]);}catch(e){}if(!parts||!parts.length)parts=[list[0].name];
+ PMZ.pathParts=parts;PMZ.pathMore=list.slice(1).map(function(d){return d.name;});if(!pmzRoot()){pmzAskRoot();return;}pmzDoCopy();}
+
+/* ---- job details notes for whoever takes the file over: **existing client #009**, **existing job 22-2165** ----
+   Client: a sure match in the client list (same email, or the same name), unless the PM has set that client aside on this quote.
+   Job: any job in the jobs master at exactly this site address, whether or not the quote was made a sub-quote. */
+var PMZ_NOTE=/\s*\*\*\s*existing (?:client\s*#|jobs?\s)[^*]*\*\*/gi;
+function pmzX(q){if(!q.xn||typeof q.xn!=="object")q.xn={c:null,ign:[],held:null,j:[]};if(!q.xn.ign)q.xn.ign=[];if(!q.xn.j)q.xn.j=[];return q.xn;}
+function pmzNoteC(q){var X=q&&q.xn;return X&&X.c&&X.c.no?" **existing client #"+X.c.no+"**":"";}
+function pmzNoteJ(q){var X=q&&q.xn;return X&&X.j&&X.j.length?" **existing job "+X.j.map(function(x){return x.job;}).join(", ")+"**":"";}
+function pmzStripQ(q){if(q&&q.f){["client","task","contact","pmc"].forEach(function(k){if(typeof q.f[k]==="string"&&q.f[k].indexOf("**")>=0)q.f[k]=q.f[k].replace(PMZ_NOTE,"").replace(/\s+$/,"");});}return q;}
+async function pmzNotes(q){if(!q||!q.f)return false;var X=pmzX(q),before=JSON.stringify([X.c,X.held,X.j]);
+ try{var S=await pmcSource(false);if(S&&S.rows){var f=q.f,has=pmdEmails(f.email).length||pmdNm(f.client)||pmdNm(f.contact),L=has?pmcMatch(f,S.rows).filter(function(x){return x.sure;}):[];
+   var free=L.filter(function(x){return X.ign.indexOf(x.no)<0;}),held=L.filter(function(x){return X.ign.indexOf(x.no)>=0;});
+   X.c=free.length?{no:free[0].no,name:free[0].name,why:free[0].why}:null;X.held=held.length?{no:held[0].no,name:held[0].name}:null;}}catch(e){}
+ try{var K=await pmkSource(false);if(K&&K.rows){var jobs=[];pmProps(q).forEach(function(p){if(!(p.site||"").trim())return;pmkFind(p.site,K.rows).same.forEach(function(x){if(!jobs.some(function(y){return y.job===x.r.job;}))jobs.push({job:x.r.job,qn:x.r.qn||""});});});X.j=jobs;}}catch(e){}
+ return JSON.stringify([X.c,X.held,X.j])!==before;}
+function pmzNoteUi(){var q=pmCurQ(),host=document.getElementById("pmhost");if(!q||!host)return;var ce=host.querySelector("[data-f='client']");if(!ce)return;var lab=ce.closest("label")||ce.parentNode,n=document.getElementById("pmz-cnote"),X=pmzX(q),E=pmEsc,h="";
+ if(X.c)h+="<div>Existing client <b>#"+E(X.c.no)+"</b> — "+E(X.c.name)+(X.c.why?" ("+E(X.c.why)+")":"")+". The job details will say <b>**existing client #"+E(X.c.no)+"**</b>. <button class='btn pmr-b' type='button' data-pmzign='"+E(X.c.no)+"' title='a different person or company with the same name — leave the note off this quote’s job details'>Not the same client</button></div>";
+ else if(X.held)h+="<div>Client #"+E(X.held.no)+" ("+E(X.held.name)+") set aside for this quote — not noted in the job details. <button class='btn pmr-b' type='button' data-pmzunign='"+E(X.held.no)+"'>Undo</button></div>";
+ if(X.j.length)h+="<div>The job details will say <b>**existing job "+E(X.j.map(function(x){return x.job;}).join(", "))+"**</b> (same site address).</div>";
+ if(!h){if(n)n.remove();return;}if(!n||!lab.contains(n)){if(n)n.remove();n=document.createElement("div");n.id="pmz-cnote";n.className="hint";n.style.margin="2px 0 0";lab.appendChild(n);}
+ n.innerHTML=h;
+ n.querySelectorAll("[data-pmzign]").forEach(function(b){b.onclick=function(e){e.preventDefault();var X2=pmzX(q);if(X2.ign.indexOf(b.dataset.pmzign)<0)X2.ign.push(b.dataset.pmzign);pmzRun(q,true);};});
+ n.querySelectorAll("[data-pmzunign]").forEach(function(b){b.onclick=function(e){e.preventDefault();var X2=pmzX(q);X2.ign=X2.ign.filter(function(x){return x!==b.dataset.pmzunign;});pmzRun(q,true);};});}
+function pmzRun(q,save){return pmzNotes(q).then(function(ch){if(pmCurQ()!==q)return;if(ch||save){try{if(typeof pmQuotesSave==="function")pmQuotesSave();}catch(e){}var p=document.getElementById("pm-pre");if(p)p.textContent=pmJobText(q);}pmzNoteUi();},function(){});}
+function pmzSoon(q){if(!q)return;clearTimeout(PMZ.nt);PMZ.nt=setTimeout(function(){if(pmCurQ()===q)pmzRun(q,false);},500);}
+function pmzWire(host){var q=pmCurQ();if(!q||!host)return;pmzNoteUi();if(PMZ.noteFor!==q.id){PMZ.noteFor=q.id;pmzRun(q,false);}}
+
+/* ---- Go to a quote whose folder has nothing to open (quotes from before the app): its job details were filed in the job folder ---- */
+function pmzWireOpen(){var o=document.getElementById("pmx-out");if(!o)return;o.querySelectorAll("[data-pmzopen]").forEach(function(b){if(b._pmz)return;b._pmz=1;b.onclick=async function(){var h=PMZ.open[+b.dataset.pmzopen];if(!h)return;try{var f=await h.getFile(),u=URL.createObjectURL(f);window.open(u,"_blank");setTimeout(function(){try{URL.revokeObjectURL(u);}catch(e){}},60000);}catch(e){b.textContent=b.textContent+" — couldn’t be opened";}};});}
+async function pmzQuoteFallback(qn,dirs){var E=pmEsc,key=pmjQnKey(qn),want=pmjQnNorm(qn),K=null,jobs=[];try{K=await pmkSource(true);}catch(e){}
+ if(K&&K.rows)K.rows.forEach(function(r){if(r.qn&&pmjQnKey(String(r.qn).replace(/(\d)\s*-\s*([A-Za-z])$/,"$1$2"))===key&&jobs.indexOf(r.job)<0)jobs.push(r.job);});
+ for(var i=0;i<jobs.length;i++){var X=null;try{X=await pmjJobDir(jobs[i],false);}catch(e){}if(!X)continue;var places=[[X.dir,""]];try{var of=await pmjFindCI(X.dir,"Office","dir");if(of)places.push([of,"Office"]);}catch(e){}
+  for(var p=0;p<places.length;p++){var files=[];try{files=(await pmjList(places[p][0])).filter(function(h){return h.kind==="file"&&pmjJobTxtRe().test(h.name)&&!/^~\$/.test(h.name);});}catch(e){}
+   var pick=files.filter(function(h){return h.name.indexOf(X.R.job)===0;})[0]||(files.length===1?files[0]:null);
+   if(pick){PM.mode="quotes";sset("eo:pmmode","quotes");PMX.out="<span class='hint' style='margin:0'>The quote folder for <b>"+E(qn)+"</b> has no Word quote or job details file. It became job <b>"+E(X.R.job)+"</b>, so this was read from <b>"+E(pick.name)+"</b> in Job Files - Documents › "+E(X.R.th)+" › "+E(X.R.hu)+" › "+E(X.R.job)+(places[p][1]?" › "+E(places[p][1]):"")+".</span>";pmImportFile(await pick.getFile());return true;}}}
+ PMZ.open=[];var h="",subs=[];
+ for(var d=0;d<(dirs||[]).length;d++){var fl=[];try{fl=(await pmjList(dirs[d])).filter(function(x){return x.kind==="file"&&!/^~\$/.test(x.name);});}catch(e){}
+  fl.forEach(function(x){var n=pmjFileQn(x.name);if(n&&n!==want&&n.indexOf(want)===0&&/^-?[A-Z0-9]{1,3}$/.test(n.slice(want.length))&&/\.(docx|txt)$/i.test(x.name)){var nm=qn+n.slice(want.length);if(subs.indexOf(nm)<0)subs.push(nm);}});
+  var docs=fl.filter(function(x){var n=pmjFileQn(x.name);return /\.(pdf|docx?|txt)$/i.test(x.name)&&(/quote|job[\s_-]*details/i.test(x.name))&&(!n||n===want);}).slice(0,8);
+  h+="Quote folder <b>"+E(dirs[d].name)+"</b> is there, but it has no Word quote or job details file for "+E(qn)+" that the app can open"+(jobs.length?", and none was found in the folder of job "+E(jobs.join(", ")):"")+".";
+  if(docs.length)h+=" In the folder: "+docs.map(function(x){PMZ.open.push(x);return "<button class='btn pmr-b' data-pmzopen='"+(PMZ.open.length-1)+"' title='opens in a new tab'>"+E(x.name)+"</button>";}).join(" ");}
+ if(!h)h="No draft of <b>"+E(qn)+"</b> on this computer, and no folder for it in Quotes - Documents"+(jobs.length?" (the jobs master has it as job "+E(jobs.join(", "))+", whose folder has no job details file either)":"")+".";
+ if(subs.length)h+=" Sub-quotes there: "+subs.map(function(n){return "<button class='btn pmr-b' data-pmxgo='"+E(n)+"'>Open "+E(n)+"</button>";}).join(" ");
+ pmxSay(h);return false;}
+async function pmxQuote(qn){var E=pmEsc,key=pmjQnKey(qn),ex=PM.quotes.find(function(x){return pmjQnKey(x.f.qn)===key;});
+ if(ex){PM.cur=ex.id;PM.mode="quotes";sset("eo:pmmode","quotes");PMX.out="<span class='hint' style='margin:0'>Opened the draft of <b>"+E(qn)+"</b> that is on this computer.</span>";pmRender();return;}
+ if(!PMJ.dirs.quotes){pmxSay("No draft of <b>"+E(qn)+"</b> on this computer. Connect Quotes - Documents (Folders on this computer, below) and it can be read from its quote folder.");return;}
+ var list=await pmjFindQuoteFolders(qn,"",false);if(!list.length){await pmzQuoteFallback(qn,[]);return;}
+ var want=pmjQnNorm(qn),found=null,where="";for(var i=0;i<list.length&&!found;i++){var files=(await pmjList(list[i])).filter(function(h){return h.kind==="file"&&!/^~\$/.test(h.name);});where=list[i].name;
+  found=files.filter(function(h){return /\.docx$/i.test(h.name)&&pmjFileQn(h.name)===want;})[0]||files.filter(function(h){return pmjJobTxtRe().test(h.name)&&pmjFileQn(h.name)===want;})[0]||(function(){var T=files.filter(function(h){return pmjJobTxtRe().test(h.name);});if(T.length!==1)return null;var n=pmjFileQn(T[0].name);return !n||n===want?T[0]:null;})();}
+ if(!found){await pmzQuoteFallback(qn,list);return;}
+ PM.mode="quotes";sset("eo:pmmode","quotes");PMX.out="<span class='hint' style='margin:0'>Read <b>"+E(found.name)+"</b> from Quotes - Documents › "+E(where)+".</span>";pmImportFile(await found.getFile());}
+["pmzPickFiles","pmzSet","pmzCopyPath","pmzAskRoot","pmzSaveRoot","pmzJobMsz"].forEach(function(n){window[n]=eval(n);});
+
+/* ---- 1.46.0: the address search answers from the masters first, and nothing waits for ever ----
+   Reported from another PM's computer: Go to on an address sat on "Looking…". The search read the quotes master, To Do Quotes, the newest
+   25 quote folders and the jobs master, and showed nothing until all had answered — with no time limit. Where the quote folders are
+   cloud-only (OneDrive), or the browser's permission prompt is waiting, that never came back.
+   Now: every wait has a limit; the masters are shown at once; the newest folders are read afterwards, job details files only, within a budget. */
+var PMZ_SRCH={seq:0,pend:{}};
+function pmzWait(p,ms){return new Promise(function(res,rej){var done=false,t=setTimeout(function(){if(done)return;done=true;res({late:true});},ms);
+ Promise.resolve(p).then(function(v){if(done)return;done=true;clearTimeout(t);res(v);},function(e){if(done)return;done=true;clearTimeout(t);rej(e);});});}
+function pmzLate(v){return !!(v&&typeof v==="object"&&v.late===true);}
+function pmzFetch(u,ms){var ac=typeof AbortController==="function"?new AbortController():null,t=setTimeout(function(){try{if(ac)ac.abort();}catch(e){}},ms||7000);
+ var p=ac?fetch(u,{signal:ac.signal}):fetch(u);return pmzWait(p,(ms||7000)+500).then(function(r){clearTimeout(t);if(pmzLate(r))throw new Error("timeout");return r;},function(e){clearTimeout(t);throw e;});}
+/* one new quote folder: its site address from the job details file (small). Kept once read; a read that is slow carries on behind and is there next time. */
+function pmzReadFolder(x){var nm=x.h.name;if(PMZ_SRCH.pend[nm])return PMZ_SRCH.pend[nm];
+ var p=(async function(){var c={t:Date.now(),site:"",client:""};
+  try{var files=await pmjList(x.h),txt=files.filter(function(h){return h.kind==="file"&&pmjJobTxtRe().test(h.name)&&!/^~\$/.test(h.name);}),q=null;
+   for(var j=0;j<txt.length&&!(q&&q.f&&q.f.site);j++){try{q=pmParseJob(await (await txt[j].getFile()).text());}catch(e){}}
+   if(q&&q.f){c.site=[q.f.site||""].concat((q.xp||[]).map(function(p){return p.site||"";})).filter(Boolean).join(" & ");c.client=q.f.client||q.f.contact||"";}}catch(e){}
+  PMD.rec[nm]=c;delete PMZ_SRCH.pend[nm];return c;})();
+ PMZ_SRCH.pend[nm]=p;return p;}
+async function pmdRecent(root,M,budget){
+ var out={rows:[],n:0,top:"",blank:[],late:[]},end=Date.now()+(budget||4000);
+ try{var yy=pmjYY(),all=await pmzWait(pmjYearQuotes(root,yy,null),6000);if(pmzLate(all)){out.err=true;out.slow=true;return out;}
+  all.sort(function(a,b){return b.n-a.n;});var L=all.slice(0,PMD.N);
+  out.n=L.length;if(L.length)out.top=yy+"-"+pmjPad(L[0].n);
+  var inM={};if(M&&M.rows)M.rows.forEach(function(r){if(!r.site)return;var P=pmjQnParts(r.qn);if(P)inM[P.base]=1;});
+  for(var i=0;i<L.length;i++){var x=L[i],qn=yy+"-"+pmjPad(x.n);if(inM[yy+"-"+x.n])continue;
+   var c=PMD.rec[x.h.name];
+   if(!c||(!c.site&&Date.now()-c.t>60000)){var left=end-Date.now(),p=pmzReadFolder(x);
+    if(left<=0){out.late.push(qn);continue;}
+    var r=await pmzWait(p,Math.min(left,3000));if(pmzLate(r)){out.late.push(qn);continue;}c=r;}
+   var who=c.client||x.h.name.replace(/^.*?\d{2}-\d+\s*-?\s*/,"");
+   if(!c.site){out.blank.push(qn);continue;}
+   out.rows.push({qn:qn,site:c.site,client:who,folder:x.h.name,src:"folder"});}
+ }catch(e){out.err=true;}
+ return out;}
+async function pmhSources(ask,opt){opt=opt||{};
+ if(!PMJ.dirs.quotes)return {off:"conn"};var h=PMJ.dirs.quotes;
+ var p=h.queryPermission?await pmzWait(h.queryPermission({mode:"read"}),4000):"granted";if(pmzLate(p))p="prompt";
+ if(p!=="granted"){if(!ask||!h.requestPermission)return {off:"perm"};var r=await pmzWait(h.requestPermission({mode:"read"}),opt.perm||20000);if(pmzLate(r))return {off:"perm",late:true};if(r!=="granted")return {off:"perm"};}
+ var slow={err:"wasn’t read in time — it may still be downloading from OneDrive; try again in a moment"};
+ var M=await pmzWait(pmhFile(h,PMH_MASTER),opt.file||15000);if(pmzLate(M))M=slow;
+ var D=await pmzWait(pmhFile(h,PMH_TODO),opt.file||15000);if(pmzLate(D))D=null;
+ var R=opt.recent===0?{rows:[],n:0,top:"",blank:[],late:[],skipped:true}:await pmdRecent(h,M,opt.recent||4000);
+ return {master:M,todo:D&&D.rows?D:null,recent:R};}
+function pmdReach(S){var a=[],rows=S.master&&S.master.rows||[],yy=pmjYY(),top=0;rows.forEach(function(r){var P=pmjQnParts(r.qn);if(P&&P.yy===yy&&P.n>top)top=P.n;});
+ a.push("quotes master ("+rows.length.toLocaleString("en-CA")+" quotes"+(top?", to "+yy+"-"+pmjPad(top):"")+")");
+ a.push(S.todo?"To Do Quotes ("+S.todo.rows.length+" row"+(S.todo.rows.length===1?"":"s")+")":"To Do Quotes could not be read");
+ var R=S.recent;if(R&&R.skipped)return a;
+ if(R&&!R.err&&R.n){var nl=(R.late||[]).length;a.push("the last "+R.n+" quote folder"+(R.n===1?"":"s")+(R.top?" (to "+R.top+")":"")+(nl?", "+nl+" of them not read in time":""));}
+ else a.push(R&&R.slow?"the quote folders took too long to list":"the quote folders could not be listed");
+ return a;}
+function pmdBlankNote(S){var R=S.recent,h="";if(!R)return "";
+ if(R.blank&&R.blank.length){var b=R.blank.slice().sort();h+=" <span class='pmh-blank' title='these folders are newer than the master and have no job details file with a site address yet, so their address could not be compared'>Not compared — no site address on file yet: "+b.slice(0,8).map(pmEsc).join(", ")+(b.length>8?" and "+(b.length-8)+" more":"")+".</span>";}
+ if(R.late&&R.late.length){var l=R.late.slice().sort();h+=" <span class='pmh-blank' title='these folders are newer than the master; their job details file did not open in time, usually because OneDrive has not downloaded it to this computer yet. It keeps reading behind the scenes, so the next check may have them.'>Not compared — still loading from OneDrive: "+l.slice(0,8).map(pmEsc).join(", ")+(l.length>8?" and "+(l.length-8)+" more":"")+".</span>";}
+ return h;}
+/* the warning before a quote folder is created is the one place that waits longer for the newest folders */
+async function pmdHits(q){var out=[];if(pmrIsSub(q))return out;var P=pmProps(q).map(function(p){return (p.site||"").trim();}).filter(Boolean);if(!P.length)return out;
+ var S=null,J=null;try{S=await pmhSources(true,{recent:15000});}catch(e){}try{J=await pmzWait(pmkSource(true),10000);if(pmzLate(J))J=null;}catch(e){}
+ P.forEach(function(site){
+  if(S&&S.master&&S.master.rows)pmhFind(q,site,S).forEach(function(r){out.push({kind:"quote",site:site,qn:r.qn||"",noqn:!!r.noqn,who:r.client||"",src:r.src,asg:r.asg||"",date:r.date||"",folder:r.folder||""});});
+  if(J&&J.rows)pmkFind(site,J.rows).same.forEach(function(c){out.push({kind:"job",site:site,job:c.r.job,qn:c.r.qn||""});});});
+ out.forEach(function(w){w.multi=P.length>1;});return out;}
+function pmzAddrHtml(a,S,J,F,st){var E=pmEsc,fake={id:"pmx",f:{qn:"",email:"",client:"",contact:""}},h="<b>"+E(a)+"</b>";
+ if(!S)h+="<div class='hint' style='margin:2px 0'>Looking in the quotes master …</div>";
+ else if(S.master&&S.master.rows){var L=pmhFind(fake,a,S);
+  h+=L.length?"<div><span class='pmh-lab'>Quotes at this address:</span>"+L.slice(0,8).map(function(r){return r.noqn?"<span class='pmh-it pmh-todo'><b>In To Do Quotes, no quote # yet</b> ("+E([r.client,r.date?"requested "+pmdDate(r.date):"",r.asg?"assigned "+r.asg:""].filter(Boolean).join(", "))+")</span>":"<span class='pmh-it'><button class='btn pmr-b' data-pmxgo='"+E(r.qn)+"'>"+E(r.qn)+"</button> ("+E([r.client,r.src==="master"?r.year:r.src==="folder"?"quote folder, not in the master yet":"in To Do Quotes"].filter(Boolean).join(", "))+")</span>";}).join("")+(L.length>8?"<span class='hint' style='margin:0'>…and "+(L.length-8)+" more</span>":"")+"</div>":"<div class='hint' style='margin:2px 0'>✓ No quote at this address in: "+E(pmdReach(S).join(" · "))+"."+pmdBlankNote(S)+"</div>";
+  if(L.length&&S.recent&&!S.recent.skipped)h+="<div class='hint' style='margin:2px 0'>Checked: "+E(pmdReach(S).join(" · "))+"."+pmdBlankNote(S)+"</div>";
+  if(st==="folders")h+="<div class='hint' style='margin:2px 0'>Also looking in the newest quote folders (those not in the master yet) …</div>";}
+ else h+="<div class='hint' style='margin:2px 0'>Quotes not checked — "+(S.off==="conn"?"connect Quotes - Documents (Folders on this computer, below)":S.off==="perm"?(S.late?"the browser is waiting for your OK to read Quotes - Documents. Look for its prompt beside the address bar, choose Allow, then press Go again":"permission to read Quotes - Documents wasn’t given — press Go again and choose Allow"):S.master&&S.master.miss?PMH_MASTER+" isn’t in Quotes - Documents":"the quotes master "+E(S.master&&S.master.err||"couldn’t be read"))+".</div>";
+ if(J===undefined)h+="<div class='hint' style='margin:2px 0'>Looking in the jobs master …</div>";
+ else if(J&&J.rows){var K=F.same.concat(F.near);
+  h+=K.length?"<div><span class='pmh-lab'>"+(F.same.length?"Jobs at this address:":"Jobs close by:")+"</span>"+K.slice(0,8).map(function(c){var how=c.how==="same"?"same address":c.m!==undefined?Math.round(c.m)+" m away":"same street, "+c.dc+" number"+(c.dc===1?"":"s")+" apart";return "<span class='pmh-it'><b>"+E(c.r.job)+"</b>"+(c.r.qn?" · quote "+E(c.r.qn):"")+" <span class='hint' style='margin:0'>("+E(how)+": "+E(c.r.site.replace(/,\s*(BC|British Columbia)?,?\s*Canada\s*$/i,""))+")</span></span>";}).join("")+"</div>":"<div class='hint' style='margin:2px 0'>✓ No job at this address or close by on the same street (jobs master, "+J.rows.length.toLocaleString("en-CA")+" jobs).</div>";}
+ else h+="<div class='hint' style='margin:2px 0'>Jobs not checked — "+(J&&J.off==="conn"?"connect Job Files - Documents (Folders on this computer, below)":J&&J.late?"the jobs master wasn’t read in time (waiting for permission, or still downloading from OneDrive) — press Go again":J&&J.off?"permission to read Job Files - Documents wasn’t given — press Go again and choose Allow":"the jobs master couldn’t be read")+".</div>";
+ h+="<div style='margin-top:4px'><button class='btn pmr-b' data-pmxnew='"+E(a)+"'>Start a new quote at this address</button></div>";return h;}
+async function pmxAddr(a){if(!/\d/.test(a)||pmhParse(a).length===0){pmxSay("Type a quote number (26-690), a job number (26-3687), or a street address with its number.");return;}
+ var my=++PMZ_SRCH.seq,live=function(){return my===PMZ_SRCH.seq;},S=null,J,F={same:[],near:[]};
+ try{S=await pmhSources(true,{recent:0,perm:12000});}catch(e){S={master:{err:"couldn’t be read"}};}
+ if(!live())return;pmxSay(pmzAddrHtml(a,S,undefined,F,""));
+ try{J=await pmzWait(pmkSource(true),10000);}catch(e){J=null;}if(pmzLate(J))J={late:true};
+ if(J&&J.rows){F=pmkFind(a,J.rows);try{var F2=await pmzWait(pmkNear(a,F,J.rows),9000);if(!pmzLate(F2))F=F2;}catch(e){}}
+ if(!live())return;var more=!!(S&&S.master&&S.master.rows&&PMJ.dirs.quotes);pmxSay(pmzAddrHtml(a,S,J||null,F,more?"folders":""));
+ if(!more)return;var shown=PMX.out,R=null;try{R=await pmdRecent(PMJ.dirs.quotes,S.master,8000);}catch(e){R={rows:[],n:0,top:"",blank:[],late:[],err:true};}
+ if(!live()||PMX.out!==shown)return;pmxSay(pmzAddrHtml(a,Object.assign({},S,{recent:R}),J||null,F,""));}
+
+/* ---- 1.46.0: civic addresses (house numbers) on the job map, from the BC Address Geocoder's sites in the area in view ---- */
+PMZ.adr={on:null,f:[],box:null,seq:0,t:0,err:"",failAt:0};PMZ_LAY.adr=["geocoder"];PMZ_MINZ.adr=18;PMZ_MAX.adr=900;
+function pmzBoxes(){var b=function(k,lab,tip){return "<label class='cu-cb' title='"+tip+"'><input type='checkbox' "+(pmzOn(k)?"checked":"")+" onchange='pmzSet(\""+k+"\",this.checked)'> "+lab+"</label>";};
+ return b("adr","Addresses","the civic number on each lot, from the BC Address Geocoder — shown when zoomed in")+b("lab","Lot labels","PID and plan number on each lot, from ParcelMap BC — shown when zoomed in")+b("mon","Monuments","provincial geodetic control monuments with their numbers — click one for its record");}
+function pmzBy(){var o=[];if(pmzOn("mon")&&PMM.z>=PMZ_MINZ.mon)o.push(PMZ.mon.err?"Monuments couldn’t be loaded":"Monuments: GeoBC"+(PMZ.mon.more?" (zoom in to see them all)":""));
+ if(pmzOn("adr")&&PMM.z>=PMZ_MINZ.adr)o.push(PMZ.adr.err?"Addresses couldn’t be loaded":"Addresses: BC Address Geocoder");
+ if(pmzOn("lab")&&PMM.z>=PMZ_MINZ.lab&&PMZ.lab.err)o.push("Lot labels couldn’t be loaded");return o.join(" · ");}
+function pmzUrl(k,lay,bb){if(k==="adr")return "https://geocoder.api.gov.bc.ca/sites/within.json?bbox="+[bb[1],bb[0],bb[3],bb[2]].map(function(v){return v.toFixed(6);}).join(",")+"&maxResults="+PMZ_MAX.adr+"&outputSRS=4326";
+ return PMZ_WFS+lay+"/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=pub:"+lay+"&outputFormat=application%2Fjson&count="+PMZ_MAX[k]+"&srsName=EPSG:4326&bbox="+bb.map(function(v){return v.toFixed(6);}).join(",")+",urn:ogc:def:crs:EPSG::4326";}
+function pmzParse(k,J){var out=[];PMZ.ver=(PMZ.ver||0)+1;(J&&J.features||[]).forEach(function(f){var p=f.properties||{},g=f.geometry;if(!g)return;
+  if(k==="mon"){if(g.type!=="Point")return;var lng=g.coordinates[0],lat=g.coordinates[1];if(!isFinite(lat)||!isFinite(lng))return;
+   out.push({gcm:String(p.GCM_NUMBER==null?"":p.GCM_NUMBER).trim(),tab:String(p.TABLET_MARKING||"").trim(),tag:String(p.MARKER_TAG||"").trim(),mun:String(p.MUNICIPALITY_NAME||"").trim(),url:String(p.GEONETBC_GCM_QUERY_URL||p.MASCOTW_GCM_QUERY_URL||"").trim(),lat:lat,lng:lng,w:cumW(lat,lng)});return;}
+  if(k==="adr"){if(g.type!=="Point")return;var lo=g.coordinates[0],la=g.coordinates[1],num=String(p.civicNumber==null?"":p.civicNumber).trim()+String(p.civicNumberSuffix||"").trim();if(!num||!isFinite(la)||!isFinite(lo))return;
+   out.push({num:num,st:[p.streetName,p.streetType,p.streetDirection].filter(Boolean).join(" "),w:cumW(la,lo)});return;}
+  var cls=String(p.PARCEL_CLASS||"").trim(),pid=String(p.PID_FORMATTED||"").trim(),plan=String(p.PLAN_NUMBER||"").trim(),strata=/strata/i.test(cls);if(!pid&&!strata)return;
+  var polys=g.type==="Polygon"?[g.coordinates]:g.type==="MultiPolygon"?g.coordinates:[],bestR=null,bestA=0;
+  polys.forEach(function(P){if(!P||!P[0]||P[0].length<4)return;var R=P[0].map(function(c){return cumW(c[1],c[0]);}),a=Math.abs(pmzRingArea(R));if(a>bestA){bestA=a;bestR=R;}});if(!bestR)return;
+  var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;bestR.forEach(function(c){if(c[0]<x0)x0=c[0];if(c[0]>x1)x1=c[0];if(c[1]<y0)y0=c[1];if(c[1]>y1)y1=c[1];});
+  out.push({l1:strata&&!pid?cls:pid,l2:plan,w:pmzLabelPt(bestR),bw:x1-x0,bh:y1-y0,R:bestR,bb:[x0,y0,x1,y1]});});
+ if(k==="adr"){var seen={},u=[];out.forEach(function(a){var key=a.num+"|"+a.st+"|"+Math.round(a.w[0]*2e5)+"|"+Math.round(a.w[1]*2e5);if(seen[key])return;seen[key]=1;u.push(a);});out=u;}
+ return out;}
+/* which civic numbers sit on which lot (worked out once for each pair of loads) */
+function pmzJoin(){var key=PMZ.ver+"|"+PMZ.lab.f.length+"|"+PMZ.adr.f.length;if(PMZ.joinKey===key)return;PMZ.joinKey=key;
+ PMZ.lab.f.forEach(function(f){f.nums=[];});PMZ.adr.f.forEach(function(a){a.lot=null;
+  for(var i=0;i<PMZ.lab.f.length;i++){var f=PMZ.lab.f[i];if(!f.bb||a.w[0]<f.bb[0]||a.w[0]>f.bb[2]||a.w[1]<f.bb[1]||a.w[1]>f.bb[3])continue;if(pmzRingIn(a.w,f.R)){a.lot=f;if(f.nums.indexOf(a.num)<0)f.nums.push(a.num);break;}}});
+ PMZ.lab.f.forEach(function(f){f.nums.sort(function(p,q){return parseInt(p,10)-parseInt(q,10);});f.l0=f.nums.length?f.nums.slice(0,2).join(", ")+(f.nums.length>2?" +"+(f.nums.length-2):""):"";});}
+function pmzDraw(g,W,H){if(!g||!PMM.c)return;var s=Math.pow(2,PMM.z),dark=PMM.base!=="esri";
+ var labOn=pmzOn("lab")&&PMM.z>=PMZ_MINZ.lab,adrOn=pmzOn("adr")&&PMM.z>=PMZ_MINZ.adr;
+ if(labOn)pmzNeed("lab",W,H);if(adrOn)pmzNeed("adr",W,H);if(labOn&&adrOn)pmzJoin();
+ var lines=function(L,q,rot){g.save();g.translate(q[0],q[1]);if(rot)g.rotate(-Math.PI/2);L.forEach(function(t,i){g.font=(t.b?"bold 12.5px":"bold 11px")+" sans-serif";pmzText(g,t.s,0,(i-(L.length-1)/2)*13,dark);});g.restore();};
+ if(labOn){g.save();g.textAlign="center";g.textBaseline="middle";
+  PMZ.lab.f.forEach(function(f){var q=pmmXY(f.w,W,H);f.drew=false;if(q[0]<-40||q[1]<-20||q[0]>W+40||q[1]>H+20)return;var wp=f.bw*s,hp=f.bh*s,all=[];
+   if(adrOn&&f.l0)all.push({s:f.l0,b:true});if(f.l1)all.push({s:f.l1});if(f.l2)all.push({s:f.l2});if(!all.length)return;
+   /* everything if it fits, else without the plan, else the first line alone; turned on its side on a narrow lot */
+   var tries=[all,all.length>2?all.slice(0,2):null,all.length>1?all.slice(0,1):null].filter(Boolean);
+   for(var i=0;i<tries.length;i++){var L=tries[i];g.font="bold 12.5px sans-serif";var tw=Math.max.apply(null,L.map(function(t){return g.measureText(t.s).width;}))+6,th=L.length*13+2;
+    if(wp>=tw&&hp>=th){lines(L,q,false);f.drew=adrOn&&!!f.l0;return;}if(hp>=tw&&wp>=th){lines(L,q,true);f.drew=adrOn&&!!f.l0;return;}}});g.restore();}
+ if(adrOn){g.save();g.textAlign="center";g.textBaseline="middle";g.font="bold 12.5px sans-serif";var put=[];
+  PMZ.adr.f.forEach(function(a){if(labOn&&a.lot&&a.lot.drew)return;var q=pmmXY(a.w,W,H);if(q[0]<-20||q[1]<-20||q[0]>W+20||q[1]>H+20)return;
+   if(put.some(function(p){return Math.abs(p[0]-q[0])<26&&Math.abs(p[1]-q[1])<12;}))return;put.push(q);pmzText(g,a.num,q[0],q[1],dark);});g.restore();}
+ if(pmzOn("mon")&&PMM.z>=PMZ_MINZ.mon){pmzNeed("mon",W,H);g.save();g.font="bold 11px sans-serif";g.textAlign="left";g.textBaseline="middle";
+  PMZ.mon.f.forEach(function(m){var q=pmmXY(m.w,W,H);if(q[0]<-20||q[1]<-20||q[0]>W+20||q[1]>H+20)return;var r=PMZ.monSel===m?9:7;
+   g.beginPath();g.moveTo(q[0],q[1]-r);g.lineTo(q[0]+r*0.9,q[1]+r*0.7);g.lineTo(q[0]-r*0.9,q[1]+r*0.7);g.closePath();g.fillStyle="#22c55e";g.fill();g.lineWidth=PMZ.monSel===m?2.5:1.5;g.strokeStyle=PMZ.monSel===m?"#111":"#064e3b";g.stroke();
+   if(PMM.z>=17){var t=m.tab||m.gcm;if(t)pmzText(g,t,q[0]+r+3,q[1],dark);}});g.restore();}}
+
+/* a training video link by its title in the Training list */
+function pmzVid(t){try{var v=null;TRAINING.forEach(function(g){g.videos.forEach(function(x){if(x.t===t)v=x;});});return v?" <a href='"+v.u+"' target='_blank' rel='noopener'>\u25b6 Training video</a>":"";}catch(e){return "";}}
 
 /* ---------- boot ---------- */
 window.CHECKLISTS=CHECKLISTS;window.st=st;
