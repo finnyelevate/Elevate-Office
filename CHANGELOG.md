@@ -1,5 +1,12 @@
 # Elevate Office — changelog
 
+## Build 1.47.1 — 2026-11-25
+One fix from the first use of 1.47.0.
+- **PM › Sub-quotes keep the job map and the research buttons (fix).** As soon as a quote became a sub-quote (for example when the address check found an existing quote and it was renumbered 26-093B), the job map and the Research row (City GIS, ParcelMap BC, Job map, Google Maps, BC Assessment, ALR) disappeared. That was a rule from Build 1.35, when a sub-quote was assumed to need no new research. A new request at an old address does, so both now stay.
+  - A map that was open stays open when the quote turns into a sub-quote.
+  - Unchanged on a sub-quote: no second "previous quotes at this address" check, no automatic PID lookup, and no automatic services, since those come from the original quote.
+- **Checked:** 9 new scripted checks; the 249 from 1.47.0 unchanged. Not checked by hand in Chrome.
+
 ## Build 1.47.0 — 2026-11-25
 Four items: the foundation outline found by the app, a layer list, interest lines on the job map, and the job map matched to the Field site map. The Strata plan work for townhouses and commercial buildings is still held.
 - **Design calc › Find the foundation outline (new).** In step 2 (Outline), for Building layout and Strata plan. One button: the app works out which line work is the foundation wall, finds the right plan on the sheet, and follows the wall's outside face. Nothing is confirmed for you: check the sides, then press Confirm outline.
