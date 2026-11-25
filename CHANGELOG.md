@@ -1,5 +1,42 @@
 # Elevate Office — changelog
 
+## Build 1.47.0 — 2026-11-25
+Four items: the foundation outline found by the app, a layer list, interest lines on the job map, and the job map matched to the Field site map. The Strata plan work for townhouses and commercial buildings is still held.
+- **Design calc › Find the foundation outline (new).** In step 2 (Outline), for Building layout and Strata plan. One button: the app works out which line work is the foundation wall, finds the right plan on the sheet, and follows the wall's outside face. Nothing is confirmed for you: check the sides, then press Confirm outline.
+  - **CAD file (.dxf / .dwg):** it uses the layer named for a foundation or concrete, then a wall layer. Footing layers are never used.
+  - **PDF printed from CAD:** a PDF has no layers, so it uses the heaviest pen that draws long solid lines. Footings are dashed, so they drop out.
+  - **Which plan:** the one beside the sheet's "FOUNDATION PLAN" title (else "BASEMENT"); with no title, the largest, and it says so.
+  - **Not the foundation?** The card lists the other line work it could have used; one press tries that instead. This is the one choice to make on a basement plan where finishes are drawn outside the concrete.
+  - Works from a foundation plan or a basement plan. Pick outline and Trace outline are unchanged and still there.
+  - Tried on a real job: 24-2591, 2784 Ohara Lane, architect's sheet A-2.1 (foundation plan and main floor plan on one page). Found with no click: 20 corners, 141.02 m², every side matching the calc we drew (140.96 m²) to the inch. On the same sheet an ordinary Pick outline click gave 138.71 m², because it joined across to the porch piers.
+- **Design calc › Building layout: setbacks picked on the drawing (new).** Step 5 no longer needs point numbers looked up and typed. In the Site view:
+  1. Click a **house corner**, or a **house wall** to keep that wall parallel to the lot line. Use the small house plan at the top right; once the house is on the lot, click the house itself.
+  2. Click the **lot line** it is measured from. Either order works.
+  3. Type the setback and press **Enter**. The house is fitted straight away and the next setback is ready.
+  - A corner makes a "point" row and a wall makes a "pair ∥" row, so the kind no longer has to be chosen. A wall and one corner fix the house.
+  - A blue strip at the bottom of the drawing says what to click next, the part picked is shown in blue, and each setback is lettered on the drawing where it is measured.
+  - The table is still there, fills itself in, and can be edited by hand as before.
+- **Design calc › Layers list (new).** Above the viewer, for Building layout and Strata plan: every layer on the drawing with a tick box (on a PDF, every pen weight and colour). A layer that is off is not drawn, not followed and not snapped to.
+  - On a CAD file, door, window, glazing, furniture and fixture layers start turned off.
+  - An outline already picked or confirmed stays as it is until you pick it again.
+- **PM › Job map: interest lines apart from lot lines (new).** Rights of way and other interest parcels (covenant and easement areas) were drawn in the same orange as lot lines. They are now light blue, with their own tick box *Interest lines*.
+  - Click inside one, away from any pin, for its kind and plan number.
+  - ParcelMap BC names only some kinds (statutory right of way). The rest are just "Interest"; the app says so and gives the plan number. Only interests drawn in the parcel fabric appear, so title is still the place to check.
+- **PM › Job map matched to the Field site map.**
+  - Destroyed monuments are shown in red, with a *Destroyed* tick box to hide them (1.46.1 hid them altogether). Green is geodetic, purple a benchmark. Clicking a red one says DESTROYED.
+  - A legend under the map: SITE, the three monument colours, lot line and interest line.
+  - Monuments appear from one zoom step further out, and up to 1,000 at a time.
+  - A note on the map when a ticked layer needs a closer zoom: "Zoom in to see lot lines and monuments", "Zoom in closer for house numbers and PIDs".
+  - The quote's address is an orange pin labelled SITE (it was green, the colour of a good monument). A job at the same address still shows as "SITE · job 26-3687" with the blue ring.
+  - Lot labels and house numbers no longer print over each other.
+- **Checked:** 99 new checks in a scripted browser (setbacks on the drawing 27, on a made-up house and lot, placed to the millimetre as asked; foundation outline and layers 32, including the real Ohara Lane sheet and a made-up CAD file with foundation, footing, door and dimension layers; the Design calc page 9; job map 31). The 150 earlier checks from 1.46 pass, with three updated for the SITE label and the red monuments. From Chrome against the province's live map server: lot tiles without interests, interest tiles alone, and the click lookup all answer in well under a second.
+- **Not checked:** by hand in Chrome. In particular:
+  - the setback clicks were tested through the app's own functions, not with a mouse on the real drawing, so how easy the walls and corners are to hit is unseen;
+  - how the light blue interest lines look on the real map (the colour is made in the browser from the province's orange tiles; a dashed line was not possible this way);
+  - the Ohara Lane test fed the app the sheet's line work read by another PDF reader, not through the app's own PDF reader, so try that sheet first;
+  - no architect's CAD file and no basement plan were available to test, so those routes rest on the made-up file.
+- **Not in this build:** posts and piers are not picked up automatically (the posts step is unchanged); the found outline is not compared with the sheet's written dimensions; concrete is not told apart by its stipple. The Field app gets the interest lines in its own build.
+
 ## Build 1.46.1 — 2026-11-24
 One fix from the first look at 1.46.0.
 - **PM › Job map: destroyed monuments were shown (fix).** Every monument in the province's list was drawn as a green triangle, including the ones recorded as destroyed (around Surrey and Langley, more than a third of them). Now:
