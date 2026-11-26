@@ -1,5 +1,16 @@
 # Elevate Office — changelog
 
+## Build 1.48.1 — 2026-11-26
+One fix from the first look at 1.48.0.
+- **Maps: control symbols drawn as on the plan (fix).** In 1.48.0 every symbol sat on a white disc with a coloured ring, so they all looked circled, and they were too large for the map. Now:
+  - Each symbol is drawn alone, as on our drawings: a found iron post is a solid dot, a set one an open circle, a lead plug a square, a traverse hub a triangle. Only the symbols that have a circle on the plan (concrete, capped and rock posts, control monuments, non-standard posts) have one. A thin white edge keeps them readable on the air photo.
+  - Sizes come from the legend on the 2026 frames, so they sit in the same proportion to each other as on a plan: an iron post is the smallest, a lead plug and traverse hub a little larger, posts and control monuments about the size of the provincial monument triangles.
+  - The symbols were matched to the frame legend (the 250 frame). Clicking a point now gives the legend wording, for example "on the plan: standard iron post found".
+  - A selected point still gets a light blue ring. The colour ring that showed which points file a point came from is gone; the file name is in the line you get by clicking the point.
+- **Checked:** 7 new scripted checks (no circle round a bare symbol, the legend sizes, the legend wording); the 316 from 1.48.0 pass, two of them updated for the new drawing. A picture of the symbols at map size is in the build folder (`control-symbols-1.48.1.png`); it was drawn by a separate script with the same shapes and sizes, not by the app itself.
+- **Not checked:** by hand in Chrome on the real map.
+- **Noted:** OIPIPE2 (block ICM_RIP) has no line on the frame legend. OIPT has no row in the AutoMap and stays a dot.
+
 ## Build 1.48.0 — 2026-11-26
 Six items from the PM tab and the maps. The Strata plan work for townhouses and commercial buildings is still held.
 - **PM › "Quoted before" is hard to miss.** The line is now an amber banner with a ⚠ mark, the quote number, client and year, and the Start from this one button. On the job map the SITE pin gets an amber ring and reads "SITE · quoted 26-635" (several: "26-635 +1"). A job and an earlier quote at the address show together: "SITE · job 26-3687 · quoted 26-635". The legend explains the ring.
