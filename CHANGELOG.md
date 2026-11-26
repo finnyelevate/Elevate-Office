@@ -1,5 +1,13 @@
 # Elevate Office — changelog
 
+## Build 1.48.2 — 2026-11-26
+One tweak from the first look at 1.48.1.
+- **Maps: our control stands out in its own colour.** Traverse hubs, control nails and spikes (OCN, OCNT, OPM, ORLT, OSPK, OCC, OIB, OMAG, ORBR, OSC, OSM, OSP: the codes the AutoMap puts on the CONTROL layer) are drawn in magenta, and the point number beside each takes a lighter tint of the same colour. On the PM job map and the Points › Map.
+  - On our drawings this control is green. Green, purple and red are already the provincial monuments on these maps, so ours got a colour of its own to keep the two apart. Magenta is used for nothing else on the map.
+  - Pins and posts (iron posts, lead plugs, capped, concrete and rock posts, our control monuments: the PINS layer) stay black with a white edge, as on the plan.
+  - The legend under the PM map names the colour.
+- **Checked:** 6 new scripted checks; the 323 from 1.48.1 pass. Not checked by hand in Chrome, so how the magenta reads on the real air photo is unseen.
+
 ## Build 1.48.1 — 2026-11-26
 One fix from the first look at 1.48.0.
 - **Maps: control symbols drawn as on the plan (fix).** In 1.48.0 every symbol sat on a white disc with a coloured ring, so they all looked circled, and they were too large for the map. Now:
