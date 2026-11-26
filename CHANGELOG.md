@@ -1,5 +1,29 @@
 # Elevate Office — changelog
 
+## Build 1.48.0 — 2026-11-26
+Six items from the PM tab and the maps. The Strata plan work for townhouses and commercial buildings is still held.
+- **PM › "Quoted before" is hard to miss.** The line is now an amber banner with a ⚠ mark, the quote number, client and year, and the Start from this one button. On the job map the SITE pin gets an amber ring and reads "SITE · quoted 26-635" (several: "26-635 +1"). A job and an earlier quote at the address show together: "SITE · job 26-3687 · quoted 26-635". The legend explains the ring.
+  - The marker is for the same address only. A quote on the lot next door doesn't get one.
+- **PM › Job map and Points › Map: control drawn with our plan symbols.** Found and placed posts, lead plugs, control nails, capped posts, rock posts and monuments are drawn as on our plans and frame legend, in place of the triangles and dots. The symbols come from the blocks named in ELEV-AUTOMAP-2026 (the 2016 folder): 20 block drawings covering 36 control codes.
+  - Each symbol sits on a white disc so it reads on the air photo; the ring round it keeps the colour of the points file it came from.
+  - Provincial monuments from GeoBC keep their green, purple and red triangles, so ours and the province's are told apart.
+  - OIPT has no row in the AutoMap, so it stays a dot. OPP's block (OIPNSD) isn't in the folder, so it takes the OIPNS symbol.
+  - Topo codes (hydrants, manholes, trees) are unchanged.
+- **PM › Look up a place by name.** When Site address has no civic number (a school, a city hall, a mall), a *Look up this place* button searches OpenStreetMap within the Lower Mainland and Fraser Valley and offers up to three matches with their addresses. Picking one fills Site address; the name you typed goes to the Project line if that is empty; the usual checks (PID, map, previous quotes) then run.
+  - One lookup per press, not as you type (OpenStreetMap's rule for its free service).
+  - A large site can cover several lots, so the address only gets you to the site. A match with no civic number on the map says so.
+- **PM › Tidy quote folders… (its own button).** Beside the quote folder buttons. It files a finished hundred into its range folder ("Elev. Survey Quotes 26-600-26-699") and past years into their year folder, after you confirm a list of what goes where. Until now this was only offered while creating a quote folder with the app, so folders made any other way never brought it up.
+  - When a finished hundred is sitting loose, a note beside the button says how many folders are waiting.
+  - Folders are moved, never copied or deleted. The current hundred and the 26-000 template stay at the top.
+- **PM › City GIS button copies the short address.** "2571 Panorama Drive, Coquitlam, BC" is copied as "2571 PANORAMA DR": no city, province or unit number, the street type shortened (AVE, ST, RD, DR, CRES, PL, BLVD, HWY, CRT…), directions as N, E, S, W, and Richmond's "Number 3 Road" as "NO 3 RD". The other research buttons copy what they did before.
+- **PM › Sub-quotes take the letter after the highest one used (fix).** With 25-172B and 25-172D in the folder the app made 25-172C, filling the gap. It now makes 25-172E and says which letter was skipped. The different client names on those files were not the cause; the app had been taking the first unused letter.
+- **Checked:** 58 new checks in a scripted browser, covering all six items; the 258 from 1.47 unchanged. The place lookup was tried against the real OpenStreetMap service from Chrome before building (Richmond Centre Mall → 6551 Number 3 Road; Surrey City Hall → 13450 104 Avenue). The symbols were read from the real block drawings and looked at as a sheet.
+- **Not checked:** by hand in Chrome. In particular:
+  - how the symbols look at map size on the air photo (they were checked large, on a sheet);
+  - Tidy quote folders on the real Quotes - Documents (tested on a made-up folder set; cloud-only folders should move without downloading, but that is untested);
+  - the short address against each city's own search. Cities don't all abbreviate alike (CRES or CR, CRT or CT).
+- **Not in this build:** symbols for topo features; the symbols on the Field site map (the table is ready for the Field build).
+
 ## Build 1.47.1 — 2026-11-25
 One fix from the first use of 1.47.0.
 - **PM › Sub-quotes keep the job map and the research buttons (fix).** As soon as a quote became a sub-quote (for example when the address check found an existing quote and it was renumbered 26-093B), the job map and the Research row (City GIS, ParcelMap BC, Job map, Google Maps, BC Assessment, ALR) disappeared. That was a rule from Build 1.35, when a sub-quote was assumed to need no new research. A new request at an old address does, so both now stay.
